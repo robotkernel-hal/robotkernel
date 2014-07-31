@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.63])
-AC_INIT([robotkernel], [2.1.13], [robert.burger@dlr.de])
+AC_INIT([robotkernel], [3.0.0], [robert.burger@dlr.de])
 AC_CANONICAL_TARGET
 AC_CANONICAL_SYSTEM
 
@@ -140,6 +140,9 @@ AC_ARG_WITH([debug],
 AS_IF([test "x$with_debug" != xno], [ 
        CFLAGS="-g3 -O0"
        CXXFLAGS="-g3 -O0" ])
+
+CFLAGS=""
+CXXFLAGS=""
 
 # Checks for header files.
 AC_CHECK_HEADERS([stdint.h stdlib.h string.h sys/ioctl.h unistd.h execinfo.h termios.h])
