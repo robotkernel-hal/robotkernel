@@ -14,65 +14,70 @@
 SUPPORTED_ARCHS=sled11-x86-gcc4.x sled11-x86_64-gcc4.x arm-angstrom-linux-gnueabi vxworks6.7-x86-gcc4.x vxworks6.8-x86-gcc4.x vxworks6.9-x86-gcc4.x vxworks6.9.3-x86-gcc4.x vxworks6.9.4-x86-gcc4.x qnx6.3-x86-gcc3.3 qnx6.5-x86-gcc4.x qnx6.5-x86-gcc4.x-gpp
 
 JOBS=16
-ARGS=--with-debug 
+ARGS=
 
 # architecture specific settings
 ifeq ($(ARCH),sled11-x86-gcc4.x)
-SOURCE_ENV="source $(CURDIR)/scripts/sled11-x86-gcc4.x.env"
-ARGS+=--disable-dependency-tracking # when configure just exits with 1
+#SOURCE_ENV="source $(CURDIR)/scripts/sled11-x86-gcc4.x.env"
 endif
 
 ifeq ($(ARCH),sled11-x86_64-gcc4.x)
 ifneq ($(shell uname -m),x86_64)
 SSH=ssh rmc-thalia
 endif
-SOURCE_ENV="source $(CURDIR)/scripts/sled11-x86_64-gcc4.x.env"
-ARGS+=--disable-dependency-tracking # when configure just exits with 1
+#SOURCE_ENV="source $(CURDIR)/scripts/sled11-x86_64-gcc4.x.env"
 endif
 
 ifeq ($(ARCH),arm-angstrom-linux-gnueabi)
 OECORE_ROOT=/home/schm_fl/data/local/oecore-i686
-HOST_OPTION="--host=arm-angstrom-linux-gnueabi"
+HOST_OPTION=--host=arm-angstrom-linux-gnueabi
 TOOLCHAIN=${OECORE_ROOT}/sysroots/i686-angstromsdk-linux/usr/bin/armv7a-vfp-neon-angstrom-linux-gnueabi/
-SOURCE_ENV="source $(SRC_DIR)/scripts/linux-gnueabi-rmpm-hack.sh"
-ARGS+=--disable-dependency-tracking # when configure just exits with 1
+#SOURCE_ENV="source $(SRC_DIR)/scripts/linux-gnueabi-rmpm-hack.sh"
 endif
 
 ifeq ($(findstring vxworks,$(ARCH)),vxworks)
 TOOLCHAIN=/opt/vxworks/wrapper/linux/bin_configure/
-HOST_OPTION="--host=$(shell ./scripts/arch_from_dlrrm $(ARCH))"
-ARGS+=--disable-dependency-tracking PKG_CONFIG=/bin/false # when configure just exits with 1
-SOURCE_ENV="source $(CURDIR)/scripts/$(ARCH).env"
+HOST_OPTION=--host=$(shell ./scripts/arch_from_dlrrm $(ARCH))
+ARGS+=PKG_CONFIG=/bin/false 
+#SOURCE_ENV="source $(CURDIR)/scripts/$(ARCH).env"
 endif
 
 ifeq ($(ARCH),qnx6.3-x86-gcc3.3)
-HOST_OPTION="--host=$(shell ./scripts/arch_from_dlrrm $(ARCH))"
-SOURCE_ENV="source $(CURDIR)/scripts/$(ARCH).env"
+HOST_OPTION=--host=$(shell ./scripts/arch_from_dlrrm $(ARCH))
+#SOURCE_ENV="source $(CURDIR)/scripts/$(ARCH).env"
 CXX="QCC -V 3.3.5,gcc_ntox86_cpp -fmessage-length=0 -fexceptions"
 CC="QCC -V 3.3.5,gcc_ntox86_cpp -fmessage-length=0"
-ARGS+=--without-soem --without-soem130 --without-sercos --disable-dependency-tracking PKG_CONFIG=/bin/false CC=$(CC) CXX=$(CXX) # when configure just exits with 1
+ARGS+=PKG_CONFIG=/bin/false CC=$(CC) CXX=$(CXX) 
 endif
 
 ifeq ($(ARCH),qnx6.5-x86-gcc4.x)
-HOST_OPTION="--host=$(shell ./scripts/arch_from_dlrrm $(ARCH))"
-SOURCE_ENV="source $(CURDIR)/scripts/$(ARCH).env"
+HOST_OPTION=--host=$(shell ./scripts/arch_from_dlrrm $(ARCH))
+#SOURCE_ENV="source $(CURDIR)/scripts/$(ARCH).env"
 CXX="QCC -fmessage-length=0 -Wno-write-strings -fexceptions"
 CC="QCC -lang-c -fmessage-length=0 -Wno-write-strings" 
 AR="ar"
-ARGS+=--without-soem130 --without-sercos --disable-dependency-tracking PKG_CONFIG=/bin/false CC=$(CC) CXX=$(CXX) AR=$(AR)# when configure just exits with 1
+ARGS+=PKG_CONFIG=/bin/false CC=$(CC) CXX=$(CXX) AR=$(AR) 
 endif
 
 ifeq ($(ARCH),qnx6.5-x86-gcc4.x-gpp)
-HOST_OPTION="--host=$(shell ./scripts/arch_from_dlrrm $(ARCH))"
-SOURCE_ENV="source $(CURDIR)/scripts/$(ARCH).env"
+HOST_OPTION=--host=$(shell ./scripts/arch_from_dlrrm $(ARCH))
+#SOURCE_ENV="source $(CURDIR)/scripts/$(ARCH).env"
 CXX="QCC -V 4.4.2,gcc_ntox86_gpp -fmessage-length=0 -Wno-write-strings"
 CC="QCC -V 4.4.2,gcc_ntox86_gpp -lang-c -fmessage-length=0 -Wno-write-strings" 
 AR="ar"
-ARGS+=--without-soem --without-soem130 --without-sercos --without-sah --without-xsens --disable-dependency-tracking PKG_CONFIG=/bin/false CC=$(CC) CXX=$(CXX) AR=$(AR)# when configure just exits with 1
+ARGS+=PKG_CONFIG=/bin/false CC=$(CC) CXX=$(CXX) AR=$(AR)
 endif
 
 SRC_DIR=$(CURDIR)
 DST_DIR=$(SRC_DIR)/build/$(ARCH)
+
+ifneq ($(TOOLCHAIN),)
+	ARGS+="TOOLCHAIN=$(TOOLCHAIN)"
+endif
+
+ifneq ($(PKG_CONFIG_PATH),)
+	ARGS+="PKG_CONFIG_PATH=$(PKG_CONFIG_PATH)"
+endif
 
 # targets
 .PHONY: configure build install build_all \
@@ -86,16 +91,7 @@ $(SUPPORTED_ARCHS):
 configure:
 ifeq ($(SSH),)
 	mkdir -p $(DST_DIR)
-	cd $(DST_DIR); $(SRC_DIR)/configure \
-		--build `$(SRC_DIR)/config.guess` \
-		$(HOST_OPTION) \
-		TOOLCHAIN=$(TOOLCHAIN) \
-		SOURCE_ENV=$(SOURCE_ENV) \
-		DLRRM_ARCH=$(ARCH) \
-		LN_BASE="${LN_BASE}" \
-		PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) \
-		$(ARGS) \
-		--prefix=$(DST_DIR)/install 
+	cd $(DST_DIR); $(SRC_DIR)/configure --build=$(shell $(SRC_DIR)/config.guess) $(HOST_OPTION) SOURCE_ENV=$(CURDIR)/scripts/$(ARCH).env DLRRM_ARCH=$(ARCH) LN_BASE="${LN_BASE}" $(ARGS) --prefix=$(DST_DIR)/install 
 else
 	$(SSH) make -C $(SRC_DIR) -f Makefile.suggested ARCH=$(ARCH) configure
 endif

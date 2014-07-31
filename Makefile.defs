@@ -13,7 +13,7 @@ install-exec-hook:
 	mkdir -p $(prefix)/share/message_definitions
 	-cp -rf $(srcdir)/message_definitions/* $(prefix)/share/message_definitions/
 	-cp -rf $(srcdir)/../share/robotkernel.inc.lnc $(prefix)/share
-	-cp -rf $(srcdir)/../gui/robotkernel_gui.inc.lnc $(prefix)/share
+	-cp -rf $(srcdir)/../share/robotkernel_gui.inc.lnc $(prefix)/share
 	mkdir -p $(prefix)/lib/python/site-packages
 	-cp -r $(srcdir)/../gui $(prefix)/lib/python/site-packages/robotkernel_gui
 	-cp -r $(srcdir)/../gui/robotkernel_gui $(prefix)/bin

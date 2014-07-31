@@ -13,6 +13,17 @@ AC_CONFIG_MACRO_DIR([m4])
 
 AM_MAKEFLAGS="$AM_MAKEFLAGS --no-print-directory --jobs=8"
 
+# load env-file with each make invocation
+if test -n "$SOURCE_ENV"; then
+   echo "loading $SOURCE_ENV"
+   source $SOURCE_ENV
+fi
+
+# Checks for programs.
+AC_PROG_CXX
+AC_PROG_LIBTOOL
+AC_PROG_CC
+
 if test -z "$MAKE"; then
    MAKE=make
 fi
@@ -24,18 +35,13 @@ fi
 # load env-file with each make invocation
 if test -n "$SOURCE_ENV"; then
    echo "loading $SOURCE_ENV"
-   $SOURCE_ENV
-   MAKE="$SOURCE_ENV; $MAKE"
+   source $SOURCE_ENV
+   MAKE="source $SOURCE_ENV; $MAKE"
 fi
 if test -n "$MAKE"; then
    SET_MAKE="MAKE := $MAKE"
 fi
 AC_SUBST(SET_MAKE)
-
-# Checks for programs.
-AC_PROG_CC
-AC_PROG_CXX
-AC_PROG_LIBTOOL
 
 # setup rmpm
 RMPM_ARCH
