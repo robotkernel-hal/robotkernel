@@ -470,7 +470,7 @@ size_t module::read(char* buf, size_t bufsize) {
 
     if (!mod_read) {
         klog(error, "[module] error: no mod_read function\n");
-        return -1;
+        return 0;
     }
 
     return mod_read(mod_handle, buf, bufsize); 
@@ -488,7 +488,7 @@ size_t module::write(char* buf, size_t bufsize) {
 
     if (!mod_write) {
         klog(error, "[module] error: no mod_write function\n");
-        return -1;
+        return 0;
     }
 
     return mod_write(mod_handle, buf, bufsize);
