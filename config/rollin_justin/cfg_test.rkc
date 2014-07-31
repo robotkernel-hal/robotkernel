@@ -1,0 +1,97 @@
+modules:
+-   name: sercos_first
+    module_file: libmodule_sercos.so
+    config_file: module_sercos_first.rkc
+    power_up: true
+
+-   name: sercos_first_jitter
+    module_file: libmodule_jitter_meassurement.so
+    config: 
+        name: sercos_first_jitter
+        buffer_size: 1000
+    trigger:
+    -   mod_name: sercos_first
+        clk_id: 1
+        prio: 72 
+    depends: [ sercos_first, ]
+    power_up: false
+
+-   name: sercos_second
+    module_file: libmodule_sercos.so
+    config_file: module_sercos_second.rkc
+    depends: [ sercos_first ]
+    power_up: true
+
+-   name: sercos_second_jitter
+    module_file: libmodule_jitter_meassurement.so
+    config: 
+        name: sercos_second_jitter
+        buffer_size: 1000
+    trigger:
+    -   mod_name: sercos_second
+        clk_id: 1
+        prio: 72 
+    depends: [ sercos_second, ]
+    power_up: false
+
+-   name: ethercat
+    module_file: libmodule_ethercat.so
+    config_file: module_soem.rkc
+    depends: [ sercos_first, sercos_second ]
+    trigger:
+    -   mod_name: sercos_first
+        clk_id: 1
+        prio: 80
+
+-   name: halfstep
+    module_file: libmodule_halfstep.so
+    config:
+        sercos_first_mod_name: sercos_first
+        sercos_second_mod_name: sercos_second
+        ethercat_mod_name: ethercat
+        heinzmann_mod_name: ethercat_heinzmann
+    trigger:
+    -   mod_name: ethercat
+        clk_id: 1
+        prio: 79 
+    depends: [ sercos_first, sercos_second, ethercat, ethercat_heinzmann, ]
+
+-   name: ethercat_heinzmann
+    module_file: libmodule_heinzmann.so
+    config_file: module_heinzmann.rkc
+    inputs:
+    -   mod_name: ethercat
+        src_offset: 14
+        dest_offset: 0
+    outputs:
+    -   mod_name: ethercat
+        src_offset: 14
+        dest_offset: 0
+    trigger:
+    -   mod_name: ethercat
+        clk_id: 2
+        prio: 78
+    depends: [ ethercat, ]
+
+-   name: lbrserver
+    module_file: libmodule_lbrserver.so
+    config:
+        modules:
+        -   id: 0
+            name: sercos_first
+        -   id: 1
+            name: sercos_second
+        server_port: 51234
+    depends: [ sercos_first, sercos_second ]
+
+-   name: halfstep_jitter
+    module_file: libmodule_jitter_meassurement.so
+    config: 
+        name: halfstep_jitter
+        buffer_size: 1000
+    trigger:
+    -   mod_name: halfstep
+        clk_id: 1
+        prio: 72 
+    depends: [ halfstep, ]
+    power_up: false

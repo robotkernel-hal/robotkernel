@@ -1,0 +1,111 @@
+# -*- mode: makefile -*-
+
+# to build and install (locally) for all supported architectures just execute:
+#  make -f Makefile.suggested -j16 build_all
+#  (2:30 on rmc-uranos, 192MB binaries)
+#
+# to configure/build/install only a single architecture execute:
+#  make -f Makefile.suggested ARCH=sled11-x86-gcc4.x configure build install
+
+# settings:
+#LN_BASE=/home/schm_fl/workspace/ln_base/install/links_and_nodes/0.2.0
+#LN_BASE=${HOME}/workspace/ln_base
+
+SUPPORTED_ARCHS=sled11-x86-gcc4.x sled11-x86_64-gcc4.x arm-angstrom-linux-gnueabi vxworks6.7-x86-gcc4.x vxworks6.8-x86-gcc4.x vxworks6.9-x86-gcc4.x vxworks6.9.3-x86-gcc4.x vxworks6.9.4-x86-gcc4.x qnx6.3-x86-gcc3.3 qnx6.5-x86-gcc4.x qnx6.5-x86-gcc4.x-gpp
+
+JOBS=16
+ARGS=--with-debug 
+
+# architecture specific settings
+ifeq ($(ARCH),sled11-x86-gcc4.x)
+SOURCE_ENV="source $(CURDIR)/scripts/sled11-x86-gcc4.x.env"
+ARGS+=--disable-dependency-tracking # when configure just exits with 1
+endif
+
+ifeq ($(ARCH),sled11-x86_64-gcc4.x)
+ifneq ($(shell uname -m),x86_64)
+SSH=ssh rmc-thalia
+endif
+SOURCE_ENV="source $(CURDIR)/scripts/sled11-x86_64-gcc4.x.env"
+ARGS+=--disable-dependency-tracking # when configure just exits with 1
+endif
+
+ifeq ($(ARCH),arm-angstrom-linux-gnueabi)
+OECORE_ROOT=/home/schm_fl/data/local/oecore-i686
+HOST_OPTION="--host=arm-angstrom-linux-gnueabi"
+TOOLCHAIN=${OECORE_ROOT}/sysroots/i686-angstromsdk-linux/usr/bin/armv7a-vfp-neon-angstrom-linux-gnueabi/
+SOURCE_ENV="source $(SRC_DIR)/scripts/linux-gnueabi-rmpm-hack.sh"
+ARGS+=--disable-dependency-tracking # when configure just exits with 1
+endif
+
+ifeq ($(findstring vxworks,$(ARCH)),vxworks)
+TOOLCHAIN=/opt/vxworks/wrapper/linux/bin_configure/
+HOST_OPTION="--host=$(shell ./scripts/arch_from_dlrrm $(ARCH))"
+ARGS+=--disable-dependency-tracking PKG_CONFIG=/bin/false # when configure just exits with 1
+SOURCE_ENV="source $(CURDIR)/scripts/$(ARCH).env"
+endif
+
+ifeq ($(ARCH),qnx6.3-x86-gcc3.3)
+HOST_OPTION="--host=$(shell ./scripts/arch_from_dlrrm $(ARCH))"
+SOURCE_ENV="source $(CURDIR)/scripts/$(ARCH).env"
+CXX="QCC -V 3.3.5,gcc_ntox86_cpp -fmessage-length=0 -fexceptions"
+CC="QCC -V 3.3.5,gcc_ntox86_cpp -fmessage-length=0"
+ARGS+=--without-soem --without-soem130 --without-sercos --disable-dependency-tracking PKG_CONFIG=/bin/false CC=$(CC) CXX=$(CXX) # when configure just exits with 1
+endif
+
+ifeq ($(ARCH),qnx6.5-x86-gcc4.x)
+HOST_OPTION="--host=$(shell ./scripts/arch_from_dlrrm $(ARCH))"
+SOURCE_ENV="source $(CURDIR)/scripts/$(ARCH).env"
+CXX="QCC -fmessage-length=0 -Wno-write-strings -fexceptions"
+CC="QCC -lang-c -fmessage-length=0 -Wno-write-strings" 
+AR="ar"
+ARGS+=--without-soem130 --without-sercos --disable-dependency-tracking PKG_CONFIG=/bin/false CC=$(CC) CXX=$(CXX) AR=$(AR)# when configure just exits with 1
+endif
+
+ifeq ($(ARCH),qnx6.5-x86-gcc4.x-gpp)
+HOST_OPTION="--host=$(shell ./scripts/arch_from_dlrrm $(ARCH))"
+SOURCE_ENV="source $(CURDIR)/scripts/$(ARCH).env"
+CXX="QCC -V 4.4.2,gcc_ntox86_gpp -fmessage-length=0 -Wno-write-strings"
+CC="QCC -V 4.4.2,gcc_ntox86_gpp -lang-c -fmessage-length=0 -Wno-write-strings" 
+AR="ar"
+ARGS+=--without-soem --without-soem130 --without-sercos --without-sah --without-xsens --disable-dependency-tracking PKG_CONFIG=/bin/false CC=$(CC) CXX=$(CXX) AR=$(AR)# when configure just exits with 1
+endif
+
+SRC_DIR=$(CURDIR)
+DST_DIR=$(SRC_DIR)/build/$(ARCH)
+
+# targets
+.PHONY: configure build install build_all \
+	$(SUPPORTED_ARCHS)
+
+build_all: $(SUPPORTED_ARCHS)
+
+$(SUPPORTED_ARCHS):
+	make ARCH=$@ -f Makefile.suggested configure build install
+
+configure:
+ifeq ($(SSH),)
+	mkdir -p $(DST_DIR)
+	cd $(DST_DIR); $(SRC_DIR)/configure \
+		--build `$(SRC_DIR)/config.guess` \
+		$(HOST_OPTION) \
+		TOOLCHAIN=$(TOOLCHAIN) \
+		SOURCE_ENV=$(SOURCE_ENV) \
+		DLRRM_ARCH=$(ARCH) \
+		LN_BASE="${LN_BASE}" \
+		PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) \
+		$(ARGS) \
+		--prefix=$(DST_DIR)/install 
+else
+	$(SSH) make -C $(SRC_DIR) -f Makefile.suggested ARCH=$(ARCH) configure
+endif
+
+build:
+	$(SSH) make -j $(JOBS) -C $(DST_DIR)
+
+install: build
+	$(SSH) make -j $(JOBS) -C $(DST_DIR) install
+
+local-release: build
+	cat $(SRC_DIR)/robotkernel.pt | sed -e "s/ARCHS.*=.*$$/ARCHS = sled11-x86-gcc4.x/" > .my_robotkernel.pt
+	reltool --local ./install --pt-file .my_robotkernel.pt --yes

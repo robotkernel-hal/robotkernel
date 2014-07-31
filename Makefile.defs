@@ -1,0 +1,21 @@
+
+ln_kernel_messages.h: Makefile $(LN_KERNEL_MESSAGES)
+	@echo creating $@
+	@LN_GENERATE@ -o $@ $(LN_KERNEL_MESSAGES)
+	touch $@
+
+ln_messages.h: Makefile $(LN_MESSAGES)
+	@echo creating ln_messages.h
+	@LN_GENERATE@ -o $@ $(LN_MESSAGES)
+	touch $@
+
+install-exec-hook:
+	mkdir -p $(prefix)/share/message_definitions
+	-cp -rf $(srcdir)/message_definitions/* $(prefix)/share/message_definitions/
+	-cp -rf $(srcdir)/../share/robotkernel.inc.lnc $(prefix)/share
+	-cp -rf $(srcdir)/../gui/robotkernel_gui.inc.lnc $(prefix)/share
+	mkdir -p $(prefix)/lib/python/site-packages
+	-cp -r $(srcdir)/../gui $(prefix)/lib/python/site-packages/robotkernel_gui
+	-cp -r $(srcdir)/../gui/robotkernel_gui $(prefix)/bin
+
+	

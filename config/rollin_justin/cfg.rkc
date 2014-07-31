@@ -1,0 +1,99 @@
+# -*- mode: yaml -*-
+
+modules:
+-   name: sercos_first
+    module_file: libmodule_sercos.so
+    config_file: module_sercos_first.rkc
+
+-   name: sercos_second
+    module_file: libmodule_sercos.so
+    config_file: module_sercos_second.rkc
+    depends: [ sercos_first ]
+
+-   name: posix_timer
+    module_file: libmodule_posix_timer.so
+    config: 
+        name: timer
+        interval: 0.001
+        signo: 35
+        prio: 91
+
+-   name: ethercat
+    module_file: libmodule_ethercat.so
+    config_file: module_soem.rkc
+    depends: [ sercos_first, sercos_second ]
+#    depends: [ posix_timer ]
+    trigger:
+    -   mod_name: sercos_second
+#    -   mod_name: posix_timer
+        clk_id: 1
+        prio: 80
+#    power_up: true
+
+-   name: halfstep
+    module_file: libmodule_halfstep.so
+    config:
+        sercos_first_mod_name: sercos_first
+        sercos_second_mod_name: sercos_second
+        ethercat_mod_name: ethercat
+        heinzmann_mod_name: ethercat_heinzmann
+        # [steering0, leg0, steering1, leg1, ...]
+        # [front_left, front_right, back_left, back_right]
+        # slave_out_value = ssi_sensor - ssi_offset
+        ssi_slaves: [ 2, 3, 8, 9, 4, 5, 6, 7 ]
+        ssi_offsets: [ 1512, 4180, 3990, 3068, 638, 8148, 6318, -1408 ]
+        # ssi_offsets: [ 1571, 4180, 3988, 3068, 626, 8148, 6090, -1390 ] before 2013-05-22
+    trigger:
+    -   mod_name: ethercat
+        clk_id: 1
+        prio: 79 
+    depends: [ sercos_first, sercos_second, ethercat, ethercat_heinzmann, ]
+#    power_up: true
+
+-   name: ethercat_heinzmann
+    module_file: libmodule_heinzmann.so
+    config_file: module_heinzmann.rkc
+    trigger:
+    -   mod_name: ethercat
+        clk_id: 2
+        prio: 78
+    depends: [ ethercat, ]
+
+-   name: lbrserver
+    module_file: libmodule_lbrserver.so
+    config:
+        modules:
+        -   id: 0
+            name: sercos_first
+        -   id: 1
+            name: sercos_second
+        server_port: 51234
+    depends: [ sercos_first, sercos_second ]
+
+-   name: halfstep_jitter
+    module_file: libmodule_jitter_measurement.so
+    config: 
+        name: halfstep_jitter
+        buffer_size: 1000
+    trigger:
+    -   mod_name: halfstep
+        clk_id: 1
+        prio: 72 
+    depends: [ halfstep, ]
+
+-   name: ethercat_jitter
+    module_file: libmodule_jitter_measurement.so
+    config: 
+        name: ethercat_jitter
+        buffer_size: 1000
+    trigger:
+    -   mod_name: ethercat
+        clk_id: 1
+        prio: 72 
+    depends: [ ethercat, ]
+
+- name: lnrkinterface
+  module_file: libmodule_lnrkinterface.so
+  config_file: module_lnrkinterface.rkc
+  depends: [ sercos_first, sercos_second, ethercat, ethercat_heinzmann, ]
+#  power_up: true

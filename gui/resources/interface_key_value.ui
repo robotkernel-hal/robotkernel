@@ -1,0 +1,148 @@
+<?xml version="1.0"?>
+<interface>
+  <requires lib="gtk+" version="2.16"/>
+  <!-- interface-naming-policy project-wide -->
+  <object class="GtkVBox" id="key_value_box">
+    <property name="visible">True</property>
+    <property name="orientation">vertical</property>
+    <child>
+      <object class="GtkToolbar" id="key_value_tb">
+        <property name="visible">True</property>
+        <child>
+          <object class="GtkToolButton" id="kv_refresh_btn">
+            <property name="visible">True</property>
+            <property name="label" translatable="yes">refresh</property>
+            <property name="use_underline">True</property>
+            <property name="stock_id">gtk-refresh</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="homogeneous">True</property>
+          </packing>
+        </child>
+      </object>
+      <packing>
+        <property name="expand">False</property>
+        <property name="position">0</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkScrolledWindow" id="key_value_sw">
+        <property name="can_focus">True</property>
+        <property name="hscrollbar_policy">automatic</property>
+        <property name="vscrollbar_policy">automatic</property>
+        <child>
+          <object class="GtkTreeView" id="key_value_tv">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <signal name="button_press_event" handler="on_key_value_tv_button_press_event"/>
+          </object>
+        </child>
+      </object>
+      <packing>
+        <property name="position">1</property>
+      </packing>
+    </child>
+  </object>
+  <object class="GtkMenu" id="kv_popup">
+    <property name="visible">True</property>
+    <signal name="selection_done" handler="kv_popup_done"/>
+    <child>
+      <object class="GtkRadioMenuItem" id="format_decimal">
+        <property name="visible">True</property>
+        <property name="label" translatable="yes">decimal</property>
+        <property name="use_underline">True</property>
+        <property name="active">True</property>
+        <property name="draw_as_radio">True</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkMenuItem" id="format_hex">
+        <property name="visible">True</property>
+        <property name="label" translatable="yes">hexadecimal</property>
+        <property name="use_underline">True</property>
+        <child type="submenu">
+          <object class="GtkMenu" id="menu1">
+            <property name="visible">True</property>
+            <child>
+              <object class="GtkRadioMenuItem" id="format_hex_02">
+                <property name="visible">True</property>
+                <property name="label" translatable="yes">hex %02x</property>
+                <property name="use_underline">True</property>
+                <property name="draw_as_radio">True</property>
+                <property name="group">format_decimal</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkRadioMenuItem" id="format_hex_04">
+                <property name="visible">True</property>
+                <property name="label" translatable="yes">hex %04x</property>
+                <property name="use_underline">True</property>
+                <property name="draw_as_radio">True</property>
+                <property name="group">format_decimal</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkRadioMenuItem" id="format_hex_08">
+                <property name="visible">True</property>
+                <property name="label" translatable="yes">hex %08x</property>
+                <property name="use_underline">True</property>
+                <property name="draw_as_radio">True</property>
+                <property name="group">format_decimal</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkCheckMenuItem" id="format_hex_with_0x">
+                <property name="visible">True</property>
+                <property name="label" translatable="yes">prepend 0x</property>
+                <property name="use_underline">True</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="GtkRadioMenuItem" id="format_repr">
+        <property name="visible">True</property>
+        <property name="label" translatable="yes">python repr</property>
+        <property name="use_underline">True</property>
+        <property name="draw_as_radio">True</property>
+        <property name="group">format_decimal</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkSeparatorMenuItem" id="menuitem1">
+        <property name="visible">True</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkRadioMenuItem" id="byteorder_native">
+        <property name="visible">True</property>
+        <property name="label" translatable="yes">native byte order</property>
+        <property name="use_underline">True</property>
+        <property name="active">True</property>
+        <property name="draw_as_radio">True</property>
+        <signal name="group_changed" handler="byte_order_group_changed"/>
+      </object>
+    </child>
+    <child>
+      <object class="GtkRadioMenuItem" id="byteorder_16">
+        <property name="visible">True</property>
+        <property name="label" translatable="yes">swap 2-byte order</property>
+        <property name="use_underline">True</property>
+        <property name="draw_as_radio">True</property>
+        <property name="group">byteorder_native</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkRadioMenuItem" id="byteorder_32">
+        <property name="visible">True</property>
+        <property name="label" translatable="yes">swap 4-byte order</property>
+        <property name="use_underline">True</property>
+        <property name="draw_as_radio">True</property>
+        <property name="group">byteorder_native</property>
+      </object>
+    </child>
+  </object>
+</interface>

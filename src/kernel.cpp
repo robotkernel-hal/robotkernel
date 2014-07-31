@@ -1,0 +1,819 @@
+//! ÜBER-control kernel
+/*!
+  $Id$
+ */
+
+#include <fstream>
+#include <iostream>
+#include <algorithm>
+#include <string_util/string_util.h>
+#include "kernel.h"
+#include "exceptions.h"
+#include "yaml-cpp/yaml.h"
+
+using namespace std;
+using namespace robotkernel;
+
+static void split_file_name(const string& str, string& path, string& file) {
+    size_t found;
+    found = str.find_last_of("/\\");
+    if (found == string::npos) {
+        path = "";
+        file = str;
+    } else {
+        path = str.substr(0,found);
+        file = str.substr(found+1);
+    }
+}
+
+const static string ROBOT_KERNEL = "[robotkernel] ";
+
+//! kernel singleton instance
+kernel *kernel::instance = NULL;
+
+//! set state of module
+/*!
+ * \param mod_name name of module
+ * \param state new module state
+ * \return state
+ */
+int kernel::set_state(std::string mod_name, module_state_t state) {
+    module_map_t::const_iterator it = module_map.find(mod_name);
+    if (it == module_map.end())
+        throw str_exception("[robotkernel] module %s not found!\n", mod_name.c_str());
+
+    module *mdl = it->second;
+
+    if (mdl->get_state() == state)
+        return state;
+
+    // iterate through dependencies
+    for (module::depend_list_t::iterator it = mdl->depends.begin();
+            it != mdl->depends.end(); ++it) {
+        module_state_t dep_mod_state = get_state(*it);
+        if ((dep_mod_state == module_state_error) && (state == module_state_init))
+            continue;
+
+        if (dep_mod_state == module_state_error) {
+            logging(info, ROBOTKERNEL "dependent module %d is in error state, "
+                    "cannot power up module %s\n", it->c_str(), mod_name.c_str());
+
+            return mdl->get_state();
+        }
+
+        if (dep_mod_state < state) {
+            logging(info, ROBOTKERNEL "powering up %s module dependencies %s\n",
+                    mod_name.c_str(), it->c_str());
+
+            set_state(*it, state);
+        }
+    }
+
+    // check if other module depend on this one
+    for (module_map_t::iterator mit = module_map.begin();
+            mit != module_map.end(); ++mit) {
+        if (mit->second->name == mod_name) {
+            // skip this one
+            continue;
+        }
+
+        // iterate through dependencies
+        for (module::depend_list_t::iterator it = mit->second->depends.begin();
+                it != mit->second->depends.end(); ++it) {
+            if (*it != mod_name) {
+                continue;
+            }
+
+            if (get_state(mit->second->name) > state) {
+                logging(info, ROBOTKERNEL "%s depends on %s -> setting state to init\n",
+                        mit->second->name.c_str(), mod_name.c_str());
+                set_state(mit->second->name, module_state_init);
+                break;
+            } else {
+                logging(verbose, ROBOTKERNEL "%s depend on %s but is always in a lower state\n",
+                        mit->second->name.c_str(), mod_name.c_str());
+            }
+        }
+    }
+
+    logging(info, ROBOTKERNEL "setting state of %s to %s\n",
+            mod_name.c_str(), state_to_string(state));
+
+    if (mdl->set_state(state) == -1)
+        // throw exception
+        throw str_exception("[robotkernel] ERROR: failed to swtich module %s to state %s!\n", 
+                mod_name.c_str(), state_to_string(state));
+
+    return mdl->get_state();
+}
+
+//! return module state
+/*!
+ * \param mod_name name of module which state to return
+ * \return module state
+ */
+module_state_t kernel::get_state(std::string mod_name) {
+    module_map_t::const_iterator it = module_map.find(mod_name);
+    if (it == module_map.end())
+        throw str_exception("[robotkernel] module %s not found!\n", mod_name.c_str());
+
+    logging(verbose, ROBOTKERNEL "getting state of module %s\n",
+            mod_name.c_str());
+
+    module *mdl = it->second;
+    return mdl->get_state();
+}
+
+
+//! construction
+/*!
+ * \param configfile config file name
+ */
+kernel::kernel() {
+    _ll = info;
+    _name = "robotkernel";
+    clnt = NULL;
+}
+
+//! destruction
+kernel::~kernel() {
+    logging(info, ROBOTKERNEL "destructing...\n");
+
+    module_map_t::iterator it;
+    while ((it = module_map.begin()) != module_map.end()) {
+        module *mdl = it->second;
+        try {
+            set_state(mdl->name, module_state_init);
+        } catch (const std::exception& e) {
+            // ignore this on destruction
+        }
+
+        module_map.erase(it);
+        delete mdl;
+    }
+
+    logging(info, ROBOTKERNEL "all modules destructed... cleaning up ln client\n");
+
+
+    // unregister services before we delete the client, cannot be done in destructors
+    unregister_config_dump_log();
+    unregister_get_dump_log();
+    unregister_set_state();
+    unregister_get_state();
+    unregister_add_module();
+    unregister_remove_module();
+    unregister_module_list();
+    unregister_reconfigure_module();
+    unregister_get_states();
+
+    if (clnt) {
+        delete clnt;
+    }
+
+    logging(info, ROBOTKERNEL "clean up finished\n");
+};
+
+//! get kernel singleton instance
+/*!
+ * \return kernel singleton instance
+ */
+kernel * kernel::get_instance() {
+    if (!instance)
+        instance = new kernel();
+    return instance;
+}
+
+//! destroy singleton instance
+void kernel::destroy_instance() {
+    if (instance) {
+        delete instance;
+    }
+}
+
+//! initialize links and nodes client
+/*!
+ * \param argc command line argument counter
+ * \param argv command line arguments
+ */
+void kernel::init_ln(int argc, char **argv) {
+    // ln client stuff
+    clnt = new ln::client(_name.c_str(), argc, argv);
+
+    register_get_dump_log(clnt, clnt->name + ".get_dump_log");
+    register_config_dump_log(clnt, clnt->name + ".config_dump_log");
+    register_set_state(clnt, clnt->name + ".set_state");
+    register_get_state(clnt, clnt->name + ".get_state");
+    register_add_module(clnt, clnt->name + ".add_module");
+    register_remove_module(clnt, clnt->name + ".remove_module");
+    register_module_list(clnt, clnt->name + ".module_list");
+    register_reconfigure_module(clnt, clnt->name + ".reconfigure_module");
+    register_get_states(clnt, clnt->name + ".get_states");
+
+    // powering up modules to operational
+    for (module_map_t::iterator it = module_map.begin();
+            it != module_map.end(); ++it) {
+        module *mdl = it->second;
+        mdl->register_services();
+    }
+}
+
+//! handle links and nodes service requests
+void kernel::handle_ln_request(int argc, char **argv) {
+    if (!clnt) {
+        try {
+            init_ln(argc, argv);
+        } catch(exception& e) {
+        }
+
+        sleep(1);
+        return;
+    }
+
+    // block 1 second waiting for service requests
+    if(clnt->wait_for_service_requests(1)) {
+        try {
+            clnt->handle_service_requests();
+        } catch(exception& e) {
+            logging(info, ROBOTKERNEL "got exception while handling service requests:\n what: %s\n", e.what());
+        }
+    }
+}
+
+#ifdef __VXWORKS__
+#define realpath(a, b) strdup(a)
+#endif
+
+#include <sys/stat.h>
+
+//! construction
+/*!
+ * \param configfile config file name
+ */
+void kernel::config(std::string config_file, int argc, char **argv) {
+    char *real_exec_file = realpath(argv[0], NULL);
+    string path, file;
+    if (!real_exec_file)
+        throw str_exception("supplied exec file \"%s\" not found!", argv[0]);
+
+    split_file_name(string(real_exec_file), path, file);
+    logging(info, ROBOTKERNEL "got exec path %s\n", path.c_str());
+    logging(info, ROBOTKERNEL "searching interfaces and modules ....\n");
+    free(real_exec_file);
+
+    string base_path, sub_path;
+    split_file_name(path, base_path, sub_path);
+    if (sub_path == string("bin")) {
+        struct stat buf;
+        stringstream _modpath, _intfpath;
+        _modpath << base_path << "/lib/robotkernel/modules";
+        if (stat(_modpath.str().c_str(), &buf) == 0)
+            _internal_modpath = _modpath.str();
+        _intfpath << base_path << "/lib/robotkernel/interfaces";
+        if (stat(_intfpath.str().c_str(), &buf) == 0)
+            _internal_intfpath = _intfpath.str();
+    } else {
+        // assume rmpm release 
+        string base_path_2, arch = sub_path;
+        split_file_name(base_path, base_path_2, sub_path);
+        
+        if (sub_path == string("bin")) {
+            struct stat buf;
+            stringstream _modpath, _intfpath;
+            _modpath << base_path_2 << "/lib/" << arch << "/robotkernel/modules";
+            if (stat(_modpath.str().c_str(), &buf) == 0)
+                _internal_modpath = _modpath.str();
+            _intfpath << base_path_2 << "/lib/" << arch << "/robotkernel/interfaces";
+            if (stat(_intfpath.str().c_str(), &buf) == 0)
+                _internal_intfpath = _intfpath.str();
+        } else {
+            logging(info, ROBOTKERNEL "unable to determine internal modules/interfaces path!\n");
+        }
+    }
+                
+    if (_internal_modpath != string(""))
+        logging(info, ROBOTKERNEL "found modules path %s\n", _internal_modpath.c_str());
+    if (_internal_intfpath != string(""))
+        logging(info, ROBOTKERNEL "found interfaces path %s\n", _internal_intfpath.c_str());
+
+    if (config_file.compare("") == 0) {
+        try {    
+            init_ln(argc, argv);        
+        } catch(exception& e) {
+            klog(warning, ROBOTKERNEL "unable to init ln\n");
+
+            vector<string> err_msg = split_string(string(e.what()), string("\n"));
+
+            for (vector<string>::iterator it = err_msg.begin(); it != err_msg.end(); ++it)
+                klog(warning, "[links_and_nodes] %s\n", (*it).c_str());
+
+            klog(warning, ROBOTKERNEL "will try to init ln in background...\n");
+        }
+        return ;
+    }
+    
+    char *real_config_file = realpath(config_file.c_str(), NULL);
+    if (!real_config_file)
+        throw str_exception("supplied config file \"%s\" not found!", config_file.c_str());
+
+    split_file_name(string(real_config_file), path, file);
+
+    logging(info, ROBOTKERNEL "got config file path: %s, file name %s\n",
+            path.c_str(), file.c_str());
+
+    this->config_file = string(real_config_file);
+    ifstream ifstream_config(real_config_file);
+    free(real_config_file);
+    YAML::Parser parser(ifstream_config);
+    YAML::Node doc;
+    parser.GetNextDocument(doc);
+
+    // search for log level
+    const YAML::Node *name_node = doc.FindValue("name");
+    if (name_node)
+        _name = name_node->to<string>();
+
+    // search for log level
+    const YAML::Node *ll_node = doc.FindValue("loglevel");
+    if (ll_node) {
+        enum loglevel new_ll = info;
+        string ll_node_str = ll_node->to<string>();
+
+        if (ll_node_str == string("error"))
+            new_ll = error;
+        else if (ll_node_str == string("warning"))
+            new_ll = warning;
+        else if (ll_node_str == string("info"))
+            new_ll = info;
+        else if (ll_node_str == string("verbose"))
+            new_ll = verbose;
+
+        _ll = new_ll;
+    }
+
+    try {    
+        init_ln(argc, argv);        
+    } catch(exception& e) {
+        klog(warning, ROBOTKERNEL "unable to init ln: %s\n", e.what());
+        klog(warning, ROBOTKERNEL "will try to init ln in background...\n");
+    }
+
+    // creating modules specified in config file
+    const YAML::Node& modules = doc["modules"];
+    for (YAML::Iterator it = modules.begin(); it != modules.end(); ++it) {
+        module *mdl = new module(*it, path);
+        if (!mdl->configured()) {
+            string name = mdl->name;
+            delete mdl;
+            throw str_exception("[robotkernel] module %s not configured!\n", name.c_str());
+        }
+
+        if (module_map.find(mdl->name) != module_map.end()) {
+            string name = mdl->name;
+            delete mdl;
+            throw str_exception("[robotkernel] duplicate module name: %s\n", name.c_str());
+        }
+
+        // add to module map
+        module_map[mdl->name] = mdl;
+    }
+}
+
+//! powering up modules
+bool kernel::power_up() {
+    std::list<string> failed_modules;
+
+    // powering up modules to operational
+    for (module_map_t::iterator it = module_map.begin();
+            it != module_map.end(); ++it) {
+        module *mdl = it->second;
+
+        if (mdl->power_up == false) {
+            logging(verbose, ROBOTKERNEL "not powering up module '%s' automatically, "
+                    "maybe it is powered up as dependency.\n",
+                    mdl->name.c_str());
+            continue;
+        }
+
+        module_state_t current_state = mdl->get_state();
+        if (current_state == module_state_error) {
+            logging(info, ROBOTKERNEL "module '%s' in in error state, not "
+                    "powering up!\n", mdl->name.c_str());
+            failed_modules.push_back(mdl->name);
+            continue;
+        }
+
+        if (current_state == module_state_op)
+            continue;
+
+        try {
+            logging(info, ROBOTKERNEL "powering up '%s'\n", mdl->name.c_str());
+            set_state(mdl->name, module_state_op);
+        } catch (exception& e) {
+            logging(error, ROBOTKERNEL "caught exception: %s\n", e.what());
+            failed_modules.push_back(mdl->name);
+        }
+    }
+
+    if (!failed_modules.empty()) {
+        string msg = ROBOTKERNEL "modules failed to switch to OP: ";
+
+        for (std::list<string>::iterator it = failed_modules.begin();
+                it != failed_modules.end(); ++it)
+            msg += *it + ", ";
+        logging(error, "%s\n", msg.c_str());
+        return false;
+    }
+
+    return true;
+}
+
+//! powering down modules
+void kernel::power_down() {
+    // powering up modules to operational
+    for (module_map_t::iterator it = module_map.begin();
+            it != module_map.end(); ++it) {
+        module *mdl = it->second;
+
+        try {
+            set_state(mdl->name, module_state_init);
+        } catch (exception& e) {
+            logging(error, ROBOTKERNEL "caught exception: %s\n", e.what());
+        }
+    }
+}
+
+//! checks if all modules are at requested state
+/*!
+ * \param mod_name module name to check
+ * \param state requested state
+ *
+ * \return true if we are in right  state
+ */
+bool kernel::state_check(std::string mod_name, module_state_t state) {
+    kernel::module_map_t::const_iterator it = module_map.find(mod_name);
+    if (it == module_map.end())
+        throw str_exception("[robotkernel] module %s not found!\n", mod_name.c_str());
+
+    return (it->second->get_state() == state);
+}
+
+bool kernel::state_check() {
+    kernel::module_map_t::const_iterator it;
+    for (it = module_map.begin(); it != module_map.end(); ++it) {
+        module_state_t state = it->second->get_state();
+        if (state == module_state_error) {
+            klog(error, ROBOTKERNEL "module %s signaled error, switching "
+                    "to init\n", it->first.c_str());
+            set_state(it->first.c_str(), module_state_init);
+        }
+    }
+}
+        
+//! kernel register interface callback
+/*!
+ * \param mod_name module name to send request to
+ * \param reqcode request code
+ * \param ptr request specifix pointer
+ * \return request status code
+ */
+int kernel::request_cb(const char *mod_name, int reqcode, void *ptr) {
+    kernel& k = *get_instance();
+
+    if (mod_name == NULL)
+        return k.request(reqcode, ptr);
+
+    kernel::module_map_t::const_iterator it = k.module_map.find(mod_name);
+    if (it == k.module_map.end())
+        throw str_exception("[robotkernel] module %s not found!\n", mod_name);
+
+    return it->second->request(reqcode, ptr);
+}
+        
+//! kernel register interface callback
+/*!
+ * \param mod_name module name to send request to
+ * \param if_name interface name to register
+ * \param offset module offset name
+ * \return interface id or -1
+ */
+kernel::interface_id_t kernel::register_interface_cb(const char *mod_name, 
+        const char *if_name, const char *dev_name, int offset) {
+    interface *iface = new interface(if_name, mod_name, dev_name, offset);
+    if (!iface)
+        return (interface_id_t)NULL;
+
+    return (interface_id_t)iface;
+}
+
+//! kernel unregister interface callback
+/*!
+ * \param interface_id interface id
+ * \return N/A
+ */
+void kernel::unregister_interface_cb(interface_id_t interface_id) {
+    interface *iface = (interface *)interface_id;
+    if (!iface)
+        return;
+
+    delete iface;
+}
+
+//! get module
+/*!
+ * \param mod_name name of module
+ * \return pointer to module
+ */
+module *kernel::get_module(const char *mod_name) {
+    kernel& k = *get_instance();
+
+    kernel::module_map_t::const_iterator it = k.module_map.find(mod_name);
+    if (it == k.module_map.end())
+        throw str_exception("[robotkernel] module %s not found!\n", mod_name);
+
+    return it->second;
+}
+
+//! Send a request to kernel
+/*!
+  \param reqcode request code
+  \param ptr pointer to request structure
+  \return success or failure
+*/
+int kernel::request(int reqcode, void* ptr) {
+    klog(error, "request %d\n", reqcode);
+
+    return 0;
+}
+
+//! module state change
+/*!
+ * \param mod_name module name which changed state
+ * \param new_state new state of module
+ * \retun success
+ */
+int kernel::state_change(const char *mod_name, module_state_t new_state) {
+    return 0;
+    module_map_t::const_iterator it = module_map.find(mod_name);
+    if (it == module_map.end())
+        throw str_exception("[robotkernel] module %s not found!\n", mod_name);
+
+    module_state_t current_state = it->second->get_state();
+    if (new_state == current_state)
+        return 0;
+
+    klog(info, ROBOTKERNEL "WARNING: module %s changed state to %d, old state %d\n",
+         mod_name, new_state, current_state);
+
+    printf("\n\n\n THIS IS UNEXPECTED !!!! \n\n\n");
+
+    int ret = set_state(mod_name, module_state_init);
+
+    return ret;
+}
+
+//! get dump log
+/*!
+ * \param req service request
+ * \param svn service container
+ * \return success
+ */
+int kernel::on_get_dump_log(ln::service_request& req, ln_service_robotkernel_get_dump_log& svc) {
+    ln::string_buffer dl(&svc.resp.dump_log, dump_log());
+    req.respond();
+    return 0;
+}
+
+//! config dump log
+/*!
+ * \param req service request
+ * \param svn service container
+ * \return success
+ */
+int kernel::on_config_dump_log(ln::service_request& req, ln_service_robotkernel_config_dump_log& svc) {
+    config_dump_log(svc.req.max_len, svc.req.do_ust);
+    klog(verbose, "dump_log len set to %d, do_ust to %d\n", svc.req.max_len, svc.req.do_ust);
+    req.respond();
+    return 0;
+}
+
+//! set state
+/*!
+ * \param req service request
+ * \param svn service container
+ * \return success
+ */
+int kernel::on_set_state(ln::service_request& req, ln_service_robotkernel_set_state& svc) {
+    try {
+        string mod_name(svc.req.mod_name, svc.req.mod_name_len);
+        string state(svc.req.state, svc.req.state_len);
+        set_state(mod_name, string_to_state(state.c_str()));
+    } catch (const exception& e) {
+        klog(error, "%s\n", e.what());
+        ln::string_buffer err(&svc.resp.error_message, e.what());
+    }
+    req.respond();
+    return 0;
+}
+
+//! get state
+/*!
+ * \param req service request
+ * \param svn service container
+ * \return success
+ */
+int kernel::on_get_state(ln::service_request& req, ln_service_robotkernel_get_state& svc) {
+    try {
+        string mod_name(svc.req.mod_name, svc.req.mod_name_len);
+        string state(state_to_string(get_state(mod_name)));
+        std::transform(state.begin(), state.end(), state.begin(), ::tolower);
+        ln::string_buffer state_sb(&svc.resp.state, state.substr(1, state.size()-2));
+    } catch (const exception& e) {
+        klog(error, "%s\n", e.what());
+        ln::string_buffer err(&svc.resp.error_message, e.what());
+    }
+    req.respond();
+    return 0;
+}
+
+//! get states
+/*!
+ * \param req service request
+ * \param svn service container
+ * \return success
+ */
+int kernel::on_get_states(ln::service_request& req, ln_service_robotkernel_get_states& svc) {
+    string mod_names(svc.req.mod_names, svc.req.mod_names_len);
+    vector<string> module_patterns = split_string(mod_names, ",");	
+    for(vector<string>::iterator i = module_patterns.begin(); i != module_patterns.end(); ++i)
+        *i = strip(*i);
+
+    set<string> seen;
+    stringstream module_list;
+    for(vector<string>::iterator p = module_patterns.begin(); p != module_patterns.end(); ++p) {
+        for(module_map_t::iterator i = module_map.begin(); i != module_map.end(); ++i) {
+            if(seen.find(i->first) != seen.end())
+                continue;
+            if(pattern_matches(*p, i->first)) {
+                if(seen.size())
+                    module_list << ", ";
+                module_list << i->first;
+                seen.insert(i->first);
+            }
+        }
+    }
+    
+    ln::string_buffer module_list_sb(&svc.resp.mod_names, module_list);
+    
+    stringstream states;
+    for (set<string>::iterator it = seen.begin(); it != seen.end(); ++it) {
+        if(it != seen.begin())
+            states << ", ";
+        string state(state_to_string(module_map[*it]->get_state()));
+        std::transform(state.begin(), state.end(), state.begin(), ::tolower);
+        states << state.substr(1, state.size()-2);
+    }
+    ln::string_buffer states_sb(&svc.resp.states, states);
+    
+    req.respond();
+    return 0;
+}
+
+//! add module
+/*!
+ * \param req service request
+ * \param svn service container
+ * \return success
+ */
+int kernel::on_add_module(ln::service_request& req, ln_service_robotkernel_add_module& svc) {
+    svc.resp.error_message_len = 0;
+
+    try {
+        string config = string(svc.req.config, svc.req.config_len);
+        klog(info, "got config: %s\n", config.c_str());
+
+        stringstream stream(config);
+        YAML::Parser parser(stream);
+        YAML::Node node;
+        if (parser.GetNextDocument(node)) {
+            module *mdl = new module(node, "");
+
+            if (module_map.find(mdl->name) != module_map.end()) {
+                klog(error, "[robotkernel] module name %s already inserted\n", mdl->name.c_str());
+                string name = mdl->name;
+                delete mdl;
+                throw str_exception("[robotkernel] module %s not configured!\n", name.c_str());
+            }
+
+            if (!mdl->configured()) {
+                string name = mdl->name;
+                delete mdl;
+                throw str_exception("[robotkernel] module %s not configured!\n", name.c_str());
+            }
+
+            // add to module map
+            module_map[mdl->name] = mdl;
+            req.respond();
+        } else
+            throw str_exception("[robotkernel] error in yaml config!\n");
+    } catch(exception& e) {
+        klog(error, "caught exception: %s\n", e.what());
+        svc.resp.error_message = strdup(e.what());
+        svc.resp.error_message_len = strlen(svc.resp.error_message);
+        req.respond();
+        free(svc.resp.error_message);
+    }
+    return 0;
+}
+//! remove module
+/*!
+ * \param req service request
+ * \param svn service container
+ * \return success
+ */
+int kernel::on_remove_module(ln::service_request& req, ln_service_robotkernel_remove_module& svc) {
+    svc.resp.error_message_len = 0;
+
+    try {
+        string mod_name = string(svc.req.name, svc.req.name_len);
+        module_map_t::iterator it = module_map.find(mod_name);
+        if (it == module_map.end())
+            throw str_exception("[robotkernel] module %s not found!\n", mod_name.c_str());
+
+        module *mdl = it->second;
+        set_state(mdl->name, module_state_init);
+
+        module_map.erase(it);
+        delete mdl;
+
+        req.respond();
+    } catch (exception& e) {
+        svc.resp.error_message = strdup(e.what());
+        svc.resp.error_message_len = strlen(svc.resp.error_message);
+        req.respond();
+        free(svc.resp.error_message);
+    }
+
+    return 0;
+}
+
+//! module list
+/*!
+ * \param req service request
+ * \param svn service container
+ * \return success
+ */
+int kernel::on_module_list(ln::service_request& req, ln_service_robotkernel_module_list& svc) {
+    svc.resp.error_message_len = 0;
+
+    try {
+        string module_list = "[ ";
+        for (module_map_t::const_iterator
+                it = module_map.begin(); it != module_map.end(); ++it) {
+            module_list += "\"" + it->first + "\", ";
+        }
+        module_list += "]";
+        svc.resp.modules = (char *)module_list.c_str();
+        svc.resp.modules_len = strlen(svc.resp.modules);
+
+        req.respond();
+    } catch(exception& e) {
+        svc.resp.error_message = strdup(e.what());
+        svc.resp.error_message_len = strlen(svc.resp.error_message);
+        req.respond();
+        free(svc.resp.error_message);
+    }
+    return 0;
+}
+
+
+//! reconfigure module
+/*!
+ * \param req service request
+ * \param svn service container
+ * \return success
+ */
+int kernel::on_reconfigure_module(ln::service_request& req, ln_service_robotkernel_reconfigure_module& svc) {
+    svc.resp.error_message_len = 0;
+
+    try {
+        string mod_name = string(svc.req.name, svc.req.name_len);
+        module_map_t::iterator it = module_map.find(mod_name);
+        if (it == module_map.end())
+            throw str_exception("[robotkernel] module %s not found!\n", mod_name.c_str());
+
+        module *mdl = it->second;
+        if (get_state(mod_name) != module_state_init)
+            set_state(mdl->name, module_state_init);
+
+        mdl->reconfigure();
+        svc.resp.state = 0;
+        req.respond();
+    } catch(exception& e) {
+        svc.resp.error_message = strdup(e.what());
+        svc.resp.error_message_len = strlen(svc.resp.error_message);
+        req.respond();
+        free(svc.resp.error_message);
+    }
+    return 0;
+}
+

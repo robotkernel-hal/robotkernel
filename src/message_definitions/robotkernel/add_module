@@ -1,0 +1,7 @@
+service
+request
+char* config
+
+response
+char* error_message
+uint64_t state

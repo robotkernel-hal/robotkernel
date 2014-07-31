@@ -1,0 +1,451 @@
+disable_pd_cookies: false
+
+command topic thread settings:
+  default:
+    prio: 50 
+    affinity: [ 0, 1, 2, 3 ]
+  lnrk.space_justin.command_6a4772f075bee0f91dc999ad2b566d56_leftArm:
+    prio: 86
+    affinity: [ 0, 1, 2, 3 ]
+  lnrk.space_justin.command_ae88809c055447df218942e36bc72dbb_rightArm:
+    prio: 86
+    affinity: [ 0, 1, 2, 3 ]
+  lnrk.space_justin.command_597e2c3e1ecbfa69fcc144cfb443c70e_head_torso:
+    prio: 86
+    affinity: [ 0, 1, 2, 3 ]
+
+interfaces:
+- power_state:
+    type: state
+    states:
+    - power_on
+    - power_off
+
+- controller_state:
+    type: state
+    states:
+    - position
+    - torque
+    - speed
+    - none
+    - state space
+
+- emergency_state:
+    type: state
+    states:
+    - emergency_stop
+    - no_emergency
+
+device classes:
+
+- name: hithand interface
+  class parameters:
+  - name: hithand_module
+  type: pd_mapping
+  pd_module: "%(hithand_module)"
+  pd_offset: 0x00
+  interfaces:
+  - emergency_state:
+      measure:
+        type: bitmask
+        item: emergency_stop
+        mask: 0xffffffff
+        values:
+          stop: 0xAA55AA55
+          clear: 0x70707070
+      command:
+        type: bitmask
+        item: emergency_stop
+        mask: 0xffffffff
+        values:
+          stop: 0xAA55AA55
+          clear: 0x70707070
+  measurements:
+  - uint32_t: emergency_stop
+    string_format: "0x%08X"
+  commands:
+  - uint32_t: emergency_stop
+    string_format: "0x%08X"
+    default_value: 0xAA55AA55
+
+- name: hithand controller
+  class parameters:
+  - name: hithand_module
+  - name: hand_index
+  type: pd_mapping
+  pd_module: "%(hithand_module)"
+  pd_offset: "%(hand_index)"
+  interfaces:
+  - controller_state:
+      measure:
+        type: bitmask
+        item: controller
+        mask: 0xffffffff
+        values:
+          reset: 0
+          direct: 0x8972AA01
+          position: 0x8972AA02
+          impedance: 0x8972AA03
+          platform_direct: 0x8972AA80
+      command:
+        type: bitmask
+        item: controller
+        mask: 0xffffffff
+        values:
+          reset: 0
+          direct: 0x8972AA01
+          position: 0x8972AA02
+          impedance: 0x8972AA03
+          platform_direct: 0x8972AA80
+  measurements:
+  - uint32_t: controller
+    string_format: "0x%08X"
+  commands:
+  - uint32_t: controller
+    string_format: "0x%08X"
+    default_value: 0
+
+- name: hithand finger
+  class parameters:
+  - name: hithand_module
+  - name: finger_index 
+  type: pd_mapping
+  pd_module: "%(hithand_module)"
+  pd_offset: "%(finger_index)"
+  interfaces:
+  - power_state:
+      measure:
+        type: bitmask
+        item: enable_state
+        mask: 0x80
+        default: power_off
+        values:
+          power_on: 0x80
+      command:
+        type: bitmask
+        item: enable
+        mask: 0x01
+        values:
+          power_off: 0x00
+          power_on: 0x01
+  measurements:
+  - int32_t: enable_state
+  - int32_t: finger_id
+  - float[3]: joint_torque
+    unit: Nm
+  - float[3]: joint_angle
+    unit: deg
+  - float[3]: joint_speed
+  - float[3]: motor_torque
+    unit: Nm
+  - float[3]: motor_angle
+    unit: deg
+  - float[3]: motor_speed
+  - int32_t[2]: raw_finger_angle
+  - int32_t[4]: raw_joint_angle
+  - int32_t[3]: raw_motor_angle
+  commands:
+  - int32_t: enable
+    default_value: 0
+  - int32_t[3]: pwm
+    default_value: 0
+
+- name: FTS
+  class parameters:
+  - name: fts_module
+  type: pd_mapping
+  pd_module: "%(fts_module)"
+  pd_offset: 0
+  measurements:
+  - int32_t: mode
+  - double[3]: forces
+    #string_format: "7.3f"
+  - double[3]: torques
+    #string_format: "7.3f"
+
+- name: LWR joint
+  class parameters:
+  - name: sercos_module
+  - name: drive_index
+  type: pd_mapping
+  pd_module: "%(sercos_module)"
+  pd_offset: "%(drive_index)"
+  interfaces:
+  - position_command:
+      measure_item: motor_pos
+      command_item: desired_pos
+  - power_state:
+      measure:
+        type: bitmask
+        item: state
+        mask: 0xc000
+        default: power_off
+        values:
+          power_on: 0xc000
+      command:
+        type: bitmask
+        item: control
+        mask: 0xe000
+        values:
+          power_off: 0
+          power_on: 0xe000
+  - controller_state:
+      measure:
+        type: bitmask
+        item: state
+        mask: 0x0700
+        values:
+          position:    0x0000
+          torque:      0x0100
+          speed:       0x0200
+          none:        0x0300
+          state space: 0x0400
+      command:
+        type: bitmask
+        item: control
+        mask: 0x0b00
+        values:
+          position:    0x0000
+          torque:      0x0100
+          #speed:      0x0200
+          none:        0x0300
+          state space: 0x0800
+  - emergency_state:
+      measure:
+        type: bitmask
+        item: state
+        mask: 0x0040
+        values:
+          emergency_stop: 0x0000
+          no_emergency:   0x0040
+  measurements:
+  - uint16_t: state
+    string_format: "0x%04x"
+  - int32_t: motor_pos
+    map_factor: 1.7453292519943295e-08 # int * <2 * pi / 360000000>
+    map_type: float
+    unit: rad
+  - int16_t: torque
+    map_factor: 0.01 # int * <1 / 100>
+    map_type: float
+    unit: Nm
+  - int32_t: poti_pos
+    map_factor: 1.7453292519943295e-08 # int * <2 * pi / 360000000>
+    map_type: float
+    unit: rad
+  - int32_t: datacontainer
+    string_format: "0x%08x"
+  commands:
+  - uint16_t: control
+    default_value: 0
+    string_format: "0x%04x"
+  - int32_t: desired_pos
+    map_factor: 1.7453292519943295e-08 # int * <2 * pi / 360000000>
+    map_type: float
+    unit: rad
+  - int32_t: speed
+    default_value: 0
+  - int16_t: torque
+    map_factor: 0.01
+    map_type: float
+    default_value: 0
+    unit: Nm
+  - uint16_t: zr_kd
+    map_factor: 0.1563
+    map_type: float
+    default_value: 0
+  - uint16_t: zr_kp
+    map_factor: 1.0000
+    map_type: float
+    default_value: 0
+  - uint16_t: zr_ks
+    map_factor: 0.0003
+    map_type: float
+    default_value: 0
+  - uint16_t: zr_kt
+    map_factor: 0.0010
+    map_type: float
+    default_value: 0
+  - uint16_t: zr_c1
+    map_factor: 0.1000
+    map_type: float
+    default_value: 0
+  - uint16_t: zr_c2
+    map_factor: 4.6875
+    map_type: float
+    default_value: 0
+
+devices:
+- name: rightArm1
+  device class: LWR joint
+  sercos_module: right arm
+  drive_index: 0
+- name: rightArm2
+  device class: LWR joint
+  sercos_module: right arm
+  drive_index: 1
+- name: rightArm3
+  device class: LWR joint
+  sercos_module: right arm
+  drive_index: 2
+- name: rightArm4
+  device class: LWR joint
+  sercos_module: right arm
+  drive_index: 3
+- name: rightArm5
+  device class: LWR joint
+  sercos_module: right arm
+  drive_index: 4
+- name: rightArm6
+  device class: LWR joint
+  sercos_module: right arm
+  drive_index: 5
+- name: rightArm7
+  device class: LWR joint
+  sercos_module: right arm
+  drive_index: 6
+
+- name: leftArm1
+  device class: LWR joint
+  sercos_module: left arm
+  drive_index: 0
+- name: leftArm2
+  device class: LWR joint
+  sercos_module: left arm
+  drive_index: 1
+- name: leftArm3
+  device class: LWR joint
+  sercos_module: left arm
+  drive_index: 2
+- name: leftArm4
+  device class: LWR joint
+  sercos_module: left arm
+  drive_index: 3
+- name: leftArm5
+  device class: LWR joint
+  sercos_module: left arm
+  drive_index: 4
+- name: leftArm6
+  device class: LWR joint
+  sercos_module: left arm
+  drive_index: 5
+- name: leftArm7
+  device class: LWR joint
+  sercos_module: left arm
+  drive_index: 6
+
+- name: torso1
+  device class: LWR joint
+  sercos_module: head torso
+  drive_index: 0
+- name: head1
+  device class: LWR joint
+  sercos_module: head torso
+  drive_index: 1
+- name: head2
+  device class: LWR joint
+  sercos_module: head torso
+  drive_index: 2
+
+- name: fts1
+  device class: FTS
+  fts_module: fts_1
+- name: fts2
+  device class: FTS
+  fts_module: fts_2
+
+- name: hithand_interface
+  device class: hithand interface
+  hithand_module: hithands
+- name: hithand_0_controller
+  device class: hithand controller
+  hithand_module: hithands
+  hand_index: 1 # 0x01
+- name: hithand_0_finger_0
+  device class: hithand finger
+  hithand_module: hithands
+  finger_index: 17 # 0x11
+- name: hithand_0_finger_1
+  device class: hithand finger
+  hithand_module: hithands
+  finger_index: 33 # 0x21
+- name: hithand_0_finger_2
+  device class: hithand finger
+  hithand_module: hithands
+  finger_index: 49 # 0x31
+- name: hithand_0_finger_3
+  device class: hithand finger
+  hithand_module: hithands
+  finger_index: 65 # 0x41
+- name: hithand_0_finger_4
+  device class: hithand finger
+  hithand_module: hithands
+  finger_index: 81 # 0x51
+
+- name: hithand_1_controller
+  device class: hithand controller
+  hithand_module: hithands
+  hand_index: 2 # 0x02
+- name: hithand_1_finger_0
+  device class: hithand finger
+  hithand_module: hithands
+  finger_index: 0x12 # 18 # 0x12
+- name: hithand_1_finger_1
+  device class: hithand finger
+  hithand_module: hithands
+  finger_index: 34 # 0x22
+- name: hithand_1_finger_2
+  device class: hithand finger
+  hithand_module: hithands
+  finger_index: 50 # 0x32
+- name: hithand_1_finger_3
+  device class: hithand finger
+  hithand_module: hithands
+  finger_index: 66 # 0x42
+- name: hithand_1_finger_4
+  device class: hithand finger
+  hithand_module: hithands
+  finger_index: 82 # 0x52
+
+manipulators:
+- name: rightArm
+  devices:
+  - rightArm1
+  - rightArm2
+  - rightArm3
+  - rightArm4
+  - rightArm5
+  - rightArm6
+  - rightArm7
+- name: leftArm
+  devices:
+  - leftArm1
+  - leftArm2
+  - leftArm3
+  - leftArm4
+  - leftArm5
+  - leftArm6
+  - leftArm7
+- name: headTorso
+  devices:
+  - torso1
+  - head1
+  - head2
+- name: ftsSensors
+  devices:
+  - fts1
+  - fts2
+- name: leftHand
+  devices:
+  - hithand_0_finger_0
+  - hithand_0_finger_1
+  - hithand_0_finger_2
+  - hithand_0_finger_3
+  - hithand_0_finger_4
+- name: rightHand
+  devices:
+  - hithand_1_finger_0
+  - hithand_1_finger_1
+  - hithand_1_finger_2
+  - hithand_1_finger_3
+  - hithand_1_finger_4

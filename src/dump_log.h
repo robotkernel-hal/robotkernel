@@ -1,0 +1,36 @@
+//! robotkernel dump log functions
+/*!
+ * author: Robert Burger
+ *
+ * $Id$
+ */
+
+/*
+ * This file is part of robotkernel.
+ *
+ * robotkernel is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * robotkernel is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#ifndef DUMP_LOG_H
+#define DUMP_LOG_H
+
+#include <string>
+#include <stdarg.h>
+
+void dump_log_set_len(unsigned int len, unsigned int do_ust);
+void dump_log(const char* format, ...);
+void vdump_log(const char* format, va_list nap);
+std::string dump_log_dump(bool keep=false);
+
+#endif // DUMP_LOG_H

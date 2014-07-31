@@ -1,0 +1,6 @@
+service
+request
+char* mod_name
+response
+char* error_message
+char* state

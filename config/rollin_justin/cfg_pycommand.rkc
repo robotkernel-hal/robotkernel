@@ -1,0 +1,28 @@
+# -*- mode: yaml -*-
+
+modules:
+-   name: sercos_first
+    module_file: libmodule_sercos.so
+    config_file: module_sercos_first.rkc
+
+-   name: sercos_second
+    module_file: libmodule_sercos.so
+    config_file: module_sercos_second.rkc
+    depends: [ sercos_first ]
+
+-   name: lbrserver
+    module_file: libmodule_lbrserver.so
+    config:
+        modules:
+        -   id: 0
+            name: sercos_first
+        -   id: 1
+            name: sercos_second
+        server_port: 51234
+    depends: [ sercos_first, sercos_second ]
+
+- name: rollin_justin
+  module_file: libmodule_lnrkinterface.so
+  config_file: module_lnrkinterface.rkc
+  depends: [ sercos_first, sercos_second, ]
+  power_up: true
