@@ -1,6 +1,6 @@
 PTVERSION           = 2
 NAME                = robotkernel
-VERSION             = 3.0.0
+VERSION             = 3.0.1
 DEPRECATES          = <3.0.0
 DESCRIPTION         = the robotkernel device driver framework
 MAINTAINER          = Robert Burger <robert.burger@dlr.de>
