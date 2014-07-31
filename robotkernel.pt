@@ -1,7 +1,7 @@
 PTVERSION           = 2
 NAME                = robotkernel
-VERSION             = 2.1.13
-DEPRECATES          = 
+VERSION             = 3.0.0
+DEPRECATES          = <3.0.0
 DESCRIPTION         = the robotkernel device driver framework
 MAINTAINER          = Robert Burger <robert.burger@dlr.de>
 DOCUMENTATION       = https://rmintra01.robotic.dlr.de/wiki/Robotkernel
@@ -14,23 +14,9 @@ SUPPORTED_LANGUAGES = C, C++
 
 [install]
 build/sled11-x86-gcc4.x/install/include/ => include/
-build/${ARCH}/install/lib/robotkernel/modules/*.so => lib/${ARCH}/robotkernel/modules/
-build/${ARCH}/install/lib/robotkernel/interfaces/*.so => lib/${ARCH}/robotkernel/interfaces/
 build/${ARCH}/install/bin/ => bin/${ARCH}/
 share/ => share/
 src/message_definitions/ => share/message_definitions/
-src/modules/lnrkinterface/message_definitions/ => share/message_definitions/
-src/modules/jitter_measurement/message_definitions/ => share/message_definitions/
-src/modules/sercos/message_definitions/ => share/message_definitions/
-src/modules/ethercat/message_definitions/ => share/message_definitions/
-src/modules/halfstep_space_justin/message_definitions/ => share/message_definitions/
-src/modules/rs422fts/message_definitions/ => share/message_definitions/
-src/modules/soem/message_definitions/ => share/message_definitions/
-src/modules/serial_fts/message_definitions/ => share/message_definitions/
-src/interfaces/canopen_protocol/message_definitions/ => share/message_definitions/
-src/interfaces/process_data_inspection/message_definitions/ => share/message_definitions/
-src/interfaces/sercos_protocol/message_definitions/ => share/message_definitions/
-src/interfaces/key_value/message_definitions/ => share/message_definitions/
 gui/ => share/python/robotkernel_gui/
 gui/robotkernel_gui => bin/sled11-x86-gcc4.x
 gui/robotkernel_gui => bin/sled11-x86_64-gcc4.x
