@@ -4,7 +4,8 @@ includedir = $(prefix)/include/robotkernel
 
 bin_PROGRAMS = robotkernel robotkernel_debug
 include_HEADERS = module_intf.h module.h interface.h exceptions.h kernel.h kernel_worker.h runnable.h trigger_base.h \
-				  log_thread.h dump_log.h ln_kernel_messages.h interface_intf.h helpers.h
+				  log_thread.h dump_log.h ln_kernel_messages.h interface_intf.h helpers.h char_ringbuffer.h cmd_delay.h \
+				  kernel_queue.h
 
 robotkernel_SOURCES = module.cpp module_intf.cpp interface.cpp main.cpp exceptions.cpp kernel.cpp kernel_worker.cpp \
 					  runnable.cpp trigger_base.cpp log_thread.cpp dump_log.cpp char_ringbuffer.cpp
