@@ -20,4 +20,3 @@ src/message_definitions/ => share/message_definitions/
 gui/ => share/python/robotkernel_gui/
 gui/robotkernel_gui => bin/sled11-x86-gcc4.x
 gui/robotkernel_gui => bin/sled11-x86_64-gcc4.x
-gui/robotkernel_gui.inc.lnc => share
