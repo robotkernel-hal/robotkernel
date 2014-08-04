@@ -90,6 +90,7 @@ AM_CONDITIONAL([HAVE_LN], [test -n "$LN_LIBS"])
 AC_SUBST(LN_GENERATE)
 AC_DEFINE_UNQUOTED(LN_LIBS, "$LN_LIBS", [linked links and nodes library])
 AC_SUBST(LN_LIBS)
+AC_SUBST(LN_VERSION)
 AC_SUBST(STRING_UTILS_LIBS)
 
 PKG_CHECK_MODULES([LTTNG_UST], [lttng-ust], [AC_DEFINE([HAVE_LTTNG_UST], [1], [use lttng user space tracing])], [AC_DEFINE([HAVE_LTTNG_UST], [0], [use lttng user space tracing])])
@@ -187,9 +188,8 @@ AC_CHECK_TYPES([cpu_set_t], [], [], [[#include <pthread.h>]])
 AC_CHECK_LIB(pthread, pthread_create, PTHREAD_LIBS="-lpthread")
 AC_SUBST(PTHREAD_LIBS)
 
-AC_CONFIG_FILES([Makefile
-                 src/Makefile
-                 ])
+AC_CONFIG_FILES([Makefile src/Makefile])
+AC_CONFIG_FILES([robotkernel.pt], [cp robotkernel.pt ${ac_abs_top_srcdir}])
 
 AC_OUTPUT
 

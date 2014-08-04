@@ -1,10 +1,10 @@
 PTVERSION           = 2
-NAME                = robotkernel
-VERSION             = 3.0.1
+NAME                = @PACKAGE@
+VERSION             = @PACKAGE_VERSION@
 DESCRIPTION         = the robotkernel device driver framework
 MAINTAINER          = Robert Burger <robert.burger@dlr.de>
 DOCUMENTATION       = https://rmintra01.robotic.dlr.de/wiki/Robotkernel
-DEPENDS             = software.links_and_nodes==0.2.55
+DEPENDS             = software.links_and_nodes==@LN_VERSION@
 C_INCLUDE_PATHS     = ${PKGROOT}/include/
 C_LIB_PATHS         = ${PKGROOT}/lib/${ARCH}
 C_LIBS              = 
