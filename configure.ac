@@ -91,6 +91,7 @@ AC_SUBST(LN_GENERATE)
 AC_DEFINE_UNQUOTED(LN_LIBS, "$LN_LIBS", [linked links and nodes library])
 AC_SUBST(LN_LIBS)
 AC_SUBST(LN_VERSION)
+AC_SUBST(YAML_VERSION)
 AC_SUBST(STRING_UTILS_LIBS)
 
 PKG_CHECK_MODULES([LTTNG_UST], [lttng-ust], [AC_DEFINE([HAVE_LTTNG_UST], [1], [use lttng user space tracing])], [AC_DEFINE([HAVE_LTTNG_UST], [0], [use lttng user space tracing])])
