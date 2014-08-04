@@ -133,6 +133,12 @@ kernel::kernel() {
     _ll = info;
     _name = "robotkernel";
     clnt = NULL;
+
+//    int _major, _minor, _patch;
+//    sscanf(PACKAGE_VERSION, "%d.%d.%d", &_major, &_minor, &_patch);
+//    
+//    logging(info, ROBOTKERNEL "major %d, minor %d, patch %d\n",
+//            _major, _minor, _patch);
 }
 
 //! destruction

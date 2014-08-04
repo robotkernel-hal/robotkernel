@@ -29,12 +29,13 @@ rk_base: %(ifndef "rk_base", "%(dirname %(CURDIR))")
 rk_base_type: %(ifexists "%(rk_base)/bin/robotkernel", "local_install", "rmpm_release")
 rk_binary: %(ifeq "%(rk_base_type)", "local_install", "%(rk_base)/bin/robotkernel", "%(rk_base)/bin/$(ARCH)/robotkernel")
 rk_libdir: %(ifeq "%(rk_base_type)", "local_install", "%(rk_base)/lib", "%(rk_base)/lib/$(ARCH)")
+rk_modules: %(ifndef "rk_modules", "")
+rk_interfaces: %(ifndef "rk_interfaces", "") 
 
 process %(ifndef "rk_name", "robotkernel")
-add environment: ROBOTKERNEL_MODULE_PATH=%(rk_libdir)/robotkernel/modules,
-add environment: ROBOTKERNEL_INTERFACE_PATH=%(rk_libdir)/robotkernel/interfaces, 
+append environment ROBOTKERNEL_MODULE_PATH: %(rk_modules),
+append environment ROBOTKERNEL_INTERFACE_PATH: %(rk_interfaces),
 ifdef rk_library_path: add environment: LD_LIBRARY_PATH=%(rk_library_path)
-ifdef libsercos:       append environment LD_LIBRARY_PATH: :%(libsercos)/lib/$(ARCH)
 command: %(rk_binary) %(ifndef "rk_arguments", "")
 flags: use_vte
 node: %(ifndef "rk_node", "localhost")
