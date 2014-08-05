@@ -1,6 +1,6 @@
 PTVERSION           = 2
 NAME                = robotkernel
-VERSION             = 3.0.3
+VERSION             = 3.0.4
 DESCRIPTION         = the robotkernel device driver framework
 MAINTAINER          = Robert Burger <robert.burger@dlr.de>
 DOCUMENTATION       = https://rmintra01.robotic.dlr.de/wiki/Robotkernel
@@ -12,8 +12,8 @@ ARCHS               = sled11-x86-gcc4.x, sled11-x86_64-gcc4.x, angstrom-armv7-gc
 SUPPORTED_LANGUAGES = C++
 
 [install]
-include/ => include/
-build/${ARCH}/src/*.h => include/${ARCH}/robotkernel/
+include/robotkernel/*.h => include/robotkernel/
+build/${ARCH}/include/robotkernel/*.h => include/${ARCH}/robotkernel/
 build/${ARCH}/install/bin/ => bin/${ARCH}/
 share/ => share/
 src/message_definitions/ => share/message_definitions/
