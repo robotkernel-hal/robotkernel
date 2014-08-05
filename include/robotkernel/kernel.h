@@ -29,10 +29,10 @@
 #include "robotkernel/module.h"
 #include "robotkernel/log_thread.h"
 #include "robotkernel/dump_log.h"
+#include "robotkernel/ln_kernel_messages.h"
 
 #include "ln.h"
 #include "ln_cppwrapper.h"
-#include "ln_kernel_messages.h"
 
 #define ROBOTKERNEL "[robotkernel] "
 
