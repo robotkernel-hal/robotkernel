@@ -8,7 +8,7 @@ AC_CANONICAL_SYSTEM
 
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 #AM_PROG_AR
-AC_CONFIG_HEADERS([src/config.h])
+AC_CONFIG_HEADERS([include/robotkernel/config.h])
 AC_CONFIG_MACRO_DIR([m4])
 
 AM_MAKEFLAGS="$AM_MAKEFLAGS --no-print-directory --jobs=8"

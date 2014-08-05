@@ -25,8 +25,8 @@
 #ifndef __EXCEPTIONS_H__
 #define __EXCEPTIONS_H__
 
-#include "config.h"
-#include "module_intf.h"
+#include "robotkernel/config.h"
+#include "robotkernel/module_intf.h"
 #include <exception>
 #include <iostream>
 #include <sstream>

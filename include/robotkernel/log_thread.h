@@ -26,7 +26,7 @@
 #define __LOG_THREAD_H__
 
 #include <string>
-#include "runnable.h"
+#include "robotkernel/runnable.h"
 
 #ifdef __VXWORKS__
 #undef log

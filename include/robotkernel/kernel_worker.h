@@ -29,9 +29,8 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <list>
-#include "module.h"
-
-#include "runnable.h"
+#include "robotkernel/module.h"
+#include "robotkernel/runnable.h"
 
 namespace robotkernel {
 

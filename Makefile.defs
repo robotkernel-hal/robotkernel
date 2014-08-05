@@ -1,10 +1,12 @@
 
-ln_kernel_messages.h: Makefile $(LN_KERNEL_MESSAGES)
+$(top_builddir)/include/robotkernel/ln_kernel_messages.h: Makefile $(LN_KERNEL_MESSAGES)
+	install -d $(top_builddir)/include/robotkernel
 	@echo creating $@
 	@LN_GENERATE@ -o $@ $(LN_KERNEL_MESSAGES)
 	touch $@
 
-ln_messages.h: Makefile $(LN_MESSAGES)
+$(top_builddir)/include/robotkernel/ln_messages.h: Makefile $(LN_MESSAGES)
+	install -d $(top_builddir)/include/robotkernel
 	@echo creating ln_messages.h
 	@LN_GENERATE@ -o $@ $(LN_MESSAGES)
 	touch $@

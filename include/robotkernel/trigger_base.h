@@ -26,8 +26,8 @@
 #define __TRIGGER_BASE_H__
 
 #include <pthread.h>
-#include "kernel.h"
-#include "module_intf.h"
+#include "robotkernel/kernel.h"
+#include "robotkernel/module_intf.h"
 
 namespace robotkernel {
 

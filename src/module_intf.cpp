@@ -22,7 +22,7 @@
  * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "module_intf.h"
+#include "robotkernel/module_intf.h"
 
 sercos_service_transfer::sercos_service_transfer() {
     slave_id = 0; 

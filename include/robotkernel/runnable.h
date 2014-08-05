@@ -29,7 +29,7 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <list>
-#include "module.h"
+#include "robotkernel/module.h"
 
 namespace robotkernel {
 

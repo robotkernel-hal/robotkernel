@@ -1,4 +1,28 @@
-#include "dump_log.h"
+//! robotkernel interface definition
+/*!
+ * author: Robert Burger
+ *
+ * $Id$
+ */
+
+/*
+ * This file is part of robotkernel.
+ *
+ * robotkernel is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * robotkernel is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#include "robotkernel/dump_log.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -8,13 +32,13 @@
 
 #include <list>
 
-#include "config.h"
+#include "robotkernel/config.h"
 
 #if (HAVE_LTTNG_UST == 1)
-#include "dump_log_tp.h"
+#include "robotkernel/dump_log_tp.h"
 #endif
 
-#include "char_ringbuffer.h"
+#include "robotkernel/char_ringbuffer.h"
 
 using namespace std;
 

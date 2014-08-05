@@ -22,7 +22,7 @@
  * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "log_thread.h"
+#include "robotkernel/log_thread.h"
 
 using namespace robotkernel;
 

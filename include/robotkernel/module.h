@@ -27,9 +27,9 @@
 
 #include <string>
 #include <stdio.h>
-#include "ln_kernel_messages.h"
-#include "module_intf.h"
-#include "interface.h"
+#include "robotkernel/ln_kernel_messages.h"
+#include "robotkernel/module_intf.h"
+#include "robotkernel/interface.h"
 #include "yaml-cpp/yaml.h"
 
 namespace robotkernel {

@@ -1,23 +1,39 @@
-BUILT_SOURCES = ln_kernel_messages.h
-CLEANFILES = ln_kernel_messages.h
+BUILT_SOURCES = $(top_builddir)/include/robotkernel/ln_kernel_messages.h
+CLEANFILES = $(top_builddir)/include/robotkernel/ln_kernel_messages.h
 includedir = $(prefix)/include/robotkernel
+headerdir = $(top_srcdir)/include/robotkernel
+gen_headerdir = $(top_builddir)/include/robotkernel
 
 bin_PROGRAMS = robotkernel robotkernel_debug
-include_HEADERS = module_intf.h module.h interface.h exceptions.h kernel.h kernel_worker.h runnable.h trigger_base.h \
-				  log_thread.h dump_log.h ln_kernel_messages.h interface_intf.h helpers.h char_ringbuffer.h cmd_delay.h \
-				  kernel_queue.h config.h
+include_HEADERS = $(headerdir)/module_intf.h \
+				  $(headerdir)/module.h \
+				  $(headerdir)/interface.h \
+				  $(headerdir)/exceptions.h \
+				  $(headerdir)/kernel.h \
+				  $(headerdir)/kernel_worker.h \
+				  $(headerdir)/runnable.h \
+				  $(headerdir)/trigger_base.h \
+				  $(headerdir)/log_thread.h \
+				  $(headerdir)/dump_log.h \
+				  $(headerdir)/interface_intf.h \
+				  $(headerdir)/helpers.h \
+				  $(headerdir)/char_ringbuffer.h \
+				  $(headerdir)/cmd_delay.h \
+				  $(headerdir)/kernel_queue.h \
+				  $(gen_headerdir)/config.h \
+				  $(gen_headerdir)/ln_kernel_messages.h 
 
 robotkernel_SOURCES = module.cpp module_intf.cpp interface.cpp main.cpp exceptions.cpp kernel.cpp kernel_worker.cpp \
 					  runnable.cpp trigger_base.cpp log_thread.cpp dump_log.cpp char_ringbuffer.cpp
 
-robotkernel_CXXFLAGS = -O2 -I$(top_builddir) -I$(top_srcdir) @YAMLCPP_CFLAGS@ @LN_CFLAGS@
+robotkernel_CXXFLAGS = -O2 -I$(top_builddir)/include -I$(top_srcdir)/include/ @YAMLCPP_CFLAGS@ @LN_CFLAGS@
 robotkernel_LDFLAGS = -Wl,-export-dynamic -Bdynamic @ROBOTKERNEL_LDFLAGS@
 robotkernel_LDADD = @DL_LIBS@ @SOCKET_LIBS@ @RT_LIBS@ @PTHREAD_LIBS@ @YAMLCPP_LIBS@ @LN_LIBS@ @STRING_UTILS_LIBS@ #-lstdc++
 
 robotkernel_debug_SOURCES = module.cpp module_intf.cpp interface.cpp main.cpp exceptions.cpp kernel.cpp kernel_worker.cpp \
 					  runnable.cpp trigger_base.cpp log_thread.cpp dump_log.cpp char_ringbuffer.cpp
 
-robotkernel_debug_CXXFLAGS = -O0 -g3 -I$(top_builddir) -I$(top_srcdir) @YAMLCPP_CFLAGS@ @LN_CFLAGS@
+robotkernel_debug_CXXFLAGS = -O0 -g3 -I$(top_builddir)/include -I$(top_srcdir)/include/ @YAMLCPP_CFLAGS@ @LN_CFLAGS@
 robotkernel_debug_LDFLAGS = -Wl,-export-dynamic -Bdynamic @ROBOTKERNEL_LDFLAGS@
 robotkernel_debug_LDADD = @DL_LIBS@ @SOCKET_LIBS@ @RT_LIBS@ @PTHREAD_LIBS@ @YAMLCPP_LIBS@ @LN_LIBS@ @STRING_UTILS_LIBS@ #-lstdc++
 

@@ -1,7 +1,7 @@
-#include "config.h"
-#include "kernel.h"
-#include "module_intf.h"
-#include "module.h"
+#include "robotkernel/config.h"
+#include "robotkernel/kernel.h"
+#include "robotkernel/module_intf.h"
+#include "robotkernel/module.h"
 #include <stdio.h>
 #include <string>
 #include <string.h>

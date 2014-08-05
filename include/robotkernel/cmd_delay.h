@@ -27,9 +27,9 @@
 
 #include <string>
 #include "yaml-cpp/yaml.h"
-#include "kernel.h"
-#include "module_intf.h"
-#include "exceptions.h"
+#include "robotkernel/kernel.h"
+#include "robotkernel/module_intf.h"
+#include "robotkernel/exceptions.h"
 
 using namespace robotkernel;
 

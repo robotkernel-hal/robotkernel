@@ -26,9 +26,9 @@
 #define __KERNEL_H__
 
 #include <string>
-#include "module.h"
-#include "log_thread.h"
-#include "dump_log.h"
+#include "robotkernel/module.h"
+#include "robotkernel/log_thread.h"
+#include "robotkernel/dump_log.h"
 
 #include "ln.h"
 #include "ln_cppwrapper.h"
