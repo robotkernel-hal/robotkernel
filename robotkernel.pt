@@ -1,6 +1,6 @@
 PTVERSION           = 2
 NAME                = robotkernel
-VERSION             = 3.0.5
+VERSION             = 3.0.6
 DESCRIPTION         = the robotkernel device driver framework
 MAINTAINER          = Robert Burger <robert.burger@dlr.de>
 DOCUMENTATION       = https://rmintra01.robotic.dlr.de/wiki/Robotkernel

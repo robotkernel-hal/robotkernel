@@ -33,8 +33,8 @@ rk_modules: %(ifndef "rk_modules", "")
 rk_interfaces: %(ifndef "rk_interfaces", "") 
 
 process %(ifndef "rk_name", "robotkernel")
-append environment ROBOTKERNEL_MODULE_PATH: %(rk_modules),
-append environment ROBOTKERNEL_INTERFACE_PATH: %(rk_interfaces),
+append environment ROBOTKERNEL_MODULE_PATH: %(rk_modules)
+append environment ROBOTKERNEL_INTERFACE_PATH: %(rk_interfaces)
 ifdef rk_library_path: add environment: LD_LIBRARY_PATH=%(rk_library_path)
 command: %(rk_binary) %(ifndef "rk_arguments", "")
 flags: use_vte
