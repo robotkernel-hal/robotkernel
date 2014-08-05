@@ -1,18 +1,19 @@
 PTVERSION           = 2
 NAME                = robotkernel
-VERSION             = 3.0.2
+VERSION             = 3.0.3
 DESCRIPTION         = the robotkernel device driver framework
 MAINTAINER          = Robert Burger <robert.burger@dlr.de>
 DOCUMENTATION       = https://rmintra01.robotic.dlr.de/wiki/Robotkernel
 DEPENDS             = software.links_and_nodes==0.2.55, software.yaml==0.3.0
-C++_INCLUDE_PATHS   = ${PKGROOT}/include/
+C++_INCLUDE_PATHS   = ${PKGROOT}/include/, ${PKGROOT}/include/${ARCH}/
 C++_LIB_PATHS       = ${PKGROOT}/lib/${ARCH}
 C++_LIBS            = 
-ARCHS               = sled11-x86-gcc4.x, sled11-x86_64-gcc4.x, arm-angstrom-linux-gnueabi, vxworks6.7-x86-gcc4.x, vxworks6.8-x86-gcc4.x, vxworks6.9-x86-gcc4.x, vxworks6.9.3-x86-gcc4.x, vxworks6.9.4-x86-gcc4.x, qnx6.3-x86-gcc3.3, qnx6.5-x86-gcc4.x, qnx6.5-x86-gcc4.x-gpp
+ARCHS               = sled11-x86-gcc4.x, sled11-x86_64-gcc4.x, angstrom-armv7-gcc4.7, vxworks6.7-x86-gcc4.x, vxworks6.8-x86-gcc4.x, vxworks6.9-x86-gcc4.x, vxworks6.9.3-x86-gcc4.x, vxworks6.9.4-x86-gcc4.x, qnx6.3-x86-gcc3.3, qnx6.5-x86-gcc4.x, qnx6.5-x86-gcc4.x-gpp
 SUPPORTED_LANGUAGES = C++
 
 [install]
-build/sled11-x86-gcc4.x/install/include/ => include/
+src/*.h => include/
+build/${ARCH}/src/*.h => include/${ARCH}/
 build/${ARCH}/install/bin/ => bin/${ARCH}/
 share/ => share/
 src/message_definitions/ => share/message_definitions/

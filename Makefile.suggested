@@ -11,7 +11,7 @@
 #LN_BASE=/home/schm_fl/workspace/ln_base/install/links_and_nodes/0.2.0
 #LN_BASE=${HOME}/workspace/ln_base
 
-SUPPORTED_ARCHS=sled11-x86-gcc4.x sled11-x86_64-gcc4.x arm-angstrom-linux-gnueabi vxworks6.7-x86-gcc4.x vxworks6.8-x86-gcc4.x vxworks6.9-x86-gcc4.x vxworks6.9.3-x86-gcc4.x vxworks6.9.4-x86-gcc4.x qnx6.3-x86-gcc3.3 qnx6.5-x86-gcc4.x qnx6.5-x86-gcc4.x-gpp
+SUPPORTED_ARCHS=sled11-x86-gcc4.x sled11-x86_64-gcc4.x angstrom-armv7-gcc4.7 vxworks6.7-x86-gcc4.x vxworks6.8-x86-gcc4.x vxworks6.9-x86-gcc4.x vxworks6.9.3-x86-gcc4.x vxworks6.9.4-x86-gcc4.x qnx6.3-x86-gcc3.3 qnx6.5-x86-gcc4.x qnx6.5-x86-gcc4.x-gpp
 
 JOBS=16
 ARGS=
@@ -28,7 +28,7 @@ endif
 #SOURCE_ENV="source $(CURDIR)/scripts/sled11-x86_64-gcc4.x.env"
 endif
 
-ifeq ($(ARCH),arm-angstrom-linux-gnueabi)
+ifeq ($(ARCH),angstrom-armv7-gcc4.7)
 OECORE_ROOT=/home/schm_fl/data/local/oecore-i686
 HOST_OPTION=--host=arm-angstrom-linux-gnueabi
 TOOLCHAIN=${OECORE_ROOT}/sysroots/i686-angstromsdk-linux/usr/bin/armv7a-vfp-neon-angstrom-linux-gnueabi/
