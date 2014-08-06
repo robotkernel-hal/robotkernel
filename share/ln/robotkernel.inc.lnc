@@ -25,7 +25,7 @@ requires_version 0.2.43
 #     (optional) su, if possible (e.g. root)
 
 defines
-rk_base: %(ifndef "rk_base", "%(dirname %(CURDIR))")
+rk_base: %(ifndef "rk_base", "%(dirname %(dirname %(CURDIR)))")
 rk_base_type: %(ifexists "%(rk_base)/bin/robotkernel", "local_install", "rmpm_release")
 rk_binary: %(ifeq "%(rk_base_type)", "local_install", "%(rk_base)/bin/robotkernel", "%(rk_base)/bin/$(ARCH)/robotkernel")
 rk_libdir: %(ifeq "%(rk_base_type)", "local_install", "%(rk_base)/lib", "%(rk_base)/lib/$(ARCH)")
@@ -35,7 +35,7 @@ rk_interfaces: %(ifndef "rk_interfaces", "")
 process %(ifndef "rk_name", "robotkernel")
 append environment ROBOTKERNEL_MODULE_PATH: %(rk_modules)
 append environment ROBOTKERNEL_INTERFACE_PATH: %(rk_interfaces)
-ifdef rk_library_path: add environment: LD_LIBRARY_PATH=%(rk_library_path)
+append environment LD_LIBRARY_PATH: %(rk_libpath)
 command: %(rk_binary) %(ifndef "rk_arguments", "")
 flags: use_vte
 node: %(ifndef "rk_node", "localhost")
