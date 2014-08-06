@@ -16,7 +16,7 @@ requires_version 0.2.43
 #     defaults to be relative to this file
 
 defines
-rkgui_path: %(ifndef "rkgui_path", "%(dirname %(CURDIR))")
+rkgui_path: %(ifndef "rkgui_path", "%(dirname %(dirname %(CURDIR)))")
 #warning: rkgui_path: %(rkgui_path)
 rkgui_path_type: %(ifexists "%(rkgui_path)/robotkernel_gui", "path_to_bin", "%(ifexists "%(rkgui_path)/bin/robotkernel_gui", "local_install", "rmpm_release")")
 #warning: rkgui_path_type: %(rkgui_path_type)
