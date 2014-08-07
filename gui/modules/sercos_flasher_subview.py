@@ -31,13 +31,13 @@ class sercos_flasher_subview(ln.ln_wrappers.services_wrapper):
                 method_name = 'get_state')
         self.wrap_service('set_state', 'robotkernel/set_state', 
                 method_name = 'set_state')
-        self.wrap_service('%s.get_phase' % self.module, 'sercos/get_phase',
+        self.wrap_service('%s.get_phase' % self.module, 'robotkernel/sercos/get_phase',
                 method_name = 'get_phase')
-        self.wrap_service('%s.set_phase' % self.module, 'sercos/set_phase',
+        self.wrap_service('%s.set_phase' % self.module, 'robotkernel/sercos/set_phase',
                 method_name = 'set_phase')
-        self.wrap_service('%s.phase5_write' % self.module, 'sercos/phase5_write',
+        self.wrap_service('%s.phase5_write' % self.module, 'robotkernel/sercos/phase5_write',
                 method_name = 'phase5_write')
-        self.wrap_service('%s.phase6_read' % self.module, 'sercos/phase6_read',
+        self.wrap_service('%s.phase6_read' % self.module, 'robotkernel/sercos/phase6_read',
                 method_name = 'phase6_read')
 
     def __getattr__(self, name):

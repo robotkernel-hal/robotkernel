@@ -44,7 +44,7 @@ class sercos_id_subview(object):
         self.id_view.connect("button-press-event", self.on_id_view_clicked)
 
         #initially fill all devices found by ln
-        for s in self.clnt.find_services_with_interface("sercos_protocol/read_id").split("\n"):
+        for s in self.clnt.find_services_with_interface("robotkernel/sercos_protocol/read_id").split("\n"):
             if not s.startswith(self.name):
                 continue
             number = s.split(".")[-3]

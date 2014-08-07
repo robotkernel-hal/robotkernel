@@ -246,7 +246,7 @@ class sercos_device(ln.ln_wrappers.services_wrapper):
         self.pdout_mapping = False
         
         self.wrap_service(
-            "sercos_protocol.read_id", "sercos_protocol/read_id",
+            "sercos_protocol.read_id", "robotkernel/sercos_protocol/read_id",
             postprocessors=dict(
                 name=decode,
                 value=decode_eval
@@ -254,16 +254,16 @@ class sercos_device(ln.ln_wrappers.services_wrapper):
             method_name="read_id")
 
         self.wrap_service(
-            "sercos_protocol.write_id", "sercos_protocol/write_id",
+            "sercos_protocol.write_id", "robotkernel/sercos_protocol/write_id",
             default_arguments=dict(state=0, structure=0, name="", unit="", attr=0, min_value="", max_value=""),
             method_name="write_id")
 
         self.wrap_service(
-            "sercos_protocol.set_command", "sercos_protocol/set_command",
+            "sercos_protocol.set_command", "robotkernel/sercos_protocol/set_command",
             method_name="set_command")
 
         self.wrap_service(
-            "get_config", "module/get_config")
+            "get_config", "robotkernel/module/get_config")
             
         self.svc_get_pdin = self.clnt.get_service("%s.process_data_inspection.in" %self.name)
         self.svc_get_pdout = self.clnt.get_service("%s.process_data_inspection.out" %self.name)

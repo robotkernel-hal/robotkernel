@@ -37,7 +37,7 @@ class kernel_wrapper(ln.ln_wrappers.services_wrapper):
     def get_config(self, module):
         svc_name = "%s.%s.get_config" %(self.name, module)
         if svc_name not in self.config_services:
-            svc = self.clnt.get_service(svc_name, "module/get_config")
+            svc = self.clnt.get_service(svc_name)
             self.config_services[svc_name] = svc
         svc = self.config_services[svc_name]
         svc.call()

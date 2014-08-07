@@ -135,6 +135,9 @@ class sercos_param_subview(object):
     #CALLBACKS
     def on_device_view_params_cursor_changed(self, widget):
         sercos_device = self.get_selected_device()
+        if not sercos_device:
+            return True
+
         self.param_store.clear()
         for set_number in sercos_device.list_sercos_parametersets(self.param_view):
             sercos_parameterset = sercos_device.sercos_parametersets[set_number]
