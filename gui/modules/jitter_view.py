@@ -17,7 +17,7 @@ class jitter_view(base_view, ln.ln_wrappers.services_wrapper):
         ln.ln_wrappers.services_wrapper.__init__(self, self.app.clnt, self.name)
         self.parent = name.split(".")[0]
 
-        self.wrap_service("reset_max_ever", "jitter_measurement/reset_max_ever")
+        self.wrap_service("reset_max_ever", "robotkernel/jitter_measurement/reset_max_ever")
 
         self.init_gui()
 

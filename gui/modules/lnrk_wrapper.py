@@ -21,12 +21,12 @@ class lnrk_wrapper(object):
         self.subscribed_ports = dict()
         self.multi_waiter = ln.gtk_multi_waiter(clnt)
         
-        self.svc_list                    = self.clnt.get_service("%s.list" % self.interface_name, "lnrkinterface/list")
-        self.svc_request_telemetry_topic = self.clnt.get_service("%s.request_telemetry_topic" % self.interface_name, "lnrkinterface/request_telemetry_topic")
-        self.svc_request_command_topic   = self.clnt.get_service("%s.request_command_topic" % self.interface_name, "lnrkinterface/request_command_topic")
-        self.svc_add_overwrite           = self.clnt.get_service("%s.add_overwrite" % self.interface_name, "lnrkinterface/add_overwrite")
-        self.svc_del_overwrite           = self.clnt.get_service("%s.del_overwrite" % self.interface_name, "lnrkinterface/del_overwrite")
-        self.svc_list_overwrites         = self.clnt.get_service("%s.list_overwrites" % self.interface_name, "lnrkinterface/list_overwrites")
+        self.svc_list                    = self.clnt.get_service("%s.list" % self.interface_name)
+        self.svc_request_telemetry_topic = self.clnt.get_service("%s.request_telemetry_topic" % self.interface_name)
+        self.svc_request_command_topic   = self.clnt.get_service("%s.request_command_topic" % self.interface_name)
+        self.svc_add_overwrite           = self.clnt.get_service("%s.add_overwrite" % self.interface_name)
+        self.svc_del_overwrite           = self.clnt.get_service("%s.del_overwrite" % self.interface_name)
+        self.svc_list_overwrites         = self.clnt.get_service("%s.list_overwrites" % self.interface_name)
         
     def subscribe(self, topic_name, msg_def_name, rate, consumer_cb, consumer_args):
         if topic_name in self.subscribed_ports:
