@@ -23,6 +23,7 @@
  */
 
 #include "robotkernel/log_thread.h"
+#include "robotkernel/kernel.h"
 
 using namespace robotkernel;
 
@@ -97,6 +98,8 @@ void log_thread::log(struct log_pool_object *obj) {
 
 //! handler function called if thread is running
 void log_thread::run() {
+    klog(verbose, "[log_thread] started\n");
+
     while (_running) {
         struct timespec ts;
         clock_gettime(CLOCK_REALTIME, &ts);
@@ -114,7 +117,6 @@ void log_thread::run() {
         if (ret != 0)
             continue;
 
-
         while (!_full_pool.empty()) {
             pthread_mutex_lock(&_mutex);
             struct log_pool_object *obj = _full_pool.front();
@@ -126,5 +128,7 @@ void log_thread::run() {
             pthread_mutex_unlock(&_mutex);
         }
     }
+    
+    klog(verbose, "[log_thread] stopped\n");
 }
 
