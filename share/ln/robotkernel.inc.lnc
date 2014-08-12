@@ -31,12 +31,14 @@ rk_binary: %(ifeq "%(rk_base_type)", "local_install", "%(rk_base)/bin/robotkerne
 rk_libdir: %(ifeq "%(rk_base_type)", "local_install", "%(rk_base)/lib", "%(rk_base)/lib/$(ARCH)")
 rk_modules: %(ifndef "rk_modules", "")
 rk_interfaces: %(ifndef "rk_interfaces", "") 
+rk_ld_so_conf: %(ifndef "rk_ld_so_conf", "")
 add_message_definition_dir: %(rk_base)/share/message_definitions
 
 process %(ifndef "rk_name", "robotkernel")
 append environment ROBOTKERNEL_MODULE_PATH: %(rk_modules)
 append environment ROBOTKERNEL_INTERFACE_PATH: %(rk_interfaces)
 append environment LD_LIBRARY_PATH: %(rk_libpath)
+append environment LD_SO_CONF: %(rk_ld_so_conf)
 command: %(rk_binary) %(ifndef "rk_arguments", "")
 node: %(ifndef "rk_node", "localhost")
 ready_regex: up and running
