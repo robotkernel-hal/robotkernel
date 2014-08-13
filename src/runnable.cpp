@@ -30,6 +30,11 @@
 #ifdef __QNX__
 #include <sys/neutrino.h>
 #endif
+
+#ifdef __VXWORKS__
+#include <vxWorks.h>
+#include <taskLib.h>
+#endif
         
 using namespace std;
 using namespace robotkernel;
@@ -91,7 +96,11 @@ void *runnable::run_wrapper(void *arg)
     }
 
     if (r->_affinity_mask) {
-#ifndef __QNX__
+#ifdef __VXWORKS__
+        taskCpuAffinitySet(taskIdSelf(),  (cpuset_t)r->_affinity_mask);
+#elif defined __QNX__
+        ThreadCtl(_NTO_TCTL_RUNMASK, (void *)r->_affinity_mask);
+#else
 #ifdef HAVE_CPU_SET_T
         cpu_set_t cpuset;
         CPU_ZERO(&cpuset);
@@ -105,8 +114,6 @@ void *runnable::run_wrapper(void *arg)
             klog(warning, "[runnable] run_wrapper: pthread_setaffinity(0x%x, 0x%02f): %s\n", 
                     pthread_self(), r->_affinity_mask, strerror(errno));
 #endif
-#else
-        ThreadCtl(_NTO_TCTL_RUNMASK, (void *)r->_affinity_mask);
 #endif
     }
 
@@ -165,7 +172,11 @@ void runnable::set_prio(int prio) {
  * \param mask new cup affinity mask 
  */
 void runnable::set_affinity_mask(int mask) {
-#ifndef __QNX__
+#ifdef __VXWORKS__
+    taskCpuAffinitySet(taskIdSelf(),  (cpuset_t)mask);
+#elif defined __QNX__
+    ThreadCtl(_NTO_TCTL_RUNMASK, (void *)mask);
+#else
 #ifdef HAVE_CPU_SET_T
     cpu_set_t cpuset;
     CPU_ZERO(&cpuset);
@@ -176,8 +187,6 @@ void runnable::set_affinity_mask(int mask) {
     if (pthread_setaffinity_np(tid, sizeof(cpu_set_t), &cpuset) != 0)
         klog(warning, "[runnable] pthread_setaffinity(0x%x, 0x%02f): %s\n", tid, mask, strerror(errno));
 #endif
-#else
-    ThreadCtl(_NTO_TCTL_RUNMASK, (void *)mask);
 #endif
 }
 
