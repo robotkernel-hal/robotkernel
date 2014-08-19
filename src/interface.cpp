@@ -46,8 +46,8 @@ using namespace robotkernel;
   */
 interface::interface(const std::string& interface_file, 
         const std::string& mod_name, const std::string& dev_name, const int& offset) :
-    intf_handle(NULL), interface_file(interface_file), mod_name(mod_name), 
-    dev_name(dev_name), offset(offset) { 
+    interface_file(interface_file), mod_name(mod_name), dev_name(dev_name), 
+    offset(offset), intf_handle(NULL) { 
     
     struct stat buf;
     if (stat(interface_file.c_str(), &buf) != 0) {
