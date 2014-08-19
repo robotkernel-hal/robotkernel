@@ -111,7 +111,9 @@ Exit:
     klog(info, ROBOTKERNEL "exiting\n");
     
 #ifdef __VXWORKS__
-    k.clnt->wait_for_service_requests(0);
+    // on vxworks we have to call select once to do magic cleanup
+    if (k.clnt)
+        k.clnt->wait_for_service_requests(0);
 #endif // __VXWORKS__
 
     try {
