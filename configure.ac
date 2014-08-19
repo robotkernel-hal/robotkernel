@@ -148,11 +148,11 @@ AC_ARG_WITH([debug],
                             [with_debug=yes],
                             [with_debug=no])
 AS_IF([test "x$with_debug" != xno], [ 
-       CFLAGS="-g3 -O0"
-       CXXFLAGS="-g3 -O0" ])
+       CFLAGS="-Wall -g3 -O0"
+       CXXFLAGS="-Wall -g3 -O0" ])
 
-CFLAGS=""
-CXXFLAGS=""
+CFLAGS="-Wall"
+CXXFLAGS="-Wall"
 
 # Checks for header files.
 AC_CHECK_HEADERS([stdint.h stdlib.h string.h sys/ioctl.h unistd.h execinfo.h termios.h])
