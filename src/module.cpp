@@ -76,6 +76,8 @@ module_state_t string_to_state(const char* state_ptr) {
     ret_state(preop);
     ret_state(safeop);
     ret_state(op);
+
+    return module_state_unknown;
 }
 
 //! generate new trigger object
@@ -187,8 +189,8 @@ YAML::Emitter& operator<<(YAML::Emitter& out, const module& mdl) {
   */
 module::module(std::string mod_name, std::string module_file, std::string config, 
         std::string trigger, std::string depends) :
-    mod_handle(NULL), name(mod_name), module_file(module_file), config(config), 
-    mod_configure(NULL), mod_unconfigure(NULL), mod_read(NULL), mod_write(NULL), 
+    name(mod_name), module_file(module_file), config(config), so_handle(NULL),
+    mod_handle(NULL), mod_configure(NULL), mod_unconfigure(NULL), mod_read(NULL), mod_write(NULL), 
     mod_set_state(NULL) {
     
     stringstream stream(trigger);
@@ -217,7 +219,7 @@ module::module(std::string mod_name, std::string module_file, std::string config
  * \param node configuration node
  */
 module::module(const YAML::Node& node, string config_path)
-:    mod_handle(NULL), mod_configure(NULL), 
+:    so_handle(NULL), mod_handle(NULL), mod_configure(NULL), 
     mod_unconfigure(NULL), mod_read(NULL), mod_write(NULL), 
     mod_set_state(NULL) {
     name = node["name"].to<string>();
@@ -451,9 +453,11 @@ module::~module() {
 
     if (so_handle) {
         klog(info, "[module] unloading module %s\n", module_file.c_str());
+#ifndef __VXWORKS__ // we do not dlclose on vxworks, vxworks does stupid things
         if (dlclose(so_handle) != 0)
             klog(error, "[module] error on unloading module %s\n", module_file.c_str());
         else
+#endif
             so_handle = NULL;
     }
 }
