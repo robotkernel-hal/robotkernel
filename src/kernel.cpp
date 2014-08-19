@@ -375,7 +375,7 @@ void kernel::config(std::string config_file, int argc, char **argv) {
         _ll = new_ll;
     }
 
-    try {    
+    try {
         init_ln(argc, argv);        
     } catch(exception& e) {
         klog(warning, ROBOTKERNEL "unable to init ln: %s\n", e.what());
@@ -492,6 +492,8 @@ bool kernel::state_check() {
             set_state(it->first.c_str(), module_state_init);
         }
     }
+
+    return true;
 }
         
 //! kernel register interface callback
