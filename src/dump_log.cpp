@@ -117,4 +117,4 @@ std::string dump_log_dump(bool keep) {
             return string();
         return _dump_log_buffer->get(keep);
 }
-      
+
