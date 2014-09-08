@@ -83,7 +83,7 @@ class soem_canopen_subview(object):
         store.set_sort_column_id(0, 0)
 
         #initially fill all devices found by ln
-        for s in self.clnt.find_services_with_interface("canopen_protocol/object_dictionary_list").split("\n"):
+        for s in self.clnt.find_services_with_interface("robotkernel/canopen_protocol/object_dictionary_list").split("\n"):
             if not s.startswith(self.name):
                 continue
             number = s.split(".")[-3]
