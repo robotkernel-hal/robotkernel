@@ -45,6 +45,22 @@ int usage(int argc, char** argv) {
 }
 
 int main(int argc, char** argv) {
+
+    sigset_t set;
+    if (sigemptyset (&set) == -1)
+        perror ("sigemptyset");
+
+    int n;
+    for (n = SIGRTMIN; n <= SIGRTMAX; ++n) {
+        if (sigaddset (&set, n) == -1)
+            perror ("sigaddset");
+    }
+
+    if (sigprocmask (SIG_BLOCK, &set, NULL) != 0)
+        perror ("sigprocmask");
+    if (pthread_sigmask (SIG_BLOCK, &set, NULL) != 0)
+        perror ("sigprocmask");
+
     klog(info, ROBOTKERNEL "build by: " BUILD_USER "@" BUILD_HOST "\n");
     klog(info, ROBOTKERNEL "build date: " BUILD_DATE "\n");
     klog(info, ROBOTKERNEL "links_and_nodes: " LN_LIBS "\n");
