@@ -4,7 +4,7 @@ VERSION             = 3.0.10
 DESCRIPTION         = the robotkernel device driver framework
 MAINTAINER          = Robert Burger <robert.burger@dlr.de>
 DOCUMENTATION       = https://rmintra01.robotic.dlr.de/wiki/Robotkernel
-DEPENDS             = software.links_and_nodes==0.2.55, software.yaml==0.3.0
+DEPENDS             = software.links_and_nodes==0.2.55, software.yaml-cpp==0.3.0
 C++_INCLUDE_PATHS   = ${PKGROOT}/include/, ${PKGROOT}/include/${ARCH}/
 C++_LIB_PATHS       = ${PKGROOT}/lib/${ARCH}
 C++_LIBS            = 
