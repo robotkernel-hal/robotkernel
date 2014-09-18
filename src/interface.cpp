@@ -89,8 +89,7 @@ interface::interface(const std::string& interface_file,
 #else
         klog(error, "[interface] interface file name not given as absolute filename, either set\n"
                 "         ROBOTKERNEL_INTERFACE_PATH environment variable or specify absolut path!\n");
-        klog(error, "[interface] access signaled error: %s\n", strerror(errno));
-        return;
+        throw str_exception("[interface] access signaled error: %s", strerror(errno));
 #endif
     }
 
@@ -99,11 +98,8 @@ interface::interface(const std::string& interface_file,
             RTLD_NOW
             );
 
-    if (!so_handle) {
-        klog(error, "[interface] dlopen signaled error opening interface:\n");
-        klog(error, "%s\n", dlerror());;
-        return;
-    }
+    if (!so_handle)
+        throw str_exception("[interface] dlopen signaled error: %s", strerror(errno));
 
     intf_register   = (intf_register_t)  dlsym(so_handle, "intf_register");
     intf_unregister = (intf_unregister_t)dlsym(so_handle, "intf_unregister");

@@ -203,8 +203,11 @@ kernel::~kernel() {
  * \return kernel singleton instance
  */
 kernel * kernel::get_instance() {
-    if (!instance)
+    if (!instance) {
         instance = new kernel();
+        instance->_log.start();
+    }
+
     return instance;
 }
 
@@ -212,6 +215,8 @@ kernel * kernel::get_instance() {
 void kernel::destroy_instance() {
     if (instance) {
         delete instance;
+
+        instance = NULL;
     }
 }
 
@@ -399,6 +404,7 @@ void kernel::config(std::string config_file, int argc, char **argv) {
         }
 
         // add to module map
+        klog(info, ROBOTKERNEL "adding [%s]\n", mdl->name.c_str());
         module_map[mdl->name] = mdl;
     }
 }

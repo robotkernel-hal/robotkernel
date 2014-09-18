@@ -563,8 +563,15 @@ int module::set_state(module_state_t state) {
 
                 kernel& k = *kernel::get_instance();
                 kernel::module_map_t::iterator module_it = k.module_map.find((*it)->_mod_name);
-                if (module_it == k.module_map.end())
-                    throw str_exception("[module] %s not found\n", (*it)->_mod_name.c_str());
+                if (module_it == k.module_map.end()) {
+                    stringstream ss;
+                    for (module_it = k.module_map.begin(); module_it != k.module_map.end(); ++module_it) {
+                        ss << "[" << (*it)->_mod_name << "], ";
+                    }
+
+                    throw str_exception("[module] %s not found! (loaded %s)\n", 
+                            (*it)->_mod_name.c_str(), ss.str().c_str());
+                }
 
                 module *mdl2 = module_it->second;
                 mdl2->trigger_register_module(this, **it);

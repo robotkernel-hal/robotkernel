@@ -61,6 +61,8 @@ int main(int argc, char** argv) {
     if (pthread_sigmask (SIG_BLOCK, &set, NULL) != 0)
         perror ("sigprocmask");
 
+    kernel &k = *kernel::get_instance();
+
     klog(info, ROBOTKERNEL "build by: " BUILD_USER "@" BUILD_HOST "\n");
     klog(info, ROBOTKERNEL "build date: " BUILD_DATE "\n");
     klog(info, ROBOTKERNEL "links_and_nodes: " LN_LIBS "\n");
@@ -68,7 +70,6 @@ int main(int argc, char** argv) {
     string config_file = "";
     loglevel level = info;
     struct sigaction action;
-    kernel &k = *kernel::get_instance();
 
     for (int i = 1; i < argc; ++i) {
         if ((strcmp(argv[i], "--config") == 0) || (strcmp(argv[i], "-c") == 0)) {

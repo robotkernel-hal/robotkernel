@@ -41,9 +41,6 @@ log_thread::log_thread(int pool_size) : runnable(0, 0) {
         obj->len = 1024;
         _empty_pool.push_back(obj);                
     }
-
-    // start log thread
-    start();
 }
 
 //! destruction, do clean ups

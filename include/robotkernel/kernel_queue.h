@@ -26,6 +26,8 @@
 #ifndef __KERNEL_QUEUE_H__
 #define __KERNEL_QUEUE_H__
 
+#include <semaphore.h>
+
 template <typename T>
 class kernel_queue {
     public:
