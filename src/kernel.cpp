@@ -380,6 +380,14 @@ void kernel::config(std::string config_file, int argc, char **argv) {
         _ll = new_ll;
     }
 
+    // search for log level
+    const YAML::Node *dump_log_len_node = doc.FindValue("max_dump_log_len");
+    if (dump_log_len_node) {
+	    unsigned int len;
+	    *dump_log_len_node >> len;
+	    config_dump_log(len, 0);
+    }
+
     try {
         init_ln(argc, argv);        
     } catch(exception& e) {
