@@ -625,6 +625,34 @@ int kernel::on_get_dump_log(ln::service_request& req, ln_service_robotkernel_get
 int kernel::on_config_dump_log(ln::service_request& req, ln_service_robotkernel_config_dump_log& svc) {
     config_dump_log(svc.req.max_len, svc.req.do_ust);
     klog(verbose, "dump_log len set to %d, do_ust to %d\n", svc.req.max_len, svc.req.do_ust);
+
+    string current_log_level = "unknown";
+    if (_ll == error)
+	    current_log_level = "error";
+    else if (_ll == warning)
+	    current_log_level = "warning";
+    else if (_ll == info)
+	    current_log_level = "info";
+    else if (_ll == verbose)
+	    current_log_level = "verbose";
+
+    string set_log_level(svc.req.set_log_level, svc.req.set_log_level_len);
+    if(set_log_level.size()) {
+	    enum loglevel new_ll = _ll;
+	    
+	    if (set_log_level == "error")
+		    new_ll = error;
+	    else if (set_log_level == "warning")
+		    new_ll = warning;
+	    else if (set_log_level == "info")
+		    new_ll = info;
+	    else if (set_log_level == "verbose")
+		    new_ll = verbose;
+	    
+	    _ll = new_ll;
+    }
+
+    ln::string_buffer current_log_level_sb(&svc.resp.current_log_level, current_log_level);
     req.respond();
     return 0;
 }
