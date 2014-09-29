@@ -1,0 +1,123 @@
+#!/usr/bin/python
+
+import os
+import sys
+import pprint
+import yaml
+
+def usage():
+    print "usage: %s rk_config_fn" % sys.argv[0]
+    sys.exit(1)
+
+class config(object):
+    pass
+
+cfg = config()
+cfg.rk_domain_base = "/volume/software/robotkernel/packages"
+cfg.rk_version = "3.0"
+cfg.rk_config_fn = None
+cfg.with_gui = False
+cfg.with_rk = True
+
+cfg.module_sercos_deps = "interface_sercos_protocol,interface_key_value,interface_process_data_inspection"
+cfg.module_soem_deps = "interface_canopen_protocol,interface_key_value,interface_process_data_inspection"
+cfg.module_xsens_deps = "interface_process_data_inspection"
+cfg.module_w83627_deps = "interface_key_value,interface_process_data_inspection"
+
+skip = 0
+for i, arg in enumerate(sys.argv[1:]):
+    if skip:
+        skip -= 1
+        continue
+
+    if arg.startswith("without_"):
+        if "=" in arg:
+            key, value = arg.split("=", 1)
+            value = value.lower() in ("true", "1", "on")
+        else:
+            key = arg
+            value = True
+        key = key.replace("without_", "with_")
+        setattr(cfg, key, not value)
+        continue
+    if arg.startswith("with_"):
+        if "=" in arg:
+            key, value = arg.split("=", 1)
+            value = value.lower() in ("true", "1", "on")
+        else:
+            key = arg
+            value = True
+        setattr(cfg, key, value)
+        continue
+    
+    found = False
+    for key, value in cfg.__dict__.iteritems():
+        if arg.startswith(key):
+            setattr(cfg, key, arg.split("=", 1)[1])
+            found = True
+            break
+    if found:
+        continue
+    
+    if "=" in arg:
+        key, value = arg.split("=", 1)
+        setattr(cfg, key, value)
+        continue
+    
+    if cfg.rk_config_fn is not None:
+        usage()
+    cfg.rk_config_fn = arg
+
+if not cfg.rk_config_fn:
+    usage()
+
+fp = file(cfg.rk_config_fn, "rb")
+rkconfig = yaml.load(fp)
+fp.close()
+
+seen = set()
+
+def process_module(mod_fn):
+    if mod_fn in seen:
+        return
+    seen.add(mod_fn)
+    
+    local_part = os.path.join("share", "ln", mod_fn + ".inc.lnc")
+    
+    ver_or_file = cfg.__dict__.get(mod_fn, cfg.rk_version)
+    if ver_or_file[0] in (".", "/"):
+        # assume file!
+        pkg_base = ver_or_file
+        if pkg_base[-1] == "/" or os.path.isdir(pkg_base):
+            pkg_base = os.path.join(pkg_base, local_part)
+    else:
+        try:
+            pkg_base = os.path.join(cfg.rk_domain_base, mod_fn, ver_or_file, local_part)
+        except:
+            print repr((cfg.rk_domain_base, mod_fn, ver_or_file, local_part))
+            raise
+    print "include %s" % pkg_base
+
+    deps = getattr(cfg, "%s_deps" % mod_fn, None)
+    if not deps:
+        return
+    for dep in deps.split(","):
+        dep = dep.strip()
+        process_module(dep)
+
+for module in rkconfig["modules"]:
+    mod_fn = module["module_file"]
+    if mod_fn[0] in ("/", "."):
+        # either abs or rel
+        continue
+    if not mod_fn.startswith("lib"):
+        continue
+    if not mod_fn.endswith(".so"):
+        continue
+    mod_fn = mod_fn[3:].rsplit(".", 1)[0]
+    process_module(mod_fn)
+
+if cfg.with_rk:
+    process_module("robotkernel")
+if cfg.with_gui:
+    process_module("robotkernel_gui")
