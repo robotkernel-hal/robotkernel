@@ -676,11 +676,13 @@ int kernel::on_set_state(ln::service_request& req, ln_service_robotkernel_set_st
         string mod_name(svc.req.mod_name, svc.req.mod_name_len);
         string state(svc.req.state, svc.req.state_len);
         set_state(mod_name, string_to_state(state.c_str()));
+	svc.resp.error_message_len = 0;
+	req.respond();
     } catch (const exception& e) {
         klog(error, "%s\n", e.what());
         ln::string_buffer err(&svc.resp.error_message, e.what());
+	req.respond();
     }
-    req.respond();
     return 0;
 }
 
@@ -696,11 +698,12 @@ int kernel::on_get_state(ln::service_request& req, ln_service_robotkernel_get_st
         string state(state_to_string(get_state(mod_name)));
         std::transform(state.begin(), state.end(), state.begin(), ::tolower);
         ln::string_buffer state_sb(&svc.resp.state, state.substr(1, state.size()-2));
+        req.respond();
     } catch (const exception& e) {
         klog(error, "%s\n", e.what());
         ln::string_buffer err(&svc.resp.error_message, e.what());
+	req.respond();
     }
-    req.respond();
     return 0;
 }
 
