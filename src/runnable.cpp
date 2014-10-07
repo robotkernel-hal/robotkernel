@@ -104,7 +104,7 @@ void *runnable::run_wrapper(void *arg)
 #ifdef HAVE_CPU_SET_T
         cpu_set_t cpuset;
         CPU_ZERO(&cpuset);
-        for (int i = 0; i < (sizeof(r->_affinity_mask)*8); ++i) 
+        for (unsigned i = 0; i < (sizeof(r->_affinity_mask)*8); ++i) 
             if (r->_affinity_mask & (1 << i))
                 CPU_SET(i, &cpuset);
 
@@ -180,7 +180,7 @@ void runnable::set_affinity_mask(int mask) {
 #ifdef HAVE_CPU_SET_T
     cpu_set_t cpuset;
     CPU_ZERO(&cpuset);
-    for (int i = 0; i < (sizeof(mask)*8); ++i) 
+    for (unsigned i = 0; i < (sizeof(mask)*8); ++i) 
         if (mask & (1 << i))
             CPU_SET(i, &cpuset);
     

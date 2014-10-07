@@ -42,7 +42,7 @@
 
 using namespace std;
 
-static pthread_mutex_t _dump_log_mutex = PTHREAD_MUTEX_INITIALIZER;
+//static pthread_mutex_t _dump_log_mutex = PTHREAD_MUTEX_INITIALIZER;
 static char_ringbuffer* _dump_log_buffer = NULL;
 static unsigned int _dump_log_len = 0;
 static unsigned int _do_ust = 0;
