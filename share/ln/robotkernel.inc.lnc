@@ -27,6 +27,8 @@ requires_version 0.2.43
 #     (optional) set resource limits
 #   rk_change_directory
 #     (optional) change directory
+#   rk_output_logfile
+#     (optional) write process output to this logfile
 defines
 rk_base: %(ifndef "rk_base", "%(dirname %(dirname %(CURDIR)))")
 rk_base_type: %(ifexists "%(rk_base)/bin/robotkernel", "local_install", "rmpm_release")
@@ -45,6 +47,7 @@ append environment LD_SO_CONF: %(rk_ld_so_conf)
 command: %(rk_binary) %(ifndef "rk_arguments", "")
 node: %(ifndef "rk_node", "localhost")
 ready_regex: up and running
+ifdef rk_output_logfile: output_logfile: %(rk_output_logfile)
 ifdef rk_output_encoding: output_encoding: %(rk_output_encoding)
 ifdef rk_change_directory: change_directory: %(rk_change_directory)
 ifdef rk_stack_size: stack_size: %(rk_stack_size)
