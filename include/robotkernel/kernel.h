@@ -46,6 +46,11 @@ enum loglevel {
     info = 3,
     verbose = 4, 
 
+    module_error = 5,
+    module_warning = 6,
+    module_info = 7,
+    module_verbose = 8,
+
     interface_error = 9,
     interface_warning = 10,
     interface_info = 11,
