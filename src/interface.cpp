@@ -81,13 +81,13 @@ interface::interface(const std::string& interface_file,
         }
     }
 
-    klog(info, "[interface] loading interface %s\n", this->interface_file.c_str());
+    klog(interface_info, "[interface] loading interface %s\n", this->interface_file.c_str());
 
     if (access(this->interface_file.c_str(), R_OK) != 0) {
 #ifdef __VXWORKS__
         // special case on vxworks, because it may return ENOTSUP, the we try to open anyway !
 #else
-        klog(error, "[interface] interface file name not given as absolute filename, either set\n"
+        klog(interface_error, "[interface] interface file name not given as absolute filename, either set\n"
                 "         ROBOTKERNEL_INTERFACE_PATH environment variable or specify absolut path!\n");
         throw str_exception("[interface] access signaled error: %s", strerror(errno));
 #endif
@@ -105,9 +105,9 @@ interface::interface(const std::string& interface_file,
     intf_unregister = (intf_unregister_t)dlsym(so_handle, "intf_unregister");
 
     if (!intf_register)
-        klog(verbose, "[interface] missing intf_register in %s\n", this->interface_file.c_str());;
+        klog(interface_verbose, "[interface] missing intf_register in %s\n", this->interface_file.c_str());;
     if (!intf_unregister)
-        klog(verbose, "[interface] missing intf_unregister in %s\n", this->interface_file.c_str());
+        klog(interface_verbose, "[interface] missing intf_unregister in %s\n", this->interface_file.c_str());
 
     // try to configure
     if (intf_register)
@@ -119,7 +119,7 @@ interface::interface(const std::string& interface_file,
   destroys interface
   */
 interface::~interface() {
-    klog(info, "[interface] destructing %s\n", interface_file.c_str());
+    klog(interface_info, "[interface] destructing %s\n", interface_file.c_str());
 
     // unconfigure interface first
     if (intf_handle && intf_unregister) {
@@ -128,9 +128,9 @@ interface::~interface() {
     }
 
     if (so_handle) {
-        klog(info, "[interface] unloading interface %s\n", interface_file.c_str());
+        klog(interface_info, "[interface] unloading interface %s\n", interface_file.c_str());
         if (dlclose(so_handle) != 0)
-            klog(error, "[interface] error on unloading interface %s\n", interface_file.c_str());
+            klog(interface_error, "[interface] error on unloading interface %s\n", interface_file.c_str());
         else
             so_handle = NULL;
     }

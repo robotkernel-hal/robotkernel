@@ -149,7 +149,7 @@ module_state_t kernel::get_state(std::string mod_name) {
  * \param configfile config file name
  */
 kernel::kernel() {
-    _ll = info;
+    _ll_bits = (1 << error) | (1 << warning) | (1 << info);
     _name = "robotkernel";
     clnt = NULL;
 
@@ -365,19 +365,23 @@ void kernel::config(std::string config_file, int argc, char **argv) {
     // search for log level
     const YAML::Node *ll_node = doc.FindValue("loglevel");
     if (ll_node) {
-        enum loglevel new_ll = info;
-        string ll_node_str = ll_node->to<string>();
+        _ll_bits = 0;
 
-        if (ll_node_str == string("error"))
-            new_ll = error;
-        else if (ll_node_str == string("warning"))
-            new_ll = warning;
-        else if (ll_node_str == string("info"))
-            new_ll = info;
-        else if (ll_node_str == string("verbose"))
-            new_ll = verbose;
-
-        _ll = new_ll;
+#define loglevel_if(ll, x) \
+            if ((x) == string(#ll)) \
+                _ll_bits |= ( 1 << ll);
+#define loglevel_add(x)                 \
+            loglevel_if(error, x)          \
+            else loglevel_if(warning, x)   \
+            else loglevel_if(info, x)      \
+            else loglevel_if(verbose, x)
+            
+        if (ll_node->Type() == YAML::NodeType::Scalar) {
+            loglevel_add(ll_node->to<string>());
+        } else
+            for (YAML::Iterator it = ll_node->begin(); it != ll_node->end(); ++it) {
+                loglevel_add(it->to<string>());
+            }
     }
 
     // search for log level
@@ -634,30 +638,43 @@ int kernel::on_config_dump_log(ln::service_request& req, ln_service_robotkernel_
     config_dump_log(svc.req.max_len, svc.req.do_ust);
     klog(verbose, "dump_log len set to %d, do_ust to %d\n", svc.req.max_len, svc.req.do_ust);
 
-    string current_log_level = "unknown";
-    if (_ll == error)
-	    current_log_level = "error";
-    else if (_ll == warning)
-	    current_log_level = "warning";
-    else if (_ll == info)
-	    current_log_level = "info";
-    else if (_ll == verbose)
-	    current_log_level = "verbose";
+    string current_log_level = "[ ";
+
+#define loglevel_to_string(x)               \
+    if (_ll_bits & (1 << x))                \
+        current_log_level += "#x, ";
+
+    loglevel_to_string(error)
+    else loglevel_to_string(warning)
+    else loglevel_to_string(info)
+    else loglevel_to_string(verbose)
+    else loglevel_to_string(interface_error)
+    else loglevel_to_string(interface_warning)
+    else loglevel_to_string(interface_info)
+    else loglevel_to_string(interface_verbose)
+
+    current_log_level += "]";
+
+    _ll_bits = 0;
 
     string set_log_level(svc.req.set_log_level, svc.req.set_log_level_len);
     if(set_log_level.size()) {
-	    enum loglevel new_ll = _ll;
-	    
-	    if (set_log_level == "error")
-		    new_ll = error;
-	    else if (set_log_level == "warning")
-		    new_ll = warning;
-	    else if (set_log_level == "info")
-		    new_ll = info;
-	    else if (set_log_level == "verbose")
-		    new_ll = verbose;
-	    
-	    _ll = new_ll;
+        py_value *pval = eval_full(set_log_level);
+        py_list *plist = dynamic_cast<py_list *>(pval);
+
+        if (plist) {
+            for (py_list_value_t::iterator it = plist->value.begin(); it != plist->value.end(); ++it) {
+                py_string *pstring = dynamic_cast<py_string *>(*it);
+                if (pstring) {
+                    loglevel_add((string)(*pstring));
+                }
+            }
+        } else {
+            py_string *pstring = dynamic_cast<py_string *>(pval);
+            if (pstring) {
+                loglevel_add((string)(*pstring));
+            }
+        }
     }
 
     ln::string_buffer current_log_level_sb(&svc.resp.current_log_level, current_log_level);

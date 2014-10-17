@@ -44,7 +44,12 @@ enum loglevel {
     error = 1,
     warning = 2,
     info = 3,
-    verbose = 4
+    verbose = 4, 
+
+    interface_error = 9,
+    interface_warning = 10,
+    interface_info = 11,
+    interface_verbose = 12,
 };
 
 class kernel :
@@ -192,13 +197,13 @@ class kernel :
         std::string _internal_modpath;
         std::string _internal_intfpath;
 
-        loglevel _ll;
+        int _ll_bits;
 
         log_thread _log;
 
         // write to logfile
         void logging(loglevel ll, const char *format, ...) {
-            if (ll > _ll) {
+            if ( !((1 << ll) & _ll_bits)) {
                 va_list args;
                 va_start(args, format);
                 vdump_log(format, args);

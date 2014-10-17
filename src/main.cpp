@@ -68,7 +68,7 @@ int main(int argc, char** argv) {
     klog(info, ROBOTKERNEL "links_and_nodes: " LN_LIBS "\n");
 
     string config_file = "";
-    loglevel level = info;
+    int level = info | warning | error | interface_info | interface_warning | interface_error;
     struct sigaction action;
 
     for (int i = 1; i < argc; ++i) {
@@ -80,9 +80,9 @@ int main(int argc, char** argv) {
 
             config_file = string(argv[i]);
         } else if ((strcmp(argv[i], "--quiet") == 0) || (strcmp(argv[i], "-q") == 0))
-            level = error;
+            level = error | interface_error;
         else if ((strcmp(argv[i], "--verbose") == 0) || (strcmp(argv[i], "-v") == 0))
-            level = verbose;
+            level |= verbose | interface_verbose;
         else if ((strcmp(argv[i], "--help") == 0) || (strcmp(argv[i], "-h") == 0))
             return usage(argc, argv);
     }
@@ -90,7 +90,7 @@ int main(int argc, char** argv) {
     if (config_file == "")
         klog(info, ROBOTKERNEL "no config file supplied, starting up without config.\n");
 
-    k._ll = level;
+    k._ll_bits = level;
     bool power_up_state = false;
 
     try {
@@ -122,7 +122,6 @@ int main(int argc, char** argv) {
     } catch (exception& e) {
         printf("exception: %s\n", e.what());
     }
-    
 
 Exit:
     klog(info, ROBOTKERNEL "exiting\n");
