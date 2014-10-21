@@ -237,10 +237,12 @@ class kernel :
             va_list args;
             va_start(args, format);
             vsnprintf(obj->buf + len, obj->len - len, format, args);
+            va_end(args);
+            va_start(args, format);
             vdump_log(format, args);
+            va_end(args);
             _log.log(obj);
 //            printf("%s", obj->buf);
-            va_end(args);
         }
 
         std::string dump_log() {
