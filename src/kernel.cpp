@@ -374,7 +374,15 @@ void kernel::config(std::string config_file, int argc, char **argv) {
             loglevel_if(error, x)          \
             else loglevel_if(warning, x)   \
             else loglevel_if(info, x)      \
-            else loglevel_if(verbose, x)
+            else loglevel_if(verbose, x) \
+            else loglevel_if(module_error, x)          \
+            else loglevel_if(module_warning, x)   \
+            else loglevel_if(module_info, x)      \
+            else loglevel_if(module_verbose, x) \
+            else loglevel_if(interface_error, x)          \
+            else loglevel_if(interface_warning, x)   \
+            else loglevel_if(interface_info, x)      \
+            else loglevel_if(interface_verbose, x)
             
         if (ll_node->Type() == YAML::NodeType::Scalar) {
             loglevel_add(ll_node->to<string>());
@@ -642,12 +650,16 @@ int kernel::on_config_dump_log(ln::service_request& req, ln_service_robotkernel_
 
 #define loglevel_to_string(x)               \
     if (_ll_bits & (1 << x))                \
-        current_log_level += "#x, ";
+        current_log_level += string("\"") + string(#x) + string("\", ");
 
     loglevel_to_string(error)
     else loglevel_to_string(warning)
     else loglevel_to_string(info)
     else loglevel_to_string(verbose)
+    else loglevel_to_string(module_error)
+    else loglevel_to_string(module_warning)
+    else loglevel_to_string(module_info)
+    else loglevel_to_string(module_verbose)
     else loglevel_to_string(interface_error)
     else loglevel_to_string(interface_warning)
     else loglevel_to_string(interface_info)
