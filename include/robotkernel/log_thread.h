@@ -41,6 +41,7 @@ class log_thread : public runnable {
             char buf[1024];
             size_t len;
         };
+	unsigned int fix_modname_length;
 
         //! de-/construction
         /*!

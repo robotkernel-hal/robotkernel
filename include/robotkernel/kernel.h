@@ -207,43 +207,7 @@ class kernel :
         log_thread _log;
 
         // write to logfile
-        void logging(loglevel ll, const char *format, ...) {
-            if ( !((1 << ll) & _ll_bits)) {
-                va_list args;
-                va_start(args, format);
-                vdump_log(format, args);
-                va_end(args);
-                return;
-            }
-
-//            char buf[512];
-            struct log_thread::log_pool_object *obj = _log.get_pool_object();
-            struct tm timeinfo;
-            struct timespec ts;
-            clock_gettime(CLOCK_REALTIME, &ts);
-            double timestamp = (double)ts.tv_sec + (ts.tv_nsec / 1e9);
-            time_t seconds = (time_t)timestamp;
-            double mseconds = (timestamp - (double)seconds) * 1000.;
-            localtime_r(&seconds, &timeinfo);
-            strftime(obj->buf, sizeof(obj->buf), "%F %T", &timeinfo);
-
-
-            int len = strlen(obj->buf);
-            snprintf(obj->buf + len, sizeof(obj->buf) - len, ".%03.0f ", mseconds);
-            len = strlen(obj->buf);
-
-
-            // format argument list
-            va_list args;
-            va_start(args, format);
-            vsnprintf(obj->buf + len, obj->len - len, format, args);
-            va_end(args);
-            va_start(args, format);
-            vdump_log(format, args);
-            va_end(args);
-            _log.log(obj);
-//            printf("%s", obj->buf);
-        }
+        void logging(loglevel ll, const char *format, ...);
 
         std::string dump_log() {
             return dump_log_dump();

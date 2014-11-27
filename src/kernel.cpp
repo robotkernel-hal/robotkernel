@@ -392,6 +392,10 @@ void kernel::config(std::string config_file, int argc, char **argv) {
             }
     }
 
+    const YAML::Node* log_fix_modname_length = doc.FindValue("log_fix_modname_length");
+    if(log_fix_modname_length)
+	*log_fix_modname_length >> _log.fix_modname_length;
+    
     // search for log level
     const YAML::Node *dump_log_len_node = doc.FindValue("max_dump_log_len");
     if (dump_log_len_node) {
@@ -918,3 +922,38 @@ int kernel::on_reconfigure_module(ln::service_request& req, ln_service_robotkern
     return 0;
 }
 
+void kernel::logging(loglevel ll, const char *format, ...) {
+    if(!((1 << ll) & _ll_bits)) {
+	va_list args;
+	va_start(args, format);
+	vdump_log(format, args);
+	va_end(args);
+	return;
+    }
+
+    struct log_thread::log_pool_object *obj = _log.get_pool_object();
+    struct tm timeinfo;
+    struct timespec ts;
+    clock_gettime(CLOCK_REALTIME, &ts);
+    double timestamp = (double)ts.tv_sec + (ts.tv_nsec / 1e9);
+    time_t seconds = (time_t)timestamp;
+    double mseconds = (timestamp - (double)seconds) * 1000.;
+    localtime_r(&seconds, &timeinfo);
+    strftime(obj->buf, sizeof(obj->buf), "%F %T", &timeinfo);
+
+
+    int len = strlen(obj->buf);
+    snprintf(obj->buf + len, sizeof(obj->buf) - len, ".%03.0f ", mseconds);
+    len = strlen(obj->buf);
+
+
+    // format argument list
+    va_list args;
+    va_start(args, format);
+    vsnprintf(obj->buf + len, obj->len - len, format, args);
+    va_end(args);
+    va_start(args, format);
+    vdump_log(format, args);
+    va_end(args);
+    _log.log(obj);
+}
