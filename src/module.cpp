@@ -204,8 +204,11 @@ module::module(std::string mod_name, std::string module_file, std::string config
                 this->depends.push_back(newtrigger->_mod_name);
                 triggers.push_back(newtrigger);                
             } catch (YAML::Exception& e) {
-                klog(error, "[module] exception creating external trigger: %s\n", e.what());
-                klog(error, "got config string: \n====\n%s\n====\n", trigger.c_str());
+		klog(error,
+		     "[%s] exception creating external trigger: %s\n"
+		     "got config string:\n====\n%s\n====\n",
+		     mod_name.c_str(), e.what(),
+		     trigger.c_str());
                 throw;
             }
         }
@@ -236,8 +239,8 @@ module::module(const YAML::Node& node, string config_path)
             file_name = config_path + "/" + file_name;
         }
             
-        klog(info, "[module] config file \"%s\" for module %s\n", 
-                file_name.c_str(), name.c_str());
+        klog(info, "[%s] config file \"%s\"\n", 
+	     name.c_str(), file_name.c_str());
 
         ifstream t(file_name.c_str());
         stringstream buffer;
@@ -260,8 +263,9 @@ module::module(const YAML::Node& node, string config_path)
             } catch (YAML::Exception& e) {
                 YAML::Emitter t;
                 t << (*trigger);
-                klog(error, "[module] exception creating external trigger: %s\n", e.what());
-                klog(error, "got config string: \n====\n%s\n====\n", t.c_str());
+                klog(error, "[%s] exception creating external trigger: %s\n"
+		     "got config string: \n====\n%s\n====\n",
+		     name.c_str(), e.what(), t.c_str());
                 throw;
             }
         }
@@ -338,15 +342,15 @@ void module::_init() {
             module_file = mod;
     }
 
-    klog(info, "[module] loading module %s\n", module_file.c_str());
+    klog(info, "[%s] loading module %s\n", name.c_str(), module_file.c_str());
 
     if (access(module_file.c_str(), R_OK) != 0) {
 #ifdef __VXWORKS__
         // special case on vxworks, because it may return ENOTSUP, the we try to open anyway !
 #else
-        klog(error, "[module] module file name not given as absolute filename, either set\n"
-                "         ROBOTKERNEL_MODULE_PATH environment variable or specify absolut path!\n");
-        klog(error, "[module] access signaled error: %s\n", strerror(errno));
+        klog(error, "[%s] module file name not given as absolute filename, either set\n"
+	     "         ROBOTKERNEL_MODULE_PATH environment variable or specify absolut path!\n", name.c_str());
+        klog(error, "[%s] access signaled error: %s\n", name.c_str(), strerror(errno));
         return;
 #endif
     }
@@ -357,8 +361,8 @@ void module::_init() {
             );
 
     if (!so_handle) {
-        klog(error, "[module] dlopen signaled error opening module:\n");
-        klog(error, "%s\n", dlerror());;
+        klog(error, "[%s] dlopen signaled error opening module:\n", name.c_str());
+        klog(error, "[%s] %s\n", name.c_str(), dlerror());;
         return;
     }
 
@@ -372,21 +376,21 @@ void module::_init() {
     mod_trigger     = (mod_trigger_t)    dlsym(so_handle, "mod_trigger");
 
     if (!mod_configure)
-        klog(verbose, "[module] missing mod_configure in %s\n", module_file.c_str());;
+        klog(verbose, "[%s] missing mod_configure in %s\n", name.c_str(), module_file.c_str());;
     if (!mod_unconfigure)
-        klog(verbose, "[module] missing mod_unconfigure in %s\n", module_file.c_str());
+        klog(verbose, "[%s] missing mod_unconfigure in %s\n", name.c_str(), module_file.c_str());
     if (!mod_read)
-        klog(verbose, "[module] missing mod_read in %s\n", module_file.c_str());
+        klog(verbose, "[%s] missing mod_read in %s\n", name.c_str(), module_file.c_str());
     if (!mod_write)
-        klog(verbose, "[module] missing mod_write in %s\n", module_file.c_str());
+        klog(verbose, "[%s] missing mod_write in %s\n", name.c_str(), module_file.c_str());
     if (!mod_set_state)
-        klog(verbose, "[module] missing mod_set_state in %s\n", module_file.c_str());
+        klog(verbose, "[%s] missing mod_set_state in %s\n", name.c_str(), module_file.c_str());
     if (!mod_get_state)
-        klog(verbose, "[module] missing mod_get_state in %s\n", module_file.c_str());
+        klog(verbose, "[%s] missing mod_get_state in %s\n", name.c_str(), module_file.c_str());
     if (!mod_request)
-        klog(verbose, "[module] missing mod_request in %s\n", module_file.c_str());
+        klog(verbose, "[%s] missing mod_request in %s\n", name.c_str(), module_file.c_str());
     if (!mod_trigger)
-        klog(verbose, "[module] missing mod_trigger in %s\n", module_file.c_str());
+        klog(verbose, "[%s] missing mod_trigger in %s\n", name.c_str(), module_file.c_str());
 
     // try to configure
     reconfigure();
@@ -429,7 +433,7 @@ bool module::reconfigure() {
   destroys module
   */
 module::~module() {
-    klog(info, "[module] destructing %s\n", module_file.c_str());
+    klog(info, "[%s] destructing %s\n", name.c_str(), module_file.c_str());
 
     while (!triggers.empty()) {
         external_trigger *trigger = triggers.front();
@@ -452,10 +456,10 @@ module::~module() {
     }
 
     if (so_handle) {
-        klog(info, "[module] unloading module %s\n", module_file.c_str());
+        klog(info, "[%s] unloading module %s\n", name.c_str(), module_file.c_str());
 #ifndef __VXWORKS__ // we do not dlclose on vxworks, vxworks does stupid things
         if (dlclose(so_handle) != 0)
-            klog(error, "[module] error on unloading module %s\n", module_file.c_str());
+            klog(error, "[%s] error on unloading module %s\n", name.c_str(), module_file.c_str());
         else
 #endif
             so_handle = NULL;
@@ -470,10 +474,10 @@ module::~module() {
   */
 size_t module::read(char* buf, size_t bufsize) {
     if (!mod_handle)
-        throw str_exception("[module] %s not configured\n", name.c_str());
+        throw str_exception("[%s] not configured!\n", name.c_str());
 
     if (!mod_read) {
-        klog(error, "[module] error: no mod_read function\n");
+        klog(error, "[%s] error: no mod_read function\n", name.c_str());
         return 0;
     }
 
@@ -488,10 +492,10 @@ size_t module::read(char* buf, size_t bufsize) {
   */
 size_t module::write(char* buf, size_t bufsize) {
     if (!mod_handle)
-        throw str_exception("[module] %s not configured\n", name.c_str());
+        throw str_exception("[%s] not configured!\n", name.c_str());
 
     if (!mod_write) {
-        klog(error, "[module] error: no mod_write function\n");
+        klog(error, "[%s] error: no mod_write function\n", name.c_str());
         return 0;
     }
 
@@ -505,10 +509,10 @@ size_t module::write(char* buf, size_t bufsize) {
   */
 int module::set_state(module_state_t state) {
     if (!mod_handle)
-        throw str_exception("[module] %s not configured\n", name.c_str());
+        throw str_exception("[%s] not configured\n", name.c_str());
 
     if (!mod_set_state) {
-        klog(error, "[module] error: no mod_set_state function\n");
+        klog(error, "[%s] error: no mod_set_state function\n", name.c_str());
         return -1;
     }
 
@@ -522,19 +526,19 @@ int module::set_state(module_state_t state) {
         case module_state_init:
             for (trigger_list_t::iterator it = triggers.begin();
                     it != triggers.end(); ++it) {
-                klog(info, "[module] removing module trigger %s for module %s\n",
-                        (*it)->_mod_name.c_str(), name.c_str());
+                klog(info, "[%s] removing module trigger %s\n",
+		     name.c_str(), (*it)->_mod_name.c_str());
 
                 kernel& k = *kernel::get_instance();
                 kernel::module_map_t::iterator module_it = k.module_map.find((*it)->_mod_name);
                 if (module_it == k.module_map.end())
-                    throw str_exception("[module] %s not found\n", (*it)->_mod_name.c_str());
+                    throw str_exception("[%s] %s not found\n", name.c_str(), (*it)->_mod_name.c_str());
 
                 module *mdl2 = module_it->second;
                 mdl2->trigger_unregister_module(this, **it);
             }
 
-            klog(info, "[module] setting state of %s from %s to %s\n", name.c_str(), 
+            klog(info, "[%s] setting state from %s to %s\n", name.c_str(), 
                 state_to_string(get_state()), state_to_string(state));
 
             ret = mod_set_state(mod_handle, state);
@@ -545,7 +549,7 @@ int module::set_state(module_state_t state) {
                     return ret;
             }
             
-            klog(info, "[module] setting state of %s from %s to %s\n", name.c_str(), 
+            klog(info, "[%s] setting state from %s to %s\n", name.c_str(), 
                 state_to_string(get_state()), state_to_string(state));
 
             ret = mod_set_state(mod_handle, state);
@@ -558,8 +562,8 @@ int module::set_state(module_state_t state) {
 
             for (trigger_list_t::iterator it = triggers.begin();
                     it != triggers.end(); ++it) {
-                klog(info, "[module] adding module trigger %s for module %s\n",
-                        (*it)->_mod_name.c_str(), name.c_str());
+                klog(info, "[%s] adding module trigger %s\n",
+		     name.c_str(), (*it)->_mod_name.c_str());
 
                 kernel& k = *kernel::get_instance();
                 kernel::module_map_t::iterator module_it = k.module_map.find((*it)->_mod_name);
@@ -569,15 +573,15 @@ int module::set_state(module_state_t state) {
                         ss << "[" << (*it)->_mod_name << "], ";
                     }
 
-                    throw str_exception("[module] %s not found! (loaded %s)\n", 
-                            (*it)->_mod_name.c_str(), ss.str().c_str());
+                    throw str_exception("[%s] %s not found! (loaded %s)\n",
+					name.c_str(), (*it)->_mod_name.c_str(), ss.str().c_str());
                 }
 
                 module *mdl2 = module_it->second;
                 mdl2->trigger_register_module(this, **it);
             }
 
-            klog(info, "[module] setting state of %s from %s to %s\n", name.c_str(), 
+            klog(info, "[%s] setting state from %s to %s\n", name.c_str(), 
                 state_to_string(get_state()), state_to_string(state));
 
             if ((ret = mod_set_state(mod_handle, state)) == -1)
@@ -594,7 +598,7 @@ int module::set_state(module_state_t state) {
                     return ret;
             }
 
-            klog(info, "[module] setting state of %s from %s to %s\n", name.c_str(), 
+            klog(info, "[%s] setting state from %s to %s\n", name.c_str(), 
                 state_to_string(get_state()), state_to_string(state));
 
             if ((ret = mod_set_state(mod_handle, state)) == -1)
@@ -611,7 +615,7 @@ int module::set_state(module_state_t state) {
                     return ret;
             }
 
-            klog(info, "[module] setting state of %s from %s to %s\n", name.c_str(), 
+            klog(info, "[%s] setting state from %s to %s\n", name.c_str(), 
                 state_to_string(get_state()), state_to_string(state));
 
             ret = mod_set_state(mod_handle, state);
@@ -629,10 +633,10 @@ int module::set_state(module_state_t state) {
   */
 module_state_t module::get_state() {
     if (!mod_handle)
-        throw str_exception("[module] %s not configured\n", name.c_str());
+        throw str_exception("[%s] not configured\n", name.c_str());
 
     if (!mod_get_state) {
-        klog(error, "[module] error: no mod_get_state function\n"); 
+        klog(error, "[%s] error: no mod_get_state function\n", name.c_str()); 
         return module_state_unknown;
     }
 
@@ -647,7 +651,7 @@ module_state_t module::get_state() {
  */
 int module::request(int reqcode, void* ptr) {
     if (!mod_handle)
-        throw str_exception("[module] %s not configured\n", name.c_str());
+        throw str_exception("[%s] not configured\n", name.c_str());
 
     if (!mod_request)
         return 0;
@@ -675,7 +679,7 @@ void module::trigger_register_module(module *mdl, external_trigger& t) {
     worker_key k = { t._clk_id, t._prio, t._affinity_mask, t._divisor };
     worker_map_t::iterator it = _worker.find(k); 
     if (it == _worker.end()) {
-        klog(info, "[module] new kernel worker for %s from %s, clk_id %d, prio %d, divisor %d\n",
+        klog(info, "[%s] new kernel worker from %s, clk_id %d, prio %d, divisor %d\n",
                 name.c_str(), mdl->name.c_str(), t._clk_id, t._prio, t._divisor);
 
         // create new worker thread
@@ -710,7 +714,7 @@ void module::trigger_unregister_module(module *mdl, external_trigger& t) {
     worker_key k = { t._clk_id, t._prio, t._affinity_mask, t._divisor };
     worker_map_t::iterator it = _worker.find(k); 
     if (it == _worker.end()) {
-        klog(verbose , "[module] kernel worker for %s from %s, clk_id %d, prio %d not found\n",
+        klog(verbose , "[%s] kernel worker from %s, clk_id %d, prio %d not found\n",
                 name.c_str(), mdl->name.c_str(), t._clk_id, t._prio);
         return;
     }
@@ -733,7 +737,7 @@ void module::trigger_unregister_module(module *mdl, external_trigger& t) {
 */
 void module::trigger() {
     if (!mod_handle)
-        throw str_exception("[module] %s not configured\n", name.c_str());
+        throw str_exception("[%s] not configured\n", name.c_str());
 
     if (!mod_trigger)
         return;
