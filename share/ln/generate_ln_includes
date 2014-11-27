@@ -24,6 +24,7 @@ cfg.module_soem_deps = "interface_canopen_protocol,interface_key_value,interface
 cfg.module_xsens_deps = "interface_process_data_inspection"
 cfg.module_w83627_deps = "interface_key_value,interface_process_data_inspection"
 cfg.module_jitter_measurement_deps = "interface_process_data_inspection"
+cfg.module_data_generator_deps = "interface_process_data_inspection"
 
 skip = 0
 for i, arg in enumerate(sys.argv[1:]):

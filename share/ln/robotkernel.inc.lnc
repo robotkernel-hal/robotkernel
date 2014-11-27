@@ -29,10 +29,14 @@ requires_version 0.2.43
 #     (optional) change directory
 #   rk_output_logfile
 #     (optional) write process output to this logfile
+#   rk_debug
+#     (optional) set to true to use robotkernel binary with debugging information
+
 defines
 rk_base: %(ifndef "rk_base", "%(dirname %(dirname %(CURDIR)))")
 rk_base_type: %(ifexists "%(rk_base)/bin/robotkernel", "local_install", "rmpm_release")
-rk_binary: %(ifeq "%(rk_base_type)", "local_install", "%(rk_base)/bin/robotkernel", "%(rk_base)/bin/$(ARCH)/robotkernel")
+rk_binary_bn: %(ifeq "%(rk_debug)", "true", "robotkernel_debug", "robotkernel")
+rk_binary: %(ifeq "%(rk_base_type)", "local_install", "%(rk_base)/bin/%(rk_binary_bn)", "%(rk_base)/bin/$(ARCH)/%(rk_binary_bn)")
 rk_libdir: %(ifeq "%(rk_base_type)", "local_install", "%(rk_base)/lib", "%(rk_base)/lib/$(ARCH)")
 rk_modules: %(ifndef "rk_modules", "")
 rk_interfaces: %(ifndef "rk_interfaces", "") 
