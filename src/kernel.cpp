@@ -667,26 +667,26 @@ int kernel::on_config_dump_log(ln::service_request& req, ln_service_robotkernel_
 
     current_log_level += "]";
 
-    _ll_bits = 0;
 
     string set_log_level(svc.req.set_log_level, svc.req.set_log_level_len);
     if(set_log_level.size()) {
-        py_value *pval = eval_full(set_log_level);
-        py_list *plist = dynamic_cast<py_list *>(pval);
-
-        if (plist) {
-            for (py_list_value_t::iterator it = plist->value.begin(); it != plist->value.end(); ++it) {
-                py_string *pstring = dynamic_cast<py_string *>(*it);
-                if (pstring) {
-                    loglevel_add((string)(*pstring));
-                }
-            }
-        } else {
-            py_string *pstring = dynamic_cast<py_string *>(pval);
-            if (pstring) {
-                loglevel_add((string)(*pstring));
-            }
-        }
+	    _ll_bits = 0;
+	    py_value *pval = eval_full(set_log_level);
+	    py_list *plist = dynamic_cast<py_list *>(pval);
+	    
+	    if (plist) {
+		    for (py_list_value_t::iterator it = plist->value.begin(); it != plist->value.end(); ++it) {
+			    py_string *pstring = dynamic_cast<py_string *>(*it);
+			    if (pstring) {
+				    loglevel_add((string)(*pstring));
+			    }
+		    }
+	    } else {
+		    py_string *pstring = dynamic_cast<py_string *>(pval);
+		    if (pstring) {
+			    loglevel_add((string)(*pstring));
+		    }
+	    }
     }
 
     ln::string_buffer current_log_level_sb(&svc.resp.current_log_level, current_log_level);
