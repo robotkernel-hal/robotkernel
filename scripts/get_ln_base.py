@@ -6,6 +6,10 @@ import subprocess
 
 pkgtool = "/volume/software/common/packages/rmpm/latest/bin/sled11-x86-gcc4.x/pkgtool"
 
+if os.getenv("LN_BASE"):
+    print os.getenv("LN_BASE")
+    sys.exit(0)
+
 for arg in sys.argv[1:]:
     entries = arg.split(',')
 
