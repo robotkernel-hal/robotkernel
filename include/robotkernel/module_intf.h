@@ -353,5 +353,12 @@ typedef int (*mod_request_t)(MODULE_HANDLE hdl, int reqcode, void* ptr);
  */
 typedef void (*mod_trigger_t)(MODULE_HANDLE hdl);
 
+//! module trigger callback
+/*!
+ * \param hdl module handle
+ * \param slave_id slave id to trigger
+ */
+typedef void (*mod_trigger_slave_id_t)(MODULE_HANDLE hdl, uint32_t slave_id);
+
 #endif // __MODULE_INTF_H__
 

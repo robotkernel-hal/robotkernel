@@ -166,6 +166,12 @@ class module :
 
             t->_direct_mdl->trigger();
         };
+        
+        //! trigger module's slave id
+        /*!
+         * \param slave_id slave id to trigger
+         */
+        void trigger(uint32_t slave_id);
 
         //! trigger module
         /*!
@@ -207,14 +213,15 @@ class module :
         worker_map_t _worker;
 
         //! module symbols
-        mod_configure_t   mod_configure;
-        mod_unconfigure_t mod_unconfigure;
-        mod_read_t        mod_read;
-        mod_write_t       mod_write;
-        mod_set_state_t   mod_set_state;
-        mod_get_state_t   mod_get_state;
-        mod_request_t     mod_request;
-        mod_trigger_t     mod_trigger;
+        mod_configure_t         mod_configure;
+        mod_unconfigure_t       mod_unconfigure;
+        mod_read_t              mod_read;
+        mod_write_t             mod_write;
+        mod_set_state_t         mod_set_state;
+        mod_get_state_t         mod_get_state;
+        mod_request_t           mod_request;
+        mod_trigger_t           mod_trigger;
+        mod_trigger_slave_id_t  mod_trigger_slave_id;
 };
 
 } // namespace robotkernel

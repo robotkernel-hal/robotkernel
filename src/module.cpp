@@ -366,14 +366,15 @@ void module::_init() {
         return;
     }
 
-    mod_configure   = (mod_configure_t)  dlsym(so_handle, "mod_configure");
-    mod_unconfigure = (mod_unconfigure_t)dlsym(so_handle, "mod_unconfigure");
-    mod_read        = (mod_read_t)       dlsym(so_handle, "mod_read");
-    mod_write       = (mod_write_t)      dlsym(so_handle, "mod_write");
-    mod_set_state   = (mod_set_state_t)  dlsym(so_handle, "mod_set_state");
-    mod_get_state   = (mod_get_state_t)  dlsym(so_handle, "mod_get_state");
-    mod_request     = (mod_request_t)    dlsym(so_handle, "mod_request");
-    mod_trigger     = (mod_trigger_t)    dlsym(so_handle, "mod_trigger");
+    mod_configure           = (mod_configure_t)         dlsym(so_handle, "mod_configure");
+    mod_unconfigure         = (mod_unconfigure_t)       dlsym(so_handle, "mod_unconfigure");
+    mod_read                = (mod_read_t)              dlsym(so_handle, "mod_read");
+    mod_write               = (mod_write_t)             dlsym(so_handle, "mod_write");
+    mod_set_state           = (mod_set_state_t)         dlsym(so_handle, "mod_set_state");
+    mod_get_state           = (mod_get_state_t)         dlsym(so_handle, "mod_get_state");
+    mod_request             = (mod_request_t)           dlsym(so_handle, "mod_request");
+    mod_trigger             = (mod_trigger_t)           dlsym(so_handle, "mod_trigger");
+    mod_trigger_slave_id    = (mod_trigger_slave_id_t)  dlsym(so_handle, "mod_trigger_slave_id");
 
     if (!mod_configure)
         klog(verbose, "[%s] missing mod_configure in %s\n", name.c_str(), module_file.c_str());;
@@ -391,6 +392,8 @@ void module::_init() {
         klog(verbose, "[%s] missing mod_request in %s\n", name.c_str(), module_file.c_str());
     if (!mod_trigger)
         klog(verbose, "[%s] missing mod_trigger in %s\n", name.c_str(), module_file.c_str());
+    if (!mod_trigger_slave_id)
+        klog(verbose, "[%s] missing mod_trigger_slave_id in %s\n", name.c_str(), module_file.c_str());
 
     // try to configure
     reconfigure();
@@ -730,6 +733,20 @@ void module::trigger_unregister_module(module *mdl, external_trigger& t) {
         _worker.erase(it);
         delete w;
     }
+}
+
+//! trigger module's slave id
+/*!
+ * \param slave_id slave id to trigger
+ */
+void module::trigger(uint32_t slave_id) {
+    if (!mod_handle)
+        throw str_exception("[%s] not configured\n", name.c_str());
+
+    if (!mod_trigger_slave_id)
+        return;
+
+    (*mod_trigger_slave_id)(mod_handle, slave_id);
 }
 
 //! trigger module 
