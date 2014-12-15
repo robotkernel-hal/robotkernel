@@ -24,7 +24,6 @@ cfg.module_soem_deps = "interface_canopen_protocol,interface_key_value,interface
 cfg.module_xsens_deps = "interface_process_data_inspection"
 cfg.module_w83627_deps = "interface_key_value,interface_process_data_inspection"
 cfg.module_jitter_measurement_deps = "interface_process_data_inspection"
-cfg.module_data_generator_deps = "interface_process_data_inspection"
 cfg.module_sr_sim_deps = "interface_process_data_inspection,interface_key_value"
 
 skip = 0
@@ -111,6 +110,16 @@ def process_module(mod_fn):
         print "include %s" % pkg_base
 
     deps = getattr(cfg, "%s_deps" % mod_fn, None)
+
+    if os.path.isfile(pkg_base):
+        fp = file(pkg_base)
+        for line in fp:
+            line = line.strip()
+            if line.startswith("# rk_depends:"):
+                for dep in map(str.strip, line.split(":", 1)[1].strip().split(",")):
+                    if dep not in deps:
+                        deps.append(dep)
+        fp.close()
     if not deps:
         return
     for dep in deps.split(","):
