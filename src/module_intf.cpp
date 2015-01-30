@@ -24,27 +24,3 @@
 
 #include "robotkernel/module_intf.h"
 
-sercos_service_transfer::sercos_service_transfer() {
-    slave_id = 0; 
-    idn = 0;
-    element = SSE_NONE;
-    direction = SSD_DRIVE_TO_MASTER;
-    buflen = 0;
-    buf = NULL;
-    scerror = 0;
-    receipt = 0;
-    change = 0;
-}
-
-sercos_service_transfer::sercos_service_transfer(uint32_t slave_id, uint16_t idn) {
-    this->slave_id = slave_id; 
-    this->idn = idn;
-    element = SSE_NONE;
-    direction = SSD_DRIVE_TO_MASTER;
-    buflen = 0;
-    buf = NULL;
-    scerror = 0;
-    receipt = 0;
-    change = 0;
-}
-

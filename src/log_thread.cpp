@@ -120,45 +120,46 @@ void log_thread::run() {
             struct log_pool_object *obj = _full_pool.front();
             _full_pool.pop_front();
 
-	    if(fix_modname_length == 0)
-		printf("%s", obj->buf);
-	    else {
-		char* open = strchr(obj->buf, '[');
-		char* close = NULL;
-		
-		if(open)
-		    close = strchr(open, ']');
+            if(fix_modname_length == 0)
+                printf("%s", obj->buf);
+            else {
+                char* open = strchr(obj->buf, '[');
+                char* close = NULL;
 
-		if(close) {
-		    unsigned int len = close - open;
-		    if(len == fix_modname_length + 1)
-			close = NULL;
-		    else if(len <= fix_modname_length) {
-			// insert padding
-			printf("%-*.*s%-*.*s%s",
-			       close - obj->buf, close - obj->buf, obj->buf, 
-			       fix_modname_length + 1 - len, fix_modname_length + 1 - len, "",
-			       close
-			    );
-		    } else {
-			// truncate
-			printf("%-*.*s%s",
-			       (open + fix_modname_length + 1) - obj->buf, (open + fix_modname_length + 1) - obj->buf, obj->buf, 
-			       close
-			    );
-		    }
-		}
-		if(!close) {
-		    // missing closing bracket or length already ok
-		    printf("%s", obj->buf);
-		}
-	    }
+                if(open)
+                    close = strchr(open, ']');
+
+                if(close) {
+                    unsigned int len = close - open;
+                    if(len == fix_modname_length + 1)
+                        close = NULL;
+                    else if(len <= fix_modname_length) {
+                        // insert padding
+                        printf("%-*.*s%-*.*s%s",
+                                (int)(close - obj->buf), (int)(close - obj->buf), obj->buf, 
+                                fix_modname_length + 1 - len, fix_modname_length + 1 - len, "",
+                                close
+                              );
+                    } else {
+                        // truncate
+                        printf("%-*.*s%s",
+                                (int)((open + fix_modname_length + 1) - obj->buf), 
+                                (int)((open + fix_modname_length + 1) - obj->buf), obj->buf, 
+                                close
+                              );
+                    }
+                }
+                if(!close) {
+                    // missing closing bracket or length already ok
+                    printf("%s", obj->buf);
+                }
+            }
 
             _empty_pool.push_back(obj);
             pthread_mutex_unlock(&_mutex);
         }
     }
-    
+
     klog(verbose, "[log_thread] stopped\n");
 }
 
