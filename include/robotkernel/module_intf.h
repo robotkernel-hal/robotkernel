@@ -64,6 +64,7 @@ typedef struct process_data {
 #define MOD_REQUEST_GET_PDIN            MOD_REQUEST(0x0001, process_data_t)
 #define MOD_REQUEST_GET_PDOUT           MOD_REQUEST(0x0002, process_data_t)
 #define MOD_REQUEST_GET_PD_COOKIE       MOD_REQUEST(0x000A, uint64_t *)
+#define MOD_REQUEST_GET_CMD_DELAY       MOD_REQUEST(0x0110, int32_t)
 
 // -----------------------------------------------------------------------------
 // set pd, used for double/multiple buffering of pd values
