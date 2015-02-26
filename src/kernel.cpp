@@ -152,7 +152,8 @@ kernel::kernel() {
     _ll_bits = (1 << error) | (1 << warning) | (1 << info);
     _name = "robotkernel";
     clnt = NULL;
-
+    _ln_thread_pool_size_main = 1;
+        
 //    int _major, _minor, _patch;
 //    sscanf(PACKAGE_VERSION, "%d.%d.%d", &_major, &_minor, &_patch);
 //    
@@ -238,6 +239,12 @@ void kernel::init_ln(int argc, char **argv) {
     register_module_list(clnt, clnt->name + ".module_list");
     register_reconfigure_module(clnt, clnt->name + ".reconfigure_module");
     register_get_states(clnt, clnt->name + ".get_states");
+    
+    // handle default service group (NULL) in new "main" thread-pool
+    clnt->handle_service_group_in_thread_pool(NULL, "main");
+    // configure max number of threads for "main" thread-pool
+    logging(verbose, ROBOTKERNEL "setting main thread-pool size to %d\n", _ln_thread_pool_size_main);
+    clnt->set_max_threads("main", _ln_thread_pool_size_main);
 
     // powering up modules to operational
     for (module_map_t::iterator it = module_map.begin();
@@ -254,19 +261,9 @@ void kernel::handle_ln_request(int argc, char **argv) {
             init_ln(argc, argv);
         } catch(exception& e) {
         }
-
-        sleep(1);
-        return;
     }
 
-    // block 1 second waiting for service requests
-    if(clnt->wait_for_service_requests(1)) {
-        try {
-            clnt->handle_service_requests();
-        } catch(exception& e) {
-            logging(info, ROBOTKERNEL "got exception while handling service requests:\n what: %s\n", e.what());
-        }
-    }
+    sleep(1); // daeumchen drehen
 }
 
 #ifdef __VXWORKS__
@@ -404,6 +401,16 @@ void kernel::config(std::string config_file, int argc, char **argv) {
 	    config_dump_log(len, 0);
     }
 
+    const YAML::Node *ln_thread_pool_size_main = doc.FindValue("ln_thread_pool_size_main");
+    if(ln_thread_pool_size_main) {
+        (*ln_thread_pool_size_main) >> _ln_thread_pool_size_main;
+        if(_ln_thread_pool_size_main < 1) {
+            klog(error, ROBOTKERNEL "ln_thread_pool_size_main has to be >= 1! (you gave %d)\n", _ln_thread_pool_size_main);
+            _ln_thread_pool_size_main = 1;
+        }
+    } else
+        _ln_thread_pool_size_main = 1;
+    
     try {
         init_ln(argc, argv);        
     } catch(exception& e) {
