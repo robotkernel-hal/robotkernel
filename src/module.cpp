@@ -457,8 +457,8 @@ module::~module() {
         mod_unconfigure(mod_handle);
         mod_handle = NULL;
     }
-
-    if (so_handle) {
+    
+    if (so_handle && !kernel::get_instance()->_do_not_unload_modules) {
         klog(info, "[%s] unloading module %s\n", name.c_str(), module_file.c_str());
 #ifndef __VXWORKS__ // we do not dlclose on vxworks, vxworks does stupid things
         if (dlclose(so_handle) != 0)

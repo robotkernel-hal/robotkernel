@@ -41,6 +41,7 @@ rk_libdir: %(ifeq "%(rk_base_type)", "local_install", "%(rk_base)/lib", "%(rk_ba
 rk_modules: %(ifndef "rk_modules", "")
 rk_interfaces: %(ifndef "rk_interfaces", "") 
 rk_ld_so_conf: %(ifndef "rk_ld_so_conf", "")
+rk_term_timeout: %(ifndef "rk_term_timeout", "4")
 add_message_definition_dir: %(rk_base)/share/message_definitions
 
 process %(ifndef "rk_name", "robotkernel")
@@ -51,6 +52,7 @@ append environment LD_SO_CONF: %(rk_ld_so_conf)
 command: %(rk_binary) %(ifndef "rk_arguments", "")
 node: %(ifndef "rk_node", "localhost")
 ready_regex: up and running
+term_timeout: %(rk_term_timeout)
 ifdef rk_output_logfile: output_logfile: %(rk_output_logfile)
 ifdef rk_output_encoding: output_encoding: %(rk_output_encoding)
 ifdef rk_change_directory: change_directory: %(rk_change_directory)

@@ -127,7 +127,7 @@ interface::~interface() {
         intf_handle = NULL;
     }
 
-    if (so_handle) {
+    if (so_handle && !kernel::get_instance()->_do_not_unload_modules) {
         klog(interface_info, "[interface] unloading interface %s\n", interface_file.c_str());
         if (dlclose(so_handle) != 0)
             klog(interface_error, "[interface] error on unloading interface %s\n", interface_file.c_str());
