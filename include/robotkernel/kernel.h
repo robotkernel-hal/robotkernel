@@ -198,6 +198,7 @@ class kernel :
         //! links and node client
         ln::client *clnt;
 	unsigned int _ln_thread_pool_size_main;
+	bool _do_not_unload_modules;
 
         std::string _name;
         std::string _internal_modpath;

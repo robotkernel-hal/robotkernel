@@ -410,6 +410,12 @@ void kernel::config(std::string config_file, int argc, char **argv) {
         }
     } else
         _ln_thread_pool_size_main = 1;
+
+    const YAML::Node *do_not_unload_modules = doc.FindValue("do_not_unload_modules");
+    if(do_not_unload_modules) {
+        (*do_not_unload_modules) >> _do_not_unload_modules;
+    } else
+	    _do_not_unload_modules = false;
     
     try {
         init_ln(argc, argv);        
