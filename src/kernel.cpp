@@ -59,7 +59,7 @@ kernel *kernel::instance = NULL;
 int kernel::set_state(std::string mod_name, module_state_t state) {
     module_map_t::const_iterator it = module_map.find(mod_name);
     if (it == module_map.end())
-        throw str_exception("[robotkernel] module %s not found!\n", mod_name.c_str());
+        throw str_exception("[robotkernel] set_state: module %s not found!\n", mod_name.c_str());
 
     module *mdl = it->second;
 
@@ -134,7 +134,7 @@ int kernel::set_state(std::string mod_name, module_state_t state) {
 module_state_t kernel::get_state(std::string mod_name) {
     module_map_t::const_iterator it = module_map.find(mod_name);
     if (it == module_map.end())
-        throw str_exception("[robotkernel] module %s not found!\n", mod_name.c_str());
+        throw str_exception("[robotkernel] get_state: module %s not found!\n", mod_name.c_str());
 
     logging(verbose, ROBOTKERNEL "getting state of module %s\n",
             mod_name.c_str());
@@ -520,7 +520,7 @@ void kernel::power_down() {
 bool kernel::state_check(std::string mod_name, module_state_t state) {
     kernel::module_map_t::const_iterator it = module_map.find(mod_name);
     if (it == module_map.end())
-        throw str_exception("[robotkernel] module %s not found!\n", mod_name.c_str());
+        throw str_exception("[robotkernel] state_check: module %s not found!\n", mod_name.c_str());
 
     return (it->second->get_state() == state);
 }
@@ -554,7 +554,7 @@ int kernel::request_cb(const char *mod_name, int reqcode, void *ptr) {
 
     kernel::module_map_t::const_iterator it = k.module_map.find(mod_name);
     if (it == k.module_map.end())
-        throw str_exception("[robotkernel] module %s not found!\n", mod_name);
+        throw str_exception("[robotkernel] request_cb: module %s not found!\n", mod_name);
 
     return it->second->request(reqcode, ptr);
 }
@@ -598,7 +598,7 @@ module *kernel::get_module(const char *mod_name) {
 
     kernel::module_map_t::const_iterator it = k.module_map.find(mod_name);
     if (it == k.module_map.end())
-        throw str_exception("[robotkernel] module %s not found!\n", mod_name);
+        throw str_exception("[robotkernel] get_module: module %s not found!\n", mod_name);
 
     return it->second;
 }
@@ -625,7 +625,7 @@ int kernel::state_change(const char *mod_name, module_state_t new_state) {
     return 0;
     module_map_t::const_iterator it = module_map.find(mod_name);
     if (it == module_map.end())
-        throw str_exception("[robotkernel] module %s not found!\n", mod_name);
+        throw str_exception("[robotkernel] state_change: module %s not found!\n", mod_name);
 
     module_state_t current_state = it->second->get_state();
     if (new_state == current_state)

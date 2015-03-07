@@ -264,8 +264,8 @@ module::module(const YAML::Node& node, string config_path)
                 YAML::Emitter t;
                 t << (*trigger);
                 klog(error, "[%s] exception creating external trigger: %s\n"
-		     "got config string: \n====\n%s\n====\n",
-		     name.c_str(), e.what(), t.c_str());
+                     "got config string: \n====\n%s\n====\n",
+                     name.c_str(), e.what(), t.c_str());
                 throw;
             }
         }
