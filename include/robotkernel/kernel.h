@@ -195,10 +195,10 @@ class kernel :
          */
         module *get_module(const char *mod_name);
 
-        //! links and node client
+        //! links and nodes client
         ln::client *clnt;
-	unsigned int _ln_thread_pool_size_main;
-	bool _do_not_unload_modules;
+        unsigned int _ln_thread_pool_size_main;
+        bool _do_not_unload_modules;
 
         std::string _name;
         std::string _internal_modpath;
