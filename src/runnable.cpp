@@ -108,11 +108,12 @@ void *runnable::run_wrapper(void *arg)
             if (r->_affinity_mask & (1 << i))
                 CPU_SET(i, &cpuset);
 
-        klog(info, "[runnable] setting cpu affinity mask 0x%X\n", r->_affinity_mask);
+        klog(info, "[runnable] setting cpu affinity mask %#x\n", r->_affinity_mask);
 
-        if (pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuset) != 0)
-            klog(warning, "[runnable] run_wrapper: pthread_setaffinity(%p, 0x%02x): %s\n", 
-		 (void*)pthread_self(), r->_affinity_mask, strerror(errno));
+        int ret = pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuset);
+        if (ret != 0)
+            klog(warning, "[runnable] run_wrapper: pthread_setaffinity(%p, %#x): %d %s\n", 
+                 (void*)pthread_self(), r->_affinity_mask, ret, strerror(ret));
 #endif
 #endif
     }

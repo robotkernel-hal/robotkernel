@@ -1,3 +1,5 @@
+INSTALL_HEADER = $(INSTALL_DATA) -C
+
 BUILT_SOURCES = $(top_builddir)/include/robotkernel/ln_kernel_messages.h
 CLEANFILES = $(top_builddir)/include/robotkernel/ln_kernel_messages.h
 includedir = $(prefix)/include/robotkernel

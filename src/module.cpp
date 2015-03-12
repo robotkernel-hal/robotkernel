@@ -35,6 +35,13 @@
 #include <fstream>
 #include <algorithm>
 
+#ifndef __LINUX__
+#include <sys/types.h>
+#include <sys/xattr.h>
+#include <libgen.h>
+#include <dirent.h>
+#endif
+
 using namespace std;
 using namespace robotkernel;
 
@@ -354,6 +361,22 @@ void module::_init() {
         return;
 #endif
     }
+
+#ifndef __VXWORKS__
+    {
+        char dirname_buffer[1024];
+        strcpy(dirname_buffer, module_file.c_str());
+        char* dir = dirname(dirname_buffer);
+        DIR* dirp = opendir(dir);
+        if(dirp) {
+            struct dirent* de;
+            while((de = readdir(dirp))) {
+                // klog(error, "[%s] dir entry: %s\n", name.c_str(), de->d_name);
+            }
+            closedir(dirp);
+        }
+    }
+#endif
 
     so_handle = dlopen(module_file.c_str(), 
             RTLD_GLOBAL |
