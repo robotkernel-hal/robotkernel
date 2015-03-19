@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.63])
-AC_INIT([robotkernel], [3.1.3], [robert.burger@dlr.de])
+AC_INIT([robotkernel], [3.1.4], [robert.burger@dlr.de])
 AC_CANONICAL_TARGET
 AC_CANONICAL_SYSTEM
 
@@ -58,7 +58,7 @@ fi
 AC_SUBST(ARCH_CFLAGS)
 
 # try to automatically find ln
-LN_GENERATE_ARGS='-md_dir $(srcdir)/message_definitions'
+LN_GENERATE_ARGS='-md_dir $(top_srcdir)/share/ln/message_definitions'
 if test "${LN_LIBS}" == ""; then
     if test -n "${LN_BASE}"; then
         AC_CHECK_HEADER(${LN_BASE}/include/ln.h, [ 

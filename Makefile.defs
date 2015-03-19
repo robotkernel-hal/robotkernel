@@ -12,8 +12,7 @@ $(top_builddir)/include/robotkernel/ln_messages.h: Makefile $(LN_MESSAGES)
 	touch $@
 
 install-exec-hook:
-	mkdir -p $(prefix)/share/message_definitions
-	-cp -rf $(srcdir)/message_definitions/* $(prefix)/share/message_definitions/
+	cp -rf $(top_srcdir)/share $(prefix)/
 	mkdir -p $(prefix)/lib/python/site-packages
 
 	

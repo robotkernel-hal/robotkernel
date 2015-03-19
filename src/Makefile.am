@@ -51,7 +51,7 @@ robotkernel_debug_SOURCES += dump_log_tp.c
 BUILT_SOURCES += dump_log_tp.h dump_log_tp.c
 endif
 
-VPATH = $(srcdir):$(srcdir)/message_definitions 
+VPATH = $(srcdir):$(top_srcdir)/share/ln/message_definitions 
 
 LN_KERNEL_MESSAGES = robotkernel/add_module \
 			  robotkernel/remove_module \

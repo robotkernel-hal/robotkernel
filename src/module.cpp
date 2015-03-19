@@ -35,9 +35,8 @@
 #include <fstream>
 #include <algorithm>
 
-#ifndef __LINUX__
+#ifndef __VXWORKS__
 #include <sys/types.h>
-#include <sys/xattr.h>
 #include <libgen.h>
 #include <dirent.h>
 #endif

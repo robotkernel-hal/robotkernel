@@ -42,7 +42,7 @@ rk_modules: %(ifndef "rk_modules", "")
 rk_interfaces: %(ifndef "rk_interfaces", "") 
 rk_ld_so_conf: %(ifndef "rk_ld_so_conf", "")
 rk_term_timeout: %(ifndef "rk_term_timeout", "4")
-add_message_definition_dir: %(rk_base)/share/message_definitions
+add_message_definition_dir: %(rk_base)/share/ln/message_definitions
 
 process %(ifndef "rk_name", "robotkernel")
 append environment ROBOTKERNEL_MODULE_PATH: %(rk_modules)
