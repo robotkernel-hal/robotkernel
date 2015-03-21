@@ -31,6 +31,8 @@ requires_version 0.2.43
 #     (optional) write process output to this logfile
 #   rk_debug
 #     (optional) set to true to use robotkernel binary with debugging information
+#   rk_use_template
+#     (optional) use template to derive rk process from
 
 defines
 rk_base: %(ifndef "rk_base", "%(dirname %(dirname %(CURDIR)))")
@@ -62,3 +64,4 @@ ifdef rk_depends_on: depends_on: %(rk_depends_on)
 ifdef rk_start_on_ready: start_on_ready: %(rk_start_on_ready)
 ifdef rk_set_resource_limits: set_resource_limits: %(rk_set_resource_limits)
 ifdef rk_derive_from: derive_from: %(rk_derive_from)
+ifdef rk_use_template: use_template: %(rk_use_template)
