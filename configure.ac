@@ -49,7 +49,7 @@ RMPM_ARCH
 
 # serach packages, first with pkg-config, second in rmpm  
 # yaml-cpp 
-PKG_CHECK_MODULES([YAMLCPP], [yaml-cpp], [], [RMPM_CHECK_MODULES([YAMLCPP], [software.yaml-cpp])])
+PKG_CHECK_MODULES([YAMLCPP], [yaml-cpp], [], [RMPM_CHECK_MODULES([YAMLCPP], [software.yaml-cpp==0.3])])
 AM_CONDITIONAL([HAVE_YAMLCPP], [test -n "$YAMLCPP_LIBS"])
 
 if test "$rmpm_host" == "angstrom-armv7-gcc4.7"; then
