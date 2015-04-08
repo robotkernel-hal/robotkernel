@@ -110,7 +110,9 @@ def process_module(mod_fn):
     else:
         print "include %s" % pkg_base
 
-    deps = getattr(cfg, "%s_deps" % mod_fn, None)
+    deps = getattr(cfg, "%s_deps" % mod_fn, [])
+    if deps:
+        deps = [dep.strip() for dep in deps.split(",")]
 
     if os.path.isfile(pkg_base):
         fp = file(pkg_base)
@@ -123,8 +125,7 @@ def process_module(mod_fn):
         fp.close()
     if not deps:
         return
-    for dep in deps.split(","):
-        dep = dep.strip()
+    for dep in deps:
         process_module(dep)
 
 for module in rkconfig["modules"]:
