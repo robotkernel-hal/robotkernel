@@ -87,9 +87,8 @@ interface::interface(const std::string& interface_file,
 #ifdef __VXWORKS__
         // special case on vxworks, because it may return ENOTSUP, the we try to open anyway !
 #else
-        klog(interface_error, "[interface] interface file name not given as absolute filename, either set\n"
-                "         ROBOTKERNEL_INTERFACE_PATH environment variable or specify absolut path!\n");
-        throw str_exception("[interface] access signaled error: %s", strerror(errno));
+        klog(interface_error, "[interface] interface file '%s' not readable!\n", this->interface_file.c_str());
+        throw str_exception("[interface] access '%s' signaled error: %s", this->interface_file.c_str(), strerror(errno));
 #endif
     }
 
