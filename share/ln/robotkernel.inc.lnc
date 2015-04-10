@@ -27,6 +27,10 @@ requires_version 0.2.43
 #     (optional) set resource limits
 #   rk_change_directory
 #     (optional) change directory
+#   rk_flags
+#     (optional)
+#   rk_max_output_frequency
+#     (optional)
 #   rk_output_logfile
 #     (optional) write process output to this logfile
 #   rk_debug
@@ -54,7 +58,9 @@ append environment LD_SO_CONF: %(rk_ld_so_conf)
 command: %(rk_binary) %(ifndef "rk_arguments", "")
 node: %(ifndef "rk_node", "localhost")
 ready_regex: up and running
-term_timeout: %(rk_term_timeout)
+ifdef rk_flags: flags: %(rk_flags)
+ifdef rk_term_timeout: term_timeout: %(rk_term_timeout)
+ifdef rk_max_output_frequency: max_output_frequency: %(rk_max_output_frequency)
 ifdef rk_output_logfile: output_logfile: %(rk_output_logfile)
 ifdef rk_output_encoding: output_encoding: %(rk_output_encoding)
 ifdef rk_change_directory: change_directory: %(rk_change_directory)
