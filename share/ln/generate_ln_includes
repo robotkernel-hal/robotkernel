@@ -18,6 +18,7 @@ cfg.rk_version = "latest"
 cfg.rk_config_fn = None
 cfg.with_gui = False
 cfg.with_rk = True
+cfg.do_undef = True
 
 cfg.module_sercos_deps = "interface_sercos_protocol,interface_key_value,interface_process_data_inspection"
 cfg.module_soem_deps = "interface_canopen_protocol,interface_key_value,interface_process_data_inspection"
@@ -144,3 +145,11 @@ if cfg.with_rk:
     process_module("robotkernel")
 if cfg.with_gui:
     process_module("robotkernel_gui")
+
+if cfg.do_undef:
+    print """defines
+undef: rk_depends_on
+undef: rk_start_as
+undef: rk_start_on_ready
+undef: rk_modules
+undef: rk_interfaces"""
