@@ -43,6 +43,9 @@ AC_DEFUN([RMPM_ARCH],
 	    if test $host = arm-linux-gnueabihf; then
                rmpm_host=ubuntu12.04-armhf-gcc4.x
 	    fi
+	    if test $host = arm-unknown-linux-gnueabihf; then
+               rmpm_host=ubuntu12.04-armhf-gcc4.x
+	    fi
         fi
         AC_SUBST(rmpm_host)
         ])
