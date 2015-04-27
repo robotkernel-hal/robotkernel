@@ -40,6 +40,9 @@ AC_DEFUN([RMPM_ARCH],
             if test $host = arm-angstrom-linux-gnueabi; then
                rmpm_host=angstrom-armv7-gcc4.7
             fi
+	    if test $host = arm-linux-gnueabihf; then
+               rmpm_host=ubuntu12.04-armhf-gcc4.x
+	    fi
         fi
         AC_SUBST(rmpm_host)
         ])
@@ -48,18 +51,17 @@ AC_DEFUN([RMPM_CHECK_MODULES],
          [
          AC_REQUIRE([RMPM_ARCH])
          AC_MSG_CHECKING(for $1 -> searching package $2 in rmpm)
-         tmp=$(pkgtool --search "$2" | wc -l)
+         tmp=$(env -i /volume/software/common/packages/rmpm/latest/bin/sled11-x86-gcc4.x/pkgtool --arch=$rmpm_host --search "$2" | wc -l)
          if test $tmp = 0; then
              AC_MSG_RESULT(no)
          else
              AC_MSG_RESULT(yes)
              
-             $1[]_CFLAGS=$(ctool --allow-beta --noquotes --c++ --compiler-flags --arch=$rmpm_host "$2")
-             $1[]_LIBS=$(ctool --allow-beta --noquotes --c++ --linker-flags --arch=$rmpm_host "$2")
-             $1[]_BASE=$(pkgtool --allow-beta --key=PKGROOT "$2")
+             $1[]_CFLAGS=$(env -i /volume/software/common/packages/rmpm/latest/bin/sled11-x86-gcc4.x/ctool --allow-beta --noquotes --c++ --compiler-flags --arch=$rmpm_host "$2")
+             $1[]_LIBS=$(env -i /volume/software/common/packages/rmpm/latest/bin/sled11-x86-gcc4.x/ctool --allow-beta --noquotes --c++ --linker-flags --arch=$rmpm_host "$2")
+             $1[]_BASE=$(env -i /volume/software/common/packages/rmpm/latest/bin/sled11-x86-gcc4.x/pkgtool --allow-beta --key=PKGROOT "$2")
 
              AC_SUBST($1[]_CFLAGS)
              AC_SUBST($1[]_LIBS)
              AC_SUBST($1[]_BASE)
          fi])
-         
