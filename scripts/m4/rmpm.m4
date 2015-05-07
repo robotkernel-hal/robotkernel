@@ -13,6 +13,7 @@ AC_DEFUN([RMPM_ARCH],
                 rmpm_host=sled11-x86-gcc4.x
             fi
         else
+	    ARCH_CFLAGS=""
             if test $host = i686-suse-linux-gnu; then
                rmpm_host=sled11-x86-gcc4.x
             fi
@@ -39,15 +40,20 @@ AC_DEFUN([RMPM_ARCH],
             fi
             if test $host = arm-angstrom-linux-gnueabi; then
                rmpm_host=angstrom-armv7-gcc4.7
+	       ARCH_CFLAGS="-DNO_RDTSC"
             fi
 	    if test $host = arm-linux-gnueabihf; then
                rmpm_host=ubuntu12.04-armhf-gcc4.x
+	       ARCH_CFLAGS="-DNO_RDTSC"
 	    fi
 	    if test $host = arm-unknown-linux-gnueabihf; then
                rmpm_host=ubuntu12.04-armhf-gcc4.x
+	       ARCH_CFLAGS="-DNO_RDTSC"
 	    fi
         fi
         AC_SUBST(rmpm_host)
+	AC_SUBST(ARCH_CFLAGS)
+
         ])
 
 AC_DEFUN([RMPM_CHECK_MODULES], 
