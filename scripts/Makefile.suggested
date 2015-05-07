@@ -85,12 +85,17 @@ ifneq ($(PKG_CONFIG_PATH),)
 endif
 
 # targets
-.PHONY: configure build install build_all build_all_seq $(SUPPORTED_ARCHS)
+.PHONY: configure build install build_all build_all_seq build_only_all_seq configure_only_all_seq $(SUPPORTED_ARCHS)
 
 build_all: $(SUPPORTED_ARCHS)
 
 build_all_seq:
 	set -e; for arch in $(SUPPORTED_ARCHS); do echo $$arch; make ARCH=$$arch -f Makefile.suggested -j1  configure build install; done
+
+build_only_all_seq:
+	set -e; for arch in $(SUPPORTED_ARCHS); do echo $$arch; make ARCH=$$arch -f Makefile.suggested -j1  build; done
+configure_only_all_seq:
+	set -e; for arch in $(SUPPORTED_ARCHS); do echo $$arch; make ARCH=$$arch -f Makefile.suggested -j1 configure; done
 
 $(SUPPORTED_ARCHS):
 	make ARCH=$@ -f Makefile.suggested configure install
