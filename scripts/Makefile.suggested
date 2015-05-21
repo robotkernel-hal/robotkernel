@@ -99,15 +99,18 @@ configure_only_all_seq:
 	set -e; for arch in $(SUPPORTED_ARCHS); do echo $$arch; make ARCH=$$arch -f Makefile.suggested -j1 configure; done
 
 $(SUPPORTED_ARCHS):
-	make ARCH=$@ -f Makefile.suggested configure install
+	make ARCH=$@ -f scripts/Makefile.suggested configure install
 
 configure:
 ifeq ($(SSH),)
 	mkdir -p $(DST_DIR)
 	cd $(DST_DIR); $(SRC_DIR)/configure --build=$(shell $(SRC_DIR)/config.guess) $(HOST_OPTION) SOURCE_ENV=$(CURDIR)/scripts/$(ARCH).env DLRRM_ARCH=$(ARCH) LN_BASE="${LN_BASE}" $(ARGS) --prefix=$(DST_DIR)/install 
 else
-	$(SSH) make -C $(SRC_DIR) -f Makefile.suggested ARCH=$(ARCH) configure
+	$(SSH) make -C $(SRC_DIR) -f scripts/Makefile.suggested ARCH=$(ARCH) configure
 endif
+
+clean:
+	$(SSH) make -j $(JOBS) -C $(DST_DIR) clean
 
 build:
 	$(SSH) make -j $(JOBS) -C $(DST_DIR)
