@@ -60,15 +60,15 @@ AC_DEFUN([RMPM_CHECK_MODULES],
          [
          AC_REQUIRE([RMPM_ARCH])
          AC_MSG_CHECKING(for $1 -> searching package $2 in rmpm)
-         tmp=$(env -i /volume/software/common/packages/rmpm/latest/bin/sled11-x86-gcc4.x/pkgtool --search "$2" | wc -l)
+         tmp=$(env -i /volume/software/common/packages/rmpm/latest/bin/sled11-x86-gcc4.x/pkgtool --search "$2" --arch=$rmpm_host | wc -l)
          if test $tmp = 0; then
              AC_MSG_RESULT(no)
          else
-             AC_MSG_RESULT(yes)
+             AC_MSG_RESULT(yes ${$1[]_BASE})
              
              $1[]_CFLAGS=$(env -i /volume/software/common/packages/rmpm/latest/bin/sled11-x86-gcc4.x/ctool --allow-beta --noquotes --c++ --compiler-flags --arch=$rmpm_host "$2")
              $1[]_LIBS=$(env -i /volume/software/common/packages/rmpm/latest/bin/sled11-x86-gcc4.x/ctool --allow-beta --noquotes --c++ --linker-flags --arch=$rmpm_host "$2")
-             $1[]_BASE=$(env -i /volume/software/common/packages/rmpm/latest/bin/sled11-x86-gcc4.x/pkgtool --allow-beta --key=PKGROOT "$2")
+             $1[]_BASE=$(env -i /volume/software/common/packages/rmpm/latest/bin/sled11-x86-gcc4.x/pkgtool --allow-beta --key=PKGROOT "$2" | sed -e "s/, .*$//")
              $1[]_DEPENDS=$(env -i /volume/software/common/packages/rmpm/latest/bin/sled11-x86-gcc4.x/pkgtool --allow-beta --key=DEPENDS "$2")
 
              AC_SUBST($1[]_CFLAGS)
@@ -77,3 +77,13 @@ AC_DEFUN([RMPM_CHECK_MODULES],
              AC_SUBST($1[]_DEPENDS)
          fi])
          
+AC_DEFUN([HAVE_BY_CFLAGS], [
+         AC_MSG_CHECKING(have $1?)
+
+	 AM_CONDITIONAL([HAVE_$1], [test -n "$$1[]_CFLAGS"])
+	 AS_IF([test -n "$$1[]_CFLAGS"], [AC_DEFINE([HAVE_$1], [1], [Define if have $1])])
+	 AC_SUBST(HAVE_$1)
+
+	 AS_IF([test -n "$$1[]_CFLAGS"], [AC_MSG_RESULT(yes)], [AC_MSG_RESULT(no)])
+
+])
