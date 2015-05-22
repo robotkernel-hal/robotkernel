@@ -47,8 +47,10 @@ build_only_all_seq:
 configure_only_all_seq:
 	set -e; for arch in $(SUPPORTED_ARCHS); do echo $$arch; make ARCH=$$arch -f Makefile.suggested -j1 configure; done
 
+BUILD_TARGETS=configure install
+
 $(SUPPORTED_ARCHS):
-	make ARCH=$@ -f scripts/Makefile.suggested configure install
+	make ARCH=$@ -f scripts/Makefile.suggested $(BUILD_TARGETS)
 
 configure:
 ifeq ($(SSH),)
