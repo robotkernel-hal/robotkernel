@@ -4,6 +4,14 @@ import sys
 
 dlrrm_arch = sys.argv[1]
 
+
+if dlrrm_arch == "ubuntu12.04-armhf-gcc4.x":
+    print "arm-linux-gnueabihf"
+    sys.exit()
+elif dlrrm_arch == "angstrom-armv7-gcc4.7":
+    print "arm-angstrom-linux-gnueabi"
+    sys.exit()
+
 try:
     osver, mach, compiler = dlrrm_arch.split("-")
 

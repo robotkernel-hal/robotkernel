@@ -65,7 +65,7 @@ if test "${LN_LIBS}" == ""; then
                 # found it in release dir!
                 LN_LIBS="-L${LN_BASE}/lib/$rmpm_host -lln"
                 LN_CFLAGS="-I${LN_BASE}/include/"
-                LN_GENERATE="env -i ${LN_BASE}/scripts/ln_generate $LN_GENERATE_ARGS"
+                LN_GENERATE_BIN="env -i ${LN_BASE}/scripts/ln_generate"
                 LN_YAMLCPP_LIBS="-L${LN_BASE}/lib/$rmpm_host -lyaml-cpp"
                 STRING_UTILS_LIBS="-L$LN_BASE/lib/$rmpm_host -lstring_util"
             ], [
@@ -74,7 +74,7 @@ if test "${LN_LIBS}" == ""; then
                         # found it in source dir!
                         LN_LIBS="-L${LN_BASE}/library/obj/$rmpm_host -lln"
                         LN_CFLAGS="-I${LN_BASE}/library/include/ -I${LN_BASE}/contrib/libstring_util/include"
-                        LN_GENERATE="env -i ${LN_BASE}/library/tools/ln_generate $LN_GENERATE_ARGS"
+                        LN_GENERATE_BIN="env -i ${LN_BASE}/library/tools/ln_generate"
                         LN_YAMLCPP_CFLAGS="-I${LN_BASE}/contrib/libyaml/include"
                         LN_YAMLCPP_LIBS="-L${LN_BASE}/contrib/libyaml/lib/$rmpm_host -lyaml-cpp"
                         STRING_UTILS_LIBS="-L$LN_BASE/contrib/libstring_util/obj/$rmpm_host -lstring_util"
@@ -86,9 +86,12 @@ fi
 # try to find ln via pkg-config and rmpm, if not already done in above step
 PKG_CHECK_MODULES([LN], [libln], [], [
                     RMPM_CHECK_MODULES([LN], [software.links_and_nodes])
-                    LN_GENERATE="env -i $LN_BASE/scripts/ln_generate $LN_GENERATE_ARGS"
+                    LN_GENERATE_BIN="env -i $LN_BASE/scripts/ln_generate"
                     STRING_UTILS_LIBS="-L$LN_BASE/lib/$rmpm_host -lstring_util"
                    ])
+
+LN_GENERATE="$LN_GENERATE_BIN $LN_GENERATE_ARGS"
+
 AM_CONDITIONAL([HAVE_LN], [test -n "$LN_LIBS"])
 AC_SUBST(LN_GENERATE)
 AC_DEFINE_UNQUOTED(LN_LIBS, "$LN_LIBS", [linked links and nodes library])
