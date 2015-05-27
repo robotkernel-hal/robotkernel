@@ -19,6 +19,7 @@ cfg.rk_config_fn = None
 cfg.with_gui = False
 cfg.with_rk = True
 cfg.with_undef = True
+cfg.with_realpath = True
 
 cfg.module_sercos_deps = "interface_sercos_protocol,interface_key_value,interface_process_data_inspection"
 cfg.module_soem_deps = "interface_canopen_protocol,interface_key_value,interface_process_data_inspection"
@@ -106,6 +107,8 @@ def process_module(mod_fn):
         except:
             print repr((cfg.rk_domain_base, mod_fn, ver_or_file, local_part))
             raise
+    if cfg.with_realpath:
+        pkg_base = os.path.realpath(pkg_base)
     if optional_include:
         print "optional_include %s" % pkg_base
     else:
