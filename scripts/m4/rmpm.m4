@@ -13,46 +13,46 @@ AC_DEFUN([RMPM_ARCH],
                 rmpm_host=sled11-x86-gcc4.x
             fi
         else
-	    ARCH_CFLAGS=""
+            ARCH_CFLAGS=""
             if test $host = i686-suse-linux-gnu; then
-               rmpm_host=sled11-x86-gcc4.x
+                rmpm_host=sled11-x86-gcc4.x
             fi
             if test $host = x86-vxworks6.7-gnu4.x; then
-               rmpm_host=vxworks6.7-x86-gcc4.x
+                rmpm_host=vxworks6.7-x86-gcc4.x
             fi
             if test $host = x86-vxworks6.8-gnu4.x; then
-               rmpm_host=vxworks6.8-x86-gcc4.x
+                rmpm_host=vxworks6.8-x86-gcc4.x
             fi
             if test $host = x86-vxworks6.9-gnu4.x; then
-               rmpm_host=vxworks6.9-x86-gcc4.x
+                rmpm_host=vxworks6.9-x86-gcc4.x
             fi
             if test $host = x86-vxworks6.9.3-gnu4.x; then
-               rmpm_host=vxworks6.9.3-x86-gcc4.x
+                rmpm_host=vxworks6.9.3-x86-gcc4.x
             fi            
             if test $host = x86-vxworks6.9.4-gnu4.x; then
-               rmpm_host=vxworks6.9.4-x86-gcc4.x
+                rmpm_host=vxworks6.9.4-x86-gcc4.x
             fi            
             if test $host = x86-qnx6.3-gnu3.3; then
-               rmpm_host=qnx6.3-x86-gcc3.3
+                rmpm_host=qnx6.3-x86-gcc3.3
             fi
             if test $host = x86-qnx6.5-gnu4.x; then
-               rmpm_host=qnx6.5-x86-gcc4.x
+                rmpm_host=qnx6.5-x86-gcc4.x
             fi
             if test $host = arm-angstrom-linux-gnueabi; then
-               rmpm_host=angstrom-armv7-gcc4.7
-	       ARCH_CFLAGS="-DNO_RDTSC"
+                rmpm_host=angstrom-armv7-gcc4.7
+                ARCH_CFLAGS="-DNO_RDTSC"
             fi
-	    if test $host = arm-linux-gnueabihf; then
-               rmpm_host=ubuntu12.04-armhf-gcc4.x
-	       ARCH_CFLAGS="-DNO_RDTSC"
-	    fi
-	    if test $host = arm-unknown-linux-gnueabihf; then
-               rmpm_host=ubuntu12.04-armhf-gcc4.x
-	       ARCH_CFLAGS="-DNO_RDTSC"
-	    fi
+            if test $host = arm-linux-gnueabihf; then
+                rmpm_host=ubuntu12.04-armhf-gcc4.x
+                ARCH_CFLAGS="-DNO_RDTSC"
+            fi
+            if test $host = arm-unknown-linux-gnueabihf; then
+                rmpm_host=ubuntu12.04-armhf-gcc4.x
+                ARCH_CFLAGS="-DNO_RDTSC"
+            fi
         fi
         AC_SUBST(rmpm_host)
-	AC_SUBST(ARCH_CFLAGS)
+        AC_SUBST(ARCH_CFLAGS)
 
         ])
 
