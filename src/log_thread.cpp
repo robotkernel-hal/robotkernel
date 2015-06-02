@@ -94,10 +94,21 @@ void log_thread::log(struct log_pool_object *obj) {
     pthread_mutex_unlock(&_mutex);
 }
 
+int gettid() {
+#ifdef __LINUX__
+	return syscall( __NR_gettid );
+#else
+	return 0;
+#endif
+}
+
 //! handler function called if thread is running
 void log_thread::run() {
-    klog(verbose, "[log_thread] started\n");
-
+#ifdef HAVE_PTHREAD_SETNAME_NP
+	pthread_setname_np(pthread_self(), "rk:log_thread");
+#endif
+    klog(warning, "[log_thread] started at tid %d\n", gettid());
+    
     while (_running) {
         struct timespec ts;
         clock_gettime(CLOCK_REALTIME, &ts);

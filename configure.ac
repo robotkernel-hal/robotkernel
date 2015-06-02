@@ -7,7 +7,7 @@ AC_CANONICAL_TARGET
 AC_CANONICAL_SYSTEM
 
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
-#AM_PROG_AR
+m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
 AC_CONFIG_HEADERS([include/robotkernel/config.h])
 AC_CONFIG_MACRO_DIR([m4])
 
@@ -177,7 +177,7 @@ AC_TYPE_UINT8_T
 
 # Checks for library functions.
 #AC_FUNC_MALLOC
-AC_CHECK_FUNCS([clock_gettime memset sqrt strerror])
+AC_CHECK_FUNCS([clock_gettime memset sqrt strerror pthread_setname_np])
 
 # Checks for library functions.
 AC_CHECK_LIB(dl, dlopen, DL_LIBS="-ldl", DL_LIBS=)
