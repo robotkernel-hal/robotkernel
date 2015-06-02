@@ -56,7 +56,10 @@ BUILD_TARGETS=configure install
 $(SUPPORTED_ARCHS):
 	make ARCH=$@ -f scripts/Makefile.suggested $(BUILD_TARGETS)
 
-configure:
+Makefile.in:
+	./autogen.sh
+
+configure: Makefile.in
 ifeq ($(SSH),)
 	mkdir -p $(DST_DIR)
 	cd $(DST_DIR); $(SRC_DIR)/configure --build=$(shell $(SRC_DIR)/config.guess) $(HOST_OPTION) SOURCE_ENV=$(CURDIR)/scripts/$(ARCH).env DLRRM_ARCH=$(ARCH) LN_BASE="${LN_BASE}" $(ARGS) --prefix=$(DST_DIR)/install 
