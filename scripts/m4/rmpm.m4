@@ -59,19 +59,36 @@ AC_DEFUN([RMPM_ARCH],
 AC_DEFUN([RMPM_CHECK_MODULES], 
          [
          AC_REQUIRE([RMPM_ARCH])
-         AC_MSG_CHECKING(for $1 -> searching package $2 in rmpm)
-         tmp=$(env -i /volume/software/common/packages/rmpm/latest/bin/sled11-x86-gcc4.x/pkgtool --search "$2" --arch=$rmpm_host | wc -l)
+
+	 # split package name ($2) in domain and package part!
+	 #IFS="." read -r domain package <<< "$2"
+
+	 # is there a command line option named package-domain? -> if so, use that domain!
+	 m4_define([RMPMDOMAIN], m4_substr($2, 0, index($2, .)))
+	 m4_define([RMPMPKG], m4_substr($2, m4_eval(index($2, .) + 1)))
+
+	 AC_ARG_WITH(RMPMPKG[-domain],
+	  AS_HELP_STRING([--with-RMPMPKG-domain], [specify another rmpm domain than RMPMDOMAIN]),
+	  [domain="${withval}"
+	   AC_MSG_CHECKING(for $1 -> searching rmpm package RMPMPKG in user-specified domain $domain)
+	  ],
+	  [domain=RMPMDOMAIN
+	   AC_MSG_CHECKING(for $1 -> searching rmpm package RMPMPKG in domain $domain)
+          ]
+	 )
+	 pkg_spec=$domain.RMPMPKG
+
+         tmp=$(env -i /volume/software/common/packages/rmpm/latest/bin/sled11-x86-gcc4.x/pkgtool --search "$pkg_spec" --arch=$rmpm_host | wc -l)
          if test $tmp = 0; then
              AC_MSG_RESULT(no)
-         else
+         else             
+             $1[]_BASE=$(env -i /volume/software/common/packages/rmpm/latest/bin/sled11-x86-gcc4.x/pkgtool --allow-beta --key=PKGROOT "$pkg_spec" | sed -e "s/, .*$//")
              AC_MSG_RESULT(yes ${$1[]_BASE})
-             
-             $1[]_CFLAGS=$(env -i /volume/software/common/packages/rmpm/latest/bin/sled11-x86-gcc4.x/ctool --allow-beta --noquotes --c++ --compiler-flags --arch=$rmpm_host "$2")
-             $1[]_LIBS=$(env -i /volume/software/common/packages/rmpm/latest/bin/sled11-x86-gcc4.x/ctool --allow-beta --noquotes --c++ --linker-flags --arch=$rmpm_host "$2")
-             $1[]_BASE=$(env -i /volume/software/common/packages/rmpm/latest/bin/sled11-x86-gcc4.x/pkgtool --allow-beta --key=PKGROOT "$2" | sed -e "s/, .*$//")
-             $1[]_DEPENDS=$(env -i /volume/software/common/packages/rmpm/latest/bin/sled11-x86-gcc4.x/pkgtool --allow-beta --key=DEPENDS "$2")
-             $1[]_CXX_DEPENDS=$(env -i /volume/software/common/packages/rmpm/latest/bin/sled11-x86-gcc4.x/pkgtool --allow-beta --key=C++_DEPENDS "$2")
-             $1[]_C_DEPENDS=$(env -i /volume/software/common/packages/rmpm/latest/bin/sled11-x86-gcc4.x/pkgtool --allow-beta --key=C_DEPENDS "$2")
+             $1[]_CFLAGS=$(env -i /volume/software/common/packages/rmpm/latest/bin/sled11-x86-gcc4.x/ctool --allow-beta --noquotes --c++ --compiler-flags --arch=$rmpm_host "$pkg_spec")
+             $1[]_LIBS=$(env -i /volume/software/common/packages/rmpm/latest/bin/sled11-x86-gcc4.x/ctool --allow-beta --noquotes --c++ --linker-flags --arch=$rmpm_host "$pkg_spec")
+             $1[]_DEPENDS=$(env -i /volume/software/common/packages/rmpm/latest/bin/sled11-x86-gcc4.x/pkgtool --allow-beta --key=DEPENDS "$pkg_spec")
+             $1[]_CXX_DEPENDS=$(env -i /volume/software/common/packages/rmpm/latest/bin/sled11-x86-gcc4.x/pkgtool --allow-beta --key=C++_DEPENDS "$pkg_spec")
+             $1[]_C_DEPENDS=$(env -i /volume/software/common/packages/rmpm/latest/bin/sled11-x86-gcc4.x/pkgtool --allow-beta --key=C_DEPENDS "$pkg_spec")
 
              AC_SUBST($1[]_CFLAGS)
              AC_SUBST($1[]_LIBS)
