@@ -37,6 +37,8 @@ endif
 # targets
 .PHONY: configure build install build_all build_only_all build_all_seq build_only_all_seq configure_only_all_seq $(SUPPORTED_ARCHS)
 
+-include local-targets.mk
+
 build_all: $(SUPPORTED_ARCHS)
 
 build_only_all: 
@@ -62,9 +64,9 @@ Makefile.in:
 configure: Makefile.in
 ifeq ($(SSH),)
 	mkdir -p $(DST_DIR)
-	cd $(DST_DIR); $(SRC_DIR)/configure --build=$(shell $(SRC_DIR)/config.guess) $(HOST_OPTION) SOURCE_ENV=$(CURDIR)/scripts/$(ARCH).env DLRRM_ARCH=$(ARCH) LN_BASE="${LN_BASE}" $(ARGS) --prefix=$(DST_DIR)/install 
+	cd $(DST_DIR); $(SRC_DIR)/configure --build=$(shell $(SRC_DIR)/config.guess) $(HOST_OPTION) SOURCE_ENV=$(CURDIR)/scripts/$(ARCH).env DLRRM_ARCH=$(ARCH) LN_BASE="${LN_BASE}" $(ARGS) --prefix=$(DST_DIR)/install $(CONFIGURE_ARGS)
 else
-	$(SSH) make -C $(SRC_DIR) -f scripts/Makefile.suggested ARCH=$(ARCH) configure
+	$(SSH) make -C $(SRC_DIR) -f scripts/Makefile.suggested ARCH=$(ARCH) CONFIGURE_ARGS="$(CONFIGURE_ARGS)" configure 
 endif
 
 clean:
@@ -74,6 +76,9 @@ $(DST_DIR):
 	make -f Makefile.suggested ARCH=$(ARCH) configure
 build: $(DST_DIR)
 	$(SSH) make -j $(JOBS) -C $(DST_DIR)
+
+build-single: $(DST_DIR)
+	$(SSH) make -C $(DST_DIR)
 
 install: build
 	$(SSH) make -j $(JOBS) -C $(DST_DIR) install
