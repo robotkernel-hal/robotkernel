@@ -39,7 +39,11 @@ endif
 
 -include local-targets.mk
 
+ifeq ($(ARCH), )
 build_all: $(SUPPORTED_ARCHS)
+else
+all: configure build install
+endif
 
 build_only_all: 
 	make -f Makefile.suggested BUILD_TARGETS=install build_all
@@ -84,7 +88,7 @@ install: build
 	$(SSH) make -j $(JOBS) -C $(DST_DIR) install
 
 local-release:
-	make -f Makefile.suggested ARCH=sled11-x86-gcc4.x build
+	make -f scripts/Makefile.suggested ARCH=sled11-x86-gcc4.x build
 	cat $(DST_DIR)/module_lnrkinterface.pt | sed -e "s/ARCHS.*=.*$$/ARCHS = sled11-x86-gcc4.x/" > .my_module_lnrkinterface.pt
 	reltool --local ./install --pt-file .my_module_lnrkinterface.pt --yes
 
