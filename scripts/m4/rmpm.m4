@@ -61,12 +61,10 @@ AC_DEFUN([RMPM_CHECK_MODULES],
          AC_REQUIRE([RMPM_ARCH])
 
 	 # split package name ($2) in domain and package part!
-	 #IFS="." read -r domain package <<< "$2"
-
-	 # is there a command line option named package-domain? -> if so, use that domain!
 	 m4_define([RMPMDOMAIN], m4_substr($2, 0, index($2, .)))
 	 m4_define([RMPMPKG], m4_substr($2, m4_eval(index($2, .) + 1)))
 
+	 # is there a command line option named package-domain? -> if so, use that domain!
 	 AC_ARG_WITH(RMPMPKG[-domain],
 	  AS_HELP_STRING([--with-RMPMPKG-domain], [specify another rmpm domain than RMPMDOMAIN]),
 	  [domain="${withval}"
