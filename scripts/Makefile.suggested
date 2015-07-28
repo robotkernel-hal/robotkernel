@@ -12,16 +12,22 @@ include supported_archs.mk
 JOBS=16
 ARGS=
 
-ifeq ($(ARCH),sled11-x86_64-gcc4.x)
-  ifneq ($(shell uname -m),x86_64)
-    SSH=ssh rmc-thalia
-  endif
-else 
-  ifneq ($(ARCH), sled11-x86-gcc4.x)
-    # architecture specific settings
-    HOST_OPTION=--host=$(shell ./scripts/arch_from_dlrrm $(ARCH))
-  endif
-endif
+#ifeq ($(ARCH),sled11-x86_64-gcc4.x)
+#  ifneq ($(shell uname -m),x86_64)
+#    SSH=ssh rmc-thalia
+#  endif
+#else  
+#  ifeq ($(ARCH),sled11-x86-gcc4.x)
+#    ifneq ($(shell uname -m),i686)
+#      SSH=ssh rmc-arethusa
+#	endif
+#  else
+#    # architecture specific settings
+#    HOST_OPTION=--host=$(shell ./scripts/arch_from_dlrrm $(ARCH))
+#  endif
+#endif
+    
+HOST_OPTION=--host=$(shell ./scripts/arch_from_dlrrm $(ARCH))
 
 SRC_DIR=$(CURDIR)
 DST_DIR=$(SRC_DIR)/build/$(ARCH)

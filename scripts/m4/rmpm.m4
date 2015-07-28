@@ -17,6 +17,12 @@ AC_DEFUN([RMPM_ARCH],
             if test $host = i686-suse-linux-gnu; then
                 rmpm_host=sled11-x86-gcc4.x
             fi
+            if test $host = x86-sled11-gnu4.x; then
+                rmpm_host=sled11-x86-gcc4.x
+            fi
+            if test $host = x86_64-sled11-gnu4.x; then
+                rmpm_host=sled11-x86_64-gcc4.x
+            fi
             if test $host = x86-vxworks6.7-gnu4.x; then
                 rmpm_host=vxworks6.7-x86-gcc4.x
             fi
