@@ -149,16 +149,16 @@ module_state_t kernel::get_state(std::string mod_name) {
  * \param configfile config file name
  */
 kernel::kernel() {
-    _ll_bits = (1 << error) | (1 << warning) | (1 << info);
+    _ll_bits = (1 << (error-1)) | (1 << (warning-1)) | (1 << (info-1));
     _name = "robotkernel";
     clnt = NULL;
     _ln_thread_pool_size_main = 1;
-        
-//    int _major, _minor, _patch;
-//    sscanf(PACKAGE_VERSION, "%d.%d.%d", &_major, &_minor, &_patch);
-//    
-//    logging(info, ROBOTKERNEL "major %d, minor %d, patch %d\n",
-//            _major, _minor, _patch);
+
+    int _major, _minor, _patch;
+    sscanf(PACKAGE_VERSION, "%d.%d.%d", &_major, &_minor, &_patch);
+    
+    logging(info, ROBOTKERNEL "major %d, minor %d, patch %d\n",
+            _major, _minor, _patch);
 }
 
 //! destruction
@@ -239,7 +239,7 @@ void kernel::init_ln(int argc, char **argv) {
     register_module_list(clnt, clnt->name + ".module_list");
     register_reconfigure_module(clnt, clnt->name + ".reconfigure_module");
     register_get_states(clnt, clnt->name + ".get_states");
-    
+
     // handle default service group (NULL) in new "main" thread-pool
     clnt->handle_service_group_in_thread_pool(NULL, "main");
     // configure max number of threads for "main" thread-pool
@@ -302,7 +302,7 @@ void kernel::config(std::string config_file, int argc, char **argv) {
         // assume rmpm release 
         string base_path_2, arch = sub_path;
         split_file_name(base_path, base_path_2, sub_path);
-        
+
         if (sub_path == string("bin")) {
             struct stat buf;
             stringstream _modpath, _intfpath;
@@ -316,7 +316,7 @@ void kernel::config(std::string config_file, int argc, char **argv) {
             logging(info, ROBOTKERNEL "unable to determine internal modules/interfaces path!\n");
         }
     }
-                
+
     if (_internal_modpath != string(""))
         logging(info, ROBOTKERNEL "found modules path %s\n", _internal_modpath.c_str());
     if (_internal_intfpath != string(""))
@@ -337,7 +337,7 @@ void kernel::config(std::string config_file, int argc, char **argv) {
         }
         return ;
     }
-    
+
     char *real_config_file = realpath(config_file.c_str(), NULL);
     if (!real_config_file)
         throw str_exception("supplied config file \"%s\" not found!", config_file.c_str());
@@ -365,24 +365,29 @@ void kernel::config(std::string config_file, int argc, char **argv) {
         _ll_bits = 0;
 
 #define loglevel_if(ll, x) \
-            if ((x) == string(#ll)) \
-                _ll_bits |= ( 1 << ll);
+        if ((x) == string(#ll)) \
+        _ll_bits |= ( 1 << (ll-1));
 #define loglevel_add(x)                 \
-            loglevel_if(error, x)          \
-            else loglevel_if(warning, x)   \
-            else loglevel_if(info, x)      \
-            else loglevel_if(verbose, x) \
-            else loglevel_if(module_error, x)          \
-            else loglevel_if(module_warning, x)   \
-            else loglevel_if(module_info, x)      \
-            else loglevel_if(module_verbose, x) \
-            else loglevel_if(interface_error, x)          \
-            else loglevel_if(interface_warning, x)   \
-            else loglevel_if(interface_info, x)      \
-            else loglevel_if(interface_verbose, x)
-            
+        loglevel_if(error, x)          \
+        else loglevel_if(warning, x)   \
+        else loglevel_if(info, x)      \
+        else loglevel_if(verbose, x) \
+        else loglevel_if(module_error, x)          \
+        else loglevel_if(module_warning, x)   \
+        else loglevel_if(module_info, x)      \
+        else loglevel_if(module_verbose, x) \
+        else loglevel_if(interface_error, x)          \
+        else loglevel_if(interface_warning, x)   \
+        else loglevel_if(interface_info, x)      \
+        else loglevel_if(interface_verbose, x)
+
         if (ll_node->Type() == YAML::NodeType::Scalar) {
-            loglevel_add(ll_node->to<string>());
+            try {
+                // try to read mask directly
+                _ll_bits = ll_node->to<int>();
+            } catch (YAML::Exception& e) {
+                loglevel_add(ll_node->to<string>());
+            }
         } else
             for (YAML::Iterator it = ll_node->begin(); it != ll_node->end(); ++it) {
                 loglevel_add(it->to<string>());
@@ -391,14 +396,14 @@ void kernel::config(std::string config_file, int argc, char **argv) {
 
     const YAML::Node* log_fix_modname_length = doc.FindValue("log_fix_modname_length");
     if(log_fix_modname_length)
-	*log_fix_modname_length >> _log.fix_modname_length;
-    
+        *log_fix_modname_length >> _log.fix_modname_length;
+
     // search for log level
     const YAML::Node *dump_log_len_node = doc.FindValue("max_dump_log_len");
     if (dump_log_len_node) {
-	    unsigned int len;
-	    *dump_log_len_node >> len;
-	    config_dump_log(len, 0);
+        unsigned int len;
+        *dump_log_len_node >> len;
+        config_dump_log(len, 0);
     }
 
     const YAML::Node *ln_thread_pool_size_main = doc.FindValue("ln_thread_pool_size_main");
@@ -415,8 +420,8 @@ void kernel::config(std::string config_file, int argc, char **argv) {
     if(do_not_unload_modules) {
         (*do_not_unload_modules) >> _do_not_unload_modules;
     } else
-	    _do_not_unload_modules = false;
-    
+        _do_not_unload_modules = false;
+
     try {
         init_ln(argc, argv);        
     } catch(exception& e) {
@@ -538,7 +543,7 @@ bool kernel::state_check() {
 
     return true;
 }
-        
+
 //! kernel register interface callback
 /*!
  * \param mod_name module name to send request to
@@ -558,7 +563,7 @@ int kernel::request_cb(const char *mod_name, int reqcode, void *ptr) {
 
     return it->second->request(reqcode, ptr);
 }
-        
+
 //! kernel register interface callback
 /*!
  * \param mod_name module name to send request to
@@ -608,7 +613,7 @@ module *kernel::get_module(const char *mod_name) {
   \param reqcode request code
   \param ptr pointer to request structure
   \return success or failure
-*/
+  */
 int kernel::request(int reqcode, void* ptr) {
     klog(error, "request %d\n", reqcode);
 
@@ -632,7 +637,7 @@ int kernel::state_change(const char *mod_name, module_state_t new_state) {
         return 0;
 
     klog(info, ROBOTKERNEL "WARNING: module %s changed state to %d, old state %d\n",
-         mod_name, new_state, current_state);
+            mod_name, new_state, current_state);
 
     printf("\n\n\n THIS IS UNEXPECTED !!!! \n\n\n");
 
@@ -666,44 +671,43 @@ int kernel::on_config_dump_log(ln::service_request& req, ln_service_robotkernel_
     string current_log_level = "[ ";
 
 #define loglevel_to_string(x)               \
-    if (_ll_bits & (1 << x))                \
-        current_log_level += string("\"") + string(#x) + string("\", ");
+    if (_ll_bits & (1 << (x-1)))                \
+    current_log_level += string("\"") + string(#x) + string("\", ")
 
-    loglevel_to_string(error)
-    else loglevel_to_string(warning)
-    else loglevel_to_string(info)
-    else loglevel_to_string(verbose)
-    else loglevel_to_string(module_error)
-    else loglevel_to_string(module_warning)
-    else loglevel_to_string(module_info)
-    else loglevel_to_string(module_verbose)
-    else loglevel_to_string(interface_error)
-    else loglevel_to_string(interface_warning)
-    else loglevel_to_string(interface_info)
-    else loglevel_to_string(interface_verbose)
+    loglevel_to_string(error);
+    else loglevel_to_string(warning);
+    else loglevel_to_string(info);
+    else loglevel_to_string(verbose);
+    else loglevel_to_string(module_error);
+    else loglevel_to_string(module_warning);
+    else loglevel_to_string(module_info);
+    else loglevel_to_string(module_verbose);
+    else loglevel_to_string(interface_error);
+    else loglevel_to_string(interface_warning);
+    else loglevel_to_string(interface_info);
+    else loglevel_to_string(interface_verbose);
 
     current_log_level += "]";
 
-
     string set_log_level(svc.req.set_log_level, svc.req.set_log_level_len);
     if(set_log_level.size()) {
-	    _ll_bits = 0;
-	    py_value *pval = eval_full(set_log_level);
-	    py_list *plist = dynamic_cast<py_list *>(pval);
-	    
-	    if (plist) {
-		    for (py_list_value_t::iterator it = plist->value.begin(); it != plist->value.end(); ++it) {
-			    py_string *pstring = dynamic_cast<py_string *>(*it);
-			    if (pstring) {
-				    loglevel_add((string)(*pstring));
-			    }
-		    }
-	    } else {
-		    py_string *pstring = dynamic_cast<py_string *>(pval);
-		    if (pstring) {
-			    loglevel_add((string)(*pstring));
-		    }
-	    }
+        _ll_bits = 0;
+        py_value *pval = eval_full(set_log_level);
+        py_list *plist = dynamic_cast<py_list *>(pval);
+
+        if (plist) {
+            for (py_list_value_t::iterator it = plist->value.begin(); it != plist->value.end(); ++it) {
+                py_string *pstring = dynamic_cast<py_string *>(*it);
+                if (pstring) {
+                    loglevel_add((string)(*pstring));
+                }
+            }
+        } else {
+            py_string *pstring = dynamic_cast<py_string *>(pval);
+            if (pstring) {
+                loglevel_add((string)(*pstring));
+            }
+        }
     }
 
     ln::string_buffer current_log_level_sb(&svc.resp.current_log_level, current_log_level);
@@ -722,12 +726,12 @@ int kernel::on_set_state(ln::service_request& req, ln_service_robotkernel_set_st
         string mod_name(svc.req.mod_name, svc.req.mod_name_len);
         string state(svc.req.state, svc.req.state_len);
         set_state(mod_name, string_to_state(state.c_str()));
-	svc.resp.error_message_len = 0;
-	req.respond();
+        svc.resp.error_message_len = 0;
+        req.respond();
     } catch (const exception& e) {
         klog(error, "%s\n", e.what());
         ln::string_buffer err(&svc.resp.error_message, e.what());
-	req.respond();
+        req.respond();
     }
     return 0;
 }
@@ -748,7 +752,7 @@ int kernel::on_get_state(ln::service_request& req, ln_service_robotkernel_get_st
     } catch (const exception& e) {
         klog(error, "%s\n", e.what());
         ln::string_buffer err(&svc.resp.error_message, e.what());
-	req.respond();
+        req.respond();
     }
     return 0;
 }
@@ -779,9 +783,9 @@ int kernel::on_get_states(ln::service_request& req, ln_service_robotkernel_get_s
             }
         }
     }
-    
+
     ln::string_buffer module_list_sb(&svc.resp.mod_names, module_list);
-    
+
     stringstream states;
     for (set<string>::iterator it = seen.begin(); it != seen.end(); ++it) {
         if(it != seen.begin())
@@ -791,7 +795,7 @@ int kernel::on_get_states(ln::service_request& req, ln_service_robotkernel_get_s
         states << state.substr(1, state.size()-2);
     }
     ln::string_buffer states_sb(&svc.resp.states, states);
-    
+
     req.respond();
     return 0;
 }
@@ -935,13 +939,32 @@ int kernel::on_reconfigure_module(ln::service_request& req, ln_service_robotkern
     return 0;
 }
 
-void kernel::logging(loglevel ll, const char *format, ...) {
-    if(!((1 << ll) & _ll_bits)) {
-	va_list args;
-	va_start(args, format);
-	vdump_log(format, args);
-	va_end(args);
-	return;
+std::string ll_to_string(loglevel ll) {
+    if (ll == error)    return "K-ERR ";
+    if (ll == warning)  return "K-WARN";
+    if (ll == info)     return "K-INFO";
+    if (ll == verbose)  return "K-VERB";
+
+    if (ll == module_error)    return "M-ERR ";
+    if (ll == module_warning)  return "M-WARN";
+    if (ll == module_info)     return "M-INFO";
+    if (ll == module_verbose)  return "M-VERB";
+
+    if (ll == interface_error)    return "I-ERR ";
+    if (ll == interface_warning)  return "I-WARN";
+    if (ll == interface_info)     return "I-INFO";
+    if (ll == interface_verbose)  return "I-VERB";
+
+    return "?-???";
+}
+
+void kernel::logging(loglevel ll, const char *format, ...) {  
+    if(!((1 << (ll-1)) & _ll_bits)) {
+        va_list args;
+        va_start(args, format);
+        vdump_log(format, args);        
+        va_end(args);
+        return;
     }
 
     struct log_thread::log_pool_object *obj = _log.get_pool_object();
@@ -959,6 +982,8 @@ void kernel::logging(loglevel ll, const char *format, ...) {
     snprintf(obj->buf + len, sizeof(obj->buf) - len, ".%03.0f ", mseconds);
     len = strlen(obj->buf);
 
+    snprintf(obj->buf + len, sizeof(obj->buf) - len, "%s ", ll_to_string(ll).c_str());
+    len = strlen(obj->buf);
 
     // format argument list
     va_list args;
