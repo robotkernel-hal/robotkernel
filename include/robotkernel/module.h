@@ -31,6 +31,9 @@
 #include "robotkernel/module_intf.h"
 #include "robotkernel/interface.h"
 #include "yaml-cpp/yaml.h"
+        
+namespace robotkernel { class module; };
+YAML::Emitter& operator<<(YAML::Emitter& out, const robotkernel::module& mdl);
 
 namespace robotkernel {
 
@@ -44,9 +47,21 @@ class module :
     public ln_service_get_config_base,
     public ln_service_get_feat_base {
 
+    private:
+        module();
+        module(const module&);             // prevent copy-construction
+        module& operator=(const module&);  // prevent assignment
+
     public:
         //! external module trigger
         class external_trigger {
+            private:
+                external_trigger();
+                //! prevent copy-construction
+                external_trigger(const external_trigger&);             
+                //! prevent assignment
+                external_trigger& operator=(const external_trigger&);  
+
             public:
                 std::string _mod_name;  //! name of trigger module
                 int _clk_id;            //! trigger module clock id
@@ -65,9 +80,9 @@ class module :
                 external_trigger(const YAML::Node& node);
         };
 
-        typedef std::list<external_trigger *> trigger_list_t;     //! trigger list
-        typedef std::list<std::string> depend_list_t;           //! dependency list
-        typedef std::list<interface *> intf_list_t;        //! interface list
+        typedef std::list<external_trigger *> trigger_list_t; //! trigger list
+        typedef std::list<std::string> depend_list_t;         //! dependency list
+        typedef std::list<interface *> intf_list_t;           //! interface list
 
         //! module construction
         /*!
@@ -178,20 +193,28 @@ class module :
         */
         void trigger();
 
-        std::string name;               //! module name
-        std::string module_file;        //! module shared object file name
-        std::string config;             //! module config string
-        std::string config_file_path;   //! module config file path
-        bool power_up;                  //! auto power up on startup
-        depend_list_t depends;          //! module dependecy list
-        trigger_list_t triggers;        //! module trigger list
-        intf_list_t interfaces;
-
+        std::string get_name();                 //!< return module name
+        const depend_list_t& get_depends();     //!< return dependency list
+        const module_state_t get_power_up();    //!< return power up state
+        
         //! service callbacks
         int on_get_config(ln::service_request& req, 
                 ln_service_robotkernel_module_get_config& svc);
         int on_get_feat(ln::service_request& req, 
                 ln_service_robotkernel_module_get_feat& svc);
+
+        friend YAML::Emitter& (::operator<<)(YAML::Emitter& out, 
+                const robotkernel::module& mdl);
+        
+    private:
+        std::string name;               //! module name
+        std::string module_file;        //! module shared object file name
+        std::string config;             //! module config string
+        std::string config_file_path;   //! module config file path
+        module_state_t power_up;        //! auto power up on startup
+        depend_list_t depends;          //! module dependecy list
+        trigger_list_t triggers;        //! module trigger list
+        intf_list_t interfaces;
 
     private:
         void _init();
@@ -223,6 +246,21 @@ class module :
         mod_trigger_t           mod_trigger;
         mod_trigger_slave_id_t  mod_trigger_slave_id;
 };
+        
+//! return module name
+inline std::string module::get_name() {
+    return name;
+}
+        
+//! return dependency list
+inline const module::depend_list_t& module::get_depends() {
+    return depends;
+}
+
+//! return power up state
+inline const module_state_t module::get_power_up() {
+    return power_up;
+}
 
 } // namespace robotkernel
 

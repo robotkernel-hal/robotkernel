@@ -70,6 +70,9 @@ class kernel :
     private:
         //! kernel singleton instance
         static kernel *instance;
+        
+        kernel(const kernel&);             // prevent copy-construction
+        kernel& operator=(const kernel&);  // prevent assignment
 
     protected:
         //! construction

@@ -1,4 +1,4 @@
-//! robotkernel interface definition
+//! robotkernel base class for triggers
 /*!
  * author: Robert Burger
  *
@@ -38,9 +38,9 @@ bool trigger_base::add_trigger_module(set_trigger_cb_t& cb) {
         return false;
     }
     
-    pthread_mutex_lock(&_list_lock);
+    pthread_mutex_lock(&list_lock);
     trigger_cbs.push_back(cb);
-    pthread_mutex_unlock(&_list_lock);
+    pthread_mutex_unlock(&list_lock);
     
     return true;
 }
@@ -59,7 +59,7 @@ bool trigger_base::remove_trigger_module(set_trigger_cb_t& cb) {
 
     bool found = false;
 
-    pthread_mutex_lock(&_list_lock);
+    pthread_mutex_lock(&list_lock);
     
     for (cb_list_t::iterator it = trigger_cbs.begin(); 
             it != trigger_cbs.end(); ++it) {
@@ -70,10 +70,11 @@ bool trigger_base::remove_trigger_module(set_trigger_cb_t& cb) {
         }
     }
     
-    pthread_mutex_unlock(&_list_lock);
+    pthread_mutex_unlock(&list_lock);
 
     if(!found) {
-        klog(info, "could not unregister, callback %p with handle %p not in our trigger-list of length %d\n", cb.cb, cb.hdl);
+        klog(info, "could not unregister, callback %p with handle "
+                "%p not in our trigger-list of length %d\n", cb.cb, cb.hdl);
         return false;
     }
 
@@ -85,7 +86,7 @@ bool trigger_base::remove_trigger_module(set_trigger_cb_t& cb) {
  * \param clk_id clock id to trigger, -1 all clocks
  */
 void trigger_base::trigger_modules(int clk_id) {
-    pthread_mutex_lock(&_list_lock);
+    pthread_mutex_lock(&list_lock);
     
     for (cb_list_t::iterator it = trigger_cbs.begin();
             it != trigger_cbs.end(); ++it) {
@@ -93,6 +94,6 @@ void trigger_base::trigger_modules(int clk_id) {
             (*(it->cb))(it->hdl);
     }
 
-    pthread_mutex_unlock(&_list_lock);
+    pthread_mutex_unlock(&list_lock);
 }
 

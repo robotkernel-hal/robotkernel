@@ -1,4 +1,4 @@
-    //! robotkernel base class for triggers
+//! robotkernel base class for triggers
 /*!
  * author: Robert Burger
  *
@@ -33,16 +33,22 @@ namespace robotkernel {
 
 class trigger_base {
     private:
-        //! protection for trigger list
-        pthread_mutex_t _list_lock;
+        trigger_base(const trigger_base&);             // prevent copy-construction
+        trigger_base& operator=(const trigger_base&);  // prevent assignment
 
+        //! protection for trigger list
+        pthread_mutex_t list_lock;
+        
+        typedef std::list<set_trigger_cb_t> cb_list_t;
+        
+        //! trigger callback list
+        cb_list_t trigger_cbs;
     public:
-        trigger_base() {
-            pthread_mutex_init(&_list_lock, NULL);
-        }
-        ~trigger_base() {
-            pthread_mutex_destroy(&_list_lock);
-        }
+        //! construction
+        trigger_base();
+
+        //! destruction
+        ~trigger_base();
 
         //! add a trigger callback function
         /*!
@@ -60,16 +66,20 @@ class trigger_base {
          */
         bool remove_trigger_module(set_trigger_cb_t& cb);
 
-        //! trigger callback list
-        typedef std::list<set_trigger_cb_t> cb_list_t;
-        cb_list_t trigger_cbs;
-
         //! trigger all modules in list
         /*!
          * \param clk_id clock id to trigger, -1 all clocks
          */
         void trigger_modules(int clk_id = -1);
 };
+        
+trigger_base::trigger_base() {
+    pthread_mutex_init(&list_lock, NULL);
+}
+
+trigger_base::~trigger_base() {
+    pthread_mutex_destroy(&list_lock);
+}
 
 } // namespace robotkernel
 

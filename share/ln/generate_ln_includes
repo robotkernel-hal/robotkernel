@@ -151,6 +151,7 @@ if cfg.with_gui:
 
 if cfg.with_undef:
     print """defines
+undef: rk_base
 undef: rk_depends_on
 undef: rk_start_as
 undef: rk_start_on_ready

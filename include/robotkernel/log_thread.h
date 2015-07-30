@@ -36,12 +36,17 @@ namespace robotkernel {
 
 //! logging thread with pool
 class log_thread : public runnable {
+    private:
+        log_thread(const log_thread&);             // prevent copy-construction
+        log_thread& operator=(const log_thread&);  // prevent assignment
+
     public:
         struct log_pool_object {
             char buf[1024];
             size_t len;
         };
-	unsigned int fix_modname_length;
+    
+        unsigned int fix_modname_length;
 
         //! de-/construction
         /*!
@@ -67,12 +72,12 @@ class log_thread : public runnable {
 
     private:
         // sync objects
-        pthread_cond_t _cond;
-        pthread_mutex_t _mutex;
+        pthread_cond_t cond;
+        pthread_mutex_t mutex;
 
         // log pools
-        std::list<struct log_pool_object *> _empty_pool;
-        std::list<struct log_pool_object *> _full_pool;
+        std::list<struct log_pool_object *> empty_pool;
+        std::list<struct log_pool_object *> full_pool;
 };
 
 } // namespace robotkernel

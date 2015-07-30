@@ -26,6 +26,7 @@
 #define __HELPERS_H__
 
 #include <time.h>
+#include "robotkernel/exceptions.h"
 
 #define timespec_add(tvp, sec, nsec) { \
     (tvp)->tv_nsec += nsec; \
@@ -38,6 +39,31 @@
     (((tvp)->tv_sec == (uvp)->tv_sec) ? \
      ((tvp)->tv_nsec cmp (uvp)->tv_nsec) : \
      ((tvp)->tv_sec cmp (uvp)->tv_sec))
+
+template <typename type>
+type get_as(const YAML::Node& node, const std::string key) {
+    const YAML::Node *n = node.FindValue(key);
+
+    if (!n) {
+        YAML::Emitter out;
+        out << node;
+
+        throw robotkernel::str_exception("[config-error] key %s not found!\n\n%s\n", 
+                key.c_str(), out.c_str());
+    }
+
+    return n->to<type>();
+}
+
+template <typename type>
+type get_as(const YAML::Node& node, const std::string key, type dflt) {
+    const YAML::Node *n = node.FindValue(key);
+
+    if (!n)
+        return dflt;
+
+    return n->to<type>();
+}
 
 #endif // __MODULE_H__
 

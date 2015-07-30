@@ -30,6 +30,11 @@
 
 template <typename T>
 class kernel_queue {
+    private:
+        kernel_queue();
+        kernel_queue(const kernel_queue&);             // prevent copy-construction
+        kernel_queue& operator=(const kernel_queue&);  // prevent assignment
+
     public:
         kernel_queue(uint32_t len);
 

@@ -1,4 +1,4 @@
-//! robotkernel kernel
+//! robotkernel kernel worker
 /*!
  * author: Robert Burger
  *
@@ -36,13 +36,14 @@ namespace robotkernel {
 
 //! kernel worker thread
 /*!
-*/
+ */
 class kernel_worker : public runnable {
-    public:
-        //! list of module triggered by worker
-        typedef std::list<module *> module_list_t;
-        module_list_t _modules;
+    private:
+        kernel_worker();
+        kernel_worker(const kernel_worker&);             // prevent copy-construction
+        kernel_worker& operator=(const kernel_worker&);  // prevent assignment
 
+    public:
         //! default construction
         kernel_worker(int prio = 60, int affinity_mask = 0xFF, int divisor = 1);
 
@@ -71,15 +72,14 @@ class kernel_worker : public runnable {
         //! handler function called if thread is running
         void run();
 
-        //! divisor
-        int _divisor;
-        int _divisor_cnt;
+    private:
+        typedef std::list<module *> module_list_t;
 
-        //! ipc memebers
-        pthread_mutex_t _mutex;
-        pthread_cond_t _cond;
-
-        int cnt;
+        module_list_t modules;  //!< list of module triggered by worker
+        int divisor;            //!< divisor
+        int divisor_cnt;        //!< divisor counter
+        pthread_mutex_t mutex;  //!< ipc lock
+        pthread_cond_t cond;    //!< ipc condition
 };
 
 //! trigger callback
@@ -91,7 +91,7 @@ inline void kernel_worker::kernel_worker_trigger(MODULE_HANDLE hdl) {
     kernel_worker *worker = (kernel_worker *)hdl;
 
     // trigger worker thread
-    pthread_cond_signal(&worker->_cond);
+    pthread_cond_signal(&worker->cond);
 }
 
 } // namespace robotkernel

@@ -34,13 +34,13 @@
 #include <string.h>
 #include <fstream>
 #include <algorithm>
+#include <locale> 
 
 #ifndef __VXWORKS__
 #include <sys/types.h>
 #include <libgen.h>
 #include <dirent.h>
 #endif
-
 
 using namespace std;
 using namespace robotkernel;
@@ -88,23 +88,13 @@ module_state_t string_to_state(const char* state_ptr) {
     return module_state_unknown;
 }
 
-template <typename type>
-type get_as(const YAML::Node& node, const std::string key, type dflt) {
-    const YAML::Node *n = node.FindValue(key);
-
-    if (!n)
-        return dflt;
-
-    return n->to<type>();
-}
-
 //! generate new trigger object
 /*!
  * \param node configuration node
  */
 module::external_trigger::external_trigger(const YAML::Node& node) {
-    _mod_name       = node["mod_name"].to<std::string>();
-    _clk_id         = node["clk_id"].to<int>();
+    _mod_name       = get_as<string>(node, "mod_name");
+    _clk_id         = get_as<int>(node, "clk_id");
     _prio           = 0;
     _affinity_mask  = 0;
     _divisor        = get_as<int>(node, "divisor", 1);
@@ -155,7 +145,7 @@ YAML::Emitter& operator<<(YAML::Emitter& out, const module::external_trigger& t)
     return out;
 }
 
-YAML::Emitter& operator<<(YAML::Emitter& out, const module& mdl) {
+YAML::Emitter& operator<<(YAML::Emitter& out, const robotkernel::module& mdl) {
     out << YAML::BeginMap;
     out << YAML::Key << "name" << YAML::Value << mdl.name;
     out << YAML::Key << "module_file" << YAML::Value << mdl.module_file;
@@ -237,8 +227,8 @@ module::module(const YAML::Node& node, string config_path)
     :    so_handle(NULL), mod_handle(NULL), mod_configure(NULL), 
     mod_unconfigure(NULL), mod_read(NULL), mod_write(NULL), 
     mod_set_state(NULL) {
-    name = node["name"].to<string>();
-    module_file = node["module_file"].to<string>();
+    name             = get_as<string>(node, "name");
+    module_file      = get_as<string>(node, "module_file");
     config_file_path = config_path;
 
     const YAML::Node *config_file_node = node.FindValue("config_file");
@@ -305,12 +295,20 @@ module::module(const YAML::Node& node, string config_path)
         }
     }
 
-    const YAML::Node *power_up_node = node.FindValue("power_up");
-    if (power_up_node) {
-        power_up = power_up_node->to<bool>();
-    } else {
-        power_up = false;
-    }
+    string tmp_power_up = get_as<string>(node, "power_up", "init");
+    std::transform(tmp_power_up.begin(), tmp_power_up.end(), 
+            tmp_power_up.begin(), ::tolower);
+#define power_up_state(a) \
+    if (tmp_power_up == #a) \
+        power_up = module_state_##a
+
+    power_up_state(init);
+    else power_up_state(preop);
+    else power_up_state(safeop);
+    else power_up_state(op);
+    else power_up_state(boot);
+    else if (tmp_power_up == "true") power_up = module_state_op;
+    else power_up = module_state_init;
 
     //    const YAML::Node *clocks = node.FindValue("clocks");
     _init();

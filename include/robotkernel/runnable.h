@@ -46,13 +46,16 @@ class runnable {
          */
         static void *run_wrapper(void *arg);
 
-    protected:
-        pthread_t tid;          //! posix thread handle
-        bool _running;          //! running flag
+        runnable();
+        runnable(const runnable&);             // prevent copy-construction
+        runnable& operator=(const runnable&);  // prevent assignment
 
-        int _policy;            //! thread scheduling policy
-        int _prio;              //! thread priority
-        int _affinity_mask;     //! thread cpu affinity mask
+        pthread_t tid;          //! posix thread handle
+        bool run_flag;          //! running flag
+
+        int policy;             //! thread scheduling policy
+        int prio;               //! thread priority
+        int affinity_mask;      //! thread cpu affinity mask
 
     public:
         //! construction with yaml node
@@ -73,17 +76,21 @@ class runnable {
             stop();
         };
 
-        void start();               //! run thread
-        void stop();                //! stop thread
-        virtual void run() = 0;     //! handler function called if thread is running
+        void start();                       //! run thread
+        void stop();                        //! stop thread
+        virtual void run() = 0;             //! handler function called if 
+                                            //  thread is running
 
         void set_prio(int prio);            //! set priority
         void set_affinity_mask(int mask);   //! set affinity mask
+        void set_name(std::string name);    //! set thread name
 
-        bool running() {
-            return _running;    //! returns if thread is running
-        }
+        bool running();                     //! returns true if thread is running
 };
+
+inline bool runnable::running() {
+    return this->run_flag;
+}
 
 } // namespace robotkernel
 

@@ -14,6 +14,8 @@
 #include <math.h>
 #include <map>
 #include <pthread.h>
+#include <sys/time.h>
+#include <sys/resource.h>
 
 #define ROBOTKERNEL "[robotkernel] "
 
@@ -60,6 +62,13 @@ int main(int argc, char** argv) {
         perror ("sigprocmask");
     if (pthread_sigmask (SIG_BLOCK, &set, NULL) != 0)
         perror ("sigprocmask");
+
+    struct rlimit rlim;
+    int ret = getrlimit(RLIMIT_RTPRIO, &rlim);
+    if (ret == 0) {
+        rlim.rlim_cur = rlim.rlim_max;
+        setrlimit(RLIMIT_RTPRIO, &rlim);
+    }
 
     kernel &k = *kernel::get_instance();
 

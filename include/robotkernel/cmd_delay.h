@@ -34,16 +34,14 @@
 using namespace robotkernel;
 
 class cmd_delay {
+    private:
+        cmd_delay();
+        cmd_delay(const cmd_delay&);             // prevent copy-construction
+        cmd_delay& operator=(const cmd_delay&);  // prevent assignment
+
     public:
         cmd_delay(const YAML::Node& node) {
-
-            const YAML::Node* value;
-            value = node.FindValue("cmd_mode");
-            if(!value)
-                throw str_exception("[cmd_delay]: required yaml-value cmd_mode not found!\n");
-            std::string mode;
-            *value >> mode;
-
+            mode = get_as<std::string>(node, "cmd_mode");
             if (mode == "automatic")
                 _cmd_mode = automatic;
             else

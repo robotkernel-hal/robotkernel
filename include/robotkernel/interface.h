@@ -37,6 +37,11 @@ namespace robotkernel {
   This class opens a shared interface and loads all needed symbols
  */
 class interface {
+    private:
+        interface();
+        interface(const interface&);             // prevent copy-construction
+        interface& operator=(const interface&);  // prevent assignment
+
     public:
         //! interface construction
         /*!

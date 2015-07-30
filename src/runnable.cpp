@@ -1,4 +1,4 @@
-//! robotkernel interface definition
+//! robotkernel runnable
 /*!
  * author: Robert Burger
  *
@@ -23,9 +23,12 @@
  */
 
 #include <stdio.h>
+#include <signal.h>
+
 #include "robotkernel/runnable.h"
 #include "robotkernel/kernel.h"
 #include "robotkernel/config.h"
+#include "robotkernel/helpers.h"
 
 #ifdef __QNX__
 #include <sys/neutrino.h>
@@ -45,21 +48,18 @@ using namespace robotkernel;
  */
 runnable::runnable(const YAML::Node& node) {
     const YAML::Node *value;
-    _running        = false;
-    _prio           = 0;
-    _policy         = SCHED_FIFO;
-    _affinity_mask  = 0;
+    run_flag       = false;
+    prio           = get_as<int>(node, "prio", 0);
+    policy         = SCHED_FIFO;
+    affinity_mask  = 0;
 
-    if((value = node.FindValue("prio")))
-        *value >> _prio;
-    
     if((value = node.FindValue("affinity"))) {
         const YAML::Node& affinity = *value;
         if (affinity.Type() == YAML::NodeType::Scalar)
-            _affinity_mask = (1 << affinity.to<int>());
+            affinity_mask = (1 << affinity.to<int>());
         else if (affinity.Type() == YAML::NodeType::Sequence)
             for (YAML::Iterator it = affinity.begin(); it != affinity.end(); ++it)
-                _affinity_mask |= (1 << it->to<int>());
+                affinity_mask |= (1 << it->to<int>());
     }
 }
 
@@ -69,7 +69,7 @@ runnable::runnable(const YAML::Node& node) {
  * \param affinity_mask thread cpu affinity mask
  */
 runnable::runnable(const int prio, const int affinity_mask)  
-    : _running(false), _policy(SCHED_FIFO), _prio(prio), _affinity_mask(affinity_mask) {
+    : run_flag(false), policy(SCHED_FIFO), prio(prio), affinity_mask(affinity_mask) {
 }
         
 //! run wrapper to create posix thread
@@ -77,43 +77,46 @@ runnable::runnable(const int prio, const int affinity_mask)
  * \param arg thread argument
  * \return NULL
  */
-void *runnable::run_wrapper(void *arg)
-{ 
+void *runnable::run_wrapper(void *arg) { 
     runnable *r = static_cast<runnable *>(arg);
     
-    if (r->_prio) {
+    if (r->prio) {
         struct sched_param param;
         int policy;
         if (pthread_getschedparam(pthread_self(), &policy, &param) != 0)
-        klog(warning, "[runnable] run_wrapper: pthread_getschedparam(0x%x): %s\n", 
-                pthread_self(), strerror(errno));
+            klog(warning, "[runnable] run_wrapper: pthread_getschedparam(0x%x):"
+                    " %s\n", pthread_self(), strerror(errno));
     
-        klog(info, "[runnable] setting thread priority to %d, policy %d\n", r->_prio, r->_policy);
-        param.sched_priority = r->_prio;
-        if (pthread_setschedparam(pthread_self(), r->_policy, &param) != 0)
-        klog(warning, "[runnable] run_wrapper: pthread_setschedparam(0x%x, %d, %d): %s\n", 
-                pthread_self(), r->_policy, r->_prio, strerror(errno));
+        klog(info, "[runnable] setting thread priority to %d, policy %d\n", 
+                r->prio, r->policy);
+
+        param.sched_priority = r->prio;
+        if (pthread_setschedparam(pthread_self(), r->policy, &param) != 0)
+            klog(warning, "[runnable] run_wrapper: pthread_setschedparam(0x%x,"
+                    " %d, %d): %s\n", pthread_self(), r->policy, r->prio, 
+                    strerror(errno));
     }
 
-    if (r->_affinity_mask) {
+    if (r->affinity_mask) {
 #ifdef __VXWORKS__
-        taskCpuAffinitySet(taskIdSelf(),  (cpuset_t)r->_affinity_mask);
+        taskCpuAffinitySet(taskIdSelf(),  (cpuset_t)r->affinity_mask);
 #elif defined __QNX__
-        ThreadCtl(_NTO_TCTL_RUNMASK, (void *)r->_affinity_mask);
+        ThreadCtl(_NTO_TCTL_RUNMASK, (void *)r->affinity_mask);
 #else
 #ifdef HAVE_CPU_SET_T
         cpu_set_t cpuset;
         CPU_ZERO(&cpuset);
-        for (unsigned i = 0; i < (sizeof(r->_affinity_mask)*8); ++i) 
-            if (r->_affinity_mask & (1 << i))
+        for (unsigned i = 0; i < (sizeof(r->affinity_mask)*8); ++i) 
+            if (r->affinity_mask & (1 << i))
                 CPU_SET(i, &cpuset);
 
-        klog(info, "[runnable] setting cpu affinity mask %#x\n", r->_affinity_mask);
+        klog(info, "[runnable] setting cpu affinity mask %#x\n", r->affinity_mask);
 
         int ret = pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuset);
         if (ret != 0)
-            klog(warning, "[runnable] run_wrapper: pthread_setaffinity(%p, %#x): %d %s\n", 
-                 (void*)pthread_self(), r->_affinity_mask, ret, strerror(ret));
+            klog(warning, "[runnable] run_wrapper: pthread_setaffinity(%p, %#x):"
+                    " %d %s\n", (void*)pthread_self(), r->affinity_mask, 
+                    ret, strerror(ret));
 #endif
 #endif
     }
@@ -129,21 +132,19 @@ void runnable::run() {
 
 //! run thread
 void runnable::start() {
-    if (_running)
+    if (run_flag)
         return;
     
-    _running = true;
+    run_flag = true;
     pthread_create(&tid, NULL, run_wrapper, this);
 }
 
-#include <signal.h>
-
 //! stop thread
 void runnable::stop() {
-    if (!_running)
+    if (!run_flag)
         return;
 
-    _running = false;
+    run_flag = false;
     pthread_join(tid, NULL);
 }
 
@@ -155,15 +156,17 @@ void runnable::set_prio(int prio) {
     struct sched_param param;
     int policy;
     if (pthread_getschedparam(tid, &policy, &param) != 0) {
-        klog(warning, "[runnable] pthread_getschedparam(0x%x): %s\n", tid, strerror(errno));
+        klog(warning, "[runnable] pthread_getschedparam(0x%x): %s\n", 
+                tid, strerror(errno));
         return;
     }
 
     policy = SCHED_FIFO;
-    _prio = prio;
-    param.sched_priority = _prio;
+    this->prio = prio;
+    param.sched_priority = prio;
     if (pthread_setschedparam(tid, policy, &param) != 0) {
-        klog(warning, "[runnable] pthread_setschedparam(0x%x, %d, %d): %s\n", tid, policy, _prio, strerror(errno));
+        klog(warning, "[runnable] pthread_setschedparam(0x%x, %d, %d): %s\n", 
+                tid, policy, prio, strerror(errno));
         return;
     }
 }
@@ -186,8 +189,17 @@ void runnable::set_affinity_mask(int mask) {
             CPU_SET(i, &cpuset);
     
     if (pthread_setaffinity_np(tid, sizeof(cpu_set_t), &cpuset) != 0)
-        klog(warning, "[runnable] pthread_setaffinity(0x%x, 0x%02f): %s\n", tid, mask, strerror(errno));
+        klog(warning, "[runnable] pthread_setaffinity(0x%x, 0x%02f): %s\n", 
+                tid, mask, strerror(errno));
 #endif
+#endif
+}
+        
+//! set thread name
+void runnable::set_name(std::string name) {
+#ifdef HAVE_PTHREAD_SETNAME_NP
+    klog(verbose, "[runnable] setting thread name to %s\n", name.c_str());
+	pthread_setname_np(tid, name.c_str());
 #endif
 }
 

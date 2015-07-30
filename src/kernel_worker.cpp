@@ -1,4 +1,4 @@
-//! robotkernel interface definition
+//! robotkernel kernel worker
 /*!
  * author: Robert Burger
  *
@@ -23,15 +23,17 @@
  */
 
 #include <stdio.h>
+#include <sstream>
 #include "robotkernel/kernel_worker.h"
 #include "robotkernel/kernel.h"
 
 using namespace robotkernel;
+using namespace std;
 
 kernel_worker::kernel_worker(int prio, int affinity_mask, int divisor) 
-    : runnable(prio, affinity_mask), _divisor(divisor), _divisor_cnt(0), cnt(0) {
-    pthread_cond_init(&_cond, NULL);
-    pthread_mutex_init(&_mutex, NULL);
+    : runnable(prio, affinity_mask), divisor(divisor), divisor_cnt(0) {
+    pthread_cond_init(&cond, NULL);
+    pthread_mutex_init(&mutex, NULL);
 
     // start worker thread
     start();
@@ -53,11 +55,11 @@ kernel_worker::~kernel_worker() {
  */
 void kernel_worker::add_module(module *mdl) {
     // push to module list
-    pthread_mutex_lock(&_mutex);
-    _modules.push_back(mdl);
-    pthread_mutex_unlock(&_mutex);
+    pthread_mutex_lock(&mutex);
+    modules.push_back(mdl);
+    pthread_mutex_unlock(&mutex);
 
-    klog(info, "[kernel_worker] added module %s\n", mdl->name.c_str());
+    klog(info, "[kernel_worker] added module %s\n", mdl->get_name().c_str());
 }
 
 //! remove module to trigger
@@ -67,26 +69,30 @@ void kernel_worker::add_module(module *mdl) {
  */
 bool kernel_worker::remove_module(module *mdl) {
     // remove from module list
-    pthread_mutex_lock(&_mutex);
-    _modules.remove(mdl);
-    pthread_mutex_unlock(&_mutex);
+    pthread_mutex_lock(&mutex);
+    modules.remove(mdl);
+    pthread_mutex_unlock(&mutex);
     
-    klog(info, "[kernel_worker] removed module %s\n", mdl->name.c_str());
+    klog(info, "[kernel_worker] removed module %s\n", mdl->get_name().c_str());
 
-    return (_modules.size() == 0);
+    return (modules.size() == 0);
 }
 
 //! handler function called if thread is running
 void kernel_worker::run() {
     klog(info, "[kernel_worker] running worker thread\n");
 
-    // set initial priority
-    runnable::set_prio(_prio);
-
     // lock mutex cause we access _modules
-    pthread_mutex_lock(&_mutex);
+    pthread_mutex_lock(&mutex);
+    
+    stringstream name;
+    name << "rk:kernel_worker ";
+    for (module_list_t::iterator it = modules.begin();
+            it != modules.end(); ++it)
+        name << (*it)->get_name();
+    set_name(name.str());
 
-    while (_running) {
+    while (running()) {
         struct timespec ts;
         clock_gettime(CLOCK_REALTIME, &ts);
         ts.tv_nsec += 1E7;
@@ -97,22 +103,22 @@ void kernel_worker::run() {
 
         // wait for trigger, this will unlock mutex
         // other threads can now safely add/remove something from _modules
-        int ret = pthread_cond_timedwait(&_cond, &_mutex, &ts);
+        int ret = pthread_cond_timedwait(&cond, &mutex, &ts);
 
-        if (ret != 0 || (++_divisor_cnt%_divisor != 0))
+        if (ret != 0 || (++divisor_cnt%divisor != 0))
             continue;
 
         // reset divisor count
-        _divisor_cnt = 0;
+        divisor_cnt = 0;
 
-        for (module_list_t::iterator it = _modules.begin();
-                it != _modules.end(); ++it) {
+        for (module_list_t::iterator it = modules.begin();
+                it != modules.end(); ++it) {
             (*it)->trigger();
         }
     }
         
     // unlock mutex cause we have accessed _modules
-    pthread_mutex_unlock(&_mutex);
+    pthread_mutex_unlock(&mutex);
 
     klog(info, "[kernel_worker] finished worker thread\n");
 }

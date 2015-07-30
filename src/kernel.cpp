@@ -59,71 +59,72 @@ kernel *kernel::instance = NULL;
 int kernel::set_state(std::string mod_name, module_state_t state) {
     module_map_t::const_iterator it = module_map.find(mod_name);
     if (it == module_map.end())
-        throw str_exception("[robotkernel] set_state: module %s not found!\n", mod_name.c_str());
+        throw str_exception("[robotkernel] set_state: module %s not "
+                "found!\n", mod_name.c_str());
 
-    module *mdl = it->second;
-
-    if (mdl->get_state() == state)
+    module& mdl = *(it->second);
+    if (mdl.get_state() == state)
         return state;
 
     // iterate through dependencies
-    for (module::depend_list_t::iterator it = mdl->depends.begin();
-            it != mdl->depends.end(); ++it) {
-        module_state_t dep_mod_state = get_state(*it);
+    for (module::depend_list_t::const_iterator d_it = mdl.get_depends().begin();
+            d_it != mdl.get_depends().end(); ++d_it) {
+        const std::string& d_mod_name = *d_it;
+        module_state_t dep_mod_state = get_state(d_mod_name);
         if ((dep_mod_state == module_state_error) && (state == module_state_init))
             continue;
 
         if (dep_mod_state == module_state_error) {
             logging(info, ROBOTKERNEL "dependent module %d is in error state, "
-                    "cannot power up module %s\n", it->c_str(), mod_name.c_str());
+                    "cannot power up module %s\n", d_mod_name.c_str(), 
+                    mod_name.c_str());
 
-            return mdl->get_state();
+            return mdl.get_state();
         }
 
         if (dep_mod_state < state) {
             logging(info, ROBOTKERNEL "powering up %s module dependencies %s\n",
-                    mod_name.c_str(), it->c_str());
+                    mod_name.c_str(), d_mod_name.c_str());
 
-            set_state(*it, state);
+            set_state(d_mod_name, state);
         }
     }
 
     // check if other module depend on this one
-    for (module_map_t::iterator mit = module_map.begin();
-            mit != module_map.end(); ++mit) {
-        if (mit->second->name == mod_name) {
+    for (module_map_t::iterator m_it = module_map.begin();
+            m_it != module_map.end(); ++m_it) {
+        module& mdl2 = *(m_it->second);
+        if (mdl2.get_name() == mod_name)
             // skip this one
             continue;
-        }
 
         // iterate through dependencies
-        for (module::depend_list_t::iterator it = mit->second->depends.begin();
-                it != mit->second->depends.end(); ++it) {
-            if (*it != mod_name) {
+        for (module::depend_list_t::const_iterator d_it = mdl2.get_depends().begin();
+                d_it != mdl2.get_depends().end(); ++d_it) {
+            const std::string& d_mod_name = *d_it;
+            if (d_mod_name != mod_name)
                 continue;
-            }
 
-            if (get_state(mit->second->name) > state) {
+            if (get_state(mdl2.get_name()) > state) {
                 logging(info, ROBOTKERNEL "%s depends on %s -> setting state to init\n",
-                        mit->second->name.c_str(), mod_name.c_str());
-                set_state(mit->second->name, module_state_init);
+                        mdl2.get_name().c_str(), mod_name.c_str());
+                set_state(mdl2.get_name(), module_state_init);
                 break;
-            } else {
-                logging(verbose, ROBOTKERNEL "%s depend on %s but is always in a lower state\n",
-                        mit->second->name.c_str(), mod_name.c_str());
-            }
+            } else
+                logging(verbose, ROBOTKERNEL "%s depend on %s but is always in a lower"
+                        " state\n", mdl2.get_name().c_str(), mod_name.c_str());
         }
     }
 
     logging(info, ROBOTKERNEL "setting state of %s to %s\n",
             mod_name.c_str(), state_to_string(state));
 
-    if (mdl->set_state(state) == -1)
+    if (mdl.set_state(state) == -1)
         // throw exception
-        throw str_exception("[robotkernel] ERROR: failed to swtich module %s to state %s!\n", 
-                mod_name.c_str(), state_to_string(state));
+        throw str_exception("[robotkernel] ERROR: failed to swtich module %s"
+                " to state %s!\n", mod_name.c_str(), state_to_string(state));
 
-    return mdl->get_state();
+    return mdl.get_state();
 }
 
 //! return module state
@@ -169,7 +170,7 @@ kernel::~kernel() {
     while ((it = module_map.begin()) != module_map.end()) {
         module *mdl = it->second;
         try {
-            set_state(mdl->name, module_state_init);
+            set_state(mdl->get_name(), module_state_init);
         } catch (const std::exception& e) {
             // ignore this on destruction
         }
@@ -434,20 +435,20 @@ void kernel::config(std::string config_file, int argc, char **argv) {
     for (YAML::Iterator it = modules.begin(); it != modules.end(); ++it) {
         module *mdl = new module(*it, path);
         if (!mdl->configured()) {
-            string name = mdl->name;
+            string name = mdl->get_name();
             delete mdl;
             throw str_exception("[robotkernel] module %s not configured!\n", name.c_str());
         }
 
-        if (module_map.find(mdl->name) != module_map.end()) {
-            string name = mdl->name;
+        if (module_map.find(mdl->get_name()) != module_map.end()) {
+            string name = mdl->get_name();
             delete mdl;
             throw str_exception("[robotkernel] duplicate module name: %s\n", name.c_str());
         }
 
         // add to module map
-        klog(info, ROBOTKERNEL "adding [%s]\n", mdl->name.c_str());
-        module_map[mdl->name] = mdl;
+        klog(info, ROBOTKERNEL "adding [%s]\n", mdl->get_name().c_str());
+        module_map[mdl->get_name()] = mdl;
     }
 }
 
@@ -458,32 +459,28 @@ bool kernel::power_up() {
     // powering up modules to operational
     for (module_map_t::iterator it = module_map.begin();
             it != module_map.end(); ++it) {
-        module *mdl = it->second;
+        module& mdl = *(it->second);
 
-        if (mdl->power_up == false) {
-            logging(verbose, ROBOTKERNEL "not powering up module '%s' automatically, "
-                    "maybe it is powered up as dependency.\n",
-                    mdl->name.c_str());
-            continue;
-        }
+        module_state_t target_state = mdl.get_power_up(),
+                       current_state = mdl.get_state();
 
-        module_state_t current_state = mdl->get_state();
         if (current_state == module_state_error) {
             logging(info, ROBOTKERNEL "module '%s' in in error state, not "
-                    "powering up!\n", mdl->name.c_str());
-            failed_modules.push_back(mdl->name);
+                    "powering up!\n", mdl.get_name().c_str());
+            failed_modules.push_back(mdl.get_name());
             continue;
         }
 
-        if (current_state == module_state_op)
+        if ((current_state >= target_state) && (target_state != module_state_boot))
             continue;
 
         try {
-            logging(info, ROBOTKERNEL "powering up '%s'\n", mdl->name.c_str());
-            set_state(mdl->name, module_state_op);
+            logging(info, ROBOTKERNEL "powering up '%s' to state %s\n", 
+                    mdl.get_name().c_str(), state_to_string(target_state));
+            set_state(mdl.get_name(), target_state);
         } catch (exception& e) {
             logging(error, ROBOTKERNEL "caught exception: %s\n", e.what());
-            failed_modules.push_back(mdl->name);
+            failed_modules.push_back(mdl.get_name());
         }
     }
 
@@ -505,10 +502,10 @@ void kernel::power_down() {
     // powering up modules to operational
     for (module_map_t::iterator it = module_map.begin();
             it != module_map.end(); ++it) {
-        module *mdl = it->second;
+        module& mdl = *(it->second);
 
         try {
-            set_state(mdl->name, module_state_init);
+            set_state(mdl.get_name(), module_state_init);
         } catch (exception& e) {
             logging(error, ROBOTKERNEL "caught exception: %s\n", e.what());
         }
@@ -527,7 +524,8 @@ bool kernel::state_check(std::string mod_name, module_state_t state) {
     if (it == module_map.end())
         throw str_exception("[robotkernel] state_check: module %s not found!\n", mod_name.c_str());
 
-    return (it->second->get_state() == state);
+    module& mdl = *(it->second);
+    return (mdl.get_state() == state);
 }
 
 bool kernel::state_check() {
@@ -819,21 +817,20 @@ int kernel::on_add_module(ln::service_request& req, ln_service_robotkernel_add_m
         if (parser.GetNextDocument(node)) {
             module *mdl = new module(node, "");
 
-            if (module_map.find(mdl->name) != module_map.end()) {
-                klog(error, "[robotkernel] module name %s already inserted\n", mdl->name.c_str());
-                string name = mdl->name;
+            if (module_map.find(mdl->get_name()) != module_map.end()) {
+                string name = mdl->get_name();
                 delete mdl;
-                throw str_exception("[robotkernel] module %s not configured!\n", name.c_str());
+                throw str_exception("[robotkernel] duplicate module name: %s\n", name.c_str());
             }
 
             if (!mdl->configured()) {
-                string name = mdl->name;
+                string name = mdl->get_name();
                 delete mdl;
                 throw str_exception("[robotkernel] module %s not configured!\n", name.c_str());
             }
 
             // add to module map
-            module_map[mdl->name] = mdl;
+            module_map[mdl->get_name()] = mdl;
             req.respond();
         } else
             throw str_exception("[robotkernel] error in yaml config!\n");
@@ -844,6 +841,7 @@ int kernel::on_add_module(ln::service_request& req, ln_service_robotkernel_add_m
         req.respond();
         free(svc.resp.error_message);
     }
+
     return 0;
 }
 //! remove module
@@ -862,7 +860,7 @@ int kernel::on_remove_module(ln::service_request& req, ln_service_robotkernel_re
             throw str_exception("[robotkernel] module %s not found!\n", mod_name.c_str());
 
         module *mdl = it->second;
-        set_state(mdl->name, module_state_init);
+        set_state(mdl->get_name(), module_state_init);
 
         module_map.erase(it);
         delete mdl;
@@ -925,7 +923,7 @@ int kernel::on_reconfigure_module(ln::service_request& req, ln_service_robotkern
 
         module *mdl = it->second;
         if (get_state(mod_name) != module_state_init)
-            set_state(mdl->name, module_state_init);
+            set_state(mdl->get_name(), module_state_init);
 
         mdl->reconfigure();
         svc.resp.state = 0;

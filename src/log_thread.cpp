@@ -32,15 +32,16 @@ using namespace robotkernel;
  * \param size number of buffers in pool
  */
 log_thread::log_thread(int pool_size) : runnable(0, 0) {
-    pthread_mutex_init(&_mutex, NULL);
-    pthread_cond_init(&_cond, NULL);
+    pthread_mutex_init(&mutex, NULL);
+    pthread_cond_init(&cond, NULL);
 
     int i;
     for (i = 0; i < pool_size; ++i) {
         struct log_pool_object *obj = new struct log_pool_object;
         obj->len = 1024;
-        _empty_pool.push_back(obj);                
+        empty_pool.push_back(obj);                
     }
+
     fix_modname_length = 20;
 }
 
@@ -50,21 +51,21 @@ log_thread::~log_thread() {
     stop();
 
     // clean up pools
-    while (!_full_pool.empty()) {
-        struct log_pool_object *obj = _full_pool.front();
-        _full_pool.pop_front();
+    while (!full_pool.empty()) {
+        struct log_pool_object *obj = full_pool.front();
+        full_pool.pop_front();
         printf("%s", obj->buf);
         delete obj;
     }
-    while (!_empty_pool.empty()) {
-        struct log_pool_object *obj = _empty_pool.front();
-        _empty_pool.pop_front();
+    while (!empty_pool.empty()) {
+        struct log_pool_object *obj = empty_pool.front();
+        empty_pool.pop_front();
         delete obj;
     }
     
     // destroy sync objects
-    pthread_cond_destroy(&_cond);
-    pthread_mutex_destroy(&_mutex);
+    pthread_cond_destroy(&cond);
+    pthread_mutex_destroy(&mutex);
 }
 
 //! get empty object from log pool
@@ -72,13 +73,13 @@ log_thread::~log_thread() {
  * \return empty pool object
  */
 struct log_thread::log_pool_object *log_thread::get_pool_object() {
-    if (_empty_pool.empty())
+    if (empty_pool.empty())
         return NULL;
 
-    pthread_mutex_lock(&_mutex);
-    struct log_pool_object *obj = _empty_pool.front();
-    _empty_pool.pop_front();
-    pthread_mutex_unlock(&_mutex);
+    pthread_mutex_lock(&mutex);
+    struct log_pool_object *obj = empty_pool.front();
+    empty_pool.pop_front();
+    pthread_mutex_unlock(&mutex);
 
     return obj;
 }
@@ -88,10 +89,10 @@ struct log_thread::log_pool_object *log_thread::get_pool_object() {
  * \param obj object to print and to be returned to pool
  */
 void log_thread::log(struct log_pool_object *obj) {
-    pthread_mutex_lock(&_mutex);
-    _full_pool.push_back(obj);
-    pthread_cond_signal(&_cond);
-    pthread_mutex_unlock(&_mutex);
+    pthread_mutex_lock(&mutex);
+    full_pool.push_back(obj);
+    pthread_cond_signal(&cond);
+    pthread_mutex_unlock(&mutex);
 }
 
 int gettid() {
@@ -104,12 +105,10 @@ int gettid() {
 
 //! handler function called if thread is running
 void log_thread::run() {
-#ifdef HAVE_PTHREAD_SETNAME_NP
-	pthread_setname_np(pthread_self(), "rk:log_thread");
-#endif
+	set_name("rk:log_thread");
     klog(warning, "[log_thread] started at tid %d\n", gettid());
     
-    while (_running) {
+    while (running()) {
         struct timespec ts;
         clock_gettime(CLOCK_REALTIME, &ts);
         ts.tv_nsec += 1E7;
@@ -118,18 +117,18 @@ void log_thread::run() {
             ts.tv_sec++;
         }
 
-        pthread_mutex_lock(&_mutex);
+        pthread_mutex_lock(&mutex);
         // wait for trigger, this will unlock mutex
         // other threads can now safely add/remove something from _modules
-        int ret = pthread_cond_timedwait(&_cond, &_mutex, &ts);
-        pthread_mutex_unlock(&_mutex);
+        int ret = pthread_cond_timedwait(&cond, &mutex, &ts);
+        pthread_mutex_unlock(&mutex);
         if (ret != 0)
             continue;
 
-        while (!_full_pool.empty()) {
-            pthread_mutex_lock(&_mutex);
-            struct log_pool_object *obj = _full_pool.front();
-            _full_pool.pop_front();
+        while (!full_pool.empty()) {
+            pthread_mutex_lock(&mutex);
+            struct log_pool_object *obj = full_pool.front();
+            full_pool.pop_front();
 
             if(fix_modname_length == 0)
                 printf("%s", obj->buf);
@@ -146,28 +145,26 @@ void log_thread::run() {
                         close = NULL;
                     else if(len <= fix_modname_length) {
                         // insert padding
-                        printf("%-*.*s%-*.*s%s",
-                                (int)(close - obj->buf), (int)(close - obj->buf), obj->buf, 
-                                fix_modname_length + 1 - len, fix_modname_length + 1 - len, "",
-                                close
-                              );
+                        printf("%-*.*s%-*.*s%s", (int)(close - obj->buf), 
+                                (int)(close - obj->buf), obj->buf, 
+                                fix_modname_length + 1 - len, 
+                                fix_modname_length + 1 - len, "", close);
                     } else {
                         // truncate
                         printf("%-*.*s%s",
                                 (int)((open + fix_modname_length + 1) - obj->buf), 
-                                (int)((open + fix_modname_length + 1) - obj->buf), obj->buf, 
-                                close
-                              );
+                                (int)((open + fix_modname_length + 1) - obj->buf), 
+                                obj->buf, close);
                     }
                 }
-                if(!close) {
+
+                if(!close)
                     // missing closing bracket or length already ok
                     printf("%s", obj->buf);
-                }
             }
 
-            _empty_pool.push_back(obj);
-            pthread_mutex_unlock(&_mutex);
+            empty_pool.push_back(obj);
+            pthread_mutex_unlock(&mutex);
         }
     }
 
