@@ -72,14 +72,6 @@ class trigger_base {
          */
         void trigger_modules(int clk_id = -1);
 };
-        
-trigger_base::trigger_base() {
-    pthread_mutex_init(&list_lock, NULL);
-}
-
-trigger_base::~trigger_base() {
-    pthread_mutex_destroy(&list_lock);
-}
 
 } // namespace robotkernel
 

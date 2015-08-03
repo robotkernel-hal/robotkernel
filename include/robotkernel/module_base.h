@@ -27,6 +27,7 @@
 
 #include "robotkernel/module_intf.h"
 #include "robotkernel/kernel.h"
+#include "robotkernel/exceptions.h"
 
 #ifdef __cplusplus
 #define EXPORT_C extern "C" 

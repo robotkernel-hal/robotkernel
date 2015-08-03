@@ -25,6 +25,14 @@
 #include "robotkernel/trigger_base.h"
 
 using namespace robotkernel;
+        
+trigger_base::trigger_base() {
+    pthread_mutex_init(&list_lock, NULL);
+}
+
+trigger_base::~trigger_base() {
+    pthread_mutex_destroy(&list_lock);
+}
 
 //! add a trigger callback function
 /*!
