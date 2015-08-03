@@ -9,6 +9,7 @@ gen_headerdir = $(top_builddir)/include/robotkernel
 bin_PROGRAMS = robotkernel robotkernel_debug
 include_HEADERS = $(headerdir)/module_intf.h \
 				  $(headerdir)/module.h \
+				  $(headerdir)/module_base.h \
 				  $(headerdir)/interface.h \
 				  $(headerdir)/exceptions.h \
 				  $(headerdir)/kernel.h \

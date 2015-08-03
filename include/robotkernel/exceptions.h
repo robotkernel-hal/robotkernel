@@ -73,7 +73,8 @@ class exception_tracer {
 /*!
   This Class attaches a signal handler to specified signal 
  */
-template <class signal_exception_class> class signal_translator {
+template <class signal_exception_class> 
+class signal_translator {
     private:
         class singleton_translator {
             public:

@@ -33,7 +33,6 @@
 
 #include "ln.h"
 #include "ln_cppwrapper.h"
-
 #define ROBOTKERNEL "[robotkernel] "
 
 #define klog(...) robotkernel::kernel::get_instance()->logging(__VA_ARGS__)
