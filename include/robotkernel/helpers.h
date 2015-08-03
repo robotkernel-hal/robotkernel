@@ -52,7 +52,8 @@ type get_as(const YAML::Node& node, const std::string key) {
                 key.c_str(), out.c_str());
     }
 
-    return n->to<type>();
+    // gcc3.3 need this syntax for calling this template 
+    return n->template to<type>();
 }
 
 template <typename type>
@@ -62,7 +63,8 @@ type get_as(const YAML::Node& node, const std::string key, type dflt) {
     if (!n)
         return dflt;
 
-    return n->to<type>();
+    // gcc3.3 need this syntax for calling this template 
+    return n->template to<type>();
 }
 
 #endif // __MODULE_H__

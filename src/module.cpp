@@ -75,7 +75,8 @@ const char *state_to_string(module_state_t state) {
 
 module_state_t string_to_state(const char* state_ptr) {
     string state(state_ptr);
-    std::transform(state.begin(), state.end(), state.begin(), ::tolower);
+    std::transform(state.begin(), state.end(), state.begin(), 
+            (int (*)(int))tolower);
 #define ret_state(a) if(state == #a) return module_state_ ## a;
     ret_state(error);
     ret_state(unknown);
@@ -296,8 +297,9 @@ module::module(const YAML::Node& node, string config_path)
     }
 
     string tmp_power_up = get_as<string>(node, "power_up", "init");
+
     std::transform(tmp_power_up.begin(), tmp_power_up.end(), 
-            tmp_power_up.begin(), ::tolower);
+            tmp_power_up.begin(), (int (*)(int))tolower);
 #define power_up_state(a) \
     if (tmp_power_up == #a) \
         power_up = module_state_##a

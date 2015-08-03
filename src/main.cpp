@@ -63,12 +63,14 @@ int main(int argc, char** argv) {
     if (pthread_sigmask (SIG_BLOCK, &set, NULL) != 0)
         perror ("sigprocmask");
 
+#ifdef __linux__
     struct rlimit rlim;
     int ret = getrlimit(RLIMIT_RTPRIO, &rlim);
     if (ret == 0) {
         rlim.rlim_cur = rlim.rlim_max;
         setrlimit(RLIMIT_RTPRIO, &rlim);
     }
+#endif
 
     kernel &k = *kernel::get_instance();
 
