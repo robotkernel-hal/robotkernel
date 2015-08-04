@@ -105,3 +105,25 @@ void trigger_base::trigger_modules(int clk_id) {
     pthread_mutex_unlock(&list_lock);
 }
 
+int trigger_base::request(int reqcode, void* ptr) {
+    int ret = 0;
+
+    switch (reqcode) {
+        case MOD_REQUEST_SET_TRIGGER_CB: {
+            set_trigger_cb_t *cb = (set_trigger_cb_t *)ptr;
+            add_trigger_module(*cb);
+            break;
+        }
+        case MOD_REQUEST_UNSET_TRIGGER_CB: {
+            set_trigger_cb_t *cb = (set_trigger_cb_t *)ptr;
+            remove_trigger_module(*cb);
+            break;
+        }
+        default:
+            ret = -1;
+            break;
+    }
+
+    return ret;
+}
+

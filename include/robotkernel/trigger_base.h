@@ -71,6 +71,15 @@ class trigger_base {
          * \param clk_id clock id to trigger, -1 all clocks
          */
         void trigger_modules(int clk_id = -1);
+
+        //! handle request for trigger base
+        /*! 
+          \param reqcode request code
+          \param ptr pointer to request structure
+          \return success or failure
+          */
+        int request(int reqcode, void* ptr);
+        
 };
 
 } // namespace robotkernel
