@@ -8,7 +8,7 @@ C++_DEPENDS         = software.links_and_nodes==@LN_VERSION@, software.yaml-cpp=
 C++_INCLUDE_PATHS   = ${PKGROOT}/include/, ${PKGROOT}/include/${ARCH}/
 C++_LIB_PATHS       = ${PKGROOT}/lib/${ARCH}
 C++_LIBS            = 
-C_DEPENDS           = software.links_and_nodes==@LN_VERSION@, software.yaml-cpp==@YAML_VERSION@
+C_DEPENDS           = software.links_and_nodes==@LN_VERSION@
 C_INCLUDE_PATHS     = ${PKGROOT}/include/, ${PKGROOT}/include/${ARCH}/
 C_LIB_PATHS         = ${PKGROOT}/lib/${ARCH}
 C_LIBS              = 
