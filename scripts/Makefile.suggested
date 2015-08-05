@@ -95,8 +95,8 @@ install: build
 
 local-release:
 	make -f scripts/Makefile.suggested ARCH=sled11-x86-gcc4.x build
-	cat $(DST_DIR)/module_lnrkinterface.pt | sed -e "s/ARCHS.*=.*$$/ARCHS = sled11-x86-gcc4.x/" > .my_module_lnrkinterface.pt
-	reltool --local ./install --pt-file .my_module_lnrkinterface.pt --yes
+	cat $(DST_DIR)/*.pt | sed -e "s/ARCHS.*=.*$$/ARCHS = $(ARCH)/" > .my_module.pt
+	reltool --local ./install --pt-file .my_module.pt --yes
 
 release-only:
 	reltool --domain robotkernel --force 1.5 --force 1.8 --yes -v
