@@ -355,12 +355,12 @@ void kernel::config(std::string config_file, int argc, char **argv) {
     YAML::Node doc;
     parser.GetNextDocument(doc);
 
-    // search for log level
+    // search for name
     const YAML::Node *name_node = doc.FindValue("name");
     if (name_node)
         _name = name_node->to<string>();
 
-    // search for log level
+    // search for loglevel
     const YAML::Node *ll_node = doc.FindValue("loglevel");
     if (ll_node) {
         _ll_bits = 0;
