@@ -1,3 +1,4 @@
+/* -*- mode: c++; tab-width: 4; c-basic-offset: 4; indent-tabs-mode: nil; -*- */
 //! robotkernel module class
 /*!
  * author: Robert Burger
@@ -196,7 +197,8 @@ class module :
         std::string get_name();                 //!< return module name
         const depend_list_t& get_depends();     //!< return dependency list
         const module_state_t get_power_up();    //!< return power up state
-        
+        void add_depends(std::string other_module); //!< add new dependency
+            
         //! service callbacks
         int on_get_config(ln::service_request& req, 
                 ln_service_robotkernel_module_get_config& svc);
@@ -255,6 +257,10 @@ inline std::string module::get_name() {
 //! return dependency list
 inline const module::depend_list_t& module::get_depends() {
     return depends;
+}
+//! add new dependency
+inline void module::add_depends(std::string other_module) {
+    depends.push_back(other_module);
 }
 
 //! return power up state
