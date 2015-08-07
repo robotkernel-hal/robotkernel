@@ -66,12 +66,10 @@ int main(int argc, char** argv) {
 #ifdef __linux__
     struct rlimit rlim;
     int ret = getrlimit(RLIMIT_RTPRIO, &rlim);
-    printf("trying to set rlimit rtprio from %d to %d ...\n", rlim.rlim_cur, rlim.rlim_max);
 
     if (ret == 0) {
         rlim.rlim_cur = rlim.rlim_max;
         setrlimit(RLIMIT_RTPRIO, &rlim);
-        printf("rlimit set\n");
     }
 #endif
 
