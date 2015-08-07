@@ -145,6 +145,15 @@ class module_base {
                     modname.c_str(), name.c_str());
         }
 
+        //! module trigger callback
+        /*!
+         * \param slave_id slave id to trigger
+         */
+        virtual void trigger_slave_id(uint32_t slave_id) {
+            throw robotkernel::str_exception("[%s|%s] trigger slave_id not implemented!\n",
+                    modname.c_str(), name.c_str());
+        }
+
         //! set module state machine to defined state
         /*!
          * \param state requested state

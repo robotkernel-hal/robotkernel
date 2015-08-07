@@ -46,7 +46,6 @@ class runnable {
          */
         static void *run_wrapper(void *arg);
 
-        runnable();
         runnable(const runnable&);             // prevent copy-construction
         runnable& operator=(const runnable&);  // prevent assignment
 
