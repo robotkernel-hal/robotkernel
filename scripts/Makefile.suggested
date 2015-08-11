@@ -52,16 +52,16 @@ all: configure build install
 endif
 
 build_only_all: 
-	make -f Makefile.suggested BUILD_TARGETS=install build_all
+	make -f scripts/Makefile.suggested BUILD_TARGETS=install build_all
 
 build_all_seq:
-	set -e; for arch in $(SUPPORTED_ARCHS); do echo $$arch; make ARCH=$$arch -f Makefile.suggested -j1  configure; done
-	set -e; for arch in $(SUPPORTED_ARCHS); do echo $$arch; make ARCH=$$arch -f Makefile.suggested -j1  install; done
+	set -e; for arch in $(SUPPORTED_ARCHS); do echo $$arch; make ARCH=$$arch -f scripts/Makefile.suggested -j1  configure; done
+	set -e; for arch in $(SUPPORTED_ARCHS); do echo $$arch; make ARCH=$$arch -f scripts/Makefile.suggested -j1  install; done
 
 build_only_all_seq:
-	set -e; for arch in $(SUPPORTED_ARCHS); do echo $$arch; make ARCH=$$arch -f Makefile.suggested -j1  build; done
+	set -e; for arch in $(SUPPORTED_ARCHS); do echo $$arch; make ARCH=$$arch -f scripts/Makefile.suggested -j1  build; done
 configure_only_all_seq:
-	set -e; for arch in $(SUPPORTED_ARCHS); do echo $$arch; make ARCH=$$arch -f Makefile.suggested -j1 configure; done
+	set -e; for arch in $(SUPPORTED_ARCHS); do echo $$arch; make ARCH=$$arch -f scripts/Makefile.suggested -j1 configure; done
 
 BUILD_TARGETS=configure install
 
@@ -83,7 +83,7 @@ clean:
 	$(SSH) make -j $(JOBS) -C $(DST_DIR) clean
 
 $(DST_DIR):
-	make -f Makefile.suggested ARCH=$(ARCH) configure
+	make -f scripts/Makefile.suggested ARCH=$(ARCH) configure
 build: $(DST_DIR)
 	$(SSH) make -j $(JOBS) -C $(DST_DIR)
 
@@ -102,5 +102,5 @@ release-only:
 	reltool --domain robotkernel --force 1.5 --force 1.8 --yes -v
 
 release:
-	make -f Makefile.suggested build_all
-	make -f Makefile.suggested release-only
+	make -f scripts/Makefile.suggested build_all
+	make -f scripts/Makefile.suggested release-only
