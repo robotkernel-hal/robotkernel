@@ -966,30 +966,35 @@ void kernel::logging(loglevel ll, const char *format, ...) {
     }
 
     struct log_thread::log_pool_object *obj = _log.get_pool_object();
-    struct tm timeinfo;
-    struct timespec ts;
-    clock_gettime(CLOCK_REALTIME, &ts);
-    double timestamp = (double)ts.tv_sec + (ts.tv_nsec / 1e9);
-    time_t seconds = (time_t)timestamp;
-    double mseconds = (timestamp - (double)seconds) * 1000.;
-    localtime_r(&seconds, &timeinfo);
-    strftime(obj->buf, sizeof(obj->buf), "%F %T", &timeinfo);
+    if(obj) {
+        // only ifempty logging pool avaliable!
+
+        struct tm timeinfo;
+        struct timespec ts;
+        clock_gettime(CLOCK_REALTIME, &ts);
+        double timestamp = (double)ts.tv_sec + (ts.tv_nsec / 1e9);
+        time_t seconds = (time_t)timestamp;
+        double mseconds = (timestamp - (double)seconds) * 1000.;
+        localtime_r(&seconds, &timeinfo);
+        strftime(obj->buf, sizeof(obj->buf), "%F %T", &timeinfo);
 
 
-    int len = strlen(obj->buf);
-    snprintf(obj->buf + len, sizeof(obj->buf) - len, ".%03.0f ", mseconds);
-    len = strlen(obj->buf);
+        int len = strlen(obj->buf);
+        snprintf(obj->buf + len, sizeof(obj->buf) - len, ".%03.0f ", mseconds);
+        len = strlen(obj->buf);
 
-    snprintf(obj->buf + len, sizeof(obj->buf) - len, "%s ", ll_to_string(ll).c_str());
-    len = strlen(obj->buf);
+        snprintf(obj->buf + len, sizeof(obj->buf) - len, "%s ", ll_to_string(ll).c_str());
+        len = strlen(obj->buf);
 
-    // format argument list
-    va_list args;
-    va_start(args, format);
-    vsnprintf(obj->buf + len, obj->len - len, format, args);
-    va_end(args);
+        // format argument list
+        va_list args;
+        va_start(args, format);
+        vsnprintf(obj->buf + len, obj->len - len, format, args);
+        va_end(args);
+        _log.log(obj);
+    }
+    
     va_start(args, format);
     vdump_log(format, args);
     va_end(args);
-    _log.log(obj);
 }
