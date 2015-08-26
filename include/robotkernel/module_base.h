@@ -115,6 +115,7 @@ class module_base {
         module_base(const std::string& modname, const std::string& name) {
             this->modname = modname;
             this->name = name;
+            this->state = module_state_init;
         }
 
         //! cyclic process data read
