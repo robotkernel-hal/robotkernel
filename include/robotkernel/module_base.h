@@ -118,6 +118,9 @@ class module_base {
             this->state = module_state_init;
         }
 
+        //! virtual desctuctor
+        virtual ~module_base();
+
         //! cyclic process data read
         /*!
          * \param buf process data buffer
