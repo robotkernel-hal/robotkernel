@@ -994,6 +994,7 @@ void kernel::logging(loglevel ll, const char *format, ...) {
         _log.log(obj);
     }
     
+    va_list args;
     va_start(args, format);
     vdump_log(format, args);
     va_end(args);
