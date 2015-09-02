@@ -68,7 +68,10 @@ BUILD_TARGETS=configure install
 $(SUPPORTED_ARCHS):
 	make ARCH=$@ -f scripts/Makefile.suggested $(BUILD_TARGETS)
 
-Makefile.in:
+m4: 
+	mkdir m4
+
+Makefile.in: m4
 	./autogen.sh
 
 configure: Makefile.in
