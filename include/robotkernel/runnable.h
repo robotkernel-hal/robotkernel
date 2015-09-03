@@ -75,21 +75,32 @@ class runnable {
             stop();
         };
 
-        void start();                       //! run thread
-        void stop();                        //! stop thread
-        virtual void run() = 0;             //! handler function called if 
-                                            //  thread is running
+        void start();                       //!< run thread
+        void stop();                        //!< stop thread
+        virtual void run() = 0;             //!< handler function called if 
+                                            //   thread is running
 
-        void set_prio(int prio);            //! set priority
-        void set_affinity_mask(int mask);   //! set affinity mask
-        void set_name(std::string name);    //! set thread name
+        int get_affinity_maks();            //!< return affinity mask
+        int get_prio();                     //!< return priority 
 
-        bool running();                     //! returns true if thread is running
+        void set_prio(int prio);            //!< set priority
+        void set_affinity_mask(int mask);   //!< set affinity mask
+        void set_name(std::string name);    //!< set thread name
+
+        bool running();                     //!< returns true if thread is running
 };
 
 inline bool runnable::running() {
     return this->run_flag;
 }
+        
+inline int runnable::get_affinity_maks() { 
+    return affinity_mask; 
+};
+
+inline int runnable::get_prio() {
+    return prio; 
+};
 
 } // namespace robotkernel
 

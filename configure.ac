@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.63])
-AC_INIT([robotkernel], [3.1.11], [robert.burger@dlr.de])
+AC_INIT([robotkernel], [3.1.12], [robert.burger@dlr.de])
 AC_CANONICAL_TARGET
 AC_CANONICAL_SYSTEM
 

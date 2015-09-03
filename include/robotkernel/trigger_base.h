@@ -80,7 +80,12 @@ class trigger_base {
           */
         int request(int reqcode, void* ptr);
         
+        int get_trigger_size(); //!< return size of trigger list
 };
+
+inline int trigger_base::get_trigger_size() {
+    return trigger_cbs.size();
+}
 
 } // namespace robotkernel
 
