@@ -31,7 +31,7 @@
 #include "robotkernel/module_intf.h"
 #include "robotkernel/exceptions.h"
 
-using namespace robotkernel;
+namespace robotkernel {
 
 class cmd_delay {
     private:
@@ -41,7 +41,7 @@ class cmd_delay {
 
     public:
         cmd_delay(const YAML::Node& node) {
-            mode = get_as<std::string>(node, "cmd_mode");
+            std::string mode = get_as<std::string>(node, "cmd_mode");
             if (mode == "automatic")
                 _cmd_mode = automatic;
             else
@@ -70,6 +70,8 @@ class cmd_delay {
             return _cmd_delay;
         }
 };
+
+}; // namespace robotkernel
 
 #endif // __CMD_DELAY_H__
 
