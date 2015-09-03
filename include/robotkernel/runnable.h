@@ -80,7 +80,7 @@ class runnable {
         virtual void run() = 0;             //!< handler function called if 
                                             //   thread is running
 
-        int get_affinity_maks();            //!< return affinity mask
+        int get_affinity_mask();            //!< return affinity mask
         int get_prio();                     //!< return priority 
 
         void set_prio(int prio);            //!< set priority
@@ -94,7 +94,7 @@ inline bool runnable::running() {
     return this->run_flag;
 }
         
-inline int runnable::get_affinity_maks() { 
+inline int runnable::get_affinity_mask() { 
     return affinity_mask; 
 };
 
