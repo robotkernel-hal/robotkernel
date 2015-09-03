@@ -30,6 +30,7 @@
 #include "robotkernel/kernel.h"
 #include "robotkernel/module_intf.h"
 #include "robotkernel/exceptions.h"
+#include "robotkernel/helpers.h"
 
 namespace robotkernel {
 
