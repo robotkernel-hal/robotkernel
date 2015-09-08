@@ -36,10 +36,13 @@
 #define ROBOTKERNEL "[robotkernel] "
 
 #define klog(...) robotkernel::kernel::get_instance()->logging(__VA_ARGS__)
+#define mlog(...) robotkernel::kernel::get_instance()->logging_direct(__VA_ARGS__)
 
 namespace robotkernel {
 
 enum loglevel {
+    not_set = -1,
+
     error = 1,
     warning = 2,
     info = 3,
@@ -210,8 +213,11 @@ class kernel :
 
         log_thread _log;
 
+        static std::string ll_to_string(loglevel ll);
+
         // write to logfile
         void logging(loglevel ll, const char *format, ...);
+        void logging_direct(loglevel ll, const char *format, ...);
 
         std::string dump_log() {
             return dump_log_dump();

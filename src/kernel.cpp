@@ -28,6 +28,7 @@
 #include <string_util/string_util.h>
 #include "robotkernel/kernel.h"
 #include "robotkernel/exceptions.h"
+#include "robotkernel/module_base.h"
 #include "yaml-cpp/yaml.h"
 
 using namespace std;
@@ -937,7 +938,7 @@ int kernel::on_reconfigure_module(ln::service_request& req, ln_service_robotkern
     return 0;
 }
 
-std::string ll_to_string(loglevel ll) {
+std::string kernel::ll_to_string(loglevel ll) {
     if (ll == error)    return "K-ERR ";
     if (ll == warning)  return "K-WARN";
     if (ll == info)     return "K-INFO";
@@ -965,6 +966,13 @@ void kernel::logging(loglevel ll, const char *format, ...) {
         return;
     }
 
+    va_list args;
+    va_start(args, format);
+    logging_direct(ll, format, args);
+    va_end(args);
+}
+
+void kernel::logging_direct(loglevel ll, const char *format, ...) {  
     struct log_thread::log_pool_object *obj = _log.get_pool_object();
     if(obj) {
         // only ifempty logging pool avaliable!
@@ -999,3 +1007,4 @@ void kernel::logging(loglevel ll, const char *format, ...) {
     vdump_log(format, args);
     va_end(args);
 }
+
