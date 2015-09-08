@@ -75,7 +75,7 @@ class kernel :
         
         kernel(const kernel&);             // prevent copy-construction
         kernel& operator=(const kernel&);  // prevent assignment
-
+        
     protected:
         //! construction
         /*!
