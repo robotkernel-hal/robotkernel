@@ -254,10 +254,10 @@ class module_base {
             va_start(args, format);
             vsnprintf(buf, 1024, format, args);
 
-            if (logmode == kernel)
+            if (logmode == kernel) {
                 klog(lvl, "[%s|%s] %s", modname.c_str(), name.c_str(), buf);
-            else {
-                if(!((1 << (lvl-1)) & ll_bits))
+            } else {
+                if(((1 << (lvl-1)) & ll_bits))
                     mlog(lvl, "[%s|%s] %s", modname.c_str(), name.c_str(), buf);        
             }
         }
