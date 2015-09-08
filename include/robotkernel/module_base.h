@@ -147,7 +147,7 @@ class module_base {
                 ll_bits = 0;
 
 #define loglevel_if(ll, x) \
-                if ((x) == string(#ll)) \
+                if ((x) == std::string(#ll)) \
                 ll_bits |= ( 1 << (ll-1));
 #define loglevel_add(x)                 \
                 loglevel_if(error, x)          \
@@ -168,11 +168,11 @@ class module_base {
                         // try to read mask directly
                         ll_bits = ll_node->to<int>();
                     } catch (YAML::Exception& e) {
-                        loglevel_add(ll_node->to<string>());
+                        loglevel_add(ll_node->to<std::string>());
                     }
                 } else
                     for (YAML::Iterator it = ll_node->begin(); it != ll_node->end(); ++it) {
-                        loglevel_add(it->to<string>());
+                        loglevel_add(it->to<std::string>());
                     }
 #undef loglevel_if
 #undef loglevel_add
