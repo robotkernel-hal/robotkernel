@@ -103,10 +103,10 @@ class module_base {
         module_base();          //!< prevent default construction
 
     protected:
-        std::string modname;    //!< module name
-        std::string name;       //!< instance name
-        module_state_t state;   //!< actual module state
-        loglevel ll;            //!< module loglevel
+        const std::string modname;  //!< module name
+        const std::string name;     //!< instance name
+        module_state_t state;       //!< actual module state
+        loglevel ll;                //!< module loglevel
 
 
     public:
@@ -115,11 +115,10 @@ class module_base {
          * \param modname module name
          * \param name instance name
          */
-        module_base(const std::string& modname, const std::string& name) {
-            this->modname = modname;
-            this->name = name;
-            this->state = module_state_init;
-            this->ll = kernel::get_instance()->get_loglevel();
+        module_base(const std::string& modname, const std::string& name) :
+            modname(modname), name(name) {
+            state = module_state_init;
+            ll = kernel::get_instance()->get_loglevel();
         }
         
         //! construction
@@ -128,11 +127,9 @@ class module_base {
          * \param name instance name
          */
         module_base(const std::string& modname, const std::string& name, 
-                const YAML::Node& node) {
-            this->modname = modname;
-            this->name = name;
-            this->state = module_state_init;
-            this->ll = kernel::get_instance()->get_loglevel();
+                const YAML::Node& node) : modname(modname), name(name) {
+            state = module_state_init;
+            ll = kernel::get_instance()->get_loglevel();
 
             // search for loglevel
             const YAML::Node *ll_node = node.FindValue("loglevel");

@@ -354,39 +354,40 @@ void module::_init() {
             module_file = mod;
     }
 
-    klog(info, "[%s] loading module %s\n", name.c_str(), module_file.c_str());
+    if ((so_handle = dlopen(module_file.c_str(), RTLD_GLOBAL | RTLD_NOW |
+                    RTLD_NOLOAD)) == NULL) {
+        klog(info, "[%s] loading module %s\n", name.c_str(), module_file.c_str());
 
-    if (access(module_file.c_str(), R_OK) != 0) {
+        if (access(module_file.c_str(), R_OK) != 0) {
 #ifdef __VXWORKS__
-        // special case on vxworks, because it may return ENOTSUP, the we try to open anyway !
+            // special case on vxworks, because it may return ENOTSUP, the we try to open anyway !
 #else
-        klog(error, "[%s] module file name not given as absolute filename, either set\n"
-                "         ROBOTKERNEL_MODULE_PATH environment variable or specify absolut path!\n", name.c_str());
-        klog(error, "[%s] access signaled error: %s\n", name.c_str(), strerror(errno));
-        return;
+            klog(error, "[%s] module file name not given as absolute filename, either set\n"
+                    "         ROBOTKERNEL_MODULE_PATH environment variable or specify absolut path!\n", name.c_str());
+            klog(error, "[%s] access signaled error: %s\n", name.c_str(), strerror(errno));
+            return;
 #endif
-    }
+        }
 
 #ifndef __VXWORKS__
-    {
-        char dirname_buffer[1024];
-        strcpy(dirname_buffer, module_file.c_str());
-        char* dir = dirname(dirname_buffer);
-        DIR* dirp = opendir(dir);
-        if(dirp) {
-            struct dirent* de;
-            while((de = readdir(dirp))) {
-                // klog(error, "[%s] dir entry: %s\n", name.c_str(), de->d_name);
+        {
+            char dirname_buffer[1024];
+            strcpy(dirname_buffer, module_file.c_str());
+            char* dir = dirname(dirname_buffer);
+            DIR* dirp = opendir(dir);
+            if(dirp) {
+                struct dirent* de;
+                while((de = readdir(dirp))) {
+                    // klog(error, "[%s] dir entry: %s\n", name.c_str(), de->d_name);
+                }
+                closedir(dirp);
             }
-            closedir(dirp);
         }
-    }
 #endif
 
-    so_handle = dlopen(module_file.c_str(), 
-            RTLD_GLOBAL |
-            RTLD_NOW
-            );
+        so_handle = dlopen(module_file.c_str(), RTLD_GLOBAL |
+                RTLD_NOW);
+    }
 
     if (!so_handle) {
         klog(error, "[%s] dlopen signaled error opening module:\n", name.c_str());

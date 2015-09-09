@@ -31,7 +31,18 @@ void module_base::log(loglevel lvl, const char *format, ...) {
     kernel& k = *kernel::get_instance();
     struct log_thread::log_pool_object *obj;
 
-    if (ll > this->ll)
+    char buf[1024];
+    int bufpos = 0;
+    bufpos += snprintf(buf+bufpos, sizeof(buf)+bufpos, "[%s|%s] ", 
+            modname.c_str(), name.c_str());
+
+    // format argument list    
+    va_list args;
+    va_start(args, format);
+    vsnprintf(buf+bufpos, sizeof(buf)-bufpos, format, args);
+    va_end(args);
+
+    if (lvl > ll)
         goto log_exit;
 
     if ((obj = k.rk_log.get_pool_object()) != NULL) {
@@ -49,22 +60,12 @@ void module_base::log(loglevel lvl, const char *format, ...) {
         int len = strlen(obj->buf);
         snprintf(obj->buf + len, sizeof(obj->buf) - len, ".%03.0f ", mseconds);
         len = strlen(obj->buf);
-
-        snprintf(obj->buf + len, sizeof(obj->buf) - len, "%s ", k.ll_to_string(ll).c_str());
-        len = strlen(obj->buf);
-
-        // format argument list
-        va_list args;
-        va_start(args, format);
-        vsnprintf(obj->buf + len, obj->len - len, format, args);
-        va_end(args);
+        snprintf(obj->buf + len, sizeof(obj->buf) - len, "%s %s", 
+                k.ll_to_string(lvl).c_str(), buf);
         k.rk_log.log(obj);
     }
     
 log_exit:
-    va_list args;
-    va_start(args, format);
-    vdump_log(format, args);
-    va_end(args);
+    dump_log(buf);
 }
 

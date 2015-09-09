@@ -81,24 +81,25 @@ interface::interface(const std::string& interface_file,
         }
     }
 
-    klog(info, "[interface] loading interface %s\n", 
-            this->interface_file.c_str());
-
-    if (access(this->interface_file.c_str(), R_OK) != 0) {
-#ifdef __VXWORKS__
-        // special case on vxworks, because it may return ENOTSUP, the we try to open anyway !
-#else
-        klog(error, "[interface] interface file '%s' not readable!\n", 
+    if ((so_handle = dlopen(this->interface_file.c_str(), 
+                    RTLD_GLOBAL | RTLD_NOW | RTLD_NOLOAD)) == NULL) {
+        klog(info, "[interface] loading interface %s\n", 
                 this->interface_file.c_str());
-        throw str_exception("[interface] access '%s' signaled error: %s", 
-                this->interface_file.c_str(), strerror(errno));
-#endif
-    }
 
-    so_handle = dlopen(this->interface_file.c_str(), 
-            RTLD_GLOBAL |
-            RTLD_NOW
-            );
+        if (access(this->interface_file.c_str(), R_OK) != 0) {
+#ifdef __VXWORKS__
+            // special case on vxworks, because it may return ENOTSUP, the we try to open anyway !
+#else
+            klog(error, "[interface] interface file '%s' not readable!\n", 
+                    this->interface_file.c_str());
+            throw str_exception("[interface] access '%s' signaled error: %s", 
+                    this->interface_file.c_str(), strerror(errno));
+#endif
+        }
+
+        so_handle = dlopen(this->interface_file.c_str(), 
+                RTLD_GLOBAL | RTLD_NOW);
+    }
 
     if (!so_handle)
         throw str_exception("[interface] dlopen signaled error: %s", strerror(errno));

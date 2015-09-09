@@ -156,10 +156,12 @@ kernel::kernel() {
     clnt = NULL;
     _ln_thread_pool_size_main = 1;
 
+    log(info, ROBOTKERNEL PACKAGE_STRING "\n");
+
     int _major, _minor, _patch;
     sscanf(PACKAGE_VERSION, "%d.%d.%d", &_major, &_minor, &_patch);
     
-    log(info, ROBOTKERNEL "major %d, minor %d, patch %d\n",
+    log(verbose, ROBOTKERNEL "major %d, minor %d, patch %d\n",
             _major, _minor, _patch);
 }
 
