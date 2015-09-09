@@ -97,7 +97,7 @@ install: build
 	$(SSH) make -j $(JOBS) -C $(DST_DIR) install
 
 local-release:
-	make -f scripts/Makefile.suggested ARCH=sled11-x86-gcc4.x build
+	make -f scripts/Makefile.suggested ARCH=$(ARCH) build
 	cat $(DST_DIR)/*.pt | sed -e "s/ARCHS.*=.*$$/ARCHS = $(ARCH)/" > .my_module.pt
 	reltool --local ./install --pt-file .my_module.pt --yes
 
