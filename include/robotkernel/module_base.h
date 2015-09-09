@@ -246,21 +246,7 @@ class module_base {
         }
 
         //! log to kernel logging facility
-        void log(robotkernel::loglevel lvl, const char *format, ...) {
-            char buf[1024];
-
-            // format argument list
-            va_list args;
-            va_start(args, format);
-            vsnprintf(buf, 1024, format, args);
-
-            if (logmode == kernel) {
-                klog(lvl, "[%s|%s] %s", modname.c_str(), name.c_str(), buf);
-            } else {
-                if(((1 << (lvl-1)) & ll_bits))
-                    mlog(lvl, "[%s|%s] %s", modname.c_str(), name.c_str(), buf);        
-            }
-        }
+        void log(robotkernel::loglevel lvl, const char *format, ...);
 };
 
 };
