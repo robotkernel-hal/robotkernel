@@ -76,7 +76,7 @@ int kernel::set_state(std::string mod_name, module_state_t state) {
             continue;
 
         if (dep_mod_state == module_state_error) {
-            logging(info, ROBOTKERNEL "dependent module %d is in error state, "
+            log(info, ROBOTKERNEL "dependent module %d is in error state, "
                     "cannot power up module %s\n", d_mod_name.c_str(), 
                     mod_name.c_str());
 
@@ -84,7 +84,7 @@ int kernel::set_state(std::string mod_name, module_state_t state) {
         }
 
         if (dep_mod_state < state) {
-            logging(info, ROBOTKERNEL "powering up %s module dependencies %s\n",
+            log(info, ROBOTKERNEL "powering up %s module dependencies %s\n",
                     mod_name.c_str(), d_mod_name.c_str());
 
             set_state(d_mod_name, state);
@@ -107,17 +107,17 @@ int kernel::set_state(std::string mod_name, module_state_t state) {
                 continue;
 
             if (get_state(mdl2.get_name()) > state) {
-                logging(info, ROBOTKERNEL "%s depends on %s -> setting state to init\n",
+                log(info, ROBOTKERNEL "%s depends on %s -> setting state to init\n",
                         mdl2.get_name().c_str(), mod_name.c_str());
                 set_state(mdl2.get_name(), module_state_init);
                 break;
             } else
-                logging(verbose, ROBOTKERNEL "%s depend on %s but is always in a lower"
+                log(verbose, ROBOTKERNEL "%s depend on %s but is always in a lower"
                         " state\n", mdl2.get_name().c_str(), mod_name.c_str());
         }
     }
 
-    logging(info, ROBOTKERNEL "setting state of %s to %s\n",
+    log(info, ROBOTKERNEL "setting state of %s to %s\n",
             mod_name.c_str(), state_to_string(state));
 
     if (mdl.set_state(state) == -1)
@@ -138,7 +138,7 @@ module_state_t kernel::get_state(std::string mod_name) {
     if (it == module_map.end())
         throw str_exception("[robotkernel] get_state: module %s not found!\n", mod_name.c_str());
 
-    logging(verbose, ROBOTKERNEL "getting state of module %s\n",
+    log(verbose, ROBOTKERNEL "getting state of module %s\n",
             mod_name.c_str());
 
     module *mdl = it->second;
@@ -151,7 +151,7 @@ module_state_t kernel::get_state(std::string mod_name) {
  * \param configfile config file name
  */
 kernel::kernel() {
-    _ll_bits = (1 << (error-1)) | (1 << (warning-1)) | (1 << (info-1));
+    ll = info;
     _name = "robotkernel";
     clnt = NULL;
     _ln_thread_pool_size_main = 1;
@@ -159,13 +159,13 @@ kernel::kernel() {
     int _major, _minor, _patch;
     sscanf(PACKAGE_VERSION, "%d.%d.%d", &_major, &_minor, &_patch);
     
-    logging(info, ROBOTKERNEL "major %d, minor %d, patch %d\n",
+    log(info, ROBOTKERNEL "major %d, minor %d, patch %d\n",
             _major, _minor, _patch);
 }
 
 //! destruction
 kernel::~kernel() {
-    logging(info, ROBOTKERNEL "destructing...\n");
+    log(info, ROBOTKERNEL "destructing...\n");
 
     module_map_t::iterator it;
     while ((it = module_map.begin()) != module_map.end()) {
@@ -180,7 +180,7 @@ kernel::~kernel() {
         delete mdl;
     }
 
-    logging(info, ROBOTKERNEL "all modules destructed... cleaning up ln client\n");
+    log(info, ROBOTKERNEL "all modules destructed... cleaning up ln client\n");
 
 
     // unregister services before we delete the client, cannot be done in destructors
@@ -198,7 +198,7 @@ kernel::~kernel() {
         delete clnt;
     }
 
-    logging(info, ROBOTKERNEL "clean up finished\n");
+    log(info, ROBOTKERNEL "clean up finished\n");
 };
 
 //! get kernel singleton instance
@@ -208,7 +208,7 @@ kernel::~kernel() {
 kernel * kernel::get_instance() {
     if (!instance) {
         instance = new kernel();
-        instance->_log.start();
+        instance->rk_log.start();
     }
 
     return instance;
@@ -245,7 +245,7 @@ void kernel::init_ln(int argc, char **argv) {
     // handle default service group (NULL) in new "main" thread-pool
     clnt->handle_service_group_in_thread_pool(NULL, "main");
     // configure max number of threads for "main" thread-pool
-    logging(verbose, ROBOTKERNEL "setting main thread-pool size to %d\n", _ln_thread_pool_size_main);
+    log(verbose, ROBOTKERNEL "setting main thread-pool size to %d\n", _ln_thread_pool_size_main);
     clnt->set_max_threads("main", _ln_thread_pool_size_main);
 
     // powering up modules to operational
@@ -285,8 +285,8 @@ void kernel::config(std::string config_file, int argc, char **argv) {
         throw str_exception("supplied exec file \"%s\" not found!", argv[0]);
 
     split_file_name(string(real_exec_file), path, file);
-    logging(info, ROBOTKERNEL "got exec path %s\n", path.c_str());
-    logging(info, ROBOTKERNEL "searching interfaces and modules ....\n");
+    log(info, ROBOTKERNEL "got exec path %s\n", path.c_str());
+    log(info, ROBOTKERNEL "searching interfaces and modules ....\n");
     free(real_exec_file);
 
     string base_path, sub_path;
@@ -315,14 +315,14 @@ void kernel::config(std::string config_file, int argc, char **argv) {
             if (stat(_intfpath.str().c_str(), &buf) == 0)
                 _internal_intfpath = _intfpath.str();
         } else {
-            logging(info, ROBOTKERNEL "unable to determine internal modules/interfaces path!\n");
+            log(info, ROBOTKERNEL "unable to determine internal modules/interfaces path!\n");
         }
     }
 
     if (_internal_modpath != string(""))
-        logging(info, ROBOTKERNEL "found modules path %s\n", _internal_modpath.c_str());
+        log(info, ROBOTKERNEL "found modules path %s\n", _internal_modpath.c_str());
     if (_internal_intfpath != string(""))
-        logging(info, ROBOTKERNEL "found interfaces path %s\n", _internal_intfpath.c_str());
+        log(info, ROBOTKERNEL "found interfaces path %s\n", _internal_intfpath.c_str());
 
     if (config_file.compare("") == 0) {
         try {    
@@ -346,7 +346,7 @@ void kernel::config(std::string config_file, int argc, char **argv) {
 
     split_file_name(string(real_config_file), path, file);
 
-    logging(info, ROBOTKERNEL "got config file path: %s, file name %s\n",
+    log(info, ROBOTKERNEL "got config file path: %s, file name %s\n",
             path.c_str(), file.c_str());
 
     this->config_file = string(real_config_file);
@@ -364,41 +364,22 @@ void kernel::config(std::string config_file, int argc, char **argv) {
     // search for loglevel
     const YAML::Node *ll_node = doc.FindValue("loglevel");
     if (ll_node) {
-        _ll_bits = 0;
+        ll = info;
+        string ll_string = ll_node->to<string>();
 
-#define loglevel_if(ll, x) \
-        if ((x) == string(#ll)) \
-        _ll_bits |= ( 1 << (ll-1));
-#define loglevel_add(x)                 \
-        loglevel_if(error, x)          \
-        else loglevel_if(warning, x)   \
-        else loglevel_if(info, x)      \
-        else loglevel_if(verbose, x) \
-        else loglevel_if(module_error, x)          \
-        else loglevel_if(module_warning, x)   \
-        else loglevel_if(module_info, x)      \
-        else loglevel_if(module_verbose, x) \
-        else loglevel_if(interface_error, x)          \
-        else loglevel_if(interface_warning, x)   \
-        else loglevel_if(interface_info, x)      \
-        else loglevel_if(interface_verbose, x)
-
-        if (ll_node->Type() == YAML::NodeType::Scalar) {
-            try {
-                // try to read mask directly
-                _ll_bits = ll_node->to<int>();
-            } catch (YAML::Exception& e) {
-                loglevel_add(ll_node->to<string>());
-            }
-        } else
-            for (YAML::Iterator it = ll_node->begin(); it != ll_node->end(); ++it) {
-                loglevel_add(it->to<string>());
-            }
+        if (ll_string == "error")
+            ll = error;
+        else if (ll_string == "warning")
+            ll = warning;
+        else if (ll_string == "info")
+            ll = info;
+        else if (ll_string == "verbose")
+            ll = verbose;
     }
 
     const YAML::Node* log_fix_modname_length = doc.FindValue("log_fix_modname_length");
     if(log_fix_modname_length)
-        *log_fix_modname_length >> _log.fix_modname_length;
+        *log_fix_modname_length >> rk_log.fix_modname_length;
 
     // search for log level
     const YAML::Node *dump_log_len_node = doc.FindValue("max_dump_log_len");
@@ -466,7 +447,7 @@ bool kernel::power_up() {
                        current_state = mdl.get_state();
 
         if (current_state == module_state_error) {
-            logging(info, ROBOTKERNEL "module '%s' in in error state, not "
+            log(info, ROBOTKERNEL "module '%s' in in error state, not "
                     "powering up!\n", mdl.get_name().c_str());
             failed_modules.push_back(mdl.get_name());
             continue;
@@ -476,11 +457,11 @@ bool kernel::power_up() {
             continue;
 
         try {
-            logging(info, ROBOTKERNEL "powering up '%s' to state %s\n", 
+            log(info, ROBOTKERNEL "powering up '%s' to state %s\n", 
                     mdl.get_name().c_str(), state_to_string(target_state));
             set_state(mdl.get_name(), target_state);
         } catch (exception& e) {
-            logging(error, ROBOTKERNEL "caught exception: %s\n", e.what());
+            log(error, ROBOTKERNEL "caught exception: %s\n", e.what());
             failed_modules.push_back(mdl.get_name());
         }
     }
@@ -491,7 +472,7 @@ bool kernel::power_up() {
         for (std::list<string>::iterator it = failed_modules.begin();
                 it != failed_modules.end(); ++it)
             msg += *it + ", ";
-        logging(error, "%s\n", msg.c_str());
+        log(error, "%s\n", msg.c_str());
         return false;
     }
 
@@ -508,7 +489,7 @@ void kernel::power_down() {
         try {
             set_state(mdl.get_name(), module_state_init);
         } catch (exception& e) {
-            logging(error, ROBOTKERNEL "caught exception: %s\n", e.what());
+            log(error, ROBOTKERNEL "caught exception: %s\n", e.what());
         }
     }
 }
@@ -667,45 +648,32 @@ int kernel::on_config_dump_log(ln::service_request& req, ln_service_robotkernel_
     config_dump_log(svc.req.max_len, svc.req.do_ust);
     klog(verbose, "dump_log len set to %d, do_ust to %d\n", svc.req.max_len, svc.req.do_ust);
 
-    string current_log_level = "[ ";
-
-#define loglevel_to_string(x)               \
-    if (_ll_bits & (1 << (x-1)))                \
-    current_log_level += string("\"") + string(#x) + string("\", ")
+    string current_log_level;
+#define loglevel_to_string(x)             \
+    if (ll == x)                          \
+    current_log_level = string(#x)
 
     loglevel_to_string(error);
     else loglevel_to_string(warning);
     else loglevel_to_string(info);
     else loglevel_to_string(verbose);
-    else loglevel_to_string(module_error);
-    else loglevel_to_string(module_warning);
-    else loglevel_to_string(module_info);
-    else loglevel_to_string(module_verbose);
-    else loglevel_to_string(interface_error);
-    else loglevel_to_string(interface_warning);
-    else loglevel_to_string(interface_info);
-    else loglevel_to_string(interface_verbose);
-
-    current_log_level += "]";
 
     string set_log_level(svc.req.set_log_level, svc.req.set_log_level_len);
     if(set_log_level.size()) {
-        _ll_bits = 0;
         py_value *pval = eval_full(set_log_level);
-        py_list *plist = dynamic_cast<py_list *>(pval);
+        py_string *pstring = dynamic_cast<py_string *>(pval);
 
-        if (plist) {
-            for (py_list_value_t::iterator it = plist->value.begin(); it != plist->value.end(); ++it) {
-                py_string *pstring = dynamic_cast<py_string *>(*it);
-                if (pstring) {
-                    loglevel_add((string)(*pstring));
-                }
-            }
-        } else {
-            py_string *pstring = dynamic_cast<py_string *>(pval);
-            if (pstring) {
-                loglevel_add((string)(*pstring));
-            }
+        if (pstring) {
+            string ll_string = string(*pstring);
+
+            if (ll_string == "error")
+                ll = error;
+            else if (ll_string == "warning")
+                ll = warning;
+            else if (ll_string == "info")
+                ll = info;
+            else if (ll_string == "verbose")
+                ll = verbose;
         }
     }
 
@@ -939,37 +907,22 @@ int kernel::on_reconfigure_module(ln::service_request& req, ln_service_robotkern
 }
 
 std::string kernel::ll_to_string(loglevel ll) {
-    if (ll == error)    return "K-ERR ";
-    if (ll == warning)  return "K-WARN";
-    if (ll == info)     return "K-INFO";
-    if (ll == verbose)  return "K-VERB";
+    if (ll == error)    return "ERR ";
+    if (ll == warning)  return "WARN";
+    if (ll == info)     return "INFO";
+    if (ll == verbose)  return "VERB";
 
-    if (ll == module_error)    return "M-ERR ";
-    if (ll == module_warning)  return "M-WARN";
-    if (ll == module_info)     return "M-INFO";
-    if (ll == module_verbose)  return "M-VERB";
-
-    if (ll == interface_error)    return "I-ERR ";
-    if (ll == interface_warning)  return "I-WARN";
-    if (ll == interface_info)     return "I-INFO";
-    if (ll == interface_verbose)  return "I-VERB";
-
-    return "?-???";
+    return "????";
 }
 
-void kernel::logging(loglevel ll, const char *format, ...) {  
-    if(!((1 << (ll-1)) & _ll_bits)) {
-        va_list args;
-        va_start(args, format);
-        vdump_log(format, args);        
-        va_end(args);
-        return;
-    }
+void kernel::log(loglevel ll, const char *format, ...) {  
+    struct log_thread::log_pool_object *obj;
+    
+    if (ll > this->ll)
+        goto log_exit;
 
-    struct log_thread::log_pool_object *obj = _log.get_pool_object();
-    if(obj) {
-        // only ifempty logging pool avaliable!
-
+    if ((obj = rk_log.get_pool_object()) != NULL) {
+        // only ifempty log pool avaliable!
         struct tm timeinfo;
         struct timespec ts;
         clock_gettime(CLOCK_REALTIME, &ts);
@@ -992,45 +945,10 @@ void kernel::logging(loglevel ll, const char *format, ...) {
         va_start(args, format);
         vsnprintf(obj->buf + len, obj->len - len, format, args);
         va_end(args);
-        _log.log(obj);
+        rk_log.log(obj);
     }
     
-    va_list args;
-    va_start(args, format);
-    vdump_log(format, args);
-    va_end(args);
-}
-
-void kernel::logging_direct(loglevel ll, const char *format, ...) {  
-    struct log_thread::log_pool_object *obj = _log.get_pool_object();
-    if(obj) {
-        // only ifempty logging pool avaliable!
-
-        struct tm timeinfo;
-        struct timespec ts;
-        clock_gettime(CLOCK_REALTIME, &ts);
-        double timestamp = (double)ts.tv_sec + (ts.tv_nsec / 1e9);
-        time_t seconds = (time_t)timestamp;
-        double mseconds = (timestamp - (double)seconds) * 1000.;
-        localtime_r(&seconds, &timeinfo);
-        strftime(obj->buf, sizeof(obj->buf), "%F %T", &timeinfo);
-
-
-        int len = strlen(obj->buf);
-        snprintf(obj->buf + len, sizeof(obj->buf) - len, ".%03.0f ", mseconds);
-        len = strlen(obj->buf);
-
-        snprintf(obj->buf + len, sizeof(obj->buf) - len, "%s ", ll_to_string(ll).c_str());
-        len = strlen(obj->buf);
-
-        // format argument list
-        va_list args;
-        va_start(args, format);
-        vsnprintf(obj->buf + len, obj->len - len, format, args);
-        va_end(args);
-        _log.log(obj);
-    }
-    
+log_exit:
     va_list args;
     va_start(args, format);
     vdump_log(format, args);

@@ -35,28 +35,15 @@
 #include "ln_cppwrapper.h"
 #define ROBOTKERNEL "[robotkernel] "
 
-#define klog(...) robotkernel::kernel::get_instance()->logging(__VA_ARGS__)
-#define mlog(...) robotkernel::kernel::get_instance()->logging_direct(__VA_ARGS__)
+#define klog(...) robotkernel::kernel::get_instance()->log(__VA_ARGS__)
 
 namespace robotkernel {
 
 enum loglevel {
-    not_set = -1,
-
     error = 1,
     warning = 2,
     info = 3,
     verbose = 4, 
-
-    module_error = 5,
-    module_warning = 6,
-    module_info = 7,
-    module_verbose = 8,
-
-    interface_error = 9,
-    interface_warning = 10,
-    interface_info = 11,
-    interface_verbose = 12,
 };
 
 class kernel :
@@ -76,6 +63,8 @@ class kernel :
         kernel(const kernel&);             // prevent copy-construction
         kernel& operator=(const kernel&);  // prevent assignment
         
+        loglevel ll;    //!< robotkernel global loglevel
+
     protected:
         //! construction
         /*!
@@ -94,6 +83,9 @@ class kernel :
 
         //! destroy singleton instance
         static void destroy_instance();
+
+        const loglevel get_loglevel() const { return ll; }
+        void set_loglevel(loglevel ll) { this->ll = ll; }
 
         //! initialize links and nodes client
         /*!
@@ -209,15 +201,12 @@ class kernel :
         std::string _internal_modpath;
         std::string _internal_intfpath;
 
-        int _ll_bits;
-
-        log_thread _log;
+        log_thread rk_log;
 
         static std::string ll_to_string(loglevel ll);
 
         // write to logfile
-        void logging(loglevel ll, const char *format, ...);
-        void logging_direct(loglevel ll, const char *format, ...);
+        void log(loglevel ll, const char *format, ...);
 
         std::string dump_log() {
             return dump_log_dump();

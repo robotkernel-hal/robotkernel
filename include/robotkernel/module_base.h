@@ -100,18 +100,14 @@ namespace robotkernel {
 
 class module_base {
     private:
-        module_base();         //!< prevent default construction
+        module_base();          //!< prevent default construction
 
     protected:
-        std::string modname;     //!< module name
-        std::string name;        //!< instance name
-        module_state_t state;    //!< actual module state
+        std::string modname;    //!< module name
+        std::string name;       //!< instance name
+        module_state_t state;   //!< actual module state
+        loglevel ll;            //!< module loglevel
 
-        enum {
-            module, kernel
-        } logmode;
-
-        int ll_bits;
 
     public:
         //! construction
@@ -123,8 +119,7 @@ class module_base {
             this->modname = modname;
             this->name = name;
             this->state = module_state_init;
-            this->logmode = kernel;
-            this->ll_bits = 0;
+            this->ll = kernel::get_instance()->get_loglevel();
         }
         
         //! construction
@@ -137,46 +132,23 @@ class module_base {
             this->modname = modname;
             this->name = name;
             this->state = module_state_init;
-            this->logmode = kernel;
-            this->ll_bits = 0;
+            this->ll = kernel::get_instance()->get_loglevel();
 
             // search for loglevel
             const YAML::Node *ll_node = node.FindValue("loglevel");
             if (ll_node) {
-                this->logmode = module;
-                ll_bits = 0;
+                ll = info;
+                std::string ll_string = ll_node->to<std::string>();
 
-#define loglevel_if(ll, x) \
-                if ((x) == std::string(#ll)) \
-                ll_bits |= ( 1 << (ll-1));
-#define loglevel_add(x)                 \
-                loglevel_if(error, x)          \
-                else loglevel_if(warning, x)   \
-                else loglevel_if(info, x)      \
-                else loglevel_if(verbose, x) \
-                else loglevel_if(module_error, x)          \
-                else loglevel_if(module_warning, x)   \
-                else loglevel_if(module_info, x)      \
-                else loglevel_if(module_verbose, x) \
-                else loglevel_if(interface_error, x)          \
-                else loglevel_if(interface_warning, x)   \
-                else loglevel_if(interface_info, x)      \
-                else loglevel_if(interface_verbose, x)
-
-                if (ll_node->Type() == YAML::NodeType::Scalar) {
-                    try {
-                        // try to read mask directly
-                        ll_bits = ll_node->to<int>();
-                    } catch (YAML::Exception& e) {
-                        loglevel_add(ll_node->to<std::string>());
-                    }
-                } else
-                    for (YAML::Iterator it = ll_node->begin(); it != ll_node->end(); ++it) {
-                        loglevel_add(it->to<std::string>());
-                    }
-#undef loglevel_if
-#undef loglevel_add
-            }
+                if (ll_string == "error")
+                    ll = error;
+                else if (ll_string == "warning")
+                    ll = warning;
+                else if (ll_string == "info")
+                    ll = info;
+                else if (ll_string == "verbose")
+                    ll = verbose;
+            } 
         }
 
         //! cyclic process data read

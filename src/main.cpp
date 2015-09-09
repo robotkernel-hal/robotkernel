@@ -25,19 +25,19 @@ using namespace robotkernel;
 bool sig_shutdown = false;
 void signal_handler(int s) {
     switch (s) {
-    default: 
-	break;
-    case SIGINT:
-    case SIGTERM:
-	printf("\n\n");
-	sig_shutdown = true;
-	break;
+        default: 
+            break;
+        case SIGINT:
+        case SIGTERM:
+            printf("\n\n");
+            sig_shutdown = true;
+            break;
     }
 }
 
 int usage(int argc, char** argv) {
     klog(info, ROBOTKERNEL "usage: robotkernel [--config, -c <filename>] "
-	 "[--quiet, -q] [--verbose, -v] [--help, -h]\n");
+            "[--quiet, -q] [--verbose, -v] [--help, -h]\n");
     klog(info, ROBOTKERNEL "\n");
     klog(info, ROBOTKERNEL "  --config, -c <filename>     specify config file\n");
     klog(info, ROBOTKERNEL "  --quiet, -q                 run in quiet mode\n");
@@ -80,27 +80,21 @@ int main(int argc, char** argv) {
     klog(info, ROBOTKERNEL "links_and_nodes: " LN_LIBS "\n");
 
     string config_file = "";
-    int level =
-	(1 << info) | (1 << warning) | (1 << error)
-	| (1 << interface_info) | (1 << interface_warning) | (1 << interface_error)
-	| (1 << module_info) | (1 << module_warning) | (1 << module_error);
     struct sigaction action;
 
     for (int i = 1; i < argc; ++i) {
         if ((strcmp(argv[i], "--config") == 0) || (strcmp(argv[i], "-c") == 0)) {
-	    if (++i >= argc) {
+            if (++i >= argc) {
                 klog(info, ROBOTKERNEL "--config filename missing\n");
                 return usage(argc, argv);
             }
 
             config_file = string(argv[i]);
-	    
+
         } else if ((strcmp(argv[i], "--quiet") == 0) || (strcmp(argv[i], "-q") == 0))
-	    level = (1 << error) | (1 << interface_error) | (1 << module_error);
-	
+            k.set_loglevel(error);
         else if ((strcmp(argv[i], "--verbose") == 0) || (strcmp(argv[i], "-v") == 0))
-	    level |= (1 << verbose) | (1 << interface_verbose) | (1 << module_verbose);
-	
+            k.set_loglevel(verbose);
         else if ((strcmp(argv[i], "--help") == 0) || (strcmp(argv[i], "-h") == 0))
             return usage(argc, argv);
     }
@@ -108,7 +102,6 @@ int main(int argc, char** argv) {
     if (config_file == "")
         klog(info, ROBOTKERNEL "no config file supplied, starting up without config.\n");
 
-    k._ll_bits = level;
     bool power_up_state = false;
 
     try {
@@ -123,7 +116,7 @@ int main(int argc, char** argv) {
         klog(info, ROBOTKERNEL "up and running!\n");
     else
         klog(info, ROBOTKERNEL "not powered up!\n");
-    
+
     /* attach signal handler */
     action.sa_handler = signal_handler;
     sigemptyset (&action.sa_mask);
@@ -133,17 +126,17 @@ int main(int argc, char** argv) {
     sigaction (SIGABRT, &action, NULL);
 
     try {
-	while (!sig_shutdown) {
-	    k.handle_ln_request(argc, argv);
-	    k.state_check();
-	}
+        while (!sig_shutdown) {
+            k.handle_ln_request(argc, argv);
+            k.state_check();
+        }
     } catch (exception& e) {
         printf("exception: %s\n", e.what());
     }
 
 Exit:
     klog(info, ROBOTKERNEL "exiting\n");
-    
+
 #ifdef __VXWORKS__
     // on vxworks we have to call select once to do magic cleanup
     if (k.clnt)

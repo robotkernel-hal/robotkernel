@@ -81,14 +81,17 @@ interface::interface(const std::string& interface_file,
         }
     }
 
-    klog(interface_info, "[interface] loading interface %s\n", this->interface_file.c_str());
+    klog(info, "[interface] loading interface %s\n", 
+            this->interface_file.c_str());
 
     if (access(this->interface_file.c_str(), R_OK) != 0) {
 #ifdef __VXWORKS__
         // special case on vxworks, because it may return ENOTSUP, the we try to open anyway !
 #else
-        klog(interface_error, "[interface] interface file '%s' not readable!\n", this->interface_file.c_str());
-        throw str_exception("[interface] access '%s' signaled error: %s", this->interface_file.c_str(), strerror(errno));
+        klog(error, "[interface] interface file '%s' not readable!\n", 
+                this->interface_file.c_str());
+        throw str_exception("[interface] access '%s' signaled error: %s", 
+                this->interface_file.c_str(), strerror(errno));
 #endif
     }
 
@@ -104,9 +107,11 @@ interface::interface(const std::string& interface_file,
     intf_unregister = (intf_unregister_t)dlsym(so_handle, "intf_unregister");
 
     if (!intf_register)
-        klog(interface_verbose, "[interface] missing intf_register in %s\n", this->interface_file.c_str());;
+        klog(verbose, "[interface] missing intf_register in %s\n", 
+                this->interface_file.c_str());;
     if (!intf_unregister)
-        klog(interface_verbose, "[interface] missing intf_unregister in %s\n", this->interface_file.c_str());
+        klog(verbose, "[interface] missing intf_unregister in %s\n", 
+                this->interface_file.c_str());
 
     // try to configure
     if (intf_register)
@@ -118,7 +123,7 @@ interface::interface(const std::string& interface_file,
   destroys interface
   */
 interface::~interface() {
-    klog(interface_info, "[interface] destructing %s\n", interface_file.c_str());
+    klog(info, "[interface] destructing %s\n", interface_file.c_str());
 
     // unconfigure interface first
     if (intf_handle && intf_unregister) {
@@ -127,9 +132,12 @@ interface::~interface() {
     }
 
     if (so_handle && !kernel::get_instance()->_do_not_unload_modules) {
-        klog(interface_info, "[interface] unloading interface %s\n", interface_file.c_str());
+        klog(info, "[interface] unloading interface %s\n", 
+                interface_file.c_str());
+
         if (dlclose(so_handle) != 0)
-            klog(interface_error, "[interface] error on unloading interface %s\n", interface_file.c_str());
+            klog(error, "[interface] error on unloading interface %s\n", 
+                    interface_file.c_str());
         else
             so_handle = NULL;
     }
