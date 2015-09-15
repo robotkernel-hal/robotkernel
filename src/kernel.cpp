@@ -30,6 +30,7 @@
 #include "robotkernel/helpers.h"
 #include "robotkernel/exceptions.h"
 #include "robotkernel/module_base.h"
+#include "robotkernel/cmd_delay.h"
 #include "yaml-cpp/yaml.h"
 
 using namespace std;

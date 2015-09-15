@@ -48,14 +48,11 @@ class cmd_delay {
             else
                 _cmd_mode = user_defined;
 
-            const YAML::Node *delay;
-            if (!(delay = node.FindValue("cmd_delay")) && (_cmd_mode == user_defined)) {
+            if (!node["cmd_delay"] && (_cmd_mode == user_defined)) {
                 klog(error, "[cmd_delay] you have to define 'cmd_delay' when using mode user_defined!\n");
                 throw std::exception();
-            } else if (delay)
-                _cmd_delay = (*delay).to<uint64_t>();
-            else
-                _cmd_delay = 0;
+            } else
+                _cmd_delay = get_as<uint64_t>(node, "cmd_delay", 0);
         };
         ~cmd_delay() {}
 
