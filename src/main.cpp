@@ -75,9 +75,9 @@ int main(int argc, char** argv) {
 
     kernel &k = *kernel::get_instance();
 
-    klog(info, ROBOTKERNEL "build by: " BUILD_USER "@" BUILD_HOST "\n");
-    klog(info, ROBOTKERNEL "build date: " BUILD_DATE "\n");
-    klog(info, ROBOTKERNEL "links_and_nodes: " LN_LIBS "\n");
+    klog(info, "build by: " BUILD_USER "@" BUILD_HOST "\n");
+    klog(info, "build date: " BUILD_DATE "\n");
+    klog(info, "links_and_nodes: " LN_VERSION "\n");
 
     string config_file = "";
     struct sigaction action;

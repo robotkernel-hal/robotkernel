@@ -37,13 +37,13 @@
  * \param mod_name module name to register
  * \return interface handle
  */
-typedef INTERFACE_HANDLE (*intf_register_t)(const char *mod_name, const char *dev_name, int offset);
+typedef INTERFACE_HANDLE (*intf_register_t)(const char *config);
 
 //! interface unregister
 /*!
  * \param hdl interface handle
  */
-typedef void (*intf_unregister_t)(INTERFACE_HANDLE hdl);
+typedef int (*intf_unregister_t)(INTERFACE_HANDLE hdl);
 
 #endif // __INTERFACE_INTF_H__
 

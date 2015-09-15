@@ -106,7 +106,7 @@ int gettid() {
 //! handler function called if thread is running
 void log_thread::run() {
 	set_name("rk:log_thread");
-    klog(warning, "[log_thread] started at tid %d\n", gettid());
+    klog(verbose, "log_thread started at tid %d\n", gettid());
     
     while (running()) {
         struct timespec ts;

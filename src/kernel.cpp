@@ -27,6 +27,7 @@
 #include <algorithm>
 #include <string_util/string_util.h>
 #include "robotkernel/kernel.h"
+#include "robotkernel/helpers.h"
 #include "robotkernel/exceptions.h"
 #include "robotkernel/module_base.h"
 #include "yaml-cpp/yaml.h"
@@ -44,6 +45,22 @@ static void split_file_name(const string& str, string& path, string& file) {
         path = str.substr(0,found);
         file = str.substr(found+1);
     }
+}
+        
+loglevel& loglevel::operator=(const std::string& ll_string) {
+    if (ll_string == "error")
+        value = error;
+    else if (ll_string == "warning")
+        value = warning;
+    else if (ll_string == "info")
+        value = info;
+    else if (ll_string == "verbose")
+        value = verbose;
+    else
+        throw robotkernel::str_exception("wrong loglevel value \"%s\"",
+                ll_string.c_str());
+
+    return *this;
 }
 
 const static string ROBOT_KERNEL = "[robotkernel] ";
@@ -76,7 +93,7 @@ int kernel::set_state(std::string mod_name, module_state_t state) {
             continue;
 
         if (dep_mod_state == module_state_error) {
-            log(info, ROBOTKERNEL "dependent module %d is in error state, "
+            log(info, "dependent module %d is in error state, "
                     "cannot power up module %s\n", d_mod_name.c_str(), 
                     mod_name.c_str());
 
@@ -84,7 +101,7 @@ int kernel::set_state(std::string mod_name, module_state_t state) {
         }
 
         if (dep_mod_state < state) {
-            log(info, ROBOTKERNEL "powering up %s module dependencies %s\n",
+            log(info, "powering up %s module dependencies %s\n",
                     mod_name.c_str(), d_mod_name.c_str());
 
             set_state(d_mod_name, state);
@@ -107,17 +124,17 @@ int kernel::set_state(std::string mod_name, module_state_t state) {
                 continue;
 
             if (get_state(mdl2.get_name()) > state) {
-                log(info, ROBOTKERNEL "%s depends on %s -> setting state to init\n",
+                log(info, "%s depends on %s -> setting state to init\n",
                         mdl2.get_name().c_str(), mod_name.c_str());
                 set_state(mdl2.get_name(), module_state_init);
                 break;
             } else
-                log(verbose, ROBOTKERNEL "%s depend on %s but is always in a lower"
+                log(verbose, "%s depend on %s but is always in a lower"
                         " state\n", mdl2.get_name().c_str(), mod_name.c_str());
         }
     }
 
-    log(info, ROBOTKERNEL "setting state of %s to %s\n",
+    log(info, "setting state of %s to %s\n",
             mod_name.c_str(), state_to_string(state));
 
     if (mdl.set_state(state) == -1)
@@ -138,7 +155,7 @@ module_state_t kernel::get_state(std::string mod_name) {
     if (it == module_map.end())
         throw str_exception("[robotkernel] get_state: module %s not found!\n", mod_name.c_str());
 
-    log(verbose, ROBOTKERNEL "getting state of module %s\n",
+    log(verbose, "getting state of module %s\n",
             mod_name.c_str());
 
     module *mdl = it->second;
@@ -153,21 +170,25 @@ module_state_t kernel::get_state(std::string mod_name) {
 kernel::kernel() {
     ll = info;
     _name = "robotkernel";
+    char *ln_program_name = getenv("LN_PROGRAM_NAME");
+    if (ln_program_name)
+        _name = string(ln_program_name);
+
     clnt = NULL;
     _ln_thread_pool_size_main = 1;
 
-    log(info, ROBOTKERNEL PACKAGE_STRING "\n");
+    log(info, PACKAGE_STRING "\n");
 
     int _major, _minor, _patch;
     sscanf(PACKAGE_VERSION, "%d.%d.%d", &_major, &_minor, &_patch);
     
-    log(verbose, ROBOTKERNEL "major %d, minor %d, patch %d\n",
+    log(verbose, "major %d, minor %d, patch %d\n",
             _major, _minor, _patch);
 }
 
 //! destruction
 kernel::~kernel() {
-    log(info, ROBOTKERNEL "destructing...\n");
+    log(info, "destructing...\n");
 
     module_map_t::iterator it;
     while ((it = module_map.begin()) != module_map.end()) {
@@ -182,7 +203,7 @@ kernel::~kernel() {
         delete mdl;
     }
 
-    log(info, ROBOTKERNEL "all modules destructed... cleaning up ln client\n");
+    log(info, "all modules destructed... cleaning up ln client\n");
 
 
     // unregister services before we delete the client, cannot be done in destructors
@@ -200,7 +221,7 @@ kernel::~kernel() {
         delete clnt;
     }
 
-    log(info, ROBOTKERNEL "clean up finished\n");
+    log(info, "clean up finished\n");
 };
 
 //! get kernel singleton instance
@@ -247,7 +268,7 @@ void kernel::init_ln(int argc, char **argv) {
     // handle default service group (NULL) in new "main" thread-pool
     clnt->handle_service_group_in_thread_pool(NULL, "main");
     // configure max number of threads for "main" thread-pool
-    log(verbose, ROBOTKERNEL "setting main thread-pool size to %d\n", _ln_thread_pool_size_main);
+    log(verbose, "setting main thread-pool size to %d\n", _ln_thread_pool_size_main);
     clnt->set_max_threads("main", _ln_thread_pool_size_main);
 
     // powering up modules to operational
@@ -287,8 +308,8 @@ void kernel::config(std::string config_file, int argc, char **argv) {
         throw str_exception("supplied exec file \"%s\" not found!", argv[0]);
 
     split_file_name(string(real_exec_file), path, file);
-    log(info, ROBOTKERNEL "got exec path %s\n", path.c_str());
-    log(info, ROBOTKERNEL "searching interfaces and modules ....\n");
+    log(verbose, "got exec path %s\n", path.c_str());
+    log(info, "searching interfaces and modules ....\n");
     free(real_exec_file);
 
     string base_path, sub_path;
@@ -317,27 +338,27 @@ void kernel::config(std::string config_file, int argc, char **argv) {
             if (stat(_intfpath.str().c_str(), &buf) == 0)
                 _internal_intfpath = _intfpath.str();
         } else {
-            log(info, ROBOTKERNEL "unable to determine internal modules/interfaces path!\n");
+            log(info, "unable to determine internal modules/interfaces path!\n");
         }
     }
 
     if (_internal_modpath != string(""))
-        log(info, ROBOTKERNEL "found modules path %s\n", _internal_modpath.c_str());
+        log(info, "found modules path %s\n", _internal_modpath.c_str());
     if (_internal_intfpath != string(""))
-        log(info, ROBOTKERNEL "found interfaces path %s\n", _internal_intfpath.c_str());
+        log(info, "found interfaces path %s\n", _internal_intfpath.c_str());
 
     if (config_file.compare("") == 0) {
         try {    
             init_ln(argc, argv);        
         } catch(exception& e) {
-            klog(warning, ROBOTKERNEL "unable to init ln\n");
+            klog(warning, "unable to init ln\n");
 
             vector<string> err_msg = split_string(string(e.what()), string("\n"));
 
             for (vector<string>::iterator it = err_msg.begin(); it != err_msg.end(); ++it)
                 klog(warning, "[links_and_nodes] %s\n", (*it).c_str());
 
-            klog(warning, ROBOTKERNEL "will try to init ln in background...\n");
+            klog(warning, "will try to init ln in background...\n");
         }
         return ;
     }
@@ -348,75 +369,52 @@ void kernel::config(std::string config_file, int argc, char **argv) {
 
     split_file_name(string(real_config_file), path, file);
 
-    log(info, ROBOTKERNEL "got config file path: %s, file name %s\n",
+    log(info, "got config file path: %s, file name %s\n",
             path.c_str(), file.c_str());
 
     this->config_file = string(real_config_file);
-    ifstream ifstream_config(real_config_file);
     free(real_config_file);
-    YAML::Parser parser(ifstream_config);
-    YAML::Node doc;
-    parser.GetNextDocument(doc);
+    YAML::Node doc = YAML::LoadFile(this->config_file);
 
     // search for name
-    const YAML::Node *name_node = doc.FindValue("name");
-    if (name_node)
-        _name = name_node->to<string>();
+    char *ln_program_name = getenv("LN_PROGRAM_NAME");
+    if (doc["name"] && !ln_program_name)
+        _name = get_as<string>(doc, "name");
 
     // search for loglevel
-    const YAML::Node *ll_node = doc.FindValue("loglevel");
-    if (ll_node) {
-        ll = info;
-        string ll_string = ll_node->to<string>();
+    ll = get_as<string>(doc, "loglevel", "info");
 
-        if (ll_string == "error")
-            ll = error;
-        else if (ll_string == "warning")
-            ll = warning;
-        else if (ll_string == "info")
-            ll = info;
-        else if (ll_string == "verbose")
-            ll = verbose;
-    }
-
-    const YAML::Node* log_fix_modname_length = doc.FindValue("log_fix_modname_length");
-    if(log_fix_modname_length)
-        *log_fix_modname_length >> rk_log.fix_modname_length;
+    rk_log.fix_modname_length = 
+        get_as<unsigned int>(doc, "log_fix_modname_length", 20);
 
     // search for log level
-    const YAML::Node *dump_log_len_node = doc.FindValue("max_dump_log_len");
-    if (dump_log_len_node) {
-        unsigned int len;
-        *dump_log_len_node >> len;
+    if (doc["max_dump_log_len"]) {
+        unsigned int len = 
+            get_as<unsigned int>(doc, "max_dump_log_len");
         config_dump_log(len, 0);
     }
 
-    const YAML::Node *ln_thread_pool_size_main = doc.FindValue("ln_thread_pool_size_main");
-    if(ln_thread_pool_size_main) {
-        (*ln_thread_pool_size_main) >> _ln_thread_pool_size_main;
-        if(_ln_thread_pool_size_main < 1) {
-            klog(error, ROBOTKERNEL "ln_thread_pool_size_main has to be >= 1! (you gave %d)\n", _ln_thread_pool_size_main);
-            _ln_thread_pool_size_main = 1;
-        }
-    } else
+    _ln_thread_pool_size_main = 
+        get_as<unsigned int>(doc, "ln_thread_pool_size_main", 1);
+    if(_ln_thread_pool_size_main < 1) {
+        klog(error, "ln_thread_pool_size_main has to be >= 1! (you gave %d)\n",
+                _ln_thread_pool_size_main);
         _ln_thread_pool_size_main = 1;
+    }
 
-    const YAML::Node *do_not_unload_modules = doc.FindValue("do_not_unload_modules");
-    if(do_not_unload_modules) {
-        (*do_not_unload_modules) >> _do_not_unload_modules;
-    } else
-        _do_not_unload_modules = false;
+    _do_not_unload_modules = 
+        get_as<bool>(doc, "do_not_unload_modules", false);
 
     try {
         init_ln(argc, argv);        
     } catch(exception& e) {
-        klog(warning, ROBOTKERNEL "unable to init ln: %s\n", e.what());
-        klog(warning, ROBOTKERNEL "will try to init ln in background...\n");
+        klog(warning, "unable to init ln: %s\n", e.what());
+        klog(warning, "will try to init ln in background...\n");
     }
 
     // creating modules specified in config file
     const YAML::Node& modules = doc["modules"];
-    for (YAML::Iterator it = modules.begin(); it != modules.end(); ++it) {
+    for (YAML::const_iterator it = modules.begin(); it != modules.end(); ++it) {
         module *mdl = new module(*it, path);
         if (!mdl->configured()) {
             string name = mdl->get_name();
@@ -431,7 +429,7 @@ void kernel::config(std::string config_file, int argc, char **argv) {
         }
 
         // add to module map
-        klog(info, ROBOTKERNEL "adding [%s]\n", mdl->get_name().c_str());
+        klog(info, "adding [%s]\n", mdl->get_name().c_str());
         module_map[mdl->get_name()] = mdl;
     }
 }
@@ -449,7 +447,7 @@ bool kernel::power_up() {
                        current_state = mdl.get_state();
 
         if (current_state == module_state_error) {
-            log(info, ROBOTKERNEL "module '%s' in in error state, not "
+            log(info, "module '%s' in in error state, not "
                     "powering up!\n", mdl.get_name().c_str());
             failed_modules.push_back(mdl.get_name());
             continue;
@@ -459,17 +457,17 @@ bool kernel::power_up() {
             continue;
 
         try {
-            log(info, ROBOTKERNEL "powering up '%s' to state %s\n", 
+            log(info, "powering up '%s' to state %s\n", 
                     mdl.get_name().c_str(), state_to_string(target_state));
             set_state(mdl.get_name(), target_state);
         } catch (exception& e) {
-            log(error, ROBOTKERNEL "caught exception: %s\n", e.what());
+            log(error, "caught exception: %s\n", e.what());
             failed_modules.push_back(mdl.get_name());
         }
     }
 
     if (!failed_modules.empty()) {
-        string msg = ROBOTKERNEL "modules failed to switch to OP: ";
+        string msg = "modules failed to switch to OP: ";
 
         for (std::list<string>::iterator it = failed_modules.begin();
                 it != failed_modules.end(); ++it)
@@ -491,7 +489,7 @@ void kernel::power_down() {
         try {
             set_state(mdl.get_name(), module_state_init);
         } catch (exception& e) {
-            log(error, ROBOTKERNEL "caught exception: %s\n", e.what());
+            log(error, "caught exception: %s\n", e.what());
         }
     }
 }
@@ -517,7 +515,7 @@ bool kernel::state_check() {
     for (it = module_map.begin(); it != module_map.end(); ++it) {
         module_state_t state = it->second->get_state();
         if (state == module_state_error) {
-            klog(error, ROBOTKERNEL "module %s signaled error, switching "
+            klog(error, "module %s signaled error, switching "
                     "to init\n", it->first.c_str());
             set_state(it->first.c_str(), module_state_init);
         }
@@ -545,17 +543,16 @@ int kernel::request_cb(const char *mod_name, int reqcode, void *ptr) {
 
     return it->second->request(reqcode, ptr);
 }
-
+        
 //! kernel register interface callback
 /*!
- * \param mod_name module name to send request to
  * \param if_name interface name to register
- * \param offset module offset name
+ * \param node configuration node
  * \return interface id or -1
  */
-kernel::interface_id_t kernel::register_interface_cb(const char *mod_name, 
-        const char *if_name, const char *dev_name, int offset) {
-    interface *iface = new interface(if_name, mod_name, dev_name, offset);
+kernel::interface_id_t kernel::register_interface_cb(const char *if_name, 
+        const YAML::Node& node) {
+    interface *iface = new interface(if_name, node);
     if (!iface)
         return (interface_id_t)NULL;
 
@@ -618,7 +615,7 @@ int kernel::state_change(const char *mod_name, module_state_t new_state) {
     if (new_state == current_state)
         return 0;
 
-    klog(info, ROBOTKERNEL "WARNING: module %s changed state to %d, old state %d\n",
+    klog(info, "WARNING: module %s changed state to %d, old state %d\n",
             mod_name, new_state, current_state);
 
     printf("\n\n\n THIS IS UNEXPECTED !!!! \n\n\n");
@@ -665,18 +662,8 @@ int kernel::on_config_dump_log(ln::service_request& req, ln_service_robotkernel_
         py_value *pval = eval_full(set_log_level);
         py_string *pstring = dynamic_cast<py_string *>(pval);
 
-        if (pstring) {
-            string ll_string = string(*pstring);
-
-            if (ll_string == "error")
-                ll = error;
-            else if (ll_string == "warning")
-                ll = warning;
-            else if (ll_string == "info")
-                ll = info;
-            else if (ll_string == "verbose")
-                ll = verbose;
-        }
+        if (pstring) 
+            ll = string(*pstring);
     }
 
     ln::string_buffer current_log_level_sb(&svc.resp.current_log_level, current_log_level);
@@ -782,29 +769,24 @@ int kernel::on_add_module(ln::service_request& req, ln_service_robotkernel_add_m
         string config = string(svc.req.config, svc.req.config_len);
         klog(info, "got config: %s\n", config.c_str());
 
-        stringstream stream(config);
-        YAML::Parser parser(stream);
-        YAML::Node node;
-        if (parser.GetNextDocument(node)) {
-            module *mdl = new module(node, "");
+        YAML::Node node = YAML::Load(config);
+        module *mdl = new module(node, "");
 
-            if (module_map.find(mdl->get_name()) != module_map.end()) {
-                string name = mdl->get_name();
-                delete mdl;
-                throw str_exception("[robotkernel] duplicate module name: %s\n", name.c_str());
-            }
+        if (module_map.find(mdl->get_name()) != module_map.end()) {
+            string name = mdl->get_name();
+            delete mdl;
+            throw str_exception("[robotkernel] duplicate module name: %s\n", name.c_str());
+        }
 
-            if (!mdl->configured()) {
-                string name = mdl->get_name();
-                delete mdl;
-                throw str_exception("[robotkernel] module %s not configured!\n", name.c_str());
-            }
+        if (!mdl->configured()) {
+            string name = mdl->get_name();
+            delete mdl;
+            throw str_exception("[robotkernel] module %s not configured!\n", name.c_str());
+        }
 
-            // add to module map
-            module_map[mdl->get_name()] = mdl;
-            req.respond();
-        } else
-            throw str_exception("[robotkernel] error in yaml config!\n");
+        // add to module map
+        module_map[mdl->get_name()] = mdl;
+        req.respond();
     } catch(exception& e) {
         klog(error, "caught exception: %s\n", e.what());
         svc.resp.error_message = strdup(e.what());
@@ -917,10 +899,23 @@ std::string kernel::ll_to_string(loglevel ll) {
     return "????";
 }
 
-void kernel::log(loglevel ll, const char *format, ...) {  
+#include "robotkernel/dump_log.h"
+
+void kernel::log(loglevel lvl, const char *format, ...) {  
     struct log_thread::log_pool_object *obj;
     
-    if (ll > this->ll)
+    char buf[1024];
+    int bufpos = 0;
+    bufpos += snprintf(buf+bufpos, sizeof(buf)+bufpos, "[%s|robotkernel] ", 
+            _name.c_str());
+
+    // format argument list    
+    va_list args;
+    va_start(args, format);
+    vsnprintf(buf+bufpos, sizeof(buf)-bufpos, format, args);
+    va_end(args);
+    
+    if (ll < lvl)
         goto log_exit;
 
     if ((obj = rk_log.get_pool_object()) != NULL) {
@@ -939,21 +934,12 @@ void kernel::log(loglevel ll, const char *format, ...) {
         snprintf(obj->buf + len, sizeof(obj->buf) - len, ".%03.0f ", mseconds);
         len = strlen(obj->buf);
 
-        snprintf(obj->buf + len, sizeof(obj->buf) - len, "%s ", ll_to_string(ll).c_str());
-        len = strlen(obj->buf);
-
-        // format argument list
-        va_list args;
-        va_start(args, format);
-        vsnprintf(obj->buf + len, obj->len - len, format, args);
-        va_end(args);
+        snprintf(obj->buf + len, sizeof(obj->buf) - len, "%s %s", 
+                ll_to_string(lvl).c_str(), buf);
         rk_log.log(obj);
     }
     
 log_exit:
-    va_list args;
-    va_start(args, format);
-    vdump_log(format, args);
-    va_end(args);
+    ::dump_log(buf);
 }
 

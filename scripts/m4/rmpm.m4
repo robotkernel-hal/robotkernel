@@ -44,6 +44,10 @@ AC_DEFUN([RMPM_ARCH],
             if test $host = x86-qnx6.5-gnu4.x; then
                 rmpm_host=qnx6.5-x86-gcc4.x
             fi
+            if test $host = x86-winxp-mingw32; then
+                rmpm_host=winxp-x86-mingw32
+                ARCH_CFLAGS="-D__WIN32__"
+            fi
             if test $host = arm-angstrom-linux-gnueabi; then
                 rmpm_host=angstrom-armv7-gcc4.7
                 ARCH_CFLAGS="-DNO_RDTSC"

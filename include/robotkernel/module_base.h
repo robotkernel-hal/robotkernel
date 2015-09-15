@@ -28,6 +28,7 @@
 #include "robotkernel/module_intf.h"
 #include "robotkernel/kernel.h"
 #include "robotkernel/exceptions.h"
+#include "robotkernel/helpers.h"
 #include "yaml-cpp/yaml.h"
 
 #ifdef __cplusplus
@@ -82,12 +83,7 @@ EXPORT_C int mod_unconfigure(MODULE_HANDLE hdl) {                               
                                                                                     \
 EXPORT_C MODULE_HANDLE mod_configure(const char* name, const char* config) {        \
     modclass *dev;                                                                  \
-    std::stringstream stream(config);                                               \
-    YAML::Parser parser(stream);                                                    \
-    YAML::Node doc;                                                                 \
-                                                                                    \
-    if (!parser.GetNextDocument(doc))                                               \
-        throw robotkernel::str_exception("["#modname"] error parsing config\n");    \
+    YAML::Node doc = YAML::Load(config);                                            \
                                                                                     \
     dev = new modclass(name, doc);                                                  \
     if (!dev)                                                                       \
@@ -132,10 +128,9 @@ class module_base {
             ll = kernel::get_instance()->get_loglevel();
 
             // search for loglevel
-            const YAML::Node *ll_node = node.FindValue("loglevel");
-            if (ll_node) {
+            if (node["loglevel"]) {
                 ll = info;
-                std::string ll_string = ll_node->to<std::string>();
+                std::string ll_string = get_as<std::string>(node, "loglevel");
 
                 if (ll_string == "error")
                     ll = error;

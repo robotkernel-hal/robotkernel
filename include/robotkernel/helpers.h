@@ -42,29 +42,25 @@
 
 template <typename type>
 type get_as(const YAML::Node& node, const std::string key) {
-    const YAML::Node *n = node.FindValue(key);
-
-    if (!n) {
+    if (!node[key]) {
         YAML::Emitter out;
         out << node;
 
-        throw robotkernel::str_exception("[config-error] key %s not found!\n\n%s\n", 
+        throw robotkernel::str_exception("[config-error] key \"%s\" not found!\n\n%s\n", 
                 key.c_str(), out.c_str());
     }
 
     // gcc3.3 need this syntax for calling this template 
-    return n->template to<type>();
+    return node[key].template as<type>();
 }
 
 template <typename type>
 type get_as(const YAML::Node& node, const std::string key, type dflt) {
-    const YAML::Node *n = node.FindValue(key);
-
-    if (!n)
+    if (!node[key])
         return dflt;
 
     // gcc3.3 need this syntax for calling this template 
-    return n->template to<type>();
+    return node[key].template as<type>();
 }
 
 #endif // __MODULE_H__

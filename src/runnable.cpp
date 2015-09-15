@@ -47,19 +47,18 @@ using namespace robotkernel;
  * \param node yaml node which should contain prio and affinity
  */
 runnable::runnable(const YAML::Node& node) {
-    const YAML::Node *value;
     run_flag       = false;
     prio           = get_as<int>(node, "prio", 0);
     policy         = SCHED_FIFO;
     affinity_mask  = 0;
 
-    if((value = node.FindValue("affinity"))) {
-        const YAML::Node& affinity = *value;
+    if(node["affinity"]) {
+        const YAML::Node& affinity = node["affinit"];
         if (affinity.Type() == YAML::NodeType::Scalar)
-            affinity_mask = (1 << affinity.to<int>());
+            affinity_mask = (1 << affinity.as<int>());
         else if (affinity.Type() == YAML::NodeType::Sequence)
-            for (YAML::Iterator it = affinity.begin(); it != affinity.end(); ++it)
-                affinity_mask |= (1 << it->to<int>());
+            for (YAML::const_iterator it = affinity.begin(); it != affinity.end(); ++it)
+                affinity_mask |= (1 << it->as<int>());
     }
 }
 

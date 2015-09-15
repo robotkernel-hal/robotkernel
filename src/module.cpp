@@ -101,23 +101,23 @@ module::external_trigger::external_trigger(const YAML::Node& node) {
     _divisor        = get_as<int>(node, "divisor", 1);
     _direct_mode    = get_as<bool>(node, "direct_mode", false);
 
-    if (node.FindValue("prio")) {
-        _prio = node["prio"].to<int>();
+    if (node["prio"]) {
+        _prio = get_as<int>(node, "prio");
 
         if (_direct_mode)
-            klog(info, "[external_trigger] prio will not have any effect in direct mode!\n");
+            klog(info, "external_trigger prio will not have any effect in direct mode!\n");
     }
 
-    if(node.FindValue("affinity")) {
+    if(node["affinity"]) {
         const YAML::Node& affinity = node["affinity"];
         if (affinity.Type() == YAML::NodeType::Scalar)
-            _affinity_mask = (1 << affinity.to<int>());
+            _affinity_mask = (1 << affinity.as<int>());
         else if (affinity.Type() == YAML::NodeType::Sequence)
-            for (YAML::Iterator it = affinity.begin(); it != affinity.end(); ++it)
-                _affinity_mask |= (1 << it->to<int>());
+            for (YAML::const_iterator it = affinity.begin(); it != affinity.end(); ++it)
+                _affinity_mask |= (1 << it->as<int>());
 
         if (_direct_mode)
-            klog(info, "[external_trigger] affinity will not have any effect in direct mode!\n");
+            klog(info, "external_trigger affinity will not have any effect in direct mode!\n");
     }
 }
 
@@ -151,13 +151,9 @@ YAML::Emitter& operator<<(YAML::Emitter& out, const robotkernel::module& mdl) {
     out << YAML::Key << "name" << YAML::Value << mdl.name;
     out << YAML::Key << "module_file" << YAML::Value << mdl.module_file;
 
-    stringstream stream(mdl.config);
-    YAML::Parser parser(stream);
-    YAML::Node node;
-    if (parser.GetNextDocument(node)) {
-        out << YAML::Key << "config";
-        out << YAML::Value << node;
-    }
+    YAML::Node node = YAML::Load(mdl.config);
+    out << YAML::Key << "config";
+    out << YAML::Value << node;
 
     if (!mdl.triggers.empty()) {
         out << YAML::Key << "trigger";
@@ -185,43 +181,6 @@ YAML::Emitter& operator<<(YAML::Emitter& out, const robotkernel::module& mdl) {
 
 //! module construction
 /*!
-  \param mod_name name of shared object to load
-  \param module_file filename of module
-  \param config module configuration string
-  \param trigger configuration
-  */
-module::module(std::string mod_name, std::string module_file, std::string config, 
-        std::string trigger, std::string depends) :
-    name(mod_name), module_file(module_file), config(config), so_handle(NULL),
-    mod_handle(NULL), mod_configure(NULL), mod_unconfigure(NULL), mod_read(NULL), mod_write(NULL), 
-    mod_set_state(NULL) {
-
-    stringstream stream(trigger);
-    YAML::Parser parser(stream);
-    YAML::Node trigger_node;
-    if (parser.GetNextDocument(trigger_node)) {
-        for (YAML::Iterator it = trigger_node.begin(); 
-                it != trigger_node.end(); ++it) {
-            try {
-                external_trigger *newtrigger = new external_trigger(*it);
-                this->depends.push_back(newtrigger->_mod_name);
-                triggers.push_back(newtrigger);                
-            } catch (YAML::Exception& e) {
-                klog(error,
-                        "[%s] exception creating external trigger: %s\n"
-                        "got config string:\n====\n%s\n====\n",
-                        mod_name.c_str(), e.what(),
-                        trigger.c_str());
-                throw;
-            }
-        }
-    }
-
-    _init();
-}
-
-//! module construction
-/*!
  * \param node configuration node
  */
 module::module(const YAML::Node& node, string config_path)
@@ -232,41 +191,38 @@ module::module(const YAML::Node& node, string config_path)
     module_file      = get_as<string>(node, "module_file");
     config_file_path = config_path;
 
-    const YAML::Node *config_file_node = node.FindValue("config_file");
-    const YAML::Node *config_node = node.FindValue("config");
-    if (config_file_node) {
-        string file_name = (*config_file_node).to<string>();
+    if (node["config_file"]) {
+        string file_name = get_as<string>(node, "config_file");
         // check for absolute/relative path
         if (file_name[0] != '/') {
             // relative path to config file
             file_name = config_path + "/" + file_name;
         }
 
-        klog(info, "[%s] config file \"%s\"\n", 
+        klog(info, "%s config file \"%s\"\n", 
                 name.c_str(), file_name.c_str());
 
         ifstream t(file_name.c_str());
         stringstream buffer;
         buffer << t.rdbuf();
         config = buffer.str();
-    } else if (config_node) {
+    } else if (node["config"]) {
         YAML::Emitter t;
-        t << (*config_node);
+        t << node["config"];
         config = string(t.c_str());
     }
 
-    const YAML::Node *trigger = node.FindValue("trigger");
-    if (trigger) {
-        for (YAML::Iterator it = trigger->begin(); 
-                it != trigger->end(); ++it) {
+    if (node["trigger"]) {
+        for (YAML::const_iterator it = node["trigger"].begin(); 
+                it != node["trigger"].end(); ++it) {
             try {
                 external_trigger *trigger = new external_trigger(*it);
                 depends.push_back(trigger->_mod_name);
                 triggers.push_back(trigger);
             } catch (YAML::Exception& e) {
                 YAML::Emitter t;
-                t << (*trigger);
-                klog(error, "[%s] exception creating external trigger: %s\n"
+                t << node["trigger"];
+                klog(error, "%s exception creating external trigger: %s\n"
                         "got config string: \n====\n%s\n====\n",
                         name.c_str(), e.what(), t.c_str());
                 throw;
@@ -274,19 +230,18 @@ module::module(const YAML::Node& node, string config_path)
         }
     }
 
-    const YAML::Node *deps = node.FindValue("depends");
-    if (deps) {
-        if (deps->Type() == YAML::NodeType::Scalar) {
-            std::string tmp = deps->to<std::string>();
+    if (node["depends"]) {
+        if (node["depends"].Type() == YAML::NodeType::Scalar) {
+            std::string tmp = get_as<std::string>(node, "depends");
 
             if (tmp == name)
                 throw str_exception("module %s depends on itself?\n", name.c_str());
 
             depends.push_back(tmp); 
-        } else if (deps->Type() == YAML::NodeType::Sequence) {
-            for (YAML::Iterator it = deps->begin();
-                    it != deps->end(); ++it) {
-                std::string tmp = it->to<std::string>();
+        } else if (node["depends"].Type() == YAML::NodeType::Sequence) {
+            for (YAML::const_iterator it = node["depends"].begin();
+                    it != node["depends"].end(); ++it) {
+                std::string tmp = it->as<std::string>();
 
                 if (tmp == name)
                     throw str_exception("module %s depends on itself?\n", name.c_str());
@@ -312,7 +267,6 @@ module::module(const YAML::Node& node, string config_path)
     else if (tmp_power_up == "true") power_up = module_state_op;
     else power_up = module_state_init;
 
-    //    const YAML::Node *clocks = node.FindValue("clocks");
     _init();
 }
 
@@ -354,44 +308,43 @@ void module::_init() {
             module_file = mod;
     }
 
+#ifdef __VXWORKS__
+    klog(info, "loading module %s\n", module_file.c_str());
+    so_handle = dlopen(module_file.c_str(), RTLD_GLOBAL |
+            RTLD_NOW);
+#else
     if ((so_handle = dlopen(module_file.c_str(), RTLD_GLOBAL | RTLD_NOW |
                     RTLD_NOLOAD)) == NULL) {
-        klog(info, "[%s] loading module %s\n", name.c_str(), module_file.c_str());
+        klog(info, "loading module %s\n", module_file.c_str());
 
         if (access(module_file.c_str(), R_OK) != 0) {
-#ifdef __VXWORKS__
-            // special case on vxworks, because it may return ENOTSUP, the we try to open anyway !
-#else
-            klog(error, "[%s] module file name not given as absolute filename, either set\n"
-                    "         ROBOTKERNEL_MODULE_PATH environment variable or specify absolut path!\n", name.c_str());
-            klog(error, "[%s] access signaled error: %s\n", name.c_str(), strerror(errno));
+            klog(error, "%s module file name not given as absolute filename, either set\n"
+                    "         ROBOTKERNEL_MODULE_PATH environment variable or specify absolut path!\n",
+                    module_file.c_str());
+            klog(error, "access signaled error: %s\n", strerror(errno));
             return;
-#endif
         }
 
-#ifndef __VXWORKS__
-        {
-            char dirname_buffer[1024];
-            strcpy(dirname_buffer, module_file.c_str());
-            char* dir = dirname(dirname_buffer);
-            DIR* dirp = opendir(dir);
-            if(dirp) {
-                struct dirent* de;
-                while((de = readdir(dirp))) {
-                    // klog(error, "[%s] dir entry: %s\n", name.c_str(), de->d_name);
-                }
-                closedir(dirp);
+        char dirname_buffer[1024];
+        strcpy(dirname_buffer, module_file.c_str());
+        char* dir = dirname(dirname_buffer);
+        DIR* dirp = opendir(dir);
+        if(dirp) {
+            struct dirent* de;
+            while((de = readdir(dirp))) {
+                // klog(error, "[%s] dir entry: %s\n", name.c_str(), de->d_name);
             }
+            closedir(dirp);
         }
-#endif
 
         so_handle = dlopen(module_file.c_str(), RTLD_GLOBAL |
                 RTLD_NOW);
     }
+#endif
 
     if (!so_handle) {
-        klog(error, "[%s] dlopen signaled error opening module:\n", name.c_str());
-        klog(error, "[%s] %s\n", name.c_str(), dlerror());;
+        klog(error, "%s dlopen signaled error opening module:\n", module_file.c_str());
+        klog(error, "%s\n", dlerror());;
         return;
     }
 
@@ -406,23 +359,23 @@ void module::_init() {
     mod_trigger_slave_id    = (mod_trigger_slave_id_t)  dlsym(so_handle, "mod_trigger_slave_id");
 
     if (!mod_configure)
-        klog(verbose, "[%s] missing mod_configure in %s\n", name.c_str(), module_file.c_str());;
+        klog(verbose, "missing mod_configure in %s\n", module_file.c_str());;
     if (!mod_unconfigure)
-        klog(verbose, "[%s] missing mod_unconfigure in %s\n", name.c_str(), module_file.c_str());
+        klog(verbose, "missing mod_unconfigure in %s\n", module_file.c_str());
     if (!mod_read)
-        klog(verbose, "[%s] missing mod_read in %s\n", name.c_str(), module_file.c_str());
+        klog(verbose, "missing mod_read in %s\n", module_file.c_str());
     if (!mod_write)
-        klog(verbose, "[%s] missing mod_write in %s\n", name.c_str(), module_file.c_str());
+        klog(verbose, "missing mod_write in %s\n", module_file.c_str());
     if (!mod_set_state)
-        klog(verbose, "[%s] missing mod_set_state in %s\n", name.c_str(), module_file.c_str());
+        klog(verbose, "missing mod_set_state in %s\n", module_file.c_str());
     if (!mod_get_state)
-        klog(verbose, "[%s] missing mod_get_state in %s\n", name.c_str(), module_file.c_str());
+        klog(verbose, "missing mod_get_state in %s\n", module_file.c_str());
     if (!mod_request)
-        klog(verbose, "[%s] missing mod_request in %s\n", name.c_str(), module_file.c_str());
+        klog(verbose, "missing mod_request in %s\n", module_file.c_str());
     if (!mod_trigger)
-        klog(verbose, "[%s] missing mod_trigger in %s\n", name.c_str(), module_file.c_str());
+        klog(verbose, "missing mod_trigger in %s\n", module_file.c_str());
     if (!mod_trigger_slave_id)
-        klog(verbose, "[%s] missing mod_trigger_slave_id in %s\n", name.c_str(), module_file.c_str());
+        klog(verbose, "missing mod_trigger_slave_id in %s\n", module_file.c_str());
 
     // try to configure
     reconfigure();
@@ -465,7 +418,7 @@ bool module::reconfigure() {
   destroys module
   */
 module::~module() {
-    klog(info, "[%s] destructing %s\n", name.c_str(), module_file.c_str());
+    klog(info, "%s destructing %s\n", name.c_str(), module_file.c_str());
 
     while (!triggers.empty()) {
         external_trigger *trigger = triggers.front();
@@ -488,10 +441,10 @@ module::~module() {
     }
 
     if (so_handle && !kernel::get_instance()->_do_not_unload_modules) {
-        klog(info, "[%s] unloading module %s\n", name.c_str(), module_file.c_str());
+        klog(info, "%s unloading module %s\n", name.c_str(), module_file.c_str());
 #ifndef __VXWORKS__ // we do not dlclose on vxworks, vxworks does stupid things
         if (dlclose(so_handle) != 0)
-            klog(error, "[%s] error on unloading module %s\n", name.c_str(), module_file.c_str());
+            klog(error, "%s error on unloading module %s\n", name.c_str(), module_file.c_str());
         else
 #endif
             so_handle = NULL;
@@ -506,10 +459,10 @@ module::~module() {
   */
 size_t module::read(char* buf, size_t bufsize) {
     if (!mod_handle)
-        throw str_exception("[%s] not configured!\n", name.c_str());
+        throw str_exception("%s not configured!\n", name.c_str());
 
     if (!mod_read) {
-        klog(error, "[%s] error: no mod_read function\n", name.c_str());
+        klog(error, "%s error: no mod_read function\n", name.c_str());
         return 0;
     }
 
@@ -524,10 +477,10 @@ size_t module::read(char* buf, size_t bufsize) {
   */
 size_t module::write(char* buf, size_t bufsize) {
     if (!mod_handle)
-        throw str_exception("[%s] not configured!\n", name.c_str());
+        throw str_exception("%s not configured!\n", name.c_str());
 
     if (!mod_write) {
-        klog(error, "[%s] error: no mod_write function\n", name.c_str());
+        klog(error, "%s error: no mod_write function\n", name.c_str());
         return 0;
     }
 
@@ -541,10 +494,10 @@ size_t module::write(char* buf, size_t bufsize) {
   */
 int module::set_state(module_state_t state) {
     if (!mod_handle)
-        throw str_exception("[%s] not configured\n", name.c_str());
+        throw str_exception("%s not configured\n", name.c_str());
 
     if (!mod_set_state) {
-        klog(error, "[%s] error: no mod_set_state function\n", name.c_str());
+        klog(error, "%s error: no mod_set_state function\n", name.c_str());
         return -1;
     }
 
@@ -558,19 +511,19 @@ int module::set_state(module_state_t state) {
         case module_state_init:
             for (trigger_list_t::iterator it = triggers.begin();
                     it != triggers.end(); ++it) {
-                klog(info, "[%s] removing module trigger %s\n",
+                klog(info, "%s removing module trigger %s\n",
                         name.c_str(), (*it)->_mod_name.c_str());
 
                 kernel& k = *kernel::get_instance();
                 kernel::module_map_t::iterator module_it = k.module_map.find((*it)->_mod_name);
                 if (module_it == k.module_map.end())
-                    throw str_exception("[%s] %s not found\n", name.c_str(), (*it)->_mod_name.c_str());
+                    throw str_exception("%s : %s not found\n", name.c_str(), (*it)->_mod_name.c_str());
 
                 module *mdl2 = module_it->second;
                 mdl2->trigger_unregister_module(this, **it);
             }
 
-            klog(info, "[%s] setting state from %s to %s\n", name.c_str(), 
+            klog(info, "%s setting state from %s to %s\n", name.c_str(), 
                     state_to_string(get_state()), state_to_string(state));
 
             ret = mod_set_state(mod_handle, state);
@@ -581,7 +534,7 @@ int module::set_state(module_state_t state) {
                     return ret;
             }
 
-            klog(info, "[%s] setting state from %s to %s\n", name.c_str(), 
+            klog(info, "%s setting state from %s to %s\n", name.c_str(), 
                     state_to_string(get_state()), state_to_string(state));
 
             ret = mod_set_state(mod_handle, state);
@@ -594,7 +547,7 @@ int module::set_state(module_state_t state) {
 
             for (trigger_list_t::iterator it = triggers.begin();
                     it != triggers.end(); ++it) {
-                klog(info, "[%s] adding module trigger %s\n",
+                klog(info, "%s adding module trigger %s\n",
                         name.c_str(), (*it)->_mod_name.c_str());
 
                 kernel& k = *kernel::get_instance();
@@ -605,7 +558,7 @@ int module::set_state(module_state_t state) {
                         ss << "[" << (*it)->_mod_name << "], ";
                     }
 
-                    throw str_exception("[%s] %s not found! (loaded %s)\n",
+                    throw str_exception("%s : %s not found! (loaded %s)\n",
                             name.c_str(), (*it)->_mod_name.c_str(), ss.str().c_str());
                 }
 
@@ -613,7 +566,7 @@ int module::set_state(module_state_t state) {
                 mdl2->trigger_register_module(this, **it);
             }
 
-            klog(info, "[%s] setting state from %s to %s\n", name.c_str(), 
+            klog(info, "%s setting state from %s to %s\n", name.c_str(), 
                     state_to_string(get_state()), state_to_string(state));
 
             if ((ret = mod_set_state(mod_handle, state)) == -1)
@@ -630,7 +583,7 @@ int module::set_state(module_state_t state) {
                     return ret;
             }
 
-            klog(info, "[%s] setting state from %s to %s\n", name.c_str(), 
+            klog(info, "%s setting state from %s to %s\n", name.c_str(), 
                     state_to_string(get_state()), state_to_string(state));
 
             if ((ret = mod_set_state(mod_handle, state)) == -1)
@@ -647,7 +600,7 @@ int module::set_state(module_state_t state) {
                     return ret;
             }
 
-            klog(info, "[%s] setting state from %s to %s\n", name.c_str(), 
+            klog(info, "%s setting state from %s to %s\n", name.c_str(), 
                     state_to_string(get_state()), state_to_string(state));
 
             ret = mod_set_state(mod_handle, state);
@@ -665,10 +618,10 @@ int module::set_state(module_state_t state) {
   */
 module_state_t module::get_state() {
     if (!mod_handle)
-        throw str_exception("[%s] not configured\n", name.c_str());
+        throw str_exception("%s not configured\n", name.c_str());
 
     if (!mod_get_state) {
-        klog(error, "[%s] error: no mod_get_state function\n", name.c_str()); 
+        klog(error, "%s error: no mod_get_state function\n", name.c_str()); 
         return module_state_unknown;
     }
 
@@ -711,7 +664,7 @@ void module::trigger_register_module(module *mdl, external_trigger& t) {
     worker_key k = { t._clk_id, t._prio, t._affinity_mask, t._divisor };
     worker_map_t::iterator it = _worker.find(k); 
     if (it == _worker.end()) {
-        klog(info, "[%s] new kernel worker from %s, clk_id %d, prio %d, divisor %d\n",
+        klog(info, "%s new kernel worker from %s, clk_id %d, prio %d, divisor %d\n",
                 name.c_str(), mdl->name.c_str(), t._clk_id, t._prio, t._divisor);
 
         // create new worker thread
@@ -746,7 +699,7 @@ void module::trigger_unregister_module(module *mdl, external_trigger& t) {
     worker_key k = { t._clk_id, t._prio, t._affinity_mask, t._divisor };
     worker_map_t::iterator it = _worker.find(k); 
     if (it == _worker.end()) {
-        klog(verbose , "[%s] kernel worker from %s, clk_id %d, prio %d not found\n",
+        klog(verbose, "%s kernel worker from %s, clk_id %d, prio %d not found\n",
                 name.c_str(), mdl->name.c_str(), t._clk_id, t._prio);
         return;
     }

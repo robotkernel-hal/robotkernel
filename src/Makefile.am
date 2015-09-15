@@ -11,6 +11,7 @@ include_HEADERS = $(headerdir)/module_intf.h \
 				  $(headerdir)/module.h \
 				  $(headerdir)/module_base.h \
 				  $(headerdir)/interface.h \
+				  $(headerdir)/interface_base.h \
 				  $(headerdir)/exceptions.h \
 				  $(headerdir)/kernel.h \
 				  $(headerdir)/kernel_worker.h \
@@ -27,14 +28,14 @@ include_HEADERS = $(headerdir)/module_intf.h \
 				  $(gen_headerdir)/ln_kernel_messages.h 
 
 robotkernel_SOURCES = module.cpp module_intf.cpp interface.cpp main.cpp exceptions.cpp kernel.cpp kernel_worker.cpp \
-					  runnable.cpp trigger_base.cpp log_thread.cpp dump_log.cpp char_ringbuffer.cpp module_base.cpp
+					  runnable.cpp trigger_base.cpp log_thread.cpp dump_log.cpp char_ringbuffer.cpp module_base.cpp interface_base.cpp
 
 robotkernel_CXXFLAGS = -O2 -I$(top_builddir)/include -I$(top_srcdir)/include/ @YAMLCPP_CFLAGS@ @LN_CFLAGS@
 robotkernel_LDFLAGS = -Wl,-export-dynamic -Bdynamic @ROBOTKERNEL_LDFLAGS@
 robotkernel_LDADD = @DL_LIBS@ @SOCKET_LIBS@ @PTHREAD_LIBS@ @RT_LIBS@ @YAMLCPP_LIBS@ @LN_LIBS@ @STRING_UTILS_LIBS@ #-lstdc++
 
 robotkernel_debug_SOURCES = module.cpp module_intf.cpp interface.cpp main.cpp exceptions.cpp kernel.cpp kernel_worker.cpp \
-					  runnable.cpp trigger_base.cpp log_thread.cpp dump_log.cpp char_ringbuffer.cpp module_base.cpp
+					  runnable.cpp trigger_base.cpp log_thread.cpp dump_log.cpp char_ringbuffer.cpp module_base.cpp interface_base.cpp
 
 robotkernel_debug_CXXFLAGS = -O0 -g3 -I$(top_builddir)/include -I$(top_srcdir)/include/ @YAMLCPP_CFLAGS@ @LN_CFLAGS@
 robotkernel_debug_LDFLAGS = -Wl,-export-dynamic -Bdynamic @ROBOTKERNEL_LDFLAGS@

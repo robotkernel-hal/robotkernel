@@ -33,18 +33,65 @@
 
 #include "ln.h"
 #include "ln_cppwrapper.h"
-#define ROBOTKERNEL "[robotkernel] "
 
 #define klog(...) robotkernel::kernel::get_instance()->log(__VA_ARGS__)
 
 namespace robotkernel {
-
-enum loglevel {
+    
+enum level { 
     error = 1,
     warning = 2,
     info = 3,
     verbose = 4, 
 };
+    
+class loglevel {
+    public:
+        level value;
+    
+        loglevel() { value = info; }
+        loglevel(const level& l) { value = l; };
+        loglevel(const loglevel& ll)
+        { this->value = ll.value; }
+
+        loglevel& operator=(const loglevel& ll)
+        { this->value = ll.value; return *this; }
+        loglevel& operator=(const std::string& ll_string);
+        bool operator==(const loglevel& ll)
+        { return (this->value == ll.value); }
+        bool operator==(const level& l)
+        { return (this->value == l); }
+        bool operator>(const loglevel& ll)
+        { return (this->value > ll.value); }
+        bool operator>(const level& l)
+        { return (this->value > l); }
+        bool operator<(const loglevel& ll)
+        { return (this->value < ll.value); }
+        bool operator<(const level& l)
+        { return (this->value < l); }
+        operator std::string() const
+        { 
+            switch (value) {
+                case error:
+                    return std::string("error");
+                case warning:
+                    return std::string("warning");
+                case info:
+                    return std::string("info");
+                case verbose:
+                    return std::string("verbose");
+            }
+
+            return std::string("unknown");
+        }
+};
+//
+//enum loglevel {
+//    error = 1,
+//    warning = 2,
+//    info = 3,
+//    verbose = 4, 
+//};
 
 class kernel :
     public ln_service_set_state_base,
@@ -154,13 +201,12 @@ class kernel :
 
         //! kernel register interface callback
         /*!
-         * \param mod_name module name to send request to
          * \param if_name interface name to register
-         * \param offset module offset
+         * \param node configuration node
          * \return interface id or -1
          */
-        static interface_id_t register_interface_cb(const char *mod_name, 
-                const char *if_name, const char* dev_name, int offset); 
+        static interface_id_t register_interface_cb(const char *if_name, 
+                const YAML::Node& node);
 
         //! kernel unregister interface callback
         /*!

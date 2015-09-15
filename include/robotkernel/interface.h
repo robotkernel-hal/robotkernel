@@ -46,11 +46,9 @@ class interface {
         //! interface construction
         /*!
           \param interface_file filename of interface
-          \param mod_name interface configuration module name
+          \param node configuration node
           */
-        interface(const std::string& interface_file, 
-                const std::string& mod_name, const std::string& dev_name, 
-                const int& offset = 0);
+        interface(const std::string& interface_file, const YAML::Node& node);
 
         //! interface destruction
         /*!

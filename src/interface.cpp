@@ -39,16 +39,10 @@ using namespace robotkernel;
 
 //! interface construction
 /*!
-  \param mod_name name of shared object to load
   \param interface_file filename of interface
-  \param config interface configuration string
-  \param trigger configuration
+  \param node configuration node
   */
-interface::interface(const std::string& interface_file, 
-        const std::string& mod_name, const std::string& dev_name, const int& offset) :
-    interface_file(interface_file), mod_name(mod_name), dev_name(dev_name), 
-    offset(offset), intf_handle(NULL) { 
-    
+interface::interface(const std::string& interface_file, const YAML::Node& node) {
     struct stat buf;
     if (stat(interface_file.c_str(), &buf) != 0) {
         bool found = false;
@@ -81,42 +75,49 @@ interface::interface(const std::string& interface_file,
         }
     }
 
+#ifdef __VXWORKS__
+    klog(info, "loading interface %s\n", 
+            this->interface_file.c_str());
+
+    so_handle = dlopen(this->interface_file.c_str(), 
+            RTLD_GLOBAL | RTLD_NOW);
+#else
     if ((so_handle = dlopen(this->interface_file.c_str(), 
                     RTLD_GLOBAL | RTLD_NOW | RTLD_NOLOAD)) == NULL) {
-        klog(info, "[interface] loading interface %s\n", 
+        klog(info, "loading interface %s\n", 
                 this->interface_file.c_str());
 
         if (access(this->interface_file.c_str(), R_OK) != 0) {
-#ifdef __VXWORKS__
-            // special case on vxworks, because it may return ENOTSUP, the we try to open anyway !
-#else
-            klog(error, "[interface] interface file '%s' not readable!\n", 
+            klog(error, "interface file '%s' not readable!\n", 
                     this->interface_file.c_str());
-            throw str_exception("[interface] access '%s' signaled error: %s", 
+            throw str_exception("access '%s' signaled error: %s", 
                     this->interface_file.c_str(), strerror(errno));
-#endif
         }
 
         so_handle = dlopen(this->interface_file.c_str(), 
                 RTLD_GLOBAL | RTLD_NOW);
     }
+#endif
 
     if (!so_handle)
-        throw str_exception("[interface] dlopen signaled error: %s", strerror(errno));
+        throw str_exception("dlopen signaled error: %s", strerror(errno));
 
     intf_register   = (intf_register_t)  dlsym(so_handle, "intf_register");
     intf_unregister = (intf_unregister_t)dlsym(so_handle, "intf_unregister");
 
     if (!intf_register)
-        klog(verbose, "[interface] missing intf_register in %s\n", 
+        klog(verbose, "missing intf_register in %s\n", 
                 this->interface_file.c_str());;
     if (!intf_unregister)
-        klog(verbose, "[interface] missing intf_unregister in %s\n", 
+        klog(verbose, "missing intf_unregister in %s\n", 
                 this->interface_file.c_str());
 
     // try to configure
-    if (intf_register)
-        intf_handle = intf_register(mod_name.c_str(), dev_name.c_str(), offset);
+    if (intf_register) {
+        YAML::Emitter e;
+        e << node;
+        intf_handle = intf_register(e.c_str());
+    }
 }
 
 //! interface destruction
@@ -124,7 +125,7 @@ interface::interface(const std::string& interface_file,
   destroys interface
   */
 interface::~interface() {
-    klog(info, "[interface] destructing %s\n", interface_file.c_str());
+    klog(info, "interface destructing %s\n", interface_file.c_str());
 
     // unconfigure interface first
     if (intf_handle && intf_unregister) {
@@ -133,11 +134,11 @@ interface::~interface() {
     }
 
     if (so_handle && !kernel::get_instance()->_do_not_unload_modules) {
-        klog(info, "[interface] unloading interface %s\n", 
+        klog(info, "unloading interface %s\n", 
                 interface_file.c_str());
 
         if (dlclose(so_handle) != 0)
-            klog(error, "[interface] error on unloading interface %s\n", 
+            klog(error, "error on unloading interface %s\n", 
                     interface_file.c_str());
         else
             so_handle = NULL;

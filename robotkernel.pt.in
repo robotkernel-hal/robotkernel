@@ -4,7 +4,7 @@ VERSION             = @PACKAGE_VERSION@
 DESCRIPTION         = the robotkernel device driver framework
 MAINTAINER          = Robert Burger <robert.burger@dlr.de>
 DOCUMENTATION       = https://rmintra01.robotic.dlr.de/wiki/Robotkernel
-C++_DEPENDS         = software.links_and_nodes==@LN_VERSION@, software.yaml-cpp==@YAML_VERSION@
+C++_DEPENDS         = software.yaml-cpp==@YAML_VERSION@, software.links_and_nodes==@LN_VERSION@
 C++_INCLUDE_PATHS   = ${PKGROOT}/include/, ${PKGROOT}/include/${ARCH}/
 C++_LIB_PATHS       = ${PKGROOT}/lib/${ARCH}
 C++_LIBS            = 

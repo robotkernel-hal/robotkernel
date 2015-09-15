@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.63])
-AC_INIT([robotkernel], [3.2.0], [robert.burger@dlr.de])
+AC_INIT([robotkernel], [4.0.0], [robert.burger@dlr.de])
 AC_CANONICAL_TARGET
 AC_CANONICAL_SYSTEM
 
@@ -49,7 +49,7 @@ RMPM_ARCH
 
 # search packages, first with pkg-config, second in rmpm  
 # yaml-cpp 
-PKG_CHECK_MODULES([YAMLCPP], [yaml-cpp], [], [RMPM_CHECK_MODULES([YAMLCPP], [software.yaml-cpp==0.3])])
+PKG_CHECK_MODULES([YAMLCPP], [yaml-cpp], [], [RMPM_CHECK_MODULES([YAMLCPP], [software.yaml-cpp==0.5])])
 AM_CONDITIONAL([HAVE_YAMLCPP], [test -n "$YAMLCPP_LIBS"])
 
 if test "$rmpm_host" == "angstrom-armv7-gcc4.7"; then
@@ -96,6 +96,7 @@ AM_CONDITIONAL([HAVE_LN], [test -n "$LN_LIBS"])
 AC_SUBST(LN_GENERATE)
 AC_DEFINE_UNQUOTED(LN_LIBS, "$LN_LIBS", [linked links and nodes library])
 AC_SUBST(LN_LIBS)
+AC_DEFINE_UNQUOTED(LN_VERSION, "$LN_VERSION", [linked links and nodes library version])
 AC_SUBST(LN_VERSION)
 AC_SUBST(YAML_VERSION)
 AC_SUBST(STRING_UTILS_LIBS)

@@ -87,16 +87,6 @@ class module :
 
         //! module construction
         /*!
-          \param mod_name name of shared object to load
-          \param module_file filename of module
-          \param config module configuration string
-          \param trigger configuration
-          */
-        module(std::string mod_name, std::string module_file, std::string config,
-               std::string trigger, std::string depends);
-
-        //! module construction
-        /*!
          * \param node configuration node
          */
         module(const YAML::Node& node, std::string config_path);
