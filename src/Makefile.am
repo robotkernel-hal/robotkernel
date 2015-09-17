@@ -65,7 +65,8 @@ LN_KERNEL_MESSAGES = robotkernel/add_module \
 			  robotkernel/get_dump_log \
 			  robotkernel/config_dump_log \
 			  robotkernel/module/get_feat \
-			  robotkernel/module/get_config 
+			  robotkernel/module/get_config \
+			  robotkernel/module/configure_loglevel
 
 dump_log_tp.c dump_log_tp.h: dump_log_tp.tp
 	@echo creating $@ from $^

@@ -1,0 +1,10 @@
+service
+request
+# set_log_level
+# can be "": no change
+# or "error", "warning", "info", "verbose"
+char* set_log_level
+response
+char* current_log_level
+char* error_message
+

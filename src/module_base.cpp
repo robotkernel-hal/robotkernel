@@ -69,3 +69,30 @@ log_exit:
     dump_log(buf);
 }
 
+//! configure loglevel service
+int module_base::on_configure_loglevel(ln::service_request& req,
+        ln_service_robotkernel_module_configure_loglevel& svc) {
+    
+    svc.resp.current_log_level = strdup(((std::string)ll).c_str());
+    svc.resp.current_log_level_len = strlen(svc.resp.current_log_level);
+
+    if (svc.req.set_log_level_len > 0) {
+        std::string set_log_level(svc.req.set_log_level, svc.req.set_log_level_len);
+
+        try {
+            ll = set_log_level;
+        } catch (const std::exception& e) {
+            svc.resp.error_message = strdup(e.what());
+            svc.resp.error_message_len = strlen(svc.resp.error_message);
+        }
+    }
+
+    req.respond();
+
+    if (svc.resp.error_message)
+        free(svc.resp.error_message);
+
+    free(svc.resp.current_log_level);
+    return 0;
+}
+

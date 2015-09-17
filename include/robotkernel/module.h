@@ -188,6 +188,7 @@ class module :
         const depend_list_t& get_depends();     //!< return dependency list
         const module_state_t get_power_up();    //!< return power up state
         void add_depends(std::string other_module); //!< add new dependency
+        void remove_depends(std::string other_module); //!< remove dependency
             
         //! service callbacks
         int on_get_config(ln::service_request& req, 
@@ -251,6 +252,18 @@ inline const module::depend_list_t& module::get_depends() {
 //! add new dependency
 inline void module::add_depends(std::string other_module) {
     depends.push_back(other_module);
+}
+
+inline void module::remove_depends(std::string other_module) {
+    for(depend_list_t::iterator i = depends.begin(); 
+			i != depends.end(); ) {
+		if(*i == other_module) {
+			depends.erase(i);
+			i = depends.begin();
+			continue;
+		}
+		++i;
+	}
 }
 
 //! return power up state
