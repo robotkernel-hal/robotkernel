@@ -17,8 +17,6 @@
 #include <sys/time.h>
 #include <sys/resource.h>
 
-#define ROBOTKERNEL "[robotkernel] "
-
 using namespace std;
 using namespace robotkernel;
 
@@ -36,13 +34,13 @@ void signal_handler(int s) {
 }
 
 int usage(int argc, char** argv) {
-    klog(info, ROBOTKERNEL "usage: robotkernel [--config, -c <filename>] "
+    klog(info, "usage: robotkernel [--config, -c <filename>] "
             "[--quiet, -q] [--verbose, -v] [--help, -h]\n");
-    klog(info, ROBOTKERNEL "\n");
-    klog(info, ROBOTKERNEL "  --config, -c <filename>     specify config file\n");
-    klog(info, ROBOTKERNEL "  --quiet, -q                 run in quiet mode\n");
-    klog(info, ROBOTKERNEL "  --verbose, -v               be more verbose\n");
-    klog(info, ROBOTKERNEL "  --help, -h                  this help page\n");
+    klog(info, "\n");
+    klog(info, "  --config, -c <filename>     specify config file\n");
+    klog(info, "  --quiet, -q                 run in quiet mode\n");
+    klog(info, "  --verbose, -v               be more verbose\n");
+    klog(info, "  --help, -h                  this help page\n");
     return 0;
 }
 
@@ -85,7 +83,7 @@ int main(int argc, char** argv) {
     for (int i = 1; i < argc; ++i) {
         if ((strcmp(argv[i], "--config") == 0) || (strcmp(argv[i], "-c") == 0)) {
             if (++i >= argc) {
-                klog(info, ROBOTKERNEL "--config filename missing\n");
+                klog(info, "--config filename missing\n");
                 return usage(argc, argv);
             }
 
@@ -100,7 +98,7 @@ int main(int argc, char** argv) {
     }
 
     if (config_file == "")
-        klog(info, ROBOTKERNEL "no config file supplied, starting up without config.\n");
+        klog(info, "no config file supplied, starting up without config.\n");
 
     bool power_up_state = false;
 
@@ -108,14 +106,14 @@ int main(int argc, char** argv) {
         k.config(config_file, argc, argv);        
         power_up_state = k.power_up();
     } catch (exception& e) {
-        klog(warning, ROBOTKERNEL "exception: %s\n", e.what());
+        klog(warning, "exception: %s\n", e.what());
         goto Exit;
     }
 
     if (power_up_state)
-        klog(info, ROBOTKERNEL "up and running!\n");
+        klog(info, "up and running!\n");
     else
-        klog(info, ROBOTKERNEL "not powered up!\n");
+        klog(info, "not powered up!\n");
 
     /* attach signal handler */
     action.sa_handler = signal_handler;
@@ -135,7 +133,7 @@ int main(int argc, char** argv) {
     }
 
 Exit:
-    klog(info, ROBOTKERNEL "exiting\n");
+    klog(info, "exiting\n");
 
 #ifdef __VXWORKS__
     // on vxworks we have to call select once to do magic cleanup
