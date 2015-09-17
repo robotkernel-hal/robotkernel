@@ -23,8 +23,67 @@
  */
 
 #include "robotkernel/module_base.h"
+#include <sstream>
 
+using namespace std;
 using namespace robotkernel;
+        
+//! construction
+/*!
+ * \param modname module name
+ * \param name instance name
+ */
+module_base::module_base(const std::string& modname, const std::string& name) :
+    modname(modname), name(name) {
+    state = module_state_init;
+    kernel& k = *kernel::get_instance();
+    ll = k.get_loglevel();
+	
+    if (k.clnt) {
+        stringstream base;
+        base << k.clnt->name << "." << modname << ".";
+
+        register_configure_loglevel(k.clnt, base.str() + "configure_loglevel");
+    }
+}
+
+//! construction
+/*!
+ * \param modname module name
+ * \param name instance name
+ */
+module_base::module_base(const std::string& modname, const std::string& name, 
+        const YAML::Node& node) : modname(modname), name(name) {
+    state = module_state_init;
+    kernel& k = *kernel::get_instance();
+    ll = k.get_loglevel();
+	
+    if (k.clnt) {
+        stringstream base;
+        base << k.clnt->name << "." << modname << ".";
+
+        register_configure_loglevel(k.clnt, base.str() + "configure_loglevel");
+    }
+
+    // search for loglevel
+    if (node["loglevel"]) {
+        ll = info;
+        std::string ll_string = get_as<std::string>(node, "loglevel");
+
+        if (ll_string == "error")
+            ll = error;
+        else if (ll_string == "warning")
+            ll = warning;
+        else if (ll_string == "info")
+            ll = info;
+        else if (ll_string == "verbose")
+            ll = verbose;
+    } 
+}
+
+module_base::~module_base() {
+    unregister_configure_loglevel();
+}
 
 //! log to kernel logging facility
 void module_base::log(loglevel lvl, const char *format, ...) {

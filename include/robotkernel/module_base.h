@@ -113,11 +113,7 @@ class module_base :
          * \param modname module name
          * \param name instance name
          */
-        module_base(const std::string& modname, const std::string& name) :
-            modname(modname), name(name) {
-            state = module_state_init;
-            ll = kernel::get_instance()->get_loglevel();
-        }
+        module_base(const std::string& modname, const std::string& name);
         
         //! construction
         /*!
@@ -125,25 +121,9 @@ class module_base :
          * \param name instance name
          */
         module_base(const std::string& modname, const std::string& name, 
-                const YAML::Node& node) : modname(modname), name(name) {
-            state = module_state_init;
-            ll = kernel::get_instance()->get_loglevel();
+                const YAML::Node& node);
 
-            // search for loglevel
-            if (node["loglevel"]) {
-                ll = info;
-                std::string ll_string = get_as<std::string>(node, "loglevel");
-
-                if (ll_string == "error")
-                    ll = error;
-                else if (ll_string == "warning")
-                    ll = warning;
-                else if (ll_string == "info")
-                    ll = info;
-                else if (ll_string == "verbose")
-                    ll = verbose;
-            } 
-        }
+        virtual ~module_base();
 
         //! cyclic process data read
         /*!
