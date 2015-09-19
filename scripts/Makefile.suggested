@@ -94,6 +94,7 @@ build-single: $(DST_DIR)
 	$(SSH) make -C $(DST_DIR)
 
 install: build
+	-rm -rf build/$(ARCH)/install
 	$(SSH) make -j $(JOBS) -C $(DST_DIR) install
 
 local-release:
