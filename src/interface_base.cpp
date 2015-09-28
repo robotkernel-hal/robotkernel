@@ -23,8 +23,37 @@
  */
 
 #include "robotkernel/interface_base.h"
+#include <sstream>
 
+using namespace std;
 using namespace robotkernel;
+        
+//! construction
+/*!
+ * \param intfname interface name
+ * \param name instance name
+ */
+interface_base::interface_base(const std::string& intf_name, const YAML::Node& node) 
+    : intf_name(intf_name) {
+    kernel &k = *kernel::get_instance();
+    mod_name = get_as<std::string>(node, "mod_name");
+    dev_name = get_as<std::string>(node, "dev_name");
+    slave_id = get_as<int>(node, "slave_id");
+    ll = get_as<std::string>(node, "loglevel", k.get_loglevel());
+    
+    if (k.clnt) {
+        stringstream base;
+        base << k.clnt->name << "." << mod_name << "." << dev_name 
+            << "." << intf_name << ".";
+
+        register_configure_loglevel(k.clnt, base.str() + "configure_loglevel");
+    }
+}
+
+//! destruction
+interface_base::~interface_base() {
+    unregister_configure_loglevel();
+}
 
 //! log to kernel logging facility
 void interface_base::log(loglevel lvl, const char *format, ...) {

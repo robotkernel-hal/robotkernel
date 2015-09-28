@@ -29,6 +29,7 @@
 #include "robotkernel/kernel.h"
 #include "robotkernel/exceptions.h"
 #include "robotkernel/helpers.h"
+#include "robotkernel/ln_kernel_messages.h"
 #include "yaml-cpp/yaml.h"
 
 #ifdef __cplusplus
@@ -64,7 +65,8 @@ EXPORT_C INTERFACE_HANDLE intf_register(const char* config) {                   
 
 namespace robotkernel {
 
-class interface_base {
+class interface_base :
+    public ln_service_configure_loglevel_base {
     private:
         interface_base();       //!< prevent default construction
 
@@ -81,14 +83,10 @@ class interface_base {
          * \param intfname interface name
          * \param name instance name
          */
-        interface_base(const std::string& intf_name, const YAML::Node& node) 
-        : intf_name(intf_name) {
-            kernel &k = *kernel::get_instance();
-            mod_name = get_as<std::string>(node, "mod_name");
-            dev_name = get_as<std::string>(node, "dev_name");
-            slave_id = get_as<int>(node, "slave_id");
-            ll = get_as<std::string>(node, "loglevel", k.get_loglevel());
-        }
+        interface_base(const std::string& intf_name, const YAML::Node& node);
+
+        //! destruction
+        ~interface_base();
 
         //! log to kernel logging facility
         void log(robotkernel::loglevel lvl, const char *format, ...);

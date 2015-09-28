@@ -41,7 +41,7 @@ module_base::module_base(const std::string& modname, const std::string& name) :
 	
     if (k.clnt) {
         stringstream base;
-        base << k.clnt->name << "." << modname << ".";
+        base << k.clnt->name << "." << name << ".";
 
         register_configure_loglevel(k.clnt, base.str() + "configure_loglevel");
     }
@@ -60,7 +60,7 @@ module_base::module_base(const std::string& modname, const std::string& name,
 	
     if (k.clnt) {
         stringstream base;
-        base << k.clnt->name << "." << modname << ".";
+        base << k.clnt->name << "." << name << ".";
 
         register_configure_loglevel(k.clnt, base.str() + "configure_loglevel");
     }

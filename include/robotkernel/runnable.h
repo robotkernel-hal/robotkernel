@@ -80,10 +80,11 @@ class runnable {
         virtual void run() = 0;             //!< handler function called if 
                                             //   thread is running
 
-        int get_policy();                   //!< return policy
-        int get_affinity_mask();            //!< return affinity mask
-        int get_prio();                     //!< return priority 
+        const int& get_policy() const;        //!< return policy
+        const int& get_affinity_mask() const; //!< return affinity mask
+        const int& get_prio() const;          //!< return priority 
 
+        void set_policy(int policy);        //!< set policy
         void set_prio(int prio);            //!< set priority
         void set_affinity_mask(int mask);   //!< set affinity mask
         void set_name(std::string name);    //!< set thread name
@@ -95,16 +96,20 @@ inline bool runnable::running() {
     return this->run_flag;
 }
         
-inline int runnable::get_policy() {
+inline const int& runnable::get_policy() const {
     return policy;
 }
         
-inline int runnable::get_affinity_mask() { 
+inline const int& runnable::get_affinity_mask() const { 
     return affinity_mask; 
 };
 
-inline int runnable::get_prio() {
+inline const int& runnable::get_prio() const {
     return prio; 
+};
+        
+inline void runnable::set_policy(int policy) {
+    this->policy = policy;
 };
 
 } // namespace robotkernel

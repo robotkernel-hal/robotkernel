@@ -36,6 +36,8 @@
 using namespace std;
 using namespace robotkernel;
 
+YAML::Node tmp = YAML::Clone(YAML::Node());
+
 static void split_file_name(const string& str, string& path, string& file) {
     size_t found;
     found = str.find_last_of("/\\");

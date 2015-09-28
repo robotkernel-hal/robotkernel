@@ -38,7 +38,7 @@ robotkernel_debug_SOURCES = module.cpp module_intf.cpp interface.cpp main.cpp ex
 					  runnable.cpp trigger_base.cpp log_thread.cpp dump_log.cpp char_ringbuffer.cpp module_base.cpp interface_base.cpp
 
 robotkernel_debug_CXXFLAGS = -O0 -g3 -I$(top_builddir)/include -I$(top_srcdir)/include/ @YAMLCPP_CFLAGS@ @LN_CFLAGS@
-robotkernel_debug_LDFLAGS = -Wl,-export-dynamic -Bdynamic @ROBOTKERNEL_LDFLAGS@
+robotkernel_debug_LDFLAGS = -Wl,-export-dynamic -Bdynamic @ROBOTKERNEL_LDFLAGS@ 
 robotkernel_debug_LDADD = @DL_LIBS@ @SOCKET_LIBS@ @RT_LIBS@ @PTHREAD_LIBS@ @YAMLCPP_LIBS@ @LN_LIBS@ @STRING_UTILS_LIBS@ #-lstdc++
 
 if HAVE_LTTNG_UST
