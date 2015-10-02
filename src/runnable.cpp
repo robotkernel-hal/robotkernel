@@ -53,7 +53,7 @@ runnable::runnable(const YAML::Node& node) {
     affinity_mask  = 0;
 
     if(node["affinity"]) {
-        const YAML::Node& affinity = node["affinit"];
+        const YAML::Node& affinity = node["affinity"];
         if (affinity.Type() == YAML::NodeType::Scalar)
             affinity_mask = (1 << affinity.as<int>());
         else if (affinity.Type() == YAML::NodeType::Sequence)
@@ -152,6 +152,10 @@ void runnable::stop() {
  * \param prio new max prio
  */
 void runnable::set_prio(int prio) { 
+    this->prio = prio;
+    if (!running())
+        return;
+
     struct sched_param param;
     int policy;
     if (pthread_getschedparam(tid, &policy, &param) != 0) {
@@ -161,7 +165,6 @@ void runnable::set_prio(int prio) {
     }
 
     policy = SCHED_FIFO;
-    this->prio = prio;
     param.sched_priority = prio;
     if (pthread_setschedparam(tid, policy, &param) != 0) {
         klog(warning, "[runnable] pthread_setschedparam(0x%x, %d, %d): %s\n", 
