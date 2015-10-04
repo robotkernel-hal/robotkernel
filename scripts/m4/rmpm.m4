@@ -78,13 +78,13 @@ AC_DEFUN([RMPM_CHECK_MODULES],
 	 AC_ARG_WITH(RMPMPKG[-domain],
 	  AS_HELP_STRING([--with-RMPMPKG-domain], [specify another rmpm domain than RMPMDOMAIN]),
 	  [domain="${withval}"
-	   AC_MSG_CHECKING(for $1 -> searching rmpm package RMPMPKG in user-specified domain $domain)
+	   AC_MSG_CHECKING(for $1 -> searching rmpm package RMPMPKG$3 in user-specified domain $domain)
 	  ],
 	  [domain=RMPMDOMAIN
-	   AC_MSG_CHECKING(for $1 -> searching rmpm package RMPMPKG in domain $domain)
+	   AC_MSG_CHECKING(for $1 -> searching rmpm package RMPMPKG$3 in domain $domain)
           ]
 	 )
-	 pkg_spec=$domain.RMPMPKG
+	 pkg_spec=$domain.RMPMPKG$3
 
          tmp=$(env -i /volume/software/common/packages/rmpm/latest/bin/sled11-x86-gcc4.x/pkgtool --search "$pkg_spec" --arch=$rmpm_host | wc -l)
          if test $tmp = 0; then

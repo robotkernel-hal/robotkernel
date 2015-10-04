@@ -106,5 +106,6 @@ release-only:
 	reltool --domain robotkernel --force 1.5 --force 1.8 --yes -v
 
 release:
-	make -f scripts/Makefile.suggested build_all
+#	make -f scripts/Makefile.suggested build_all
+	make -f scripts/Makefile.suggested build_only_all
 	make -f scripts/Makefile.suggested release-only
