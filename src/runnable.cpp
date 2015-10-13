@@ -178,6 +178,10 @@ void runnable::set_prio(int prio) {
  * \param mask new cup affinity mask 
  */
 void runnable::set_affinity_mask(int mask) {
+    this->affinity_mask = mask;
+    if (!running())
+        return;
+
 #ifdef __VXWORKS__
     taskCpuAffinitySet(taskIdSelf(),  (cpuset_t)mask);
 #elif defined __QNX__
