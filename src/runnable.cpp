@@ -195,7 +195,7 @@ void runnable::set_affinity_mask(int mask) {
             CPU_SET(i, &cpuset);
     
     if (pthread_setaffinity_np(tid, sizeof(cpu_set_t), &cpuset) != 0)
-        klog(warning, "[runnable] pthread_setaffinity(0x%x, 0x%02f): %s\n", 
+        klog(warning, "[runnable] pthread_setaffinity(0x%x, %#x): %s\n", 
                 tid, mask, strerror(errno));
 #endif
 #endif
