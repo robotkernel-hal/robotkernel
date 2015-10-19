@@ -156,4 +156,5 @@ undef: rk_depends_on
 undef: rk_start_as
 undef: rk_start_on_ready
 undef: rk_modules
-undef: rk_interfaces"""
+undef: rk_interfaces
+undef: rkgui_path"""
