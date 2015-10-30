@@ -272,7 +272,8 @@ module::module(const YAML::Node& node, string config_path)
 
 void module::_init() {
     struct stat buf;
-    if (stat(module_file.c_str(), &buf) != 0) {
+
+    if ((module_file.c_str()[0] != '/') || (stat(module_file.c_str(), &buf) != 0)) {
         // try path relative to config file first
         string mod = config_file_path + "/" + module_file;
         if (stat(mod.c_str(), &buf) != 0) {
