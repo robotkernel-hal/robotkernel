@@ -43,13 +43,15 @@ endif
 # targets
 .PHONY: configure build install build_all build_only_all build_all_seq build_only_all_seq configure_only_all_seq $(SUPPORTED_ARCHS)
 
--include local-targets.mk
+-include local-first-targets.mk
 
 ifeq ($(ARCH), )
 build_all: $(SUPPORTED_ARCHS)
 else
 all: configure build install
 endif
+
+-include local-targets.mk
 
 build_only_all: 
 	make -f scripts/Makefile.suggested BUILD_TARGETS=install build_all
