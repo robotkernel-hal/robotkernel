@@ -30,7 +30,8 @@ endif
 #HOST_OPTION=--host=$(shell ./scripts/arch_from_dlrrm $(ARCH))
 
 SRC_DIR=$(CURDIR)
-DST_DIR=$(SRC_DIR)/build/$(ARCH)
+BUILD_DIR=$(SRC_DIR)/build
+DST_DIR=$(BUILD_DIR)/$(ARCH)
 
 ifneq ($(TOOLCHAIN),)
 	ARGS+="TOOLCHAIN=$(TOOLCHAIN)"
@@ -85,7 +86,9 @@ else
 endif
 
 clean:
-	$(SSH) make -j $(JOBS) -C $(DST_DIR) clean
+	test -d "$(BUILD_DIR)" && rm -rf "$(BUILD_DIR)"
+	rm -rf autom4te.cache aclocal.m4 configure config.sub.backup config.guess.backup ltmain.sh.backup m4
+	mkdir -p m4
 
 $(DST_DIR):
 	make -f scripts/Makefile.suggested ARCH=$(ARCH) configure
