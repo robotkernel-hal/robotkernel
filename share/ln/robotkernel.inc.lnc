@@ -70,4 +70,5 @@ ifdef rk_set_resource_limits: set_resource_limits: %(rk_set_resource_limits)
 ifdef rk_derive_from: derive_from: %(rk_derive_from)
 ifdef rk_use_template: use_template: %(rk_use_template)
 add line_highlight_regexes: " ERR "
+add line_highlight_regexes: " WARN "
 warning_regex: " ERR "
