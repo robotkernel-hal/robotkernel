@@ -106,7 +106,7 @@ int main(int argc, char** argv) {
         k.config(config_file, argc, argv);        
         power_up_state = k.power_up();
     } catch (exception& e) {
-        klog(warning, "exception: %s\n", e.what());
+        klog(error, "config exception: %s\n", e.what());
         goto Exit;
     }
 
