@@ -203,6 +203,9 @@ module::module(const YAML::Node& node, string config_path)
                 name.c_str(), file_name.c_str());
 
         ifstream t(file_name.c_str());
+        if(t.fail()) // check failbit
+            throw str_exception("could not open config file of module %s: %s",
+                                name.c_str(), file_name.c_str());
         stringstream buffer;
         buffer << t.rdbuf();
         config = buffer.str();
