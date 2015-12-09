@@ -418,7 +418,15 @@ void kernel::config(std::string config_file, int argc, char **argv) {
     // creating modules specified in config file
     const YAML::Node& modules = doc["modules"];
     for (YAML::const_iterator it = modules.begin(); it != modules.end(); ++it) {
-        module *mdl = new module(*it, path);
+        module* mdl;
+        try {
+            mdl = new module(*it, path);
+        }
+        catch(const exception& e) {
+            throw str_exception("exception while instantiating module %s:\n%s",
+                                get_as<string>(*it, "name", "<no name specified>").c_str(),
+                                e.what());
+        }
         if (!mdl->configured()) {
             string name = mdl->get_name();
             delete mdl;
