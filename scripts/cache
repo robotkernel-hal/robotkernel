@@ -2,7 +2,10 @@
 
 import os
 import sys
+import time
 import subprocess
+
+max_age = 60 * 60 # seconds
 
 log_fp = None
 def log(msg):
@@ -30,12 +33,13 @@ log("cmdline: %r" % cmdline)
 
 if os.path.isfile(cache_name):    
     try:
-        last_cmdline, last_output, last_retval = eval(file(cache_name, "rb").read())
-        log("last_cmdline: %r" % last_cmdline)
+        last_time, last_cmdline, last_output, last_retval = eval(file(cache_name, "rb").read())
+        age = time.time() - last_time
+        log("last_cmdline: %r, age: %.1fs" % (last_cmdline, age / 60.))
     except:
         print sys.exc_value
         last_cmdline = None
-    if last_cmdline == cmdline:
+    if last_cmdline == cmdline and age < max_age:
         log("last_cmdline matches, sending last output: %r" % last_output)
         sys.stdout.write(last_output)
         sys.exit(last_retval)
@@ -51,7 +55,7 @@ try:
     if not os.path.isdir(dn):
         os.makedirs(dn)
     fp = file(cache_name, "wb")
-    fp.write("%r" % ((cmdline, out, p.returncode), ))
+    fp.write("%r" % ((time.time(), cmdline, out, p.returncode), ))
     fp.close()
 except:
     sys.stderr.write("failed to write cache file %r: %s\n" % (cache_name, sys.exc_value))
