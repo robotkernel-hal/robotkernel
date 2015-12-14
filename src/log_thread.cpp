@@ -25,7 +25,21 @@
 #include "robotkernel/log_thread.h"
 #include "robotkernel/kernel.h"
 
+#include "robotkernel/config.h"
+#include <unistd.h>
+#ifdef HAVE_SYS_SYSCALL_H
+#include <sys/syscall.h>
+#endif
+
 using namespace robotkernel;
+
+int gettid() {
+#ifdef __NR_gettid
+	return syscall( __NR_gettid );
+#else
+	return 0;
+#endif
+}
 
 //! de-/construction
 /*!
@@ -93,14 +107,6 @@ void log_thread::log(struct log_pool_object *obj) {
     full_pool.push_back(obj);
     pthread_cond_signal(&cond);
     pthread_mutex_unlock(&mutex);
-}
-
-int gettid() {
-#ifdef __LINUX__
-	return syscall( __NR_gettid );
-#else
-	return 0;
-#endif
 }
 
 //! handler function called if thread is running

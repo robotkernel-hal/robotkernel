@@ -160,7 +160,7 @@ CFLAGS="-Wall"
 CXXFLAGS="-Wall"
 
 # Checks for header files.
-AC_CHECK_HEADERS([stdint.h stdlib.h string.h sys/ioctl.h unistd.h execinfo.h termios.h])
+AC_CHECK_HEADERS([stdint.h stdlib.h string.h sys/ioctl.h unistd.h execinfo.h termios.h sys/syscall.h])
 
 AM_CONDITIONAL([HAVE_TERMIOS], [test "$ac_cv_header_termios_h" == "yes"])
 AC_SUBST(HAVE_TERMIOS)
