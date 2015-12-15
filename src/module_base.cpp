@@ -92,7 +92,7 @@ void module_base::log(loglevel lvl, const char *format, ...) {
 
     char buf[1024];
     int bufpos = 0;
-    bufpos += snprintf(buf+bufpos, sizeof(buf)+bufpos, "[%s|%s] ", 
+    bufpos += snprintf(buf+bufpos, sizeof(buf)-bufpos, "[%s|%s] ", 
             name.c_str(), modname.c_str());
 
     // format argument list    
