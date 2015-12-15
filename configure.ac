@@ -160,7 +160,7 @@ CFLAGS="-Wall"
 CXXFLAGS="-Wall"
 
 # Checks for header files.
-AC_CHECK_HEADERS([stdint.h stdlib.h string.h sys/ioctl.h unistd.h execinfo.h termios.h sys/syscall.h])
+AC_CHECK_HEADERS([stdint.h stdlib.h string.h sys/ioctl.h unistd.h execinfo.h termios.h sys/syscall.h process.h])
 
 AM_CONDITIONAL([HAVE_TERMIOS], [test "$ac_cv_header_termios_h" == "yes"])
 AC_SUBST(HAVE_TERMIOS)
@@ -178,7 +178,7 @@ AC_TYPE_UINT8_T
 
 # Checks for library functions.
 #AC_FUNC_MALLOC
-AC_CHECK_FUNCS([clock_gettime memset sqrt strerror pthread_setname_np])
+AC_CHECK_FUNCS([clock_gettime memset sqrt strerror pthread_setname_np gettid])
 
 # Checks for library functions.
 AC_CHECK_LIB(dl, dlopen, DL_LIBS="-ldl", DL_LIBS=)

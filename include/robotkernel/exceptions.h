@@ -30,7 +30,7 @@
 #include <exception>
 #include <iostream>
 #include <sstream>
-#ifdef HAVE_EXECINFO_H 
+#ifdef HAVE_EXECINFO_H
 #include <execinfo.h>
 #endif
 #include <signal.h>

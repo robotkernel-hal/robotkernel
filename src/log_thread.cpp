@@ -30,14 +30,21 @@
 #ifdef HAVE_SYS_SYSCALL_H
 #include <sys/syscall.h>
 #endif
+#ifdef HAVE_PROCESS_H
+#include <process.h>
+#endif
 
 using namespace robotkernel;
 
 int gettid() {
+#ifdef HAVE_GETTID
+	return ::gettid();
+#else
 #ifdef __NR_gettid
 	return syscall( __NR_gettid );
 #else
 	return 0;
+#endif
 #endif
 }
 
