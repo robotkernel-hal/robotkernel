@@ -49,9 +49,14 @@ type get_as(const YAML::Node& node, const std::string key) {
         throw robotkernel::str_exception("[config-error] key \"%s\" not found!\n\n%s\n", 
                 key.c_str(), out.c_str());
     }
-
-    // gcc3.3 need this syntax for calling this template 
-    return node[key].template as<type>();
+    try {
+	    // gcc3.3 need this syntax for calling this template 
+	    return node[key].template as<type>();
+    }
+    catch(const exception& e) {
+	    throw robotkernel::str_exception("[config-error] key \"%s\" is probably of wrong data-type:\n%s", 
+					     key.c_str(), e.what());
+    }
 }
 
 template <typename type>
@@ -59,8 +64,14 @@ type get_as(const YAML::Node& node, const std::string key, type dflt) {
     if (!node[key])
         return dflt;
 
-    // gcc3.3 need this syntax for calling this template 
-    return node[key].template as<type>();
+    try {
+	    // gcc3.3 need this syntax for calling this template 
+	    return node[key].template as<type>();
+    }
+    catch(const exception& e) {
+	    throw robotkernel::str_exception("[config-error] key \"%s\" is probably of wrong data-type:\n%s", 
+					     key.c_str(), e.what());
+    }
 }
 
 #endif // __MODULE_H__
