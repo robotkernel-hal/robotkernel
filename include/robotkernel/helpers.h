@@ -53,7 +53,7 @@ type get_as(const YAML::Node& node, const std::string key) {
 	    // gcc3.3 need this syntax for calling this template 
 	    return node[key].template as<type>();
     }
-    catch(const exception& e) {
+    catch(const std::exception& e) {
 	    throw robotkernel::str_exception("[config-error] key \"%s\" is probably of wrong data-type:\n%s", 
 					     key.c_str(), e.what());
     }
@@ -68,7 +68,7 @@ type get_as(const YAML::Node& node, const std::string key, type dflt) {
 	    // gcc3.3 need this syntax for calling this template 
 	    return node[key].template as<type>();
     }
-    catch(const exception& e) {
+    catch(const std::exception& e) {
 	    throw robotkernel::str_exception("[config-error] key \"%s\" is probably of wrong data-type:\n%s", 
 					     key.c_str(), e.what());
     }
