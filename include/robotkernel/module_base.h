@@ -187,8 +187,9 @@ class module_base :
          * \return success or failure
          */
         virtual int request(int reqcode, void* ptr) {
-            throw robotkernel::str_exception("[%s|%s] module_base::request()-method not overloaded for request %#x(%#x)!\n",
-                                             modname.c_str(), name.c_str(), reqcode, ptr);
+            log(robotkernel::warning, "module_base::request()-method not overloaded for request %#x(%#x)!\n",
+                reqcode, ptr);
+            return -1;
         }
 
         //! log to kernel logging facility
