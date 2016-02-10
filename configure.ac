@@ -3,6 +3,13 @@
 
 AC_PREREQ([2.63])
 AC_INIT([robotkernel], [4.0.4], [robert.burger@dlr.de])
+
+# load env-file with each make invocation
+if test -n "$SOURCE_ENV"; then
+   echo "loading $SOURCE_ENV"
+   source $SOURCE_ENV
+fi
+
 AC_CANONICAL_TARGET
 AC_CANONICAL_SYSTEM
 
@@ -12,12 +19,6 @@ AC_CONFIG_HEADERS([include/robotkernel/config.h])
 AC_CONFIG_MACRO_DIR([m4])
 
 AM_MAKEFLAGS="$AM_MAKEFLAGS --no-print-directory --jobs=8"
-
-# load env-file with each make invocation
-if test -n "$SOURCE_ENV"; then
-   echo "loading $SOURCE_ENV"
-   source $SOURCE_ENV
-fi
 
 # Checks for programs.
 AC_PROG_CXX
@@ -198,6 +199,7 @@ AC_SUBST(PTHREAD_LIBS)
 
 AC_CONFIG_FILES([Makefile src/Makefile])
 AC_CONFIG_FILES([robotkernel.pt], [cp robotkernel.pt ${ac_abs_top_srcdir}])
+AC_CONFIG_FILES([share/ln/robotkernel.inc.lnc], [cp share/ln/robotkernel.inc.lnc ${ac_abs_top_srcdir}/share/ln/])
 
 AC_OUTPUT
 
