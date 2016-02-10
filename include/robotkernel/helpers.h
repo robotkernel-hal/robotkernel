@@ -49,13 +49,13 @@ type get_as(const YAML::Node& node, const std::string key) {
         throw robotkernel::str_exception("[config-error] key \"%s\" not found!\n\n%s\n", 
                 key.c_str(), out.c_str());
     }
+
     try {
-	    // gcc3.3 need this syntax for calling this template 
-	    return node[key].template as<type>();
-    }
-    catch(const std::exception& e) {
-	    throw robotkernel::str_exception("[config-error] key \"%s\" is probably of wrong data-type:\n%s", 
-					     key.c_str(), e.what());
+        // gcc3.3 need this syntax for calling this template 
+        return node[key].template as<type>();
+    } catch(const std::exception& e) {
+        throw robotkernel::str_exception("[config-error] key \"%s\" is probably of " 
+                "wrong data-type:\n%s", key.c_str(), e.what());
     }
 }
 
@@ -65,12 +65,11 @@ type get_as(const YAML::Node& node, const std::string key, type dflt) {
         return dflt;
 
     try {
-	    // gcc3.3 need this syntax for calling this template 
-	    return node[key].template as<type>();
-    }
-    catch(const std::exception& e) {
-	    throw robotkernel::str_exception("[config-error] key \"%s\" is probably of wrong data-type:\n%s", 
-					     key.c_str(), e.what());
+        // gcc3.3 need this syntax for calling this template 
+        return node[key].template as<type>();
+    } catch(const std::exception& e) {
+        throw robotkernel::str_exception("[config-error] key \"%s\" is probably of "
+                "wrong data-type:\n%s", key.c_str(), e.what());
     }
 }
 
