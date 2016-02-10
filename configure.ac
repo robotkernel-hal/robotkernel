@@ -49,7 +49,7 @@ RMPM_ARCH
 
 # search packages, first with pkg-config, second in rmpm  
 # yaml-cpp 
-PKG_CHECK_MODULES([YAMLCPP], [yaml-cpp], [], [RMPM_CHECK_MODULES([YAMLCPP], [software.yaml-cpp==0.5])])
+PKG_CHECK_MODULES([YAMLCPP], [yaml-cpp], [], [RMPM_CHECK_MODULES([YAMLCPP], [software.yaml-cpp==${YAML_VERSION}])])
 AM_CONDITIONAL([HAVE_YAMLCPP], [test -n "$YAMLCPP_LIBS"])
 
 if test "$rmpm_host" == "angstrom-armv7-gcc4.7"; then
@@ -85,7 +85,7 @@ fi
 
 # try to find ln via pkg-config and rmpm, if not already done in above step
 PKG_CHECK_MODULES([LN], [libln], [], [
-                    RMPM_CHECK_MODULES([LN], [software.links_and_nodes])
+                    RMPM_CHECK_MODULES([LN], [software.links_and_nodes==${LN_VERSION}])
                     LN_GENERATE_BIN="env -i $LN_BASE/scripts/ln_generate"
                     STRING_UTILS_LIBS="-L$LN_BASE/lib/$rmpm_host -lstring_util"
                    ])
