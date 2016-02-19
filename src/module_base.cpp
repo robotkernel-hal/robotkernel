@@ -35,7 +35,7 @@ using namespace robotkernel;
  */
 module_base::module_base(const std::string& modname, const std::string& name) :
     modname(modname), name(name) {
-    state = module_state_init;
+    state = module_state_unknown;
     kernel& k = *kernel::get_instance();
     ll = k.get_loglevel();
 	

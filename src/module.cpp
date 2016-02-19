@@ -412,6 +412,9 @@ bool module::reconfigure() {
     if (mod_configure)
         mod_handle = mod_configure(name.c_str(), config.c_str());
 
+    // try to reach init state
+    set_state(module_state_init);
+
     register_services();
 
     return configured();
