@@ -4,11 +4,8 @@
 AC_PREREQ([2.63])
 AC_INIT([robotkernel], [4.0.4], [robert.burger@dlr.de])
 
-# load env-file with each make invocation
-if test -n "$SOURCE_ENV"; then
-   echo "loading $SOURCE_ENV"
-   source $SOURCE_ENV
-fi
+RMPM_ENV # must be before AC_PROG* but after AC_PROG_MAKE_SET
+RMPM_ARCH
 
 AC_CANONICAL_TARGET
 AC_CANONICAL_SYSTEM
@@ -25,28 +22,6 @@ AC_PROG_CXX
 AC_PROG_LIBTOOL
 AC_PROG_CC
 AC_PROG_INSTALL
-
-if test -z "$MAKE"; then
-   MAKE=make
-fi
-# expand path with each make invocation
-if test -n "$TOOLCHAIN"; then
-   MAKE="$MAKE PATH=$TOOLCHAIN:$PATH"
-   PATH=$TOOLCHAIN:$PATH
-fi
-# load env-file with each make invocation
-if test -n "$SOURCE_ENV"; then
-   echo "loading $SOURCE_ENV"
-   source $SOURCE_ENV
-   MAKE="source $SOURCE_ENV; $MAKE"
-fi
-if test -n "$MAKE"; then
-   SET_MAKE="MAKE := $MAKE"
-fi
-AC_SUBST(SET_MAKE)
-
-# setup rmpm
-RMPM_ARCH
 PKG_PROG_PKG_CONFIG
 PKG_INSTALLDIR
 
@@ -55,54 +30,12 @@ PKG_INSTALLDIR
 PKG_CHECK_MODULES([YAMLCPP], [yaml-cpp], [], [RMPM_CHECK_MODULES([YAMLCPP], [software.yaml-cpp==${YAML_VERSION}])])
 AM_CONDITIONAL([HAVE_YAMLCPP], [test -n "$YAMLCPP_LIBS"])
 
-if test "$rmpm_host" == "angstrom-armv7-gcc4.7"; then
-   ARCH_CFLAGS="-DNO_RDTSC"
-fi
-AC_SUBST(ARCH_CFLAGS)
+PKG_CHECK_MODULES([LIBSTRING_UTIL], [libstring_util], [], [RMPM_CHECK_MODULES([LIBSTRING_UTIL], [software.libstring_util])])
 
-# try to automatically find ln
-LN_GENERATE_ARGS='-md_dir $(top_srcdir)/share/ln/message_definitions'
-if test "${LN_LIBS}" == ""; then
-    if test -n "${LN_BASE}"; then
-        AC_CHECK_HEADER(${LN_BASE}/include/ln.h, [ 
-                # found it in release dir!
-                LN_LIBS="-L${LN_BASE}/lib/$rmpm_host -lln"
-                LN_CFLAGS="-I${LN_BASE}/include/"
-                LN_GENERATE_BIN="env -i ${LN_BASE}/scripts/ln_generate"
-                LN_YAMLCPP_LIBS="-L${LN_BASE}/lib/$rmpm_host -lyaml-cpp"
-                STRING_UTILS_LIBS="-L$LN_BASE/lib/$rmpm_host -lstring_util"
-            ], [
-                # not found...
-                AC_CHECK_HEADER(${LN_BASE}/library/include/ln.h, [
-                        # found it in source dir!
-                        LN_LIBS="-L${LN_BASE}/library/obj/$rmpm_host -lln"
-                        LN_CFLAGS="-I${LN_BASE}/library/include/ -I${LN_BASE}/contrib/libstring_util/include"
-                        LN_GENERATE_BIN="env -i ${LN_BASE}/library/tools/ln_generate"
-                        LN_YAMLCPP_CFLAGS="-I${LN_BASE}/contrib/libyaml/include"
-                        LN_YAMLCPP_LIBS="-L${LN_BASE}/contrib/libyaml/lib/$rmpm_host -lyaml-cpp"
-                        STRING_UTILS_LIBS="-L$LN_BASE/contrib/libstring_util/obj/$rmpm_host -lstring_util"
-                    ])
-            ])
-    fi
-fi
 
-# try to find ln via pkg-config and rmpm, if not already done in above step
-PKG_CHECK_MODULES([LN], [libln], [], [
-                    RMPM_CHECK_MODULES([LN], [software.links_and_nodes==${LN_VERSION}])
-                    LN_GENERATE_BIN="env -i $LN_BASE/scripts/ln_generate"
-                    STRING_UTILS_LIBS="-L$LN_BASE/lib/$rmpm_host -lstring_util"
-                   ])
-
-LN_GENERATE="$LN_GENERATE_BIN $LN_GENERATE_ARGS"
-
-AM_CONDITIONAL([HAVE_LN], [test -n "$LN_LIBS"])
-AC_SUBST(LN_GENERATE)
-AC_DEFINE_UNQUOTED(LN_LIBS, "$LN_LIBS", [linked links and nodes library])
-AC_SUBST(LN_LIBS)
+RM_FIND_LN_FROM_ENV
 AC_DEFINE_UNQUOTED(LN_VERSION, "$LN_VERSION", [linked links and nodes library version])
 AC_SUBST(LN_VERSION)
-AC_SUBST(YAML_VERSION)
-AC_SUBST(STRING_UTILS_LIBS)
 
 PKG_CHECK_MODULES([LTTNG_UST], [lttng-ust], [AC_DEFINE([HAVE_LTTNG_UST], [1], [use lttng user space tracing])], [AC_DEFINE([HAVE_LTTNG_UST], [0], [use lttng user space tracing])])
 AM_CONDITIONAL([HAVE_LTTNG_UST], [test -n "$LTTNG_UST_LIBS"])
@@ -199,7 +132,6 @@ AC_CHECK_TYPES([cpu_set_t], [], [], [[#include <pthread.h>]])
 AC_CHECK_LIB(pthread, pthread_create, PTHREAD_LIBS="-lpthread")
 AC_SUBST(PTHREAD_LIBS)
 
-AC_CONFIG_FILES([Makefile src/Makefile])
 AC_CONFIG_FILES([Makefile src/Makefile robotkernel.pc])
 AC_CONFIG_FILES([robotkernel.pt], [cp robotkernel.pt ${ac_abs_top_srcdir}])
 AC_CONFIG_FILES([share/ln/robotkernel.inc.lnc], [cp share/ln/robotkernel.inc.lnc ${ac_abs_top_srcdir}/share/ln/])
