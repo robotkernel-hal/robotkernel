@@ -47,6 +47,8 @@ AC_SUBST(SET_MAKE)
 
 # setup rmpm
 RMPM_ARCH
+PKG_PROG_PKG_CONFIG
+PKG_INSTALLDIR
 
 # search packages, first with pkg-config, second in rmpm  
 # yaml-cpp 
@@ -198,6 +200,7 @@ AC_CHECK_LIB(pthread, pthread_create, PTHREAD_LIBS="-lpthread")
 AC_SUBST(PTHREAD_LIBS)
 
 AC_CONFIG_FILES([Makefile src/Makefile])
+AC_CONFIG_FILES([Makefile src/Makefile robotkernel.pc])
 AC_CONFIG_FILES([robotkernel.pt], [cp robotkernel.pt ${ac_abs_top_srcdir}])
 AC_CONFIG_FILES([share/ln/robotkernel.inc.lnc], [cp share/ln/robotkernel.inc.lnc ${ac_abs_top_srcdir}/share/ln/])
 
