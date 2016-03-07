@@ -4,15 +4,17 @@
 AC_PREREQ([2.63])
 AC_INIT([robotkernel], [4.0.4], [robert.burger@dlr.de])
 
-RMPM_ENV # must be before AC_PROG* but after AC_PROG_MAKE_SET
-RMPM_ARCH
-
 AC_CANONICAL_TARGET
 AC_CANONICAL_SYSTEM
 
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
-m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
+
+RMPM_ENV # must be before AC_PROG* but after AC_PROG_MAKE_SET
+RMPM_ARCH
+
 AC_CONFIG_HEADERS([include/robotkernel/config.h])
+
+m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
 AC_CONFIG_MACRO_DIR([m4])
 
 AM_MAKEFLAGS="$AM_MAKEFLAGS --no-print-directory --jobs=8"
@@ -22,8 +24,8 @@ AC_PROG_CXX
 AC_PROG_LIBTOOL
 AC_PROG_CC
 AC_PROG_INSTALL
-PKG_PROG_PKG_CONFIG
-PKG_INSTALLDIR
+m4_ifdef([PKG_PROG_PKG_CONFIG], [PKG_PROG_PKG_CONFIG])
+m4_ifdef([PKG_INSTALLDIR], [PKG_INSTALLDIR], [pkgconfigdir='${libdir}/pkgconfig' AC_SUBST([pkgconfigdir])])
 
 # search packages, first with pkg-config, second in rmpm  
 # yaml-cpp 
