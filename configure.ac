@@ -4,9 +4,6 @@
 AC_PREREQ([2.63])
 AC_INIT([robotkernel], [4.0.4], [robert.burger@dlr.de])
 
-RMPM_ENV # must be before AC_PROG* but after AC_PROG_MAKE_SET
-RMPM_ARCH
-
 AC_CANONICAL_TARGET
 AC_CANONICAL_SYSTEM
 
@@ -14,6 +11,9 @@ AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
 AC_CONFIG_HEADERS([include/robotkernel/config.h])
 AC_CONFIG_MACRO_DIR([m4])
+
+RMPM_ENV # must be before AC_PROG* but after AC_PROG_MAKE_SET and after AM_INIT_AUTOMAKE
+RMPM_ARCH
 
 AM_MAKEFLAGS="$AM_MAKEFLAGS --no-print-directory --jobs=8"
 
