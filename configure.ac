@@ -17,6 +17,9 @@ AC_CONFIG_HEADERS([include/robotkernel/config.h])
 m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
 AC_CONFIG_MACRO_DIR([m4])
 
+RMPM_ENV # must be before AC_PROG* but after AC_PROG_MAKE_SET and after AM_INIT_AUTOMAKE
+RMPM_ARCH
+
 AM_MAKEFLAGS="$AM_MAKEFLAGS --no-print-directory --jobs=8"
 
 # Checks for programs.
