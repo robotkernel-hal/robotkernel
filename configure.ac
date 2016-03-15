@@ -22,8 +22,9 @@ AC_PROG_CXX
 AC_PROG_LIBTOOL
 AC_PROG_CC
 AC_PROG_INSTALL
-PKG_PROG_PKG_CONFIG
-PKG_INSTALLDIR
+m4_ifdef([PKG_PROG_PKG_CONFIG], [PKG_PROG_PKG_CONFIG])
+m4_ifdef([PKG_INSTALLDIR], [PKG_INSTALLDIR], [pkgconfigdir='${libdir}/pkgconfig' AC_SUBST([pkgconfigdir])])
+
 
 # search packages, first with pkg-config, second in rmpm  
 # yaml-cpp 
