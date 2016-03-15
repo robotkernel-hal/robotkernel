@@ -656,6 +656,9 @@ int module::request(int reqcode, void* ptr) {
  * \param mdl module to register
  */
 void module::trigger_register_module(module *mdl, external_trigger& t) {
+    // let mdl know, that it is triggered by us
+    mdl->request(MOD_REQUEST_TRIGGERED_BY, &(name.c_str()));
+
     if (t._direct_mode) {
         t._direct_cnt       = 0;
         t._direct_mdl       = mdl;
