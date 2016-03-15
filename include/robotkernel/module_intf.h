@@ -92,6 +92,9 @@ typedef std::list<set_trigger_cb_t> cb_list_t;
 #define MOD_REQUEST_SET_TRIGGER_CB      MOD_REQUEST(0x0007, set_trigger_cb_t)
 #define MOD_REQUEST_UNSET_TRIGGER_CB    MOD_REQUEST(0x0008, set_trigger_cb_t)
 #define MOD_REQUEST_GET_CLOCKSRC_CNT    MOD_REQUEST(0x0009, int)
+#define MOD_REQUEST_GET_TRIGGER_INTERVAL  MOD_REQUEST(0x000D, double)
+#define MOD_REQUEST_SET_TRIGGER_INTERVAL  MOD_REQUEST(0x000E, double)
+#define MOD_REQUEST_TRIGGERED_BY          MOD_REQUEST(0x000F, char*)
 
 // -----------------------------------------------------------------------------------
 // module features
