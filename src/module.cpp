@@ -657,7 +657,9 @@ int module::request(int reqcode, void* ptr) {
  */
 void module::trigger_register_module(module *mdl, external_trigger& t) {
     // let mdl know, that it is triggered by us
-    mdl->request(MOD_REQUEST_TRIGGERED_BY, &(name.c_str()));
+    char *triggered_by = strdup(name.c_str());
+    mdl->request(MOD_REQUEST_TRIGGERED_BY, &triggered_by);
+    free(triggered_by);
 
     if (t._direct_mode) {
         t._direct_cnt       = 0;
