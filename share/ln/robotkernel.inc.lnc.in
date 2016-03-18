@@ -49,7 +49,7 @@ rk_term_timeout: %(ifndef "rk_term_timeout", "4")
 add_message_definition_dir: %(rk_base)/share/ln/message_definitions
 
 process %(ifndef "rk_name", "robotkernel")
-command: %(rk_binary) %(ifndef "rk_arguments", "")
+command: %(ifndef "rk_bin", "%(rk_binary)") %(ifndef "rk_arguments", "")
 node: %(ifndef "rk_node", "localhost")
 ready_regex: up and running
 ifdef rk_modules: append environment ROBOTKERNEL_MODULE_PATH: %(rk_modules)
