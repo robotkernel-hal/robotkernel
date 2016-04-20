@@ -36,7 +36,7 @@
 using namespace std;
 using namespace robotkernel;
 
-YAML::Node tmp = YAML::Clone(YAML::Node());
+YAML::Node tmp = YAML::Clone(YAML::Node("dieses clone steht hier damit es vom linker beim statischen linken mit eingepackt wird"));
 
 static void split_file_name(const string& str, string& path, string& file) {
     size_t found;
