@@ -363,7 +363,7 @@ void module::_init() {
     mod_trigger_slave_id    = (mod_trigger_slave_id_t)  dlsym(so_handle, "mod_trigger_slave_id");
 
     if (!mod_configure)
-        klog(verbose, "missing mod_configure in %s\n", module_file.c_str());;
+        klog(warning, "missing mod_configure in %s\n", module_file.c_str());;
     if (!mod_unconfigure)
         klog(verbose, "missing mod_unconfigure in %s\n", module_file.c_str());
     if (!mod_read)
@@ -411,6 +411,9 @@ bool module::reconfigure() {
     // try to configure
     if (mod_configure)
         mod_handle = mod_configure(name.c_str(), config.c_str());
+
+    if(!mod_handle)
+        throw str_exception("mod_handle of %s is NULL, can not proceed!\n(does module export mod_configure() function?)", module_file.c_str());
 
     // try to reach init state
     set_state(module_state_init);
@@ -657,7 +660,9 @@ int module::request(int reqcode, void* ptr) {
  */
 void module::trigger_register_module(module *mdl, external_trigger& t) {
     // let mdl know, that it is triggered by us
-    mdl->request(MOD_REQUEST_TRIGGERED_BY, &(name.c_str()));
+    char *triggered_by = strdup(name.c_str());
+    mdl->request(MOD_REQUEST_TRIGGERED_BY, &triggered_by);
+    free(triggered_by);
 
     if (t._direct_mode) {
         t._direct_cnt       = 0;

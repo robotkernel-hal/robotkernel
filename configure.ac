@@ -2,23 +2,19 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.63])
-AC_INIT([robotkernel], [4.0.4], [robert.burger@dlr.de])
+AC_INIT([robotkernel], [4.0.6], [robert.burger@dlr.de])
 
 AC_CANONICAL_TARGET
 AC_CANONICAL_SYSTEM
 
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 
-RMPM_ENV # must be before AC_PROG* but after AC_PROG_MAKE_SET
-RMPM_ARCH
-
-AC_CONFIG_HEADERS([include/robotkernel/config.h])
-
-m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
-AC_CONFIG_MACRO_DIR([m4])
-
 RMPM_ENV # must be before AC_PROG* but after AC_PROG_MAKE_SET and after AM_INIT_AUTOMAKE
 RMPM_ARCH
+
+m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
+AC_CONFIG_HEADERS([include/robotkernel/config.h])
+AC_CONFIG_MACRO_DIR([m4])
 
 AM_MAKEFLAGS="$AM_MAKEFLAGS --no-print-directory --jobs=8"
 
@@ -41,6 +37,7 @@ PKG_CHECK_MODULES([LIBSTRING_UTIL], [libstring_util], [], [RMPM_CHECK_MODULES([L
 RM_FIND_LN_FROM_ENV
 AC_DEFINE_UNQUOTED(LN_VERSION, "$LN_VERSION", [linked links and nodes library version])
 AC_SUBST(LN_VERSION)
+AC_SUBST(YAML_VERSION)
 
 PKG_CHECK_MODULES([LTTNG_UST], [lttng-ust], [AC_DEFINE([HAVE_LTTNG_UST], [1], [use lttng user space tracing])], [AC_DEFINE([HAVE_LTTNG_UST], [0], [use lttng user space tracing])])
 AM_CONDITIONAL([HAVE_LTTNG_UST], [test -n "$LTTNG_UST_LIBS"])

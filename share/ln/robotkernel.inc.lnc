@@ -44,12 +44,12 @@ rk_base_type: %(ifexists "%(rk_base)/bin/robotkernel", "local_install", "rmpm_re
 rk_this_debug: %(ifndef "rk_debug", "false")
 rk_binary_bn: %(ifeq "%(rk_this_debug)", "true", "robotkernel_debug", "robotkernel")
 rk_binary: %(ifeq "%(rk_base_type)", "local_install", "%(rk_base)/bin/%(rk_binary_bn)", "%(rk_base)/bin/$(ARCH)/%(rk_binary_bn)")
-rk_libdir: %(ifeq "%(rk_base_type)", "local_install", "%(rk_base)/lib:/volume/software/common/packages/links_and_nodes/0.9.5/lib/$(ARCH)", "%(rk_base)/lib/$(ARCH):/volume/software/common/packages/links_and_nodes/0.9.5/lib/$(ARCH)")
+rk_libdir: %(ifeq "%(rk_base_type)", "local_install", "%(rk_base)/lib:/volume/software/common/packages/links_and_nodes/0.10/lib/$(ARCH)", "%(rk_base)/lib/$(ARCH):/volume/software/common/packages/links_and_nodes/0.10/lib/$(ARCH)")
 rk_term_timeout: %(ifndef "rk_term_timeout", "4")
 add_message_definition_dir: %(rk_base)/share/ln/message_definitions
 
 process %(ifndef "rk_name", "robotkernel")
-command: %(rk_binary) %(ifndef "rk_arguments", "")
+command: %(ifndef "rk_bin", "%(rk_binary)") %(ifndef "rk_arguments", "")
 node: %(ifndef "rk_node", "localhost")
 ready_regex: up and running
 ifdef rk_modules: append environment ROBOTKERNEL_MODULE_PATH: %(rk_modules)
