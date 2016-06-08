@@ -109,10 +109,6 @@ def process_module(mod_fn):
             raise
     if cfg.with_realpath:
         pkg_base = os.path.realpath(pkg_base)
-    if optional_include:
-        print "optional_include %s" % pkg_base
-    else:
-        print "include %s" % pkg_base
 
     deps = getattr(cfg, "%s_deps" % mod_fn, [])
     if deps:
@@ -127,10 +123,15 @@ def process_module(mod_fn):
                     if dep not in deps:
                         deps.append(dep)
         fp.close()
-    if not deps:
-        return
+    
     for dep in deps:
         process_module(dep)
+    
+    if optional_include:
+        print "optional_include %s" % pkg_base
+    else:
+        print "include %s" % pkg_base
+        
 
 for module in rkconfig["modules"]:
     mod_fn = module["module_file"]
