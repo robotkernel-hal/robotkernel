@@ -68,7 +68,7 @@ runnable::runnable(const YAML::Node& node) {
  * \param affinity_mask thread cpu affinity mask
  */
 runnable::runnable(const int prio, const int affinity_mask)  
-    : run_flag(false), policy(SCHED_FIFO), prio(prio), affinity_mask(affinity_mask) {
+    : policy(SCHED_FIFO), prio(prio), affinity_mask(affinity_mask), run_flag(false) {
 }
         
 //! run wrapper to create posix thread

@@ -49,12 +49,13 @@ class runnable {
         runnable(const runnable&);             // prevent copy-construction
         runnable& operator=(const runnable&);  // prevent assignment
 
-        pthread_t tid;          //! posix thread handle
-        bool run_flag;          //! running flag
 
         int policy;             //! thread scheduling policy
         int prio;               //! thread priority
         int affinity_mask;      //! thread cpu affinity mask
+protected:
+        pthread_t tid;          //! posix thread handle
+        bool run_flag;          //! running flag
 
     public:
         //! construction with yaml node
