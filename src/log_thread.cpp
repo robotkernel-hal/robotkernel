@@ -111,8 +111,13 @@ struct log_thread::log_pool_object *log_thread::get_pool_object() {
  */
 void log_thread::log(struct log_pool_object *obj) {
     pthread_mutex_lock(&mutex);
-    full_pool.push_back(obj);
-    pthread_cond_signal(&cond);
+    if(sync_logging) {
+        printf("%s", obj->buf);
+        empty_pool.push_back(obj);
+    } else {
+        full_pool.push_back(obj);
+        pthread_cond_signal(&cond);
+    }
     pthread_mutex_unlock(&mutex);
 }
 

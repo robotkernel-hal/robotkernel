@@ -390,6 +390,9 @@ void kernel::config(std::string config_file, int argc, char **argv) {
     rk_log.fix_modname_length = 
         get_as<unsigned int>(doc, "log_fix_modname_length", 20);
 
+    rk_log.sync_logging = 
+        get_as<bool>(doc, "sync_logging", false);
+
     // search for log level
     if (doc["max_dump_log_len"]) {
         unsigned int len = 
