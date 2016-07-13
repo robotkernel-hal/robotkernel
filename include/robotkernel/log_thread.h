@@ -47,6 +47,7 @@ class log_thread : public runnable {
         };
     
         unsigned int fix_modname_length;
+        bool sync_logging;
 
         //! de-/construction
         /*!
