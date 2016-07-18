@@ -2,7 +2,10 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.63])
-AC_INIT([robotkernel], [4.0.6], [robert.burger@dlr.de])
+AC_INIT(
+	[robotkernel],
+	m4_esyscmd_s([cat project.properties | grep VERSION    | cut -d'=' -f2 | xargs printf "%s"]),
+	m4_esyscmd_s([cat project.properties | grep MAINTAINER | cut -d'=' -f2 | xargs printf "%s"]))
 
 AC_CANONICAL_TARGET
 AC_CANONICAL_SYSTEM
