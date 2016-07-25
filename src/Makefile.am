@@ -68,6 +68,9 @@ LN_KERNEL_MESSAGES = robotkernel/add_module \
 			  robotkernel/module/get_config \
 			  robotkernel/module/configure_loglevel
 
+#			  robotkernel/module/get_state 
+#			  robotkernel/module/set_state 
+
 dump_log_tp.c dump_log_tp.h: dump_log_tp.tp
 	@echo creating $@ from $^
 	/usr/local/bin/lttng-gen-tp -o $@ $^
