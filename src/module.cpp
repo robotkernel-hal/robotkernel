@@ -55,6 +55,10 @@ const char string_state_boot[]    = "<BOOT>";
 
 module* currently_loading_module = NULL;
 
+namespace robotkernel {
+void split_file_name(const string& str, string& path, string& file);
+}
+
 const char *state_to_string(module_state_t state) {
     switch (state) {
         default:
@@ -213,6 +217,10 @@ module::module(const YAML::Node& node, string config_path)
         stringstream buffer;
         buffer << t.rdbuf();
         config = buffer.str();
+
+        string fn_file;
+        split_file_name(file_name, config_file_path, fn_file);
+        
     } else if (node["config"]) {
         YAML::Emitter t;
         t << node["config"];
