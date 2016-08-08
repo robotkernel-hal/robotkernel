@@ -53,6 +53,8 @@ const char string_state_safeop[]  = "<SAFEOP>";
 const char string_state_op[]      = "<OP>";
 const char string_state_boot[]    = "<BOOT>";
 
+module* currently_loading_module = NULL;
+
 const char *state_to_string(module_state_t state) {
     switch (state) {
         default:
@@ -191,6 +193,8 @@ module::module(const YAML::Node& node, string config_path)
     module_file      = get_as<string>(node, "module_file");
     config_file_path = config_path;
 
+    currently_loading_module = this;
+    
     if (node["config_file"]) {
         string file_name = get_as<string>(node, "config_file");
         // check for absolute/relative path
@@ -271,6 +275,8 @@ module::module(const YAML::Node& node, string config_path)
     else power_up = module_state_init;
 
     _init();
+
+    currently_loading_module = NULL;
 }
 
 void module::_init() {

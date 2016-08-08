@@ -36,9 +36,12 @@
 using namespace std;
 using namespace robotkernel;
 
+extern module* currently_loading_module; // in module.cpp
+
 YAML::Node tmp = YAML::Clone(YAML::Node("dieses clone steht hier damit es vom linker beim statischen linken mit eingepackt wird"));
 
-static void split_file_name(const string& str, string& path, string& file) {
+namespace robotkernel {
+void split_file_name(const string& str, string& path, string& file) {
     size_t found;
     found = str.find_last_of("/\\");
     if (found == string::npos) {
@@ -49,7 +52,8 @@ static void split_file_name(const string& str, string& path, string& file) {
         file = str.substr(found+1);
     }
 }
-        
+}
+
 loglevel& loglevel::operator=(const std::string& ll_string) {
     if (ll_string == "error")
         value = error;
@@ -551,6 +555,9 @@ int kernel::request_cb(const char *mod_name, int reqcode, void *ptr) {
     if (mod_name == NULL)
         return k.request(reqcode, ptr);
 
+    if (currently_loading_module && mod_name == currently_loading_module->get_name())
+        return currently_loading_module->request(reqcode, ptr);
+    
     kernel::module_map_t::const_iterator it = k.module_map.find(mod_name);
     if (it == k.module_map.end())
         throw str_exception("[robotkernel] request_cb: module %s not found!\n", mod_name);
@@ -593,6 +600,9 @@ void kernel::unregister_interface_cb(interface_id_t interface_id) {
  */
 module *kernel::get_module(const char *mod_name) {
     kernel& k = *get_instance();
+
+    if (currently_loading_module && mod_name == currently_loading_module->get_name())
+        return currently_loading_module;
 
     kernel::module_map_t::const_iterator it = k.module_map.find(mod_name);
     if (it == k.module_map.end())
