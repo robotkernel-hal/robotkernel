@@ -125,6 +125,8 @@ class module_base :
 
         virtual ~module_base();
 
+        std::string get_name() { return name; }
+    
         //! cyclic process data read
         /*!
          * \param buf process data buffer
