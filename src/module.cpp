@@ -645,6 +645,12 @@ module_state_t module::get_state() {
   \return success or failure
   */
 int module::request(int reqcode, void* ptr) {
+    if(reqcode == MOD_REQUEST_GET_CFG_PATH) {
+        char** ret = (char**)ptr;
+        *ret = (char*)config_file_path.c_str();
+        return 0;
+    }
+    
     if (!mod_handle)
         throw str_exception("[%s] not configured\n", name.c_str());
 
