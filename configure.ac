@@ -39,6 +39,7 @@ AM_CONDITIONAL([HAVE_LTTNG_UST], [test -n "$LTTNG_UST_LIBS"])
 # RESOLVE DEPENDENCIES FROM project.properties
 m4_esyscmd([scripts/m4_deps.py]) 
 AM_CONDITIONAL([HAVE_YAMLCPP], [test -n "$YAML_CPP_LIBS"])
+LN_VERSION="$LINKS_AND_NODES_VERSION"
 
 RM_FIND_LN_FROM_ENV
 AC_DEFINE_UNQUOTED(LN_VERSION, "$LN_VERSION", [linked links and nodes library version])
