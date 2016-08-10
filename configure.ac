@@ -29,21 +29,21 @@ AC_PROG_INSTALL
 m4_ifdef([PKG_PROG_PKG_CONFIG], [PKG_PROG_PKG_CONFIG])
 m4_ifdef([PKG_INSTALLDIR], [PKG_INSTALLDIR], [pkgconfigdir='${libdir}/pkgconfig' AC_SUBST([pkgconfigdir])])
 
-# search packages, first with pkg-config, second in rmpm  
-# yaml-cpp 
-PKG_CHECK_MODULES([YAMLCPP], [yaml-cpp], [], [RMPM_CHECK_MODULES([YAMLCPP], [software.yaml-cpp==${YAML_VERSION}])])
-AM_CONDITIONAL([HAVE_YAMLCPP], [test -n "$YAMLCPP_LIBS"])
+AS_IF([test -e src/dump_log_tp.tp], 
+   PKG_CHECK_MODULES([LTTNG_UST], [lttng-ust], 
+  				  [AC_DEFINE([HAVE_LTTNG_UST], [1], [use lttng user space tracing])], 
+			          [AC_DEFINE([HAVE_LTTNG_UST], [0], [use lttng user space tracing])])
+)
+AM_CONDITIONAL([HAVE_LTTNG_UST], [test -n "$LTTNG_UST_LIBS"])
 
-PKG_CHECK_MODULES([LIBSTRING_UTIL], [libstring_util], [], [RMPM_CHECK_MODULES([LIBSTRING_UTIL], [software.libstring_util])])
-
+# RESOLVE DEPENDENCIES FROM project.properties
+m4_esyscmd([scripts/m4_deps.py]) 
+AM_CONDITIONAL([HAVE_YAMLCPP], [test -n "$YAML_CPP_LIBS"])
 
 RM_FIND_LN_FROM_ENV
 AC_DEFINE_UNQUOTED(LN_VERSION, "$LN_VERSION", [linked links and nodes library version])
 AC_SUBST(LN_VERSION)
-AC_SUBST(YAML_VERSION)
 
-PKG_CHECK_MODULES([LTTNG_UST], [lttng-ust], [AC_DEFINE([HAVE_LTTNG_UST], [1], [use lttng user space tracing])], [AC_DEFINE([HAVE_LTTNG_UST], [0], [use lttng user space tracing])])
-AM_CONDITIONAL([HAVE_LTTNG_UST], [test -n "$LTTNG_UST_LIBS"])
 
 AM_CONDITIONAL([HAVE_PRU], [test -n "$PRU_BASE"])
 
