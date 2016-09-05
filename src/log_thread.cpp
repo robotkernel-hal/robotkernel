@@ -69,6 +69,8 @@ log_thread::log_thread(int pool_size) : runnable(0, 0) {
 //! destruction, do clean ups
 log_thread::~log_thread() {
     // stop thread
+    run_flag = false; // give thread chance to exit voluntarily, without timeout
+    pthread_cond_signal(&cond);
     stop();
 
     // clean up pools
@@ -129,11 +131,7 @@ void log_thread::run() {
     while (running()) {
         struct timespec ts;
         clock_gettime(CLOCK_REALTIME, &ts);
-        ts.tv_nsec += 1E7;
-        if (ts.tv_nsec > 1E9) {
-            ts.tv_nsec = ts.tv_nsec % (long int)1E9;
-            ts.tv_sec++;
-        }
+        ts.tv_sec += 1;
 
         pthread_mutex_lock(&mutex);
         // wait for trigger, this will unlock mutex

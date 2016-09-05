@@ -46,7 +46,9 @@ class kernel_worker;
  */
 class module :
     public ln_service_get_config_base,
-    public ln_service_get_feat_base {
+    public ln_service_get_feat_base,
+    public ln_service_get_state_base, 
+    public ln_service_set_state_base {
 
     private:
         module();

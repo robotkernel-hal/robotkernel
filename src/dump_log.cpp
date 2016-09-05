@@ -35,7 +35,7 @@
 #include "robotkernel/config.h"
 
 #if (HAVE_LTTNG_UST == 1)
-#include "robotkernel/dump_log_tp.h"
+#include "dump_log_tp.h"
 #endif
 
 #include "robotkernel/char_ringbuffer.h"
