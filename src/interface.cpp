@@ -125,7 +125,7 @@ interface::interface(const std::string& interface_file, const YAML::Node& node) 
   destroys interface
   */
 interface::~interface() {
-    klog(info, "interface destructing %s\n", interface_file.c_str());
+    klog(verbose, "interface destructing %s\n", interface_file.c_str());
 
     // unconfigure interface first
     if (intf_handle && intf_unregister) {
@@ -134,7 +134,7 @@ interface::~interface() {
     }
 
     if (so_handle && !kernel::get_instance()->_do_not_unload_modules) {
-        klog(info, "unloading interface %s\n", 
+        klog(verbose, "unloading interface %s\n", 
                 interface_file.c_str());
 
         if (dlclose(so_handle) != 0)
