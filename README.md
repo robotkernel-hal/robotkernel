@@ -1,4 +1,4 @@
-[![BuildBot Status](http://rmc-chimaere:8010/badge.png?builder=robotkernel/robotkernel&branch=RK4)](http://rmc-chimaere:8010/builders/robotkernel%2Frobotkernel)
+[![BuildBot Status](http://rmc-chimaere:8010/badge.png?builder=robotkernel/robotkernel&branch=master)](http://rmc-chimaere:8010/builders/robotkernel%2Frobotkernel)
 
                      README for robotkernel
 
