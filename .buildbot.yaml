@@ -1,0 +1,24 @@
+type: ''
+
+arch:
+  - 'osl42-x86_64'
+  
+shell: /bin/bash -c
+
+env:
+  PATH: ['/volume/software/common/packages/rmpm/latest/bin/${DLRRM_HOST_PLATFORM}', '${PATH}']
+  
+pre_build:
+  - OWNER_NAME=$(git remote -v | grep -e "^origin\s" | sed "s/.*[:\/]\(.*\)\/.*/\1/g" | head -1)
+  - REPO_NAME=$(git remote -v | grep -e "^origin\s" | sed "s/.*\/\(.*\).git.*/\1/g" | head -1)
+  - pkgtool --env --env-format embed_sh sw.${OWNER_NAME}.${REPO_NAME} > rmpm_env.sh
+  - source rmpm_env.sh
+  - make -f scripts/Makefile.suggested clean
+  
+build:
+  - source rmpm_env.sh
+  - make -f scripts/Makefile.suggested
+  
+test:
+  - source rmpm_env.sh
+  - make -f scripts/Makefile.suggested check_only_all
