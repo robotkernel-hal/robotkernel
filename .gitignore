@@ -16,3 +16,4 @@ m4/
 missing
 robotkernel.pt
 src/Makefile.in
+/workspace-release
