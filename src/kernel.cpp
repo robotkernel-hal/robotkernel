@@ -146,8 +146,8 @@ int kernel::set_state(std::string mod_name, module_state_t state) {
 
     if (mdl.set_state(state) == -1)
         // throw exception
-        throw str_exception("[robotkernel] ERROR: failed to swtich module %s"
-                " to state %s!\n", mod_name.c_str(), state_to_string(state));
+        throw str_exception("[robotkernel] ERROR: failed to switch module %s"
+                " to state %s!", mod_name.c_str(), state_to_string(state));
 
     return mdl.get_state();
 }
