@@ -100,7 +100,7 @@ int kernel::set_state(std::string mod_name, module_state_t state) {
             continue;
 
         if (dep_mod_state == module_state_error) {
-            log(info, "dependent module %d is in error state, "
+            log(info, "dependent module %s is in error state, "
                     "cannot power up module %s\n", d_mod_name.c_str(), 
                     mod_name.c_str());
 
@@ -488,8 +488,11 @@ bool kernel::power_up() {
         string msg = "modules failed to switch to OP: ";
 
         for (std::list<string>::iterator it = failed_modules.begin();
-                it != failed_modules.end(); ++it)
-            msg += *it + ", ";
+             it != failed_modules.end(); ++it) {
+            if(it != failed_modules.begin())
+                msg += ", ";
+            msg += *it;
+        }
         log(error, "%s\n", msg.c_str());
         return false;
     }

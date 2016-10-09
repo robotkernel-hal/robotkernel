@@ -4,6 +4,6 @@ SUBDIRS = src
 pkgconfig_DATA = robotkernel.pc
 
 install-exec-hook:
-	mkdir -p $(prefix)/share/ln
-	-cp -rf $(srcdir)/share/ln/* $(prefix)/share/ln/
+	mkdir -p $(DESTDIR)$(prefix)/share/ln
+	-cp -rf $(srcdir)/share/ln/* $(DESTDIR)$(prefix)/share/ln/
 
