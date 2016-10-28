@@ -105,14 +105,12 @@ class module_base :
     private:
         module_base();          //!< prevent default construction
 
-    protected:
+    public:
         const std::string modname;  //!< module name
         const std::string name;     //!< instance name
         module_state_t state;       //!< actual module state
         loglevel ll;                //!< module loglevel
 
-
-    public:
         //! construction
         /*!
          * \param modname module name
