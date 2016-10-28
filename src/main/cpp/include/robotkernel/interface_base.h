@@ -66,7 +66,7 @@ EXPORT_C INTERFACE_HANDLE intf_register(const char* config) {                   
 namespace robotkernel {
 
 class interface_base :
-    public ln_service_configure_loglevel_base {
+    public ln_service_robotkernel_module_configure_loglevel_base {
     private:
         interface_base();       //!< prevent default construction
 

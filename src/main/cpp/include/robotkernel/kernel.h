@@ -94,15 +94,15 @@ class loglevel {
 //};
 
 class kernel :
-    public ln_service_set_state_base,
-    public ln_service_get_state_base,
-    public ln_service_get_states_base,
-    public ln_service_add_module_base,
-    public ln_service_remove_module_base,
-    public ln_service_module_list_base,
-    public ln_service_reconfigure_module_base,
-    public ln_service_get_dump_log_base,
-    public ln_service_config_dump_log_base {
+    public ln_service_robotkernel_set_state_base,
+    public ln_service_robotkernel_get_state_base,
+    public ln_service_robotkernel_get_states_base,
+    public ln_service_robotkernel_add_module_base,
+    public ln_service_robotkernel_remove_module_base,
+    public ln_service_robotkernel_module_list_base,
+    public ln_service_robotkernel_reconfigure_module_base,
+    public ln_service_robotkernel_get_dump_log_base,
+    public ln_service_robotkernel_config_dump_log_base {
     private:
         //! kernel singleton instance
         static kernel *instance;

@@ -391,8 +391,10 @@ void module::register_services() {
 
     kernel& k = *kernel::get_instance();
     if (k.clnt) {
-        register_get_config(k.clnt, k.clnt->name + "." + name + ".get_config");
-        register_get_feat(k.clnt, k.clnt->name + "." + name + ".get_feat");
+        register_robotkernel_module_get_config(
+                k.clnt, k.clnt->name + "." + name + ".get_config");
+        register_robotkernel_module_get_feat(
+                k.clnt, k.clnt->name + "." + name + ".get_feat");
     }
 }
 

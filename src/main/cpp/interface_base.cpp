@@ -46,13 +46,13 @@ interface_base::interface_base(const std::string& intf_name, const YAML::Node& n
         base << k.clnt->name << "." << mod_name << "." << dev_name 
             << "." << intf_name << ".";
 
-        register_configure_loglevel(k.clnt, base.str() + "configure_loglevel");
+        register_robotkernel_module_configure_loglevel(k.clnt, base.str() + "configure_loglevel");
     }
 }
 
 //! destruction
 interface_base::~interface_base() {
-    unregister_configure_loglevel();
+    unregister_robotkernel_module_configure_loglevel();
 }
 
 //! log to kernel logging facility
