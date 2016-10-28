@@ -16,7 +16,7 @@ ARCHS               = @ARCHS@
 SUPPORTED_LANGUAGES = C++, C
 
 [install]
-include/robotkernel/*.h => include/robotkernel/
-build/${ARCH}/include/robotkernel/*.h => include/${ARCH}/robotkernel/
+src/main/cpp/include/robotkernel/*.h => include/robotkernel/
+build/${ARCH}/src/main/cpp/include/robotkernel/*.h => include/${ARCH}/robotkernel/
 build/${ARCH}/install/bin/ => bin/${ARCH}/
 share/ => share/
