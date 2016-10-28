@@ -56,6 +56,8 @@ log_thread::log_thread(int pool_size) : runnable(0, 0) {
     pthread_mutex_init(&mutex, NULL);
     pthread_cond_init(&cond, NULL);
 
+    sync_logging = false;
+
     int i;
     for (i = 0; i < pool_size; ++i) {
         struct log_pool_object *obj = new struct log_pool_object;
