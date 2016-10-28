@@ -32,15 +32,15 @@
 
 #define MODULE_HANDLE void*
 
-typedef enum module_state {
-    module_state_unknown = -2,
-    module_state_error = -1,
-    module_state_boot = 0,
-    module_state_init = 1,
-    module_state_preop = 2,
-    module_state_safeop = 3,
-    module_state_op = 4
-} module_state_t;
+const static uint16_t module_state_unknown  = 0x0000;
+const static uint16_t module_state_init     = 0x0001;
+const static uint16_t module_state_preop    = 0x0002;
+const static uint16_t module_state_safeop   = 0x0004;
+const static uint16_t module_state_op       = 0x0008;
+const static uint16_t module_state_boot     = 0x0010;
+const static uint16_t module_state_error    = 0x8000;
+
+typedef uint16_t module_state_t;
 
 #define __MOD_REQUEST(m, r, s)          (((s) << 24) | ((m) << 16) | (r))
 #define __MOD_REQUEST_TYPE(s)           (sizeof(s))
