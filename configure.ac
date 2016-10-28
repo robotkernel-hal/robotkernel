@@ -16,7 +16,7 @@ RMPM_ENV # must be before AC_PROG* but after AC_PROG_MAKE_SET and after AM_INIT_
 RMPM_ARCH
 
 m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
-AC_CONFIG_HEADERS([include/robotkernel/config.h])
+AC_CONFIG_HEADERS([src/main/cpp/include/robotkernel/config.h])
 AC_CONFIG_MACRO_DIR([m4])
 
 AM_MAKEFLAGS="$AM_MAKEFLAGS --no-print-directory --jobs=8"
@@ -138,7 +138,7 @@ AC_CHECK_TYPES([cpu_set_t], [], [], [[#include <pthread.h>]])
 AC_CHECK_LIB(pthread, pthread_create, PTHREAD_LIBS="-lpthread")
 AC_SUBST(PTHREAD_LIBS)
 
-AC_CONFIG_FILES([Makefile src/Makefile robotkernel.pc])
+AC_CONFIG_FILES([Makefile src/main/cpp/Makefile robotkernel.pc])
 AC_CONFIG_FILES([share/ln/robotkernel.inc.lnc], [cp share/ln/robotkernel.inc.lnc ${ac_abs_top_srcdir}/share/ln/])
 
 AC_OUTPUT

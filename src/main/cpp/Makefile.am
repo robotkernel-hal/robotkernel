@@ -3,7 +3,7 @@ INSTALL_HEADER = $(INSTALL_DATA) -C
 BUILT_SOURCES = $(top_builddir)/include/robotkernel/ln_kernel_messages.h
 CLEANFILES = $(top_builddir)/include/robotkernel/ln_kernel_messages.h
 includedir = $(prefix)/include/robotkernel
-headerdir = $(top_srcdir)/include/robotkernel
+headerdir = $(srcdir)/include/robotkernel
 gen_headerdir = $(top_builddir)/include/robotkernel
 
 bin_PROGRAMS = robotkernel robotkernel_debug
@@ -30,14 +30,14 @@ include_HEADERS = $(headerdir)/module_intf.h \
 robotkernel_SOURCES = module.cpp module_intf.cpp interface.cpp main.cpp exceptions.cpp kernel.cpp kernel_worker.cpp \
 					  runnable.cpp trigger_base.cpp log_thread.cpp dump_log.cpp char_ringbuffer.cpp module_base.cpp interface_base.cpp
 
-robotkernel_CXXFLAGS = -O2 -I$(top_builddir)/include -I$(top_srcdir)/include/ @YAML_CPP_CFLAGS@ @LN_CFLAGS@ @LIBSTRING_UTIL_CFLAGS@
+robotkernel_CXXFLAGS = -O2 -I$(top_builddir)/include -I$(srcdir)/include/ @YAML_CPP_CFLAGS@ @LN_CFLAGS@ @LIBSTRING_UTIL_CFLAGS@
 robotkernel_LDFLAGS = -Wl,-export-dynamic -Bdynamic @ROBOTKERNEL_LDFLAGS@
 robotkernel_LDADD = @DL_LIBS@ @SOCKET_LIBS@ @PTHREAD_LIBS@ @RT_LIBS@ @YAML_CPP_LIBS@ @LN_LIBS@ @LIBSTRING_UTIL_LIBS@ #-lstdc++
 
 robotkernel_debug_SOURCES = module.cpp module_intf.cpp interface.cpp main.cpp exceptions.cpp kernel.cpp kernel_worker.cpp \
 					  runnable.cpp trigger_base.cpp log_thread.cpp dump_log.cpp char_ringbuffer.cpp module_base.cpp interface_base.cpp
 
-robotkernel_debug_CXXFLAGS = -O0 -g3 -I$(top_builddir)/include -I$(top_srcdir)/include/ @YAML_CPP_CFLAGS@ @LN_CFLAGS@ @LIBSTRING_UTIL_CFLAGS@
+robotkernel_debug_CXXFLAGS = -O0 -g3 -I$(top_builddir)/include -I$(srcdir)/include/ @YAML_CPP_CFLAGS@ @LN_CFLAGS@ @LIBSTRING_UTIL_CFLAGS@
 robotkernel_debug_LDFLAGS = -Wl,-export-dynamic -Bdynamic @ROBOTKERNEL_LDFLAGS@ 
 
 robotkernel_debug_LDADD = @DL_LIBS@ @SOCKET_LIBS@ @RT_LIBS@ @PTHREAD_LIBS@ @YAML_CPP_LIBS@ @LN_LIBS@ @LIBSTRING_UTIL_LIBS@ #-lstdc++

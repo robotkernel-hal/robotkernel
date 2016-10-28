@@ -1,6 +1,6 @@
 ACLOCAL_AMFLAGS = -I m4 -I scripts/m4 
 
-SUBDIRS = src
+SUBDIRS = src/main/cpp
 pkgconfig_DATA = robotkernel.pc
 
 install-exec-hook:
