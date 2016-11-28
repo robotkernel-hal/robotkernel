@@ -210,15 +210,15 @@ kernel::~kernel() {
 
 
     // unregister services before we delete the client, cannot be done in destructors
-    unregister_robotkernel_config_dump_log();
-    unregister_robotkernel_get_dump_log();
-    unregister_robotkernel_set_state();
-    unregister_robotkernel_get_state();
-    unregister_robotkernel_add_module();
-    unregister_robotkernel_remove_module();
-    unregister_robotkernel_module_list();
-    unregister_robotkernel_reconfigure_module();
-    unregister_robotkernel_get_states();
+    unregister_config_dump_log();
+    unregister_get_dump_log();
+    unregister_set_state();
+    unregister_get_state();
+    unregister_add_module();
+    unregister_remove_module();
+    unregister_module_list();
+    unregister_reconfigure_module();
+    unregister_get_states();
 
     if (clnt) {
         delete clnt;
@@ -258,15 +258,15 @@ void kernel::init_ln(int argc, char **argv) {
     // ln client stuff
     clnt = new ln::client(_name.c_str(), argc, argv);
 
-    register_robotkernel_get_dump_log(clnt, clnt->name + ".get_dump_log");
-    register_robotkernel_config_dump_log(clnt, clnt->name + ".config_dump_log");
-    register_robotkernel_set_state(clnt, clnt->name + ".set_state");
-    register_robotkernel_get_state(clnt, clnt->name + ".get_state");
-    register_robotkernel_add_module(clnt, clnt->name + ".add_module");
-    register_robotkernel_remove_module(clnt, clnt->name + ".remove_module");
-    register_robotkernel_module_list(clnt, clnt->name + ".module_list");
-    register_robotkernel_reconfigure_module(clnt, clnt->name + ".reconfigure_module");
-    register_robotkernel_get_states(clnt, clnt->name + ".get_states");
+    register_get_dump_log(clnt, clnt->name + ".get_dump_log");
+    register_config_dump_log(clnt, clnt->name + ".config_dump_log");
+    register_set_state(clnt, clnt->name + ".set_state");
+    register_get_state(clnt, clnt->name + ".get_state");
+    register_add_module(clnt, clnt->name + ".add_module");
+    register_remove_module(clnt, clnt->name + ".remove_module");
+    register_module_list(clnt, clnt->name + ".module_list");
+    register_reconfigure_module(clnt, clnt->name + ".reconfigure_module");
+    register_get_states(clnt, clnt->name + ".get_states");
 
     // handle default service group (NULL) in new "main" thread-pool
     clnt->handle_service_group_in_thread_pool(NULL, "main");

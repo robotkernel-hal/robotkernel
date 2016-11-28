@@ -101,7 +101,7 @@ EXPORT_C MODULE_HANDLE mod_configure(const char* name, const char* config) {    
 namespace robotkernel {
 
 class module_base :
-    public ln_service_robotkernel_module_configure_loglevel_base {
+    public ln_service_configure_loglevel_base {
     private:
         module_base();          //!< prevent default construction
 

@@ -43,7 +43,7 @@ module_base::module_base(const std::string& modname, const std::string& name) :
         stringstream base;
         base << k.clnt->name << "." << name << ".";
 
-        register_robotkernel_module_configure_loglevel(
+        register_configure_loglevel(
                 k.clnt, base.str() + "configure_loglevel");
     }
 }
@@ -63,7 +63,7 @@ module_base::module_base(const std::string& modname, const std::string& name,
         stringstream base;
         base << k.clnt->name << "." << name << ".";
 
-        register_robotkernel_module_configure_loglevel(
+        register_configure_loglevel(
                 k.clnt, base.str() + "configure_loglevel");
     }
 
@@ -84,7 +84,7 @@ module_base::module_base(const std::string& modname, const std::string& name,
 }
 
 module_base::~module_base() {
-    unregister_robotkernel_module_configure_loglevel();
+    unregister_configure_loglevel();
 }
 
 //! log to kernel logging facility

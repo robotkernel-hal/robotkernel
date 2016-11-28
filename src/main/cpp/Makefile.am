@@ -57,20 +57,21 @@ endif
 VPATH = $(srcdir):$(top_srcdir)/share/ln/message_definitions 
 
 LN_KERNEL_MESSAGES = \
-					 robotkernel_add_module \
-					 robotkernel_remove_module \
-					 robotkernel_reconfigure_module \
-					 robotkernel_set_state \
-					 robotkernel_get_state \
-					 robotkernel_get_states \
-					 robotkernel_module_list \
-					 robotkernel_get_dump_log \
-					 robotkernel_config_dump_log \
-					 robotkernel_module_get_feat \
-					 robotkernel_module_get_config \
-					 robotkernel_module_configure_loglevel \
-					 robotkernel_module_get_state \
-					 robotkernel_module_set_state 
+					 robotkernel/add_module \
+					 robotkernel/remove_module \
+					 robotkernel/reconfigure_module \
+					 robotkernel/set_state \
+					 robotkernel/get_state \
+					 robotkernel/get_states \
+					 robotkernel/module_list \
+					 robotkernel/get_dump_log \
+					 robotkernel/config_dump_log \
+					 robotkernel/module/get_feat \
+					 robotkernel/module/get_config \
+					 robotkernel/module/configure_loglevel
+
+#					 robotkernel/module/get_state \
+#					 robotkernel/module/set_state 
 
 dump_log_tp.c dump_log_tp.h: dump_log_tp.tp
 	@echo creating $@ from $^

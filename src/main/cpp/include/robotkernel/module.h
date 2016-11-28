@@ -45,11 +45,8 @@ class kernel_worker;
   This class opens a shared module and loads all needed symbols
  */
 class module :
-    public ln_service_robotkernel_module_get_config_base,
-    public ln_service_robotkernel_module_get_feat_base,
-    public ln_service_robotkernel_module_get_state_base, 
-    public ln_service_robotkernel_module_set_state_base {
-
+    public ln_service_get_config_base,
+    public ln_service_get_feat_base {
     private:
         module();
         module(const module&);             // prevent copy-construction
