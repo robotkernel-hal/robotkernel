@@ -36,9 +36,12 @@
 using namespace std;
 using namespace robotkernel;
 
+extern module* currently_loading_module; // in module.cpp
+
 YAML::Node tmp = YAML::Clone(YAML::Node("dieses clone steht hier damit es vom linker beim statischen linken mit eingepackt wird"));
 
-static void split_file_name(const string& str, string& path, string& file) {
+namespace robotkernel {
+void split_file_name(const string& str, string& path, string& file) {
     size_t found;
     found = str.find_last_of("/\\");
     if (found == string::npos) {
@@ -49,7 +52,8 @@ static void split_file_name(const string& str, string& path, string& file) {
         file = str.substr(found+1);
     }
 }
-        
+}
+
 loglevel& loglevel::operator=(const std::string& ll_string) {
     if (ll_string == "error")
         value = error;
@@ -96,7 +100,7 @@ int kernel::set_state(std::string mod_name, module_state_t state) {
             continue;
 
         if (dep_mod_state == module_state_error) {
-            log(info, "dependent module %d is in error state, "
+            log(info, "dependent module %s is in error state, "
                     "cannot power up module %s\n", d_mod_name.c_str(), 
                     mod_name.c_str());
 
@@ -142,8 +146,8 @@ int kernel::set_state(std::string mod_name, module_state_t state) {
 
     if (mdl.set_state(state) == -1)
         // throw exception
-        throw str_exception("[robotkernel] ERROR: failed to swtich module %s"
-                " to state %s!\n", mod_name.c_str(), state_to_string(state));
+        throw str_exception("[robotkernel] ERROR: failed to switch module %s"
+                " to state %s!", mod_name.c_str(), state_to_string(state));
 
     return mdl.get_state();
 }
@@ -484,8 +488,11 @@ bool kernel::power_up() {
         string msg = "modules failed to switch to OP: ";
 
         for (std::list<string>::iterator it = failed_modules.begin();
-                it != failed_modules.end(); ++it)
-            msg += *it + ", ";
+             it != failed_modules.end(); ++it) {
+            if(it != failed_modules.begin())
+                msg += ", ";
+            msg += *it;
+        }
         log(error, "%s\n", msg.c_str());
         return false;
     }
@@ -551,6 +558,9 @@ int kernel::request_cb(const char *mod_name, int reqcode, void *ptr) {
     if (mod_name == NULL)
         return k.request(reqcode, ptr);
 
+    if (currently_loading_module && mod_name == currently_loading_module->get_name())
+        return currently_loading_module->request(reqcode, ptr);
+    
     kernel::module_map_t::const_iterator it = k.module_map.find(mod_name);
     if (it == k.module_map.end())
         throw str_exception("[robotkernel] request_cb: module %s not found!\n", mod_name);
@@ -593,6 +603,9 @@ void kernel::unregister_interface_cb(interface_id_t interface_id) {
  */
 module *kernel::get_module(const char *mod_name) {
     kernel& k = *get_instance();
+
+    if (currently_loading_module && mod_name == currently_loading_module->get_name())
+        return currently_loading_module;
 
     kernel::module_map_t::const_iterator it = k.module_map.find(mod_name);
     if (it == k.module_map.end())

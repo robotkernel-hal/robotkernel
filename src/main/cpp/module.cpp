@@ -53,6 +53,12 @@ const char string_state_safeop[]  = "<SAFEOP>";
 const char string_state_op[]      = "<OP>";
 const char string_state_boot[]    = "<BOOT>";
 
+module* currently_loading_module = NULL;
+
+namespace robotkernel {
+void split_file_name(const string& str, string& path, string& file);
+}
+
 const char *state_to_string(module_state_t state) {
     switch (state) {
         default:
@@ -191,6 +197,8 @@ module::module(const YAML::Node& node, string config_path)
     module_file      = get_as<string>(node, "module_file");
     config_file_path = config_path;
 
+    currently_loading_module = this;
+    
     if (node["config_file"]) {
         string file_name = get_as<string>(node, "config_file");
         // check for absolute/relative path
@@ -209,6 +217,10 @@ module::module(const YAML::Node& node, string config_path)
         stringstream buffer;
         buffer << t.rdbuf();
         config = buffer.str();
+
+        string fn_file;
+        split_file_name(file_name, config_file_path, fn_file);
+        
     } else if (node["config"]) {
         YAML::Emitter t;
         t << node["config"];
@@ -271,6 +283,8 @@ module::module(const YAML::Node& node, string config_path)
     else power_up = module_state_init;
 
     _init();
+
+    currently_loading_module = NULL;
 }
 
 void module::_init() {
@@ -647,6 +661,12 @@ module_state_t module::get_state() {
   \return success or failure
   */
 int module::request(int reqcode, void* ptr) {
+    if(reqcode == MOD_REQUEST_GET_CFG_PATH) {
+        char** ret = (char**)ptr;
+        *ret = (char*)config_file_path.c_str();
+        return 0;
+    }
+    
     if (!mod_handle)
         throw str_exception("[%s] not configured\n", name.c_str());
 

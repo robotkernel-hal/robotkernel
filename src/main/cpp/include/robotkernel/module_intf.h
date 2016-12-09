@@ -110,6 +110,7 @@ static const int MODULE_FEAT_ETHERCAT   = 0x00002000;
 static const int MODULE_FEAT_SERCOS     = 0x00004000;
 
 #define MOD_REQUEST_GET_MODULE_FEAT                 MOD_REQUEST(0x2000, int)
+#define MOD_REQUEST_GET_CFG_PATH                    MOD_REQUEST(0x2001, char*)
 
 // -----------------------------------------------------------------------------------
 // module symbols
