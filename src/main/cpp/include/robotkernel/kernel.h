@@ -26,13 +26,17 @@
 #define __KERNEL_H__
 
 #include <string>
+
+#include <boost/function.hpp>
+#include <boost/bind.hpp>
+
 #include "robotkernel/module.h"
 #include "robotkernel/log_thread.h"
 #include "robotkernel/dump_log.h"
-#include "robotkernel/ln_kernel_messages.h"
-
-#include "ln.h"
-#include "ln_cppwrapper.h"
+//#include "robotkernel/ln_kernel_messages.h"
+//
+//#include "ln.h"
+//#include "ln_cppwrapper.h"
 
 #define klog(...) robotkernel::kernel::get_instance()->log(__VA_ARGS__)
 
@@ -93,16 +97,17 @@ class loglevel {
 //    verbose = 4, 
 //};
 
-class kernel :
-    public ln_service_set_state_base,
-    public ln_service_get_state_base,
-    public ln_service_get_states_base,
-    public ln_service_add_module_base,
-    public ln_service_remove_module_base,
-    public ln_service_module_list_base,
-    public ln_service_reconfigure_module_base,
-    public ln_service_get_dump_log_base,
-    public ln_service_config_dump_log_base {
+class kernel {
+//:
+//    public ln_service_set_state_base,
+//    public ln_service_get_state_base,
+//    public ln_service_get_states_base,
+//    public ln_service_add_module_base,
+//    public ln_service_remove_module_base,
+//    public ln_service_module_list_base,
+//    public ln_service_reconfigure_module_base,
+//    public ln_service_get_dump_log_base,
+//    public ln_service_config_dump_log_base {
     private:
         //! kernel singleton instance
         static kernel *instance;
@@ -111,7 +116,18 @@ class kernel :
         kernel& operator=(const kernel&);  // prevent assignment
         
         loglevel ll;    //!< robotkernel global loglevel
-
+        
+        // modules map
+        typedef std::map<std::string, module *> module_map_t;
+        module_map_t module_map;
+        pthread_t module_map_lock;
+        
+        //! return module state
+        /*!
+         * \param mod_name name of module which state to return
+         * \return module state
+         */
+        module_state_t _internal_get_state(std::string mod_name);
     protected:
         //! construction
         /*!
@@ -122,6 +138,48 @@ class kernel :
         ~kernel();
 
     public:
+        typedef boost::function<int(YAML::Node&)> service_callback_t;
+
+        typedef struct service {
+            std::string owner;
+            std::string name;
+            std::string service_definition;
+            service_callback_t callback;
+        } service_t;
+
+        typedef std::map<std::string, service_t *> service_list_t;
+        service_list_t service_list;
+
+        typedef boost::function<void(const robotkernel::kernel::service_t& svc)>
+            service_provider_cb_t;
+
+        typedef struct service_provider {
+            service_provider_cb_t add_service;
+            service_provider_cb_t remove_service;
+        } service_provider_t;
+
+        typedef std::list<service_provider_t *> service_providers_list_t;
+        service_providers_list_t service_providers;
+
+        //! add service to kernel
+        /*!
+         * \param owner service owner
+         * \param name service name
+         * \param service_definition service definition
+         * \param callback service callback
+         */
+        void add_service(
+                const std::string& owner,
+                const std::string& name, 
+                const std::string& service_definition, 
+                service_callback_t callback);
+
+        //! remove all services from owner
+        /*!
+         * \param owner service owner
+         */
+        void remove_services(const std::string& owner);
+
         //! get kernel singleton instance
         /*!
          * \return kernel singleton instance
@@ -181,10 +239,6 @@ class kernel :
         bool state_check(std::string mod_name, module_state_t state);
         bool state_check();
 
-        // modules map
-        typedef std::map<std::string, module *> module_map_t;
-        module_map_t module_map;
-
         // config file name
         std::string config_file;
 
@@ -239,7 +293,7 @@ class kernel :
         module *get_module(const char *mod_name);
 
         //! links and nodes client
-        ln::client *clnt;
+//        ln::client *clnt;
         unsigned int _ln_thread_pool_size_main;
         bool _do_not_unload_modules;
 
@@ -263,21 +317,37 @@ class kernel :
         
         //! get dump log
         /*!
+         * \param message service message
+         * \return success
+         */
+        int service_get_dump_log(YAML::Node& message);
+        static const std::string service_definition_get_dump_log;
+
+        //! get dump log
+        /*!
          * \param req service request
          * \param svn service container
          * \return success
          */
-        virtual int on_get_dump_log(ln::service_request& req, 
-                ln_service_robotkernel_get_dump_log& svc);
+//        virtual int on_get_dump_log(ln::service_request& req, 
+//                ln_service_robotkernel_get_dump_log& svc);
         
+        //! config dump log
+        /*!
+         * \param message service message
+         * \return success
+         */
+        int service_config_dump_log(YAML::Node& message);
+        static const std::string service_definition_config_dump_log;
+
         //! config dump log
         /*!
          * \param req service request
          * \param svn service container
          * \return success
          */
-        virtual int on_config_dump_log(ln::service_request& req,
-                ln_service_robotkernel_config_dump_log& svc);
+//        virtual int on_config_dump_log(ln::service_request& req,
+//                ln_service_robotkernel_config_dump_log& svc);
 
         //! set state
         /*!
@@ -285,8 +355,8 @@ class kernel :
          * \param svn service container
          * \return success
          */
-        virtual int on_set_state(ln::service_request& req, 
-                ln_service_robotkernel_set_state& svc);
+//        virtual int on_set_state(ln::service_request& req, 
+//                ln_service_robotkernel_set_state& svc);
 
         //! get state
         /*!
@@ -294,8 +364,8 @@ class kernel :
          * \param svn service container
          * \return success
          */
-        virtual int on_get_state(ln::service_request& req,
-                ln_service_robotkernel_get_state& svc);
+//        virtual int on_get_state(ln::service_request& req,
+//                ln_service_robotkernel_get_state& svc);
         
         //! get states
         /*!
@@ -303,8 +373,8 @@ class kernel :
          * \param svn service container
          * \return success
          */
-        virtual int on_get_states(ln::service_request& req, 
-                ln_service_robotkernel_get_states& svc);
+//        virtual int on_get_states(ln::service_request& req, 
+//                ln_service_robotkernel_get_states& svc);
         
         //! add module
         /*!
@@ -312,8 +382,16 @@ class kernel :
          * \param svn service container
          * \return success
          */
-        virtual int on_add_module(ln::service_request& req,
-                ln_service_robotkernel_add_module& svc);
+//        virtual int on_add_module(ln::service_request& req,
+//                ln_service_robotkernel_add_module& svc);
+
+        //! add module
+        /*!
+         * \param message service message
+         * \return success
+         */
+        int service_add_module(YAML::Node& message);
+        static const std::string service_definition_add_module;
         
         //! remove module
         /*!
@@ -321,8 +399,16 @@ class kernel :
          * \param svn service container
          * \return success
          */
-        virtual int on_remove_module(ln::service_request& req,
-                ln_service_robotkernel_remove_module& svc);
+//        virtual int on_remove_module(ln::service_request& req,
+//                ln_service_robotkernel_remove_module& svc);
+        
+        //! service remove module
+        /*!
+         * \param message service message
+         * \return success
+         */
+        int service_remove_module(YAML::Node& message);
+        static const std::string service_definition_remove_module;
         
         //! module list
         /*!
@@ -330,8 +416,16 @@ class kernel :
          * \param svn service container
          * \return success
          */
-        virtual int on_module_list(ln::service_request& req,
-                ln_service_robotkernel_module_list& svc);
+//        virtual int on_module_list(ln::service_request& req,
+//                ln_service_robotkernel_module_list& svc);
+
+        //! module list
+        /*!
+         * \param message service message
+         * \return success
+         */
+        int service_module_list(YAML::Node& message);
+        static const std::string service_definition_module_list;
         
         //! reconfigure module
         /*!
@@ -339,8 +433,8 @@ class kernel :
          * \param svn service container
          * \return success
          */
-        virtual int on_reconfigure_module(ln::service_request& req,
-                ln_service_robotkernel_reconfigure_module& svc);
+//        virtual int on_reconfigure_module(ln::service_request& req,
+//                ln_service_robotkernel_reconfigure_module& svc);
 };
 
 } // namespace robotkernel

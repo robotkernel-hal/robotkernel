@@ -41,13 +41,13 @@ interface_base::interface_base(const std::string& intf_name, const YAML::Node& n
     slave_id = get_as<int>(node, "slave_id");
     ll = get_as<std::string>(node, "loglevel", k.get_loglevel());
     
-    if (k.clnt) {
-        stringstream base;
-        base << k.clnt->name << "." << mod_name << "." << dev_name 
-            << "." << intf_name << ".";
-
-        register_configure_loglevel(k.clnt, base.str() + "configure_loglevel");
-    }
+//    if (k.clnt) {
+//        stringstream base;
+//        base << k.clnt->name << "." << mod_name << "." << dev_name 
+//            << "." << intf_name << ".";
+//
+//        register_configure_loglevel(k.clnt, base.str() + "configure_loglevel");
+//    }
 }
 
 //! destruction

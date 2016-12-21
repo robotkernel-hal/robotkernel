@@ -44,6 +44,40 @@ int usage(int argc, char** argv) {
     return 0;
 }
 
+string service_datatype_to_ln(string datatype) {
+    if (datatype == "string")
+        return string("char*");
+
+    return datatype;
+}
+
+std::pair<std::string, int> ln_datatype_size_data[] = {
+    std::make_pair("int64_t", 8),
+    std::make_pair("uint64_t", 8),
+    std::make_pair("int32_t", 4),
+    std::make_pair("uint32_t", 4),
+    std::make_pair("int16_t", 2),
+    std::make_pair("uint16_t", 2),
+    std::make_pair("int8_t", 1),
+    std::make_pair("uint8_t", 1),
+    std::make_pair("char*", 1)
+};
+
+std::map<std::string, int> ln_datatype_size_map(
+        ln_datatype_size_data,
+        ln_datatype_size_data + sizeof(ln_datatype_size_data) / 
+        sizeof(ln_datatype_size_data[0]));
+
+int ln_datatype_size(const std::string& ln_datatype) {
+    if (ln_datatype_size_map.find(ln_datatype) != 
+                ln_datatype_size_map.end())
+        return ln_datatype_size_map[ln_datatype];
+
+    return 0;
+}
+
+#include "robotkernel/ln_bridge.h"
+
 int main(int argc, char** argv) {
 
     sigset_t set;
@@ -72,6 +106,30 @@ int main(int argc, char** argv) {
 #endif
 
     kernel &k = *kernel::get_instance();
+    ln_bridge::client clnt;
+
+    for (kernel::service_list_t::iterator it = k.service_list.begin();
+            it != k.service_list.end(); ++it) {
+        klog(info, "service %s\n", it->first.c_str());
+        kernel::service_t& svc = *(it->second);
+        clnt.add_service(svc);
+        //ln_bridge::service& ln_svc = *new ln_bridge::service(svc);
+        //std::string ln_service_signature = ln_svc.signature;
+        //std::string ln_message_def       = ln_svc.md;
+        //klog(info, "ln_message_definition:\n%s\n", ln_message_def.c_str());
+        //klog(info, "ln_service_signature:\n%s\n", ln_service_signature.c_str());
+
+
+
+        //YAML::Node message = YAML::Load(
+        //        "request:\n"
+        //        "    max_len: 100\n"
+        //        "    do_ust: 0\n"
+        //        "    set_log_level: info\n");
+        //if (svc.name == "robotkernel.config_dump_log")
+        //    svc.callback(message);
+
+    }
 
     klog(info, "build by: " BUILD_USER "@" BUILD_HOST "\n");
     klog(info, "build date: " BUILD_DATE "\n");
@@ -137,8 +195,8 @@ Exit:
 
 #ifdef __VXWORKS__
     // on vxworks we have to call select once to do magic cleanup
-    if (k.clnt)
-        k.clnt->wait_for_service_requests(0);
+//    if (k.clnt)
+//        k.clnt->wait_for_service_requests(0);
 #endif // __VXWORKS__
 
     try {

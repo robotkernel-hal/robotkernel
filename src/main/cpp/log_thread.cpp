@@ -27,6 +27,7 @@
 
 #include "robotkernel/config.h"
 #include <unistd.h>
+#include <string.h>
 #ifdef HAVE_SYS_SYSCALL_H
 #include <sys/syscall.h>
 #endif

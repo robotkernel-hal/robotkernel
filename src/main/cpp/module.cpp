@@ -285,6 +285,17 @@ module::module(const YAML::Node& node, string config_path)
     _init();
 
     currently_loading_module = NULL;
+
+    kernel& k = *kernel::get_instance();
+    k.add_service(name, name + ".set_state",
+            service_definition_set_state,
+            boost::bind(&module::service_set_state, this, _1));
+    k.add_service(name, name + ".get_config",
+            service_definition_get_config,
+            boost::bind(&module::service_get_config, this, _1));
+    k.add_service(name, name + ".get_feat",
+            service_definition_get_feat,
+            boost::bind(&module::service_get_feat, this, _1));
 }
 
 void module::_init() {
@@ -399,19 +410,6 @@ void module::_init() {
     reconfigure();
 }
 
-//! register services
-void module::register_services() {
-    request(MOD_REQUEST_REGISTER_SERVICES, NULL);
-
-    kernel& k = *kernel::get_instance();
-    if (k.clnt) {
-        register_get_config(
-                k.clnt, k.clnt->name + "." + name + ".get_config");
-        register_get_feat(
-                k.clnt, k.clnt->name + "." + name + ".get_feat");
-    }
-}
-
 //! module reconfiguration
 /*! 
   \param sConfig configuration string for module
@@ -433,8 +431,6 @@ bool module::reconfigure() {
 
     // try to reach init state
     set_state(module_state_init);
-
-    register_services();
 
     return configured();
 }
@@ -475,6 +471,8 @@ module::~module() {
 #endif
             so_handle = NULL;
     }
+
+    kernel::get_instance()->remove_services(name);
 }
 
 //! Read process data from module
@@ -781,22 +779,73 @@ void module::trigger() {
     (*mod_trigger)(mod_handle);
 }
 
-//! service callbacks
-int module::on_get_config(ln::service_request& req, 
-        ln_service_robotkernel_module_get_config& svc) {
-    YAML::Emitter out;
-    out << *this;
-    svc.resp.config = strdup(out.c_str());
-    svc.resp.config_len = strlen(out.c_str());
 
-    req.respond();
+bool module::worker_key::operator<(const worker_key& a) const {
+    if (prio < a.prio)
+        return true;
+    if (prio > a.prio)
+        return false;
 
-    free(svc.resp.config);
+    if (affinity < a.affinity)
+        return true;
+    if (affinity > a.affinity)
+        return false;
+
+    if (clk_id < a.clk_id)
+        return true;
+    if (clk_id > a.clk_id)
+        return false;
+
+    return (int) divisor < (int)a.divisor;
+}
+
+//! set module state
+/*!
+ * \param message service message
+ * \return success
+ */
+int module::service_set_state(YAML::Node& message) {
+    string state = get_as<string>(message["request"], "state");    
+    kernel& k = *kernel::get_instance();
+    message["response"]["error_message"] = "";
+
+    try {      
+        k.set_state(name, string_to_state(state.c_str()));
+    } catch (const exception& e) {
+        message["response"]["error_message"] = e.what();
+    }
+
     return 0;
 }
 
-int module::on_get_feat(ln::service_request& req, 
-        ln_service_robotkernel_module_get_feat& svc) {
+const std::string module::service_definition_set_state = 
+    "request:\n"
+    "    string: state\n"
+    "response:\n"
+    "    string: error_message\n";
+
+//! service get configuration
+/*!
+ * \param message service message
+ * \return success
+ */
+int module::service_get_config(YAML::Node& message) {
+    YAML::Emitter out;
+    out << *this;
+    message["response"]["config"] = out.c_str();
+    return 0;
+}
+
+const std::string module::service_definition_get_config =
+    "response:\n"
+    "    string: config\n";
+
+//! service get module features
+/*!
+ * \param message service message
+ * \return success
+ */
+int module::service_get_feat(YAML::Node& message) {
     int feat = 0;
     request(MOD_REQUEST_GET_MODULE_FEAT, &feat);
 
@@ -818,30 +867,13 @@ int module::on_get_feat(ln::service_request& req,
         features += "'sercos', ";
     features += " ]";
 
-    svc.resp.feat = feat;
-    svc.resp.features = strdup(features.c_str());
-    svc.resp.features_len = features.length();    
-    req.respond();
-    free(svc.resp.features);
+    message["response"]["feat"]     = feat;
+    message["response"]["features"] = features;
     return 0;
 }
 
-bool module::worker_key::operator<(const worker_key& a) const {
-    if (prio < a.prio)
-        return true;
-    if (prio > a.prio)
-        return false;
-
-    if (affinity < a.affinity)
-        return true;
-    if (affinity > a.affinity)
-        return false;
-
-    if (clk_id < a.clk_id)
-        return true;
-    if (clk_id > a.clk_id)
-        return false;
-
-    return (int) divisor < (int)a.divisor;
-}
+const std::string module::service_definition_get_feat = 
+    "response:\n"
+    "    int32_t: feat\n"
+    "    string: features\n";
 

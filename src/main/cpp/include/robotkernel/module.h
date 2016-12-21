@@ -28,7 +28,6 @@
 
 #include <string>
 #include <stdio.h>
-#include "robotkernel/ln_kernel_messages.h"
 #include "robotkernel/module_intf.h"
 #include "robotkernel/interface.h"
 #include "yaml-cpp/yaml.h"
@@ -44,9 +43,7 @@ class kernel_worker;
 /*!
   This class opens a shared module and loads all needed symbols
  */
-class module :
-    public ln_service_get_config_base,
-    public ln_service_get_feat_base {
+class module {
     private:
         module();
         module(const module&);             // prevent copy-construction
@@ -95,9 +92,6 @@ class module :
           destroys module
           */
         ~module();
-
-        //! register services
-        void register_services();
 
         //! module reconfiguration
         /*!
@@ -189,11 +183,29 @@ class module :
         void add_depends(std::string other_module); //!< add new dependency
         void remove_depends(std::string other_module); //!< remove dependency
             
-        //! service callbacks
-        int on_get_config(ln::service_request& req, 
-                ln_service_robotkernel_module_get_config& svc);
-        int on_get_feat(ln::service_request& req, 
-                ln_service_robotkernel_module_get_feat& svc);
+        //! set module state
+        /*!
+         * \param message service message
+         * \return success
+         */
+        int service_set_state(YAML::Node& message);
+        static const std::string service_definition_set_state;
+        
+        //! service get configuration
+        /*!
+         * \param message service message
+         * \return success
+         */
+        int service_get_config(YAML::Node& message);
+        static const std::string service_definition_get_config;
+        
+        //! service get module features
+        /*!
+         * \param message service message
+         * \return success
+         */
+        int service_get_feat(YAML::Node& message);
+        static const std::string service_definition_get_feat;
 
         friend YAML::Emitter& (::operator<<)(YAML::Emitter& out, 
                 const robotkernel::module& mdl);

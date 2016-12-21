@@ -95,7 +95,7 @@ void kernel_worker::run() {
     while (running()) {
         struct timespec ts;
         clock_gettime(CLOCK_REALTIME, &ts);
-        ts.tv_nsec += 1E7;
+        ts.tv_nsec += (long int)1E7;
         if (ts.tv_nsec > 1E9) {
             ts.tv_nsec = ts.tv_nsec % (long int)1E9;
             ts.tv_sec++;

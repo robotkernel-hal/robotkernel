@@ -39,13 +39,13 @@ module_base::module_base(const std::string& modname, const std::string& name) :
     kernel& k = *kernel::get_instance();
     ll = k.get_loglevel();
 	
-    if (k.clnt) {
-        stringstream base;
-        base << k.clnt->name << "." << name << ".";
-
-        register_configure_loglevel(
-                k.clnt, base.str() + "configure_loglevel");
-    }
+//    if (k.clnt) {
+//        stringstream base;
+//        base << k.clnt->name << "." << name << ".";
+//
+//        register_configure_loglevel(
+//                k.clnt, base.str() + "configure_loglevel");
+//    }
 }
 
 //! construction
@@ -59,13 +59,13 @@ module_base::module_base(const std::string& modname, const std::string& name,
     kernel& k = *kernel::get_instance();
     ll = k.get_loglevel();
 	
-    if (k.clnt) {
-        stringstream base;
-        base << k.clnt->name << "." << name << ".";
-
-        register_configure_loglevel(
-                k.clnt, base.str() + "configure_loglevel");
-    }
+//    if (k.clnt) {
+//        stringstream base;
+//        base << k.clnt->name << "." << name << ".";
+//
+//        register_configure_loglevel(
+//                k.clnt, base.str() + "configure_loglevel");
+//    }
 
     // search for loglevel
     if (node["loglevel"]) {
