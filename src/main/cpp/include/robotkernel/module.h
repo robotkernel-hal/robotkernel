@@ -191,6 +191,14 @@ class module {
         int service_set_state(YAML::Node& message);
         static const std::string service_definition_set_state;
         
+        //! get module state
+        /*!
+         * \param message service message
+         * \return success
+         */
+        int service_get_state(YAML::Node& message);
+        static const std::string service_definition_get_state;
+        
         //! service get configuration
         /*!
          * \param message service message

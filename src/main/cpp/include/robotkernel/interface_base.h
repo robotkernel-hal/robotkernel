@@ -29,7 +29,7 @@
 #include "robotkernel/kernel.h"
 #include "robotkernel/exceptions.h"
 #include "robotkernel/helpers.h"
-#include "robotkernel/ln_kernel_messages.h"
+
 #include "yaml-cpp/yaml.h"
 
 #ifdef __cplusplus
@@ -38,35 +38,36 @@
 #define EXPORT_C
 #endif
 
-#define HDL_2_INTFCLASS(hdl, intfname, intfclass)                                      \
-    intfclass *dev = reinterpret_cast<intfclass *>(hdl);                               \
-    if (!dev)                                                                          \
-        throw robotkernel::str_exception("["#intfname"] invalid interface "            \
+#define HDL_2_INTFCLASS(hdl, intfname, intfclass)               \
+    intfclass *dev = reinterpret_cast<intfclass *>(hdl);        \
+    if (!dev)                                                   \
+        throw robotkernel::str_exception(                       \
+                "["#intfname"] invalid interface "              \
                 "handle to <"#intfclass" *>\n"); 
 
-#define INTERFACE_DEF(intfname, intfclass)                                             \
-                                                                                       \
-EXPORT_C int intf_unregister(INTERFACE_HANDLE hdl) {                                   \
-    HDL_2_INTFCLASS(hdl, intfname, intfclass)                                          \
-    delete dev;                                                                        \
-    return 0;                                                                          \
-}                                                                                      \
-                                                                                       \
-EXPORT_C INTERFACE_HANDLE intf_register(const char* config) {                          \
-    intfclass *dev;                                                                    \
-    YAML::Node doc = YAML::Load(config);                                               \
-                                                                                       \
-    dev = new intfclass(doc);                                                          \
-    if (!dev)                                                                          \
-        throw robotkernel::str_exception("["#intfname"] error allocating memory\n");   \
-                                                                                       \
-    return (INTERFACE_HANDLE)dev;                                                      \
+#define INTERFACE_DEF(intfname, intfclass)                      \
+                                                                \
+EXPORT_C int intf_unregister(INTERFACE_HANDLE hdl) {            \
+    HDL_2_INTFCLASS(hdl, intfname, intfclass)                   \
+    delete dev;                                                 \
+    return 0;                                                   \
+}                                                               \
+                                                                \
+EXPORT_C INTERFACE_HANDLE intf_register(const char* config) {   \
+    intfclass *dev;                                             \
+    YAML::Node doc = YAML::Load(config);                        \
+                                                                \
+    dev = new intfclass(doc);                                   \
+    if (!dev)                                                   \
+        throw robotkernel::str_exception(                       \
+                "["#intfname"] error allocating memory\n");     \
+                                                                \
+    return (INTERFACE_HANDLE)dev;                               \
 }
 
 namespace robotkernel {
 
-class interface_base :
-    public ln_service_configure_loglevel_base {
+class interface_base {
     private:
         interface_base();       //!< prevent default construction
 
@@ -90,6 +91,13 @@ class interface_base :
 
         //! log to kernel logging facility
         void log(robotkernel::loglevel lvl, const char *format, ...);
+
+        //! service to configure interface loglevel
+        /*!
+         * message service message
+         */
+        int service_configure_loglevel(YAML::Node& message);
+        static const std::string service_definition_configure_loglevel;
 };
 
 };

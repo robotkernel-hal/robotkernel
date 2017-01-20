@@ -192,7 +192,7 @@ module_state_t kernel::get_state(std::string mod_name) {
 
     pthread_mutex_lock(&module_map_lock);
     _state = _internal_get_state(mod_name);
-    pthread_mutex_unlock(&module_map_unlock);
+    pthread_mutex_unlock(&module_map_lock);
 
     return _state;
 }
@@ -271,6 +271,9 @@ kernel::kernel() {
             boost::bind(&kernel::service_config_dump_log, this, _1));
     add_service(_name, "module_list", service_definition_module_list,
             boost::bind(&kernel::service_module_list, this, _1));
+    add_service(_name, "reconfigure_module", 
+            service_definition_reconfigure_module,
+            boost::bind(&kernel::service_reconfigure_module, this, _1));
     add_service(_name, "add_module", service_definition_add_module,
             boost::bind(&kernel::service_add_module, this, _1));
     add_service(_name, "remove_module", service_definition_remove_module,
@@ -319,52 +322,6 @@ void kernel::destroy_instance() {
 
         instance = NULL;
     }
-}
-
-//! initialize links and nodes client
-/*!
- * \param argc command line argument counter
- * \param argv command line arguments
- */
-void kernel::init_ln(int argc, char **argv) {
-    return;
-    // ln client stuff
-//    clnt = new ln::client(_name.c_str(), argc, argv);
-//
-//    register_get_dump_log(clnt, clnt->name + ".get_dump_log");
-//    register_config_dump_log(clnt, clnt->name + ".config_dump_log");
-//    register_set_state(clnt, clnt->name + ".set_state");
-//    register_get_state(clnt, clnt->name + ".get_state");
-//    register_add_module(clnt, clnt->name + ".add_module");
-//    register_remove_module(clnt, clnt->name + ".remove_module");
-//    register_module_list(clnt, clnt->name + ".module_list");
-//    register_reconfigure_module(clnt, clnt->name + ".reconfigure_module");
-//    register_get_states(clnt, clnt->name + ".get_states");
-//
-//    // handle default service group (NULL) in new "main" thread-pool
-//    clnt->handle_service_group_in_thread_pool(NULL, "main");
-//    // configure max number of threads for "main" thread-pool
-//    log(verbose, "setting main thread-pool size to %d\n", _ln_thread_pool_size_main);
-//    clnt->set_max_threads("main", _ln_thread_pool_size_main);
-//
-//    // powering up modules to operational
-//    for (module_map_t::iterator it = module_map.begin();
-//            it != module_map.end(); ++it) {
-//        module *mdl = it->second;
-//        mdl->register_services();
-//    }
-}
-
-//! handle links and nodes service requests
-void kernel::handle_ln_request(int argc, char **argv) {
-//    if (!clnt) {
-//        try {
-//            init_ln(argc, argv);
-//        } catch(exception& e) {
-//        }
-//    }
-//
-//    sleep(1); // daeumchen drehen
 }
 
 #ifdef __VXWORKS__
@@ -424,19 +381,7 @@ void kernel::config(std::string config_file, int argc, char **argv) {
         log(info, "found interfaces path %s\n", _internal_intfpath.c_str());
 
     if (config_file.compare("") == 0) {
-        try {    
-            init_ln(argc, argv);        
-        } catch(exception& e) {
-            klog(warning, "unable to init ln\n");
-
-            vector<string> err_msg = split_string(string(e.what()), string("\n"));
-
-            for (vector<string>::iterator it = err_msg.begin(); it != err_msg.end(); ++it)
-                klog(warning, "[links_and_nodes] %s\n", (*it).c_str());
-
-            klog(warning, "will try to init ln in background...\n");
-        }
-        return ;
+        return;
     }
 
     char *real_config_file = realpath(config_file.c_str(), NULL);
@@ -470,26 +415,11 @@ void kernel::config(std::string config_file, int argc, char **argv) {
     if (doc["max_dump_log_len"]) {
         unsigned int len = 
             get_as<unsigned int>(doc, "max_dump_log_len");
-        config_dump_log(len, 0);
-    }
-
-    _ln_thread_pool_size_main = 
-        get_as<unsigned int>(doc, "ln_thread_pool_size_main", 1);
-    if(_ln_thread_pool_size_main < 1) {
-        klog(error, "ln_thread_pool_size_main has to be >= 1! (you gave %d)\n",
-                _ln_thread_pool_size_main);
-        _ln_thread_pool_size_main = 1;
+        dump_log_set_len(len, 0);
     }
 
     _do_not_unload_modules = 
         get_as<bool>(doc, "do_not_unload_modules", false);
-
-    try {
-        init_ln(argc, argv);        
-    } catch(exception& e) {
-        klog(warning, "unable to init ln: %s\n", e.what());
-        klog(warning, "will try to init ln in background...\n");
-    }
 
     // creating modules specified in config file
     const YAML::Node& modules = doc["modules"];
@@ -665,24 +595,6 @@ void kernel::unregister_interface_cb(interface_id_t interface_id) {
     delete iface;
 }
 
-//! get module
-/*!
- * \param mod_name name of module
- * \return pointer to module
- */
-module *kernel::get_module(const char *mod_name) {
-    kernel& k = *get_instance();
-
-    if (currently_loading_module && mod_name == currently_loading_module->get_name())
-        return currently_loading_module;
-
-    kernel::module_map_t::const_iterator it = k.module_map.find(mod_name);
-    if (it == k.module_map.end())
-        throw str_exception("[robotkernel] get_module: module %s not found!\n", mod_name);
-
-    return it->second;
-}
-
 //! Send a request to kernel
 /*!
   \param reqcode request code
@@ -705,7 +617,8 @@ int kernel::state_change(const char *mod_name, module_state_t new_state) {
     return 0;
     module_map_t::const_iterator it = module_map.find(mod_name);
     if (it == module_map.end())
-        throw str_exception("[robotkernel] state_change: module %s not found!\n", mod_name);
+        throw str_exception("[robotkernel] state_change: module %s not "
+                "found!\n", mod_name);
 
     module_state_t current_state = it->second->get_state();
     if (new_state == current_state)
@@ -720,6 +633,56 @@ int kernel::state_change(const char *mod_name, module_state_t new_state) {
 
     return ret;
 }
+        
+//! register trigger module to module named mod_name
+/*!
+ * \param mod_name module name
+ * \param trigger_mdl module which should be triggered by mod_name
+ * \param t external trigger
+ */
+void kernel::trigger_register_module(const std::string& mod_name, 
+        module *trigger_mdl, module::external_trigger& t) {
+
+    pthread_mutex_lock(&module_map_lock);
+
+    module_map_t::iterator module_it = module_map.find(mod_name);
+    if (module_it == module_map.end()) {
+        pthread_mutex_unlock(&module_map_lock);
+
+        throw robotkernel::str_exception("%s not found\n", 
+                mod_name.c_str());
+    }
+
+    module *mdl = module_it->second;
+    mdl->trigger_register_module(trigger_mdl, t);
+
+    pthread_mutex_unlock(&module_map_lock);
+}
+
+//! unregister trigger module from module named mod_name
+/*!
+ * \param mod_name module name
+ * \param trigger_mdl module which was triggered by mod_name
+ * \param t external trigger
+ */
+void kernel::trigger_unregister_module(const std::string& mod_name, 
+        module *trigger_mdl, module::external_trigger& t) {
+
+    pthread_mutex_lock(&module_map_lock);
+
+    module_map_t::iterator module_it = module_map.find(mod_name);
+    if (module_it == module_map.end()) {
+        pthread_mutex_unlock(&module_map_lock);
+
+        throw robotkernel::str_exception("%s not found\n", 
+                mod_name.c_str());
+    }
+
+    module *mdl = module_it->second;
+    mdl->trigger_unregister_module(trigger_mdl, t);
+
+    pthread_mutex_unlock(&module_map_lock);
+}
 
 //! get dump log
 /*!
@@ -728,22 +691,10 @@ int kernel::state_change(const char *mod_name, module_state_t new_state) {
  */
 int kernel::service_get_dump_log(YAML::Node& message) {
     message["response"] = YAML::Node();
-    message["response"]["log"] = dump_log();
+    message["response"]["log"] = dump_log_dump();
 
     return 0;
 }
-
-//! get dump log
-/*!
- * \param req service request
- * \param svn service container
- * \return success
- */
-//int kernel::on_get_dump_log(ln::service_request& req, ln_service_robotkernel_get_dump_log& svc) {
-//    ln::string_buffer dl(&svc.resp.dump_log, dump_log());
-//    req.respond();
-//    return 0;
-//}
 
 //! config dump log
 /*!
@@ -755,7 +706,7 @@ int kernel::service_config_dump_log(YAML::Node& message) {
     uint8_t  do_ust  = get_as<uint8_t >(message["request"], "do_ust");
     string set_log_level = get_as<string>(message["request"], "set_log_level");
 
-    config_dump_log(max_len, do_ust);
+    dump_log_set_len(max_len, do_ust);
     klog(info, "dump_log len set to %d, do_ust to %d\n", max_len, do_ust);
 
     string current_log_level;
@@ -781,125 +732,6 @@ int kernel::service_config_dump_log(YAML::Node& message) {
 
     return 0;
 }
-
-//! config dump log
-/*!
- * \param req service request
- * \param svn service container
- * \return success
- */
-//int kernel::on_config_dump_log(ln::service_request& req, ln_service_robotkernel_config_dump_log& svc) {
-//    config_dump_log(svc.req.max_len, svc.req.do_ust);
-//    klog(verbose, "dump_log len set to %d, do_ust to %d\n", svc.req.max_len, svc.req.do_ust);
-//
-//    string current_log_level;
-//#define loglevel_to_string(x)             \
-//    if (ll == x)                          \
-//    current_log_level = string(#x)
-//
-//    loglevel_to_string(error);
-//    else loglevel_to_string(warning);
-//    else loglevel_to_string(info);
-//    else loglevel_to_string(verbose);
-//
-//    string set_log_level(svc.req.set_log_level, svc.req.set_log_level_len);
-//    if(set_log_level.size()) {
-//        py_value *pval = eval_full(set_log_level);
-//        py_string *pstring = dynamic_cast<py_string *>(pval);
-//
-//        if (pstring) 
-//            ll = string(*pstring);
-//    }
-//
-//    ln::string_buffer current_log_level_sb(&svc.resp.current_log_level, current_log_level);
-//    req.respond();
-//    return 0;
-//}
-
-//! set state
-/*!
- * \param req service request
- * \param svn service container
- * \return success
- */
-//int kernel::on_set_state(ln::service_request& req, ln_service_robotkernel_set_state& svc) {
-//    try {
-//        string mod_name(svc.req.mod_name, svc.req.mod_name_len);
-//        string state(svc.req.state, svc.req.state_len);
-//        set_state(mod_name, string_to_state(state.c_str()));
-//        svc.resp.error_message_len = 0;
-//        req.respond();
-//    } catch (const exception& e) {
-//        klog(error, "%s\n", e.what());
-//        ln::string_buffer err(&svc.resp.error_message, e.what());
-//        req.respond();
-//    }
-//    return 0;
-//}
-
-//! get state
-/*!
- * \param req service request
- * \param svn service container
- * \return success
- */
-//int kernel::on_get_state(ln::service_request& req, ln_service_robotkernel_get_state& svc) {
-//    try {
-//        string mod_name(svc.req.mod_name, svc.req.mod_name_len);
-//        string state(state_to_string(get_state(mod_name)));
-//        std::transform(state.begin(), state.end(), state.begin(), ::tolower);
-//        ln::string_buffer state_sb(&svc.resp.state, state.substr(1, state.size()-2));
-//        req.respond();
-//    } catch (const exception& e) {
-//        klog(error, "%s\n", e.what());
-//        ln::string_buffer err(&svc.resp.error_message, e.what());
-//        req.respond();
-//    }
-//    return 0;
-//}
-
-//! get states
-/*!
- * \param req service request
- * \param svn service container
- * \return success
- */
-//int kernel::on_get_states(ln::service_request& req, ln_service_robotkernel_get_states& svc) {
-//    string mod_names(svc.req.mod_names, svc.req.mod_names_len);
-//    vector<string> module_patterns = split_string(mod_names, ",");	
-//    for(vector<string>::iterator i = module_patterns.begin(); i != module_patterns.end(); ++i)
-//        *i = strip(*i);
-//
-//    set<string> seen;
-//    stringstream module_list;
-//    for(vector<string>::iterator p = module_patterns.begin(); p != module_patterns.end(); ++p) {
-//        for(module_map_t::iterator i = module_map.begin(); i != module_map.end(); ++i) {
-//            if(seen.find(i->first) != seen.end())
-//                continue;
-//            if(pattern_matches(*p, i->first)) {
-//                if(seen.size())
-//                    module_list << ", ";
-//                module_list << i->first;
-//                seen.insert(i->first);
-//            }
-//        }
-//    }
-//
-//    ln::string_buffer module_list_sb(&svc.resp.mod_names, module_list);
-//
-//    stringstream states;
-//    for (set<string>::iterator it = seen.begin(); it != seen.end(); ++it) {
-//        if(it != seen.begin())
-//            states << ", ";
-//        string state(state_to_string(module_map[*it]->get_state()));
-//        std::transform(state.begin(), state.end(), state.begin(), ::tolower);
-//        states << state.substr(1, state.size()-2);
-//    }
-//    ln::string_buffer states_sb(&svc.resp.states, states);
-//
-//    req.respond();
-//    return 0;
-//}
 
 //! add module
 /*!
@@ -1009,34 +841,39 @@ const std::string kernel::service_definition_module_list =
 
 //! reconfigure module
 /*!
- * \param req service request
- * \param svn service container
+ * \param message service message
  * \return success
  */
-//int kernel::on_reconfigure_module(ln::service_request& req, ln_service_robotkernel_reconfigure_module& svc) {
-//    svc.resp.error_message_len = 0;
-//
-//    try {
-//        string mod_name = string(svc.req.name, svc.req.name_len);
-//        module_map_t::iterator it = module_map.find(mod_name);
-//        if (it == module_map.end())
-//            throw str_exception("[robotkernel] module %s not found!\n", mod_name.c_str());
-//
-//        module *mdl = it->second;
-//        if (get_state(mod_name) != module_state_init)
-//            set_state(mdl->get_name(), module_state_init);
-//
-//        mdl->reconfigure();
-//        svc.resp.state = 0;
-//        req.respond();
-//    } catch(exception& e) {
-//        svc.resp.error_message = strdup(e.what());
-//        svc.resp.error_message_len = strlen(svc.resp.error_message);
-//        req.respond();
-//        free(svc.resp.error_message);
-//    }
-//    return 0;
-//}
+int kernel::service_reconfigure_module(YAML::Node& message) {
+    message["response"]["state"] = 0;
+    message["response"]["error_message"] = "";
+    string mod_name = get_as<string>(message["request"], "mod_name");
+
+    try {
+        module_map_t::iterator it = module_map.find(mod_name);
+        if (it == module_map.end())
+            throw str_exception("[robotkernel] module %s not found!\n", 
+                    mod_name.c_str());
+
+        module *mdl = it->second;
+        if (get_state(mod_name) != module_state_init)
+            set_state(mdl->get_name(), module_state_init);
+
+        mdl->reconfigure();
+    } catch(exception& e) {
+        message["response"]["error_message"] = e.what();
+    }
+    
+    return 0;
+}
+
+const std::string kernel::service_definition_reconfigure_module = 
+    "request:\n"
+    "    string: name\n"
+    "response:\n"
+    "    string: error_message\n"
+    "    uint64_t: state\n";
+
 
 std::string kernel::ll_to_string(loglevel ll) {
     if (ll == error)    return "ERR ";

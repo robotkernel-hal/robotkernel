@@ -30,84 +30,17 @@
 #include <boost/function.hpp>
 #include <boost/bind.hpp>
 
+#include "robotkernel/loglevel.h"
 #include "robotkernel/module.h"
 #include "robotkernel/log_thread.h"
 #include "robotkernel/dump_log.h"
-//#include "robotkernel/ln_kernel_messages.h"
-//
-//#include "ln.h"
-//#include "ln_cppwrapper.h"
+#include "robotkernel/exceptions.h"
 
 #define klog(...) robotkernel::kernel::get_instance()->log(__VA_ARGS__)
 
 namespace robotkernel {
-    
-enum level { 
-    error = 1,
-    warning = 2,
-    info = 3,
-    verbose = 4, 
-};
-    
-class loglevel {
-    public:
-        level value;
-    
-        loglevel() { value = info; }
-        loglevel(const level& l) { value = l; };
-        loglevel(const loglevel& ll)
-        { this->value = ll.value; }
-
-        loglevel& operator=(const loglevel& ll)
-        { this->value = ll.value; return *this; }
-        loglevel& operator=(const std::string& ll_string);
-        bool operator==(const loglevel& ll)
-        { return (this->value == ll.value); }
-        bool operator==(const level& l)
-        { return (this->value == l); }
-        bool operator>(const loglevel& ll)
-        { return (this->value > ll.value); }
-        bool operator>(const level& l)
-        { return (this->value > l); }
-        bool operator<(const loglevel& ll)
-        { return (this->value < ll.value); }
-        bool operator<(const level& l)
-        { return (this->value < l); }
-        operator std::string() const
-        { 
-            switch (value) {
-                case error:
-                    return std::string("error");
-                case warning:
-                    return std::string("warning");
-                case info:
-                    return std::string("info");
-                case verbose:
-                    return std::string("verbose");
-            }
-
-            return std::string("unknown");
-        }
-};
-//
-//enum loglevel {
-//    error = 1,
-//    warning = 2,
-//    info = 3,
-//    verbose = 4, 
-//};
 
 class kernel {
-//:
-//    public ln_service_set_state_base,
-//    public ln_service_get_state_base,
-//    public ln_service_get_states_base,
-//    public ln_service_add_module_base,
-//    public ln_service_remove_module_base,
-//    public ln_service_module_list_base,
-//    public ln_service_reconfigure_module_base,
-//    public ln_service_get_dump_log_base,
-//    public ln_service_config_dump_log_base {
     private:
         //! kernel singleton instance
         static kernel *instance;
@@ -120,7 +53,7 @@ class kernel {
         // modules map
         typedef std::map<std::string, module *> module_map_t;
         module_map_t module_map;
-        pthread_t module_map_lock;
+        pthread_mutex_t module_map_lock;
         
         //! return module state
         /*!
@@ -179,6 +112,24 @@ class kernel {
          * \param owner service owner
          */
         void remove_services(const std::string& owner);
+        
+        //! register trigger module to module named mod_name
+        /*!
+         * \param mod_name module name
+         * \param trigger_mdl module which should be triggered by mod_name
+         * \param t external trigger
+         */
+        void trigger_register_module(const std::string& mod_name, 
+                module *trigger_mdl, module::external_trigger& t);
+
+        //! unregister trigger module from module named mod_name
+        /*!
+         * \param mod_name module name
+         * \param trigger_mdl module which was triggered by mod_name
+         * \param t external trigger
+         */
+        void trigger_unregister_module(const std::string& mod_name, 
+                module *trigger_mdl, module::external_trigger& t);
 
         //! get kernel singleton instance
         /*!
@@ -191,16 +142,6 @@ class kernel {
 
         const loglevel get_loglevel() const { return ll; }
         void set_loglevel(loglevel ll) { this->ll = ll; }
-
-        //! initialize links and nodes client
-        /*!
-         * \param argc command line argument counter
-         * \param argv command line arguments
-         */
-        void init_ln(int argc, char **argv);
-
-        //! handle links and nodes service requests
-        void handle_ln_request(int argc, char **argv);
 
         //! construction
         /*!
@@ -285,16 +226,6 @@ class kernel {
           */
         int request(int reqcode, void* ptr);
 
-        //! get module
-        /*!
-         * \param mod_name name of module
-         * \return pointer to module
-         */
-        module *get_module(const char *mod_name);
-
-        //! links and nodes client
-//        ln::client *clnt;
-        unsigned int _ln_thread_pool_size_main;
         bool _do_not_unload_modules;
 
         std::string _name;
@@ -307,13 +238,6 @@ class kernel {
 
         // write to logfile
         void log(loglevel ll, const char *format, ...);
-
-        std::string dump_log() {
-            return dump_log_dump();
-        }
-        void config_dump_log(unsigned int max_len, unsigned int do_ust=0) {
-            dump_log_set_len(max_len, do_ust);
-        }
         
         //! get dump log
         /*!
@@ -322,15 +246,6 @@ class kernel {
          */
         int service_get_dump_log(YAML::Node& message);
         static const std::string service_definition_get_dump_log;
-
-        //! get dump log
-        /*!
-         * \param req service request
-         * \param svn service container
-         * \return success
-         */
-//        virtual int on_get_dump_log(ln::service_request& req, 
-//                ln_service_robotkernel_get_dump_log& svc);
         
         //! config dump log
         /*!
@@ -339,52 +254,7 @@ class kernel {
          */
         int service_config_dump_log(YAML::Node& message);
         static const std::string service_definition_config_dump_log;
-
-        //! config dump log
-        /*!
-         * \param req service request
-         * \param svn service container
-         * \return success
-         */
-//        virtual int on_config_dump_log(ln::service_request& req,
-//                ln_service_robotkernel_config_dump_log& svc);
-
-        //! set state
-        /*!
-         * \param req service request
-         * \param svn service container
-         * \return success
-         */
-//        virtual int on_set_state(ln::service_request& req, 
-//                ln_service_robotkernel_set_state& svc);
-
-        //! get state
-        /*!
-         * \param req service request
-         * \param svn service container
-         * \return success
-         */
-//        virtual int on_get_state(ln::service_request& req,
-//                ln_service_robotkernel_get_state& svc);
         
-        //! get states
-        /*!
-         * \param req service request
-         * \param svn service container
-         * \return success
-         */
-//        virtual int on_get_states(ln::service_request& req, 
-//                ln_service_robotkernel_get_states& svc);
-        
-        //! add module
-        /*!
-         * \param req service request
-         * \param svn service container
-         * \return success
-         */
-//        virtual int on_add_module(ln::service_request& req,
-//                ln_service_robotkernel_add_module& svc);
-
         //! add module
         /*!
          * \param message service message
@@ -393,15 +263,6 @@ class kernel {
         int service_add_module(YAML::Node& message);
         static const std::string service_definition_add_module;
         
-        //! remove module
-        /*!
-         * \param req service request
-         * \param svn service container
-         * \return success
-         */
-//        virtual int on_remove_module(ln::service_request& req,
-//                ln_service_robotkernel_remove_module& svc);
-        
         //! service remove module
         /*!
          * \param message service message
@@ -409,15 +270,6 @@ class kernel {
          */
         int service_remove_module(YAML::Node& message);
         static const std::string service_definition_remove_module;
-        
-        //! module list
-        /*!
-         * \param req service request
-         * \param svn service container
-         * \return success
-         */
-//        virtual int on_module_list(ln::service_request& req,
-//                ln_service_robotkernel_module_list& svc);
 
         //! module list
         /*!
@@ -426,15 +278,14 @@ class kernel {
          */
         int service_module_list(YAML::Node& message);
         static const std::string service_definition_module_list;
-        
-        //! reconfigure module
+
+        //! module list
         /*!
-         * \param req service request
-         * \param svn service container
+         * \param message service message
          * \return success
          */
-//        virtual int on_reconfigure_module(ln::service_request& req,
-//                ln_service_robotkernel_reconfigure_module& svc);
+        int service_reconfigure_module(YAML::Node& message);
+        static const std::string service_definition_reconfigure_module;
 };
 
 } // namespace robotkernel

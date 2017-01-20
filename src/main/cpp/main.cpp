@@ -183,7 +183,6 @@ int main(int argc, char** argv) {
 
     try {
         while (!sig_shutdown) {
-            k.handle_ln_request(argc, argv);
             k.state_check();
         }
     } catch (exception& e) {

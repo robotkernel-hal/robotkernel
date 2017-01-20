@@ -290,6 +290,9 @@ module::module(const YAML::Node& node, string config_path)
     k.add_service(name, name + ".set_state",
             service_definition_set_state,
             boost::bind(&module::service_set_state, this, _1));
+    k.add_service(name, name + ".get_state",
+            service_definition_get_state,
+            boost::bind(&module::service_get_state, this, _1));
     k.add_service(name, name + ".get_config",
             service_definition_get_config,
             boost::bind(&module::service_get_config, this, _1));
@@ -539,12 +542,7 @@ int module::set_state(module_state_t state) {
                         name.c_str(), (*it)->_mod_name.c_str());
 
                 kernel& k = *kernel::get_instance();
-                kernel::module_map_t::iterator module_it = k.module_map.find((*it)->_mod_name);
-                if (module_it == k.module_map.end())
-                    throw str_exception("%s : %s not found\n", name.c_str(), (*it)->_mod_name.c_str());
-
-                module *mdl2 = module_it->second;
-                mdl2->trigger_unregister_module(this, **it);
+                k.trigger_unregister_module((*it)->_mod_name, this, **it);
             }
 
             klog(info, "%s setting state from %s to %s\n", name.c_str(), 
@@ -575,19 +573,7 @@ int module::set_state(module_state_t state) {
                         name.c_str(), (*it)->_mod_name.c_str());
 
                 kernel& k = *kernel::get_instance();
-                kernel::module_map_t::iterator module_it = k.module_map.find((*it)->_mod_name);
-                if (module_it == k.module_map.end()) {
-                    stringstream ss;
-                    for (module_it = k.module_map.begin(); module_it != k.module_map.end(); ++module_it) {
-                        ss << "[" << (*it)->_mod_name << "], ";
-                    }
-
-                    throw str_exception("%s : %s not found! (loaded %s)\n",
-                            name.c_str(), (*it)->_mod_name.c_str(), ss.str().c_str());
-                }
-
-                module *mdl2 = module_it->second;
-                mdl2->trigger_register_module(this, **it);
+                k.trigger_register_module((*it)->_mod_name, this, **it);
             }
 
             klog(info, "%s setting state from %s to %s\n", name.c_str(), 
@@ -822,6 +808,31 @@ const std::string module::service_definition_set_state =
     "request:\n"
     "    string: state\n"
     "response:\n"
+    "    string: error_message\n";
+
+//! get module state
+/*!
+ * \param message service message
+ * \return success
+ */
+int module::service_get_state(YAML::Node& message) {
+    kernel& k = *kernel::get_instance();
+    message["response"]["error_message"] = "";
+    message["response"]["state"] = "";
+
+    try {      
+        module_state_t act_state = k.get_state(name);
+        message["response"]["state"] = state_to_string(act_state);
+    } catch (const exception& e) {
+        message["response"]["error_message"] = e.what();
+    }
+
+    return 0;
+}
+
+const std::string module::service_definition_get_state = 
+    "response:\n"
+    "    string: state\n"
     "    string: error_message\n";
 
 //! service get configuration

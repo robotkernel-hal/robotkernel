@@ -41,18 +41,18 @@ interface_base::interface_base(const std::string& intf_name, const YAML::Node& n
     slave_id = get_as<int>(node, "slave_id");
     ll = get_as<std::string>(node, "loglevel", k.get_loglevel());
     
-//    if (k.clnt) {
-//        stringstream base;
-//        base << k.clnt->name << "." << mod_name << "." << dev_name 
-//            << "." << intf_name << ".";
-//
-//        register_configure_loglevel(k.clnt, base.str() + "configure_loglevel");
-//    }
+    stringstream base;
+    base << mod_name << "." << dev_name  << "." << intf_name 
+        << ".configure_loglevel";
+
+    k.add_service(mod_name, base.str(), 
+            interface_base::service_definition_configure_loglevel,
+            boost::bind(&interface_base::service_configure_loglevel, this, _1));
 }
 
 //! destruction
 interface_base::~interface_base() {
-    unregister_configure_loglevel();
+//    unregister_configure_loglevel();
 }
 
 //! log to kernel logging facility
@@ -97,4 +97,32 @@ void interface_base::log(loglevel lvl, const char *format, ...) {
 log_exit:
     dump_log(buf);
 }
+
+//! service to configure interface loglevel
+/*!
+ * message service message
+ */
+int interface_base::service_configure_loglevel(YAML::Node& message) {
+    message["response"]["current_log_level"] = (std::string)ll;
+    message["response"]["error_message"] = "";
+
+    string set_ll = get_as<string>(message["request"], "set_log_level");
+
+    if (set_ll != "") {
+        try {
+            ll = set_ll;
+        } catch (const std::exception& e) {
+            message["response"]["error_message"] = e.what();
+        }
+    }
+
+    return 0;
+}
+
+const std::string interface_base::service_definition_configure_loglevel = 
+    "request:\n"
+    "    string: set_log_level\n"
+    "response:\n"
+    "    string: current_log_level\n"
+    "    string: error_message\n";
 
