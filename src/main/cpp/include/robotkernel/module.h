@@ -28,9 +28,11 @@
 
 #include <string>
 #include <stdio.h>
-#include "robotkernel/module_intf.h"
-#include "robotkernel/interface.h"
-#include "yaml-cpp/yaml.h"
+
+#include <robotkernel/module_intf.h>
+#include <robotkernel/interface.h>
+
+#include <yaml-cpp/yaml.h>
         
 namespace robotkernel { class module; };
 YAML::Emitter& operator<<(YAML::Emitter& out, const robotkernel::module& mdl);

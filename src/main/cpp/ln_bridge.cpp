@@ -208,7 +208,7 @@ int ln_bridge::service::handle(ln::service_request& req) {
 
     if (message_definition["response"]) {
         const YAML::Node& response = message_definition["response"];
-        std::cout << "got response\n" << message["response"] << std::endl;
+//        std::cout << "got response\n" << message["response"] << std::endl;
 
         for (YAML::const_iterator it = response.begin(); 
                 it != response.end(); ++it) {
@@ -216,12 +216,12 @@ int ln_bridge::service::handle(ln::service_request& req) {
             string key   = it->first.as<string>();
             string value = it->second.as<string>();
 
-            printf("processing md response key %s\n", key.c_str());
+//            printf("processing md response key %s\n", key.c_str());
             string ln_dt = service_datatype_to_ln(key);
             int ln_dt_size = ln_datatype_size(ln_dt);
 
             if (ln_dt == "char*") {
-                printf("  interpreting as string\n");
+//                printf("  interpreting as string\n");
 
                 string tmp_string = get_as<string>(message["response"], value);
                 
@@ -235,7 +235,7 @@ int ln_bridge::service::handle(ln::service_request& req) {
                 memcpy(tmp_adr, tmp_string.c_str(), tmp_string.size());
                 adr += sizeof(char *);
             } else if (ends_with(ln_dt, string("*"))) {
-                printf("  interpreting as array\n");
+//                printf("  interpreting as array\n");
 
                 ln_dt = ln_dt.substr(0, ln_dt.size() - 1);
                 int real_ln_dt_size = ln_datatype_size(ln_dt);
@@ -267,7 +267,7 @@ int ln_bridge::service::handle(ln::service_request& req) {
 
                 adr += sizeof(uint8_t *);
             } else {
-                printf("  interpreting as type %s\n", ln_dt.c_str());
+//                printf("  interpreting as type %s\n", ln_dt.c_str());
 #define as_type(type) if (ln_dt == #type) {                         \
              ((type *)adr)[0] = get_as<type>(message["response"], value); }
                 as_type(uint64_t);

@@ -63,7 +63,7 @@ class interface {
     
     private:
         void* so_handle;                //! dlopen handle
-        INTERFACE_HANDLE intf_handle;    //! interface handle
+        INTERFACE_HANDLE intf_handle;   //! interface handle
 
         //! interface symbols
         intf_register_t   intf_register;

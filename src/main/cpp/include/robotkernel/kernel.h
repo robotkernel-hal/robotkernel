@@ -30,11 +30,11 @@
 #include <boost/function.hpp>
 #include <boost/bind.hpp>
 
-#include "robotkernel/loglevel.h"
-#include "robotkernel/module.h"
-#include "robotkernel/log_thread.h"
-#include "robotkernel/dump_log.h"
-#include "robotkernel/exceptions.h"
+#include <robotkernel/loglevel.h>
+#include <robotkernel/module.h>
+#include <robotkernel/log_thread.h>
+#include <robotkernel/dump_log.h>
+#include <robotkernel/exceptions.h>
 
 #define klog(...) robotkernel::kernel::get_instance()->log(__VA_ARGS__)
 
