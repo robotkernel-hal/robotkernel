@@ -42,9 +42,9 @@ module_base::module_base(const std::string& modname, const std::string& name) :
     stringstream base;
     base << name << ".configure_loglevel";
 
-    k.add_service(modname, base.str(), 
-            module_base::service_definition_configure_loglevel,
-            boost::bind(&module_base::service_configure_loglevel, this, _1));
+//    k.add_service(modname, base.str(), 
+//            module_base::service_definition_configure_loglevel,
+//            boost::bind(&module_base::service_configure_loglevel, this, _1));
 }
 
 //! construction
@@ -76,9 +76,9 @@ module_base::module_base(const std::string& modname, const std::string& name,
     stringstream base;
     base << name << ".configure_loglevel";
 
-    k.add_service(modname, base.str(), 
-            module_base::service_definition_configure_loglevel,
-            boost::bind(&module_base::service_configure_loglevel, this, _1));
+//    k.add_service(modname, base.str(), 
+//            module_base::service_definition_configure_loglevel,
+//            boost::bind(&module_base::service_configure_loglevel, this, _1));
 }
 
 module_base::~module_base() {

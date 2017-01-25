@@ -41,18 +41,6 @@ extern module* currently_loading_module; // in module.cpp
 YAML::Node tmp = YAML::Clone(YAML::Node("dieses clone steht hier damit es vom "
             "linker beim statischen linken mit eingepackt wird"));
 
-const std::string kernel::service_definition_get_dump_log = 
-    "response:\n"
-    "    string: log\n";
-
-const std::string kernel::service_definition_config_dump_log = 
-    "request:\n"
-    "    uint32_t: max_len\n"
-    "    uint8_t: do_ust\n"
-    "    string: set_log_level\n"
-    "response:\n"
-    "    string: current_log_level\n";
-
 namespace robotkernel {
 void split_file_name(const string& str, string& path, string& file) {
     size_t found;
@@ -266,18 +254,18 @@ kernel::kernel() {
     pthread_mutex_init(&module_map_lock, NULL);
 
     add_service(_name, "get_dump_log", service_definition_get_dump_log,
-            boost::bind(&kernel::service_get_dump_log, this, _1));
+            boost::bind(&kernel::service_get_dump_log, this, _1, _2));
     add_service(_name, "config_dump_log", service_definition_config_dump_log,
-            boost::bind(&kernel::service_config_dump_log, this, _1));
-    add_service(_name, "module_list", service_definition_module_list,
-            boost::bind(&kernel::service_module_list, this, _1));
-    add_service(_name, "reconfigure_module", 
-            service_definition_reconfigure_module,
-            boost::bind(&kernel::service_reconfigure_module, this, _1));
-    add_service(_name, "add_module", service_definition_add_module,
-            boost::bind(&kernel::service_add_module, this, _1));
-    add_service(_name, "remove_module", service_definition_remove_module,
-            boost::bind(&kernel::service_remove_module, this, _1));
+            boost::bind(&kernel::service_config_dump_log, this, _1, _2));
+//    add_service(_name, "module_list", service_definition_module_list,
+//            boost::bind(&kernel::service_module_list, this, _1));
+//    add_service(_name, "reconfigure_module", 
+//            service_definition_reconfigure_module,
+//            boost::bind(&kernel::service_reconfigure_module, this, _1));
+//    add_service(_name, "add_module", service_definition_add_module,
+//            boost::bind(&kernel::service_add_module, this, _1));
+//    add_service(_name, "remove_module", service_definition_remove_module,
+//            boost::bind(&kernel::service_remove_module, this, _1));
 }
 
 //! destruction
@@ -689,22 +677,28 @@ void kernel::trigger_unregister_module(const std::string& mod_name,
  * \param message service message
  * \return success
  */
-int kernel::service_get_dump_log(YAML::Node& message) {
-    message["response"] = YAML::Node();
-    message["response"]["log"] = dump_log_dump();
+int kernel::service_get_dump_log(const service_arglist_t& request, 
+        service_arglist_t& response) {
+    response.push_back(dump_log_dump());
 
     return 0;
 }
+
+const std::string kernel::service_definition_get_dump_log = 
+    "response:\n"
+    "    string: log\n";
 
 //! config dump log
 /*!
  * \param message service message
  * \return success
  */
-int kernel::service_config_dump_log(YAML::Node& message) {
-    uint32_t max_len = get_as<uint32_t>(message["request"], "max_len");
-    uint8_t  do_ust  = get_as<uint8_t >(message["request"], "do_ust");
-    string set_log_level = get_as<string>(message["request"], "set_log_level");
+int kernel::service_config_dump_log(const service_arglist_t& request, 
+        service_arglist_t& response) {
+    int i = 0;
+    uint32_t max_len     = boost::any_cast<uint32_t>(request[0]); 
+    uint8_t  do_ust      = boost::any_cast<uint8_t> (request[1]);
+    string set_log_level = boost::any_cast<string>  (request[2]);
 
     dump_log_set_len(max_len, do_ust);
     klog(info, "dump_log len set to %d, do_ust to %d\n", max_len, do_ust);
@@ -727,11 +721,22 @@ int kernel::service_config_dump_log(YAML::Node& message) {
             ll = string(*pstring);
     }
 
-    message["response"] = YAML::Node();
-    message["response"]["current_log_level"] = current_log_level;
+    response.resize(2);
+    response[0] = current_log_level;
+    response[1] = string("");
 
     return 0;
 }
+
+const std::string kernel::service_definition_config_dump_log = 
+    "request:\n"
+    "    uint32_t: max_len\n"
+    "    uint8_t: do_ust\n"
+    "    string: set_log_level\n"
+    "response:\n"
+    "    string: current_log_level\n"
+    "    string: error_message\n";
+
 
 //! add module
 /*!

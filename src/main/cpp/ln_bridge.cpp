@@ -61,6 +61,7 @@ ln_bridge::client::client() {
     sp->add_service = boost::bind(&ln_bridge::client::add_service, this, _1);
     sp->remove_service = 
         boost::bind(&ln_bridge::client::remove_service, this, _1);
+
     robotkernel::kernel::get_instance()->service_providers.push_back(sp);
 }
 
@@ -137,8 +138,8 @@ int ln_bridge::service::handle(ln::service_request& req) {
     req.set_data(&svc[0], signature.c_str());
     uint64_t adr = (uint64_t)&svc[0];
 
-    YAML::Node message;
-    message["request"] = YAML::Node();
+    // request arguments
+    robotkernel::kernel::service_arglist_t service_request;
 
     YAML::Node message_definition = YAML::Load(_svc.service_definition);
     if (message_definition["request"]) {
@@ -146,7 +147,6 @@ int ln_bridge::service::handle(ln::service_request& req) {
 
         for (YAML::const_iterator it = request.begin(); 
                 it != request.end(); ++it) {
-
             string key   = it->first.as<string>();
             string value = it->second.as<string>();
 
@@ -154,143 +154,100 @@ int ln_bridge::service::handle(ln::service_request& req) {
             int ln_dt_size = ln_datatype_size(ln_dt);
 
             if (ln_dt == "char*") {
-                uint32_t str_len = ((uint32_t *)adr)[0];
+                uint32_t tmp_len = ((uint32_t *)adr)[0];
                 adr += 4;
-                char *str_adr = ((char **)adr)[0];
-                adr += sizeof(char *);
-
-                message["request"][value] = string(str_adr, str_len);
-            } else if (ends_with(ln_dt, string("*"))) {
-                uint32_t val_len = ((uint32_t *)adr)[0];
-                adr += 4;                
+                char *tmp_adr = ((char **)adr)[0];
+                adr += sizeof(char*);
                 
-                ln_dt = ln_dt.substr(0, ln_dt.size() - 1);
-#define type_append_list(type) if (ln_dt == #type) {                \
-                type *list_adr = ((type **)adr)[0];                 \
-                adr += sizeof(type *);                              \
-                                                                    \
-                std::list<type> temp_list;                          \
-                for (unsigned i = 0; i < val_len; ++i) {                 \
-                    temp_list.push_back(list_adr[i]); }             \
-                                                                    \
-                message["request"][value] = temp_list; }           
+                service_request.push_back(string(tmp_adr, tmp_len));
+            } else if (ends_with(ln_dt, string("*"))) {               
+                service_request.push_back(((uint32_t *)adr)[0]);    //<! array length
+                adr += 4;                
+#define push_back_type(type) \
+                if (ln_dt == #type) {                               \
+                    service_request.push_back(((type*)adr)[0]);     \
+                    adr += sizeof(type);                            \
+                }
 
-                type_append_list(uint64_t);
-                type_append_list(int64_t);
-                type_append_list(uint32_t);
-                type_append_list(int32_t);
-                type_append_list(uint16_t);
-                type_append_list(int16_t);
-                type_append_list(uint8_t);
-                type_append_list(int8_t);
+                push_back_type(uint64_t*);
+                push_back_type(int64_t*);
+                push_back_type(uint32_t*);
+                push_back_type(int32_t*);
+                push_back_type(uint16_t*);
+                push_back_type(int16_t*);
+                push_back_type(uint8_t*);
+                push_back_type(int8_t*);
             } else {
-                if (ln_dt == "uint32_t") 
-                    message["request"][value] = ((uint32_t *)adr)[0];
-                if (ln_dt == "int32_t") 
-                    message["request"][value] = ((int32_t *)adr)[0];
-                if (ln_dt == "uint16_t") 
-                    message["request"][value] = ((uint16_t *)adr)[0];
-                if (ln_dt == "int16_t") 
-                    message["request"][value] = ((int16_t *)adr)[0];
-                if (ln_dt == "uint8_t") 
-                    message["request"][value] = ((uint8_t *)adr)[0];
-                if (ln_dt == "int8_t") 
-                    message["request"][value] = ((int8_t *)adr)[0];
-                adr += ln_dt_size;
+                push_back_type(uint64_t);
+                push_back_type(int64_t);
+                push_back_type(uint32_t);
+                push_back_type(int32_t);
+                push_back_type(uint16_t);
+                push_back_type(int16_t);
+                push_back_type(uint8_t);
+                push_back_type(int8_t);
+#undef push_back_type
             }
         }
     }
 
     // call robotkernel service
-    _svc.callback(message);
-
-    std::list<uint8_t *> to_delete;
+    robotkernel::kernel::service_arglist_t service_response;
+    _svc.callback(service_request, service_response);
 
     if (message_definition["response"]) {
         const YAML::Node& response = message_definition["response"];
-//        std::cout << "got response\n" << message["response"] << std::endl;
+        int i = 0;
 
         for (YAML::const_iterator it = response.begin(); 
                 it != response.end(); ++it) {
-
             string key   = it->first.as<string>();
             string value = it->second.as<string>();
 
-//            printf("processing md response key %s\n", key.c_str());
             string ln_dt = service_datatype_to_ln(key);
             int ln_dt_size = ln_datatype_size(ln_dt);
 
             if (ln_dt == "char*") {
-//                printf("  interpreting as string\n");
-
-                string tmp_string = get_as<string>(message["response"], value);
-                
-                ((uint32_t *)adr)[0] = tmp_string.size();
+                const string& tmp_string = boost::any_cast<string>(service_response[i++]);
+                ((uint32_t *)adr)[0] = (uint32_t)tmp_string.size();
                 adr += 4;
-                
-                uint8_t *tmp_adr = new uint8_t[
-                        tmp_string.size() * sizeof(char)];
-                ((char **)adr)[0] = (char *)tmp_adr;
-                to_delete.push_back(tmp_adr);
-                memcpy(tmp_adr, tmp_string.c_str(), tmp_string.size());
+                if (tmp_string.size())
+                    ((const char **)adr)[0] = (const char *)tmp_string.c_str();
+                else 
+                    ((const char **)adr)[0] = NULL;
                 adr += sizeof(char *);
             } else if (ends_with(ln_dt, string("*"))) {
-//                printf("  interpreting as array\n");
-
-                ln_dt = ln_dt.substr(0, ln_dt.size() - 1);
-                int real_ln_dt_size = ln_datatype_size(ln_dt);
-
-                const YAML::Node& node_values = message["response"][value];
-                unsigned size = node_values.size();
-
-                ((uint32_t *)adr)[0] = size;
+                ((uint32_t *)adr)[0] = boost::any_cast<uint32_t>(service_response[i++]);
                 adr += 4;
-                
-                uint8_t *tmp_adr = new uint8_t[size * real_ln_dt_size];
-                ((char **)adr)[0] = (char *)tmp_adr;
-                to_delete.push_back(tmp_adr);
-               
-                for (std::size_t i = 0; i < size; ++i) {
-#define as_type(type) if (ln_dt == #type) {                         \
-                    ((type *)tmp_adr)[i] = node_values[i].as<type>(); }
 
-                    as_type(uint64_t);
-                    as_type(int64_t);
-                    as_type(uint32_t);
-                    as_type(int32_t);
-                    as_type(uint16_t);
-                    as_type(int16_t);
-                    as_type(uint8_t);
-                    as_type(int8_t);
-#undef as_type
+#define push_back_type(type) \
+                if (ln_dt == #type) {                                               \
+                    ((type*)adr)[0] = boost::any_cast<type>(service_response[i++]); \
+                    adr += sizeof(type);                                            \
                 }
 
-                adr += sizeof(uint8_t *);
+                push_back_type(uint64_t*);
+                push_back_type(int64_t*);
+                push_back_type(uint32_t*);
+                push_back_type(int32_t*);
+                push_back_type(uint16_t*);
+                push_back_type(int16_t*);
+                push_back_type(uint8_t*);
+                push_back_type(int8_t*);
             } else {
-//                printf("  interpreting as type %s\n", ln_dt.c_str());
-#define as_type(type) if (ln_dt == #type) {                         \
-             ((type *)adr)[0] = get_as<type>(message["response"], value); }
-                as_type(uint64_t);
-                as_type(int64_t);
-                as_type(uint32_t);
-                as_type(int32_t);
-                as_type(uint16_t);
-                as_type(int16_t);
-                as_type(uint8_t);
-                as_type(int8_t);
-
-                adr += ln_dt_size;
+                push_back_type(uint64_t);
+                push_back_type(int64_t);
+                push_back_type(uint32_t);
+                push_back_type(int32_t);
+                push_back_type(uint16_t);
+                push_back_type(int16_t);
+                push_back_type(uint8_t);
+                push_back_type(int8_t);
             }
-
         }
     }
 
     req.respond();
-
-    for (std::list<uint8_t *>::iterator it = to_delete.begin();
-            it != to_delete.end(); ++it) {
-        delete[] (*it);
-    }
 
     return 0;
 }

@@ -287,18 +287,18 @@ module::module(const YAML::Node& node, string config_path)
     currently_loading_module = NULL;
 
     kernel& k = *kernel::get_instance();
-    k.add_service(name, name + ".set_state",
-            service_definition_set_state,
-            boost::bind(&module::service_set_state, this, _1));
-    k.add_service(name, name + ".get_state",
-            service_definition_get_state,
-            boost::bind(&module::service_get_state, this, _1));
-    k.add_service(name, name + ".get_config",
-            service_definition_get_config,
-            boost::bind(&module::service_get_config, this, _1));
-    k.add_service(name, name + ".get_feat",
-            service_definition_get_feat,
-            boost::bind(&module::service_get_feat, this, _1));
+//    k.add_service(name, name + ".set_state",
+//            service_definition_set_state,
+//            boost::bind(&module::service_set_state, this, _1));
+//    k.add_service(name, name + ".get_state",
+//            service_definition_get_state,
+//            boost::bind(&module::service_get_state, this, _1));
+//    k.add_service(name, name + ".get_config",
+//            service_definition_get_config,
+//            boost::bind(&module::service_get_config, this, _1));
+//    k.add_service(name, name + ".get_feat",
+//            service_definition_get_feat,
+//            boost::bind(&module::service_get_feat, this, _1));
 }
 
 void module::_init() {

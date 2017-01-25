@@ -45,9 +45,9 @@ interface_base::interface_base(const std::string& intf_name, const YAML::Node& n
     base << mod_name << "." << dev_name  << "." << intf_name 
         << ".configure_loglevel";
 
-    k.add_service(mod_name, base.str(), 
-            interface_base::service_definition_configure_loglevel,
-            boost::bind(&interface_base::service_configure_loglevel, this, _1));
+//    k.add_service(mod_name, base.str(), 
+//            interface_base::service_definition_configure_loglevel,
+//            boost::bind(&interface_base::service_configure_loglevel, this, _1));
 }
 
 //! destruction

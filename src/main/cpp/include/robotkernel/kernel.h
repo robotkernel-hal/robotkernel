@@ -29,6 +29,8 @@
 
 #include <boost/function.hpp>
 #include <boost/bind.hpp>
+#include <boost/any.hpp>
+
 
 #include <robotkernel/loglevel.h>
 #include <robotkernel/module.h>
@@ -71,7 +73,9 @@ class kernel {
         ~kernel();
 
     public:
-        typedef boost::function<int(YAML::Node&)> service_callback_t;
+        typedef std::vector<boost::any> service_arglist_t;
+        typedef boost::function<int(const service_arglist_t&, 
+                service_arglist_t&)> service_callback_t;
 
         typedef struct service {
             std::string owner;
@@ -244,7 +248,8 @@ class kernel {
          * \param message service message
          * \return success
          */
-        int service_get_dump_log(YAML::Node& message);
+        int service_get_dump_log(const service_arglist_t& request, 
+                service_arglist_t& response);
         static const std::string service_definition_get_dump_log;
         
         //! config dump log
@@ -252,7 +257,8 @@ class kernel {
          * \param message service message
          * \return success
          */
-        int service_config_dump_log(YAML::Node& message);
+        int service_config_dump_log(const service_arglist_t& request, 
+                service_arglist_t& response);
         static const std::string service_definition_config_dump_log;
         
         //! add module
