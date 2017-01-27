@@ -245,7 +245,8 @@ class kernel {
         
         //! get dump log
         /*!
-         * \param message service message
+         * \param request service request data
+         * \parma response service response data
          * \return success
          */
         int service_get_dump_log(const service_arglist_t& request, 
@@ -254,7 +255,8 @@ class kernel {
         
         //! config dump log
         /*!
-         * \param message service message
+         * \param request service request data
+         * \parma response service response data
          * \return success
          */
         int service_config_dump_log(const service_arglist_t& request, 
@@ -263,34 +265,42 @@ class kernel {
         
         //! add module
         /*!
-         * \param message service message
+         * \param request service request data
+         * \parma response service response data
          * \return success
          */
-        int service_add_module(YAML::Node& message);
+        int service_add_module(const service_arglist_t& request, 
+                service_arglist_t& response);
         static const std::string service_definition_add_module;
         
-        //! service remove module
+        //! remove module
         /*!
-         * \param message service message
+         * \param request service request data
+         * \parma response service response data
          * \return success
          */
-        int service_remove_module(YAML::Node& message);
+        int service_remove_module(const service_arglist_t& request,
+                service_arglist_t& response);
         static const std::string service_definition_remove_module;
 
         //! module list
         /*!
-         * \param message service message
+         * \param request service request data
+         * \parma response service response data
          * \return success
          */
-        int service_module_list(YAML::Node& message);
+        int service_module_list(const service_arglist_t& request, 
+                service_arglist_t& response);
         static const std::string service_definition_module_list;
 
-        //! module list
+        //! reconfigure module
         /*!
-         * \param message service message
+         * \param request service request data
+         * \parma response service response data
          * \return success
          */
-        int service_reconfigure_module(YAML::Node& message);
+        int service_reconfigure_module(const service_arglist_t& request, 
+                service_arglist_t& response);
         static const std::string service_definition_reconfigure_module;
 };
 

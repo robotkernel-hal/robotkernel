@@ -73,5 +73,20 @@ type get_as(const YAML::Node& node, const std::string key, type dflt) {
     }
 }
 
+template <typename type>
+type __as(const robotkernel::kernel::service_arglist_t& arglist, int idx) {
+    // TODO do some checks if idx is ok, catch exceptions, etc...
+    return boost::any_cast<type>(arglist[idx]); 
+}
+
+template <typename type>
+type __to(robotkernel::kernel::service_arglist_t& arglist, int idx, type val) {
+    if ((idx+1) > arglist.size())
+        arglist.resize(idx+10);
+
+    // TODO do some checks if idx is ok, catch exceptions, etc...
+    arglist[idx] = (type)val; 
+}
+
 #endif // __MODULE_H__
 

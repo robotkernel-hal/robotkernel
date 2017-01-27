@@ -257,15 +257,14 @@ kernel::kernel() {
             boost::bind(&kernel::service_get_dump_log, this, _1, _2));
     add_service(_name, "config_dump_log", service_definition_config_dump_log,
             boost::bind(&kernel::service_config_dump_log, this, _1, _2));
-//    add_service(_name, "module_list", service_definition_module_list,
-//            boost::bind(&kernel::service_module_list, this, _1));
-//    add_service(_name, "reconfigure_module", 
-//            service_definition_reconfigure_module,
-//            boost::bind(&kernel::service_reconfigure_module, this, _1));
-//    add_service(_name, "add_module", service_definition_add_module,
-//            boost::bind(&kernel::service_add_module, this, _1));
-//    add_service(_name, "remove_module", service_definition_remove_module,
-//            boost::bind(&kernel::service_remove_module, this, _1));
+    add_service(_name, "module_list", service_definition_module_list,
+            boost::bind(&kernel::service_module_list, this, _1, _2));
+    add_service(_name, "reconfigure_module", service_definition_reconfigure_module,
+            boost::bind(&kernel::service_reconfigure_module, this, _1, _2));
+    add_service(_name, "add_module", service_definition_add_module,
+            boost::bind(&kernel::service_add_module, this, _1, _2));
+    add_service(_name, "remove_module", service_definition_remove_module,
+            boost::bind(&kernel::service_remove_module, this, _1, _2));
 }
 
 //! destruction
@@ -695,15 +694,18 @@ const std::string kernel::service_definition_get_dump_log =
  */
 int kernel::service_config_dump_log(const service_arglist_t& request, 
         service_arglist_t& response) {
-    int i = 0;
-    uint32_t max_len     = boost::any_cast<uint32_t>(request[0]); 
-    uint8_t  do_ust      = boost::any_cast<uint8_t> (request[1]);
-    string set_log_level = boost::any_cast<string>  (request[2]);
+    // request data
+    uint32_t max_len        = __as<uint32_t>(request, 0); 
+    uint8_t  do_ust         = __as<uint8_t> (request, 1);
+    string   set_log_level  = __as<string>  (request, 2);
+
+    // response data
+    string current_log_level = "";
+    string error_message = "";
 
     dump_log_set_len(max_len, do_ust);
     klog(info, "dump_log len set to %d, do_ust to %d\n", max_len, do_ust);
 
-    string current_log_level;
 #define loglevel_to_string(x)             \
     if (ll == x)                          \
     current_log_level = string(#x)
@@ -721,9 +723,8 @@ int kernel::service_config_dump_log(const service_arglist_t& request,
             ll = string(*pstring);
     }
 
-    response.resize(2);
-    response[0] = current_log_level;
-    response[1] = string("");
+    __to<string>(response, 0, current_log_level);
+    __to<string>(response, 1, error_message);
 
     return 0;
 }
@@ -737,14 +738,20 @@ const std::string kernel::service_definition_config_dump_log =
     "    string: current_log_level\n"
     "    string: error_message\n";
 
-
 //! add module
 /*!
- * \param message service message
+ * \param request service request data
+ * \parma response service response data
  * \return success
  */
-int kernel::service_add_module(YAML::Node& message) {
-    string config = get_as<string>(message["request"], "config");
+int kernel::service_add_module(const service_arglist_t& request, 
+        service_arglist_t& response) {
+    // request data
+    string config = __as<string>(request, 0); 
+
+    //response data
+    string error_message = "";
+    
     klog(info, "got config: %s\n", config.c_str());
 
     try {
@@ -765,11 +772,11 @@ int kernel::service_add_module(YAML::Node& message) {
 
         // add to module map
         module_map[mdl->get_name()] = mdl;
-
-        message["response"]["error_message"] = string("");
     } catch(exception& e) {
-        message["response"]["error_message"] = e.what();
+        error_message = e.what();
     }
+
+    __to<string>(response, 0, error_message);
 
     return 0;
 }
@@ -782,12 +789,17 @@ const std::string kernel::service_definition_add_module =
 
 //! remove module
 /*!
- * \param message service message
+ * \param request service request data
+ * \parma response service response data
  * \return success
  */
-int kernel::service_remove_module(YAML::Node& message) {
-    message["response"]["error_message"] = "";
-    string mod_name = get_as<string>(message["request"], "mod_name");
+int kernel::service_remove_module(const service_arglist_t& request, 
+        service_arglist_t& response) {
+    // request data
+    string mod_name = __as<string>(request, 0); 
+
+    //response data
+    string error_message = "";
 
     try {
         module_map_t::iterator it = module_map.find(mod_name);
@@ -801,8 +813,10 @@ int kernel::service_remove_module(YAML::Node& message) {
         module_map.erase(it);
         delete mdl;
     } catch (exception& e) {
-        message["response"]["error_message"] = e.what();
+        error_message = e.what();
     }
+
+    __to<string>(response, 0, error_message);
 
     return 0;
 }
@@ -815,44 +829,57 @@ const std::string kernel::service_definition_remove_module =
 
 //! module list
 /*!
- * \param message service message
+ * \param request service request data
+ * \parma response service response data
  * \return success
  */
-int kernel::service_module_list(YAML::Node& message) {
-    message["response"]["modules"] = "";
-    message["response"]["error_message"] = "";
+int kernel::service_module_list(const service_arglist_t& request, 
+        service_arglist_t& response) {
+    //response data
+    std::vector<string> modules(0, "");   
+    string error_message = "";
 
-    try {
-        string module_list = "[ ";
+    try {        
+        int i = 0;
+        modules.resize(module_map.size()+2);
+        modules[i++] = string("test");
+        modules[i++] = string("noch ein anderer test");
+
         for (module_map_t::const_iterator
                 it = module_map.begin(); it != module_map.end(); ++it) {
-            module_list += "\"" + it->first + "\", ";
+            modules[i++] = it->first;
         }
-        module_list += "]";
-
-        message["response"]["modules"] = module_list;
     } catch(exception& e) {
-        message["response"]["error_message"] = e.what();
+        error_message = e.what();
     }
+    
+    //__to<std::vector<string> >(response, 0, modules);
+    response.resize(2);
+    response[0] = modules;
+    response[1] = error_message;
     
     return 0;
 }
 
 const std::string kernel::service_definition_module_list = 
     "response:\n"
-    "    string: error_message\n"
-    "    string: modules\n";
-
+    "    vector/string: modules\n"
+    "    string: error_message\n";
 
 //! reconfigure module
 /*!
- * \param message service message
+ * \param request service request data
+ * \parma response service response data
  * \return success
  */
-int kernel::service_reconfigure_module(YAML::Node& message) {
-    message["response"]["state"] = 0;
-    message["response"]["error_message"] = "";
-    string mod_name = get_as<string>(message["request"], "mod_name");
+int kernel::service_reconfigure_module(const service_arglist_t& request, 
+        service_arglist_t& response) {
+    // request data
+    string mod_name = __as<string>(request, 0); 
+
+    //response data
+    uint64_t state = 0;
+    string error_message = "";
 
     try {
         module_map_t::iterator it = module_map.find(mod_name);
@@ -866,19 +893,21 @@ int kernel::service_reconfigure_module(YAML::Node& message) {
 
         mdl->reconfigure();
     } catch(exception& e) {
-        message["response"]["error_message"] = e.what();
+        error_message = e.what();
     }
     
+    __to<uint64_t>(response, 0, state);
+    __to<string>(response, 1, error_message);
+
     return 0;
 }
 
 const std::string kernel::service_definition_reconfigure_module = 
     "request:\n"
-    "    string: name\n"
+    "    string: mod_name\n"
     "response:\n"
-    "    string: error_message\n"
-    "    uint64_t: state\n";
-
+    "    uint64_t: state\n"
+    "    string: error_message\n";
 
 std::string kernel::ll_to_string(loglevel ll) {
     if (ll == error)    return "ERR ";

@@ -1,6 +1,8 @@
 #include "robotkernel/ln_bridge.h"
 #include "robotkernel/helpers.h"
 
+#include <boost/algorithm/string/predicate.hpp>
+
 using namespace std;
 
 static string service_datatype_to_ln(string datatype) {
@@ -114,6 +116,11 @@ ln_bridge::service::service(ln_bridge::client& clnt,
 
     // put ln message definition. this will create 
     // ~/ln_message_definitions/gen/<svc_name>
+    for (map<string, string>::iterator it = sub_mds.begin(); 
+            it != sub_mds.end(); ++it) {
+        clnt.clnt->put_message_definition(it->first, it->second);
+    }
+
     clnt.clnt->put_message_definition(svc_name, md);
 
     // get ln service provider
@@ -132,6 +139,11 @@ ln_bridge::service::~service() {
         _ln_service = NULL;
     }
 }
+
+typedef struct __attribute__((__packed__)) ln_vector {
+    uint32_t len;
+    const uint8_t *val;
+} __attribute__((__packed__)) ln_vector_t;
         
 int ln_bridge::service::handle(ln::service_request& req) {
     uint8_t svc[1024];
@@ -195,6 +207,8 @@ int ln_bridge::service::handle(ln::service_request& req) {
     robotkernel::kernel::service_arglist_t service_response;
     _svc.callback(service_request, service_response);
 
+    std::list<uint8_t *> to_delete;
+
     if (message_definition["response"]) {
         const YAML::Node& response = message_definition["response"];
         int i = 0;
@@ -216,6 +230,57 @@ int ln_bridge::service::handle(ln::service_request& req) {
                 else 
                     ((const char **)adr)[0] = NULL;
                 adr += sizeof(char *);
+            } else if (boost::starts_with(key, "vector")) {
+                const size_t equals_idx = key.find_first_of('/');
+                if (std::string::npos != equals_idx)
+                {
+                    //signature "uint32_t 4 1,[uint32_t 4 1,char* 1 1]* 8 1|uint32_t 4 1,[uint32_t 4 1,char* 1 1]* 8 1"
+
+                    string vector = key.substr(0, equals_idx);
+                    string real_key = key.substr(equals_idx + 1);
+                    string ln_dt = service_datatype_to_ln(real_key);
+
+#define add_vector_type(type) \
+    if (ln_dt == #type) {                                                                       \
+        const std::vector<type> t = __as<std::vector<type> >(service_response, i++);            \
+        ((uint32_t *)adr)[0] = (uint32_t)t.size();                                              \
+        adr += 4;                                                                               \
+                                                                                                \
+        for (unsigned i = 0; i < t.size(); ++i) {                                               \
+            ((type *)adr)[0] = (type)t[i];                                                      \
+            adr += ln_dt_size;                                                                  \
+        }                                                                                       \
+    }
+
+#define add_vector_type_char(type) \
+    if (ln_dt == #type) {                                                                       \
+        const std::vector<string> t = __as<std::vector<string> >(service_response, i++);        \
+        ((uint32_t *)adr)[0] = (uint32_t)t.size();                                              \
+        adr += 4;                                                                               \
+                                                                                                \
+        ln_vector_t* entries = new ln_vector_t[t.size()];                                       \
+        to_delete.push_back((uint8_t *)entries);                                                \
+                                                                                                \
+        for (unsigned i = 0; i < t.size(); ++i) {                                               \
+            entries[i].len = t[i].length();                                                     \
+            entries[i].val = (const uint8_t *)t[i].c_str();                                     \
+        }                                                                                       \
+        ((ln_vector_t **)adr)[0] = entries;                                                     \
+        adr += sizeof(void*);                                                                   \
+    }
+
+                    add_vector_type(uint64_t*);
+                    add_vector_type(int64_t*);
+                    add_vector_type(uint32_t*);
+                    add_vector_type(int32_t*);
+                    add_vector_type(uint16_t*);
+                    add_vector_type(int16_t*);
+                    add_vector_type(uint8_t*);
+                    add_vector_type(int8_t*);
+                    add_vector_type_char(char*);
+                    
+
+                }
             } else if (ends_with(ln_dt, string("*"))) {
                 ((uint32_t *)adr)[0] = boost::any_cast<uint32_t>(service_response[i++]);
                 adr += 4;
@@ -248,6 +313,11 @@ int ln_bridge::service::handle(ln::service_request& req) {
     }
 
     req.respond();
+    
+    for (std::list<uint8_t *>::iterator it = to_delete.begin();
+            it != to_delete.end(); ++it) {
+        delete[] (*it);
+    }
 
     return 0;
 }
@@ -293,18 +363,57 @@ void ln_bridge::service::_create_ln_message_defition() {
 
             string key   = it->first.as<string>();
             string value = it->second.as<string>();
+            if (boost::starts_with(key, "vector")) {
+                printf("got one vector\n");
+    
+                const size_t equals_idx = key.find_first_of('/');
+                if (std::string::npos != equals_idx)
+                {
+//signature "uint32_t 4 1,[uint32_t 4 1,char* 1 1]* 8 1|uint32_t 4 1,[uint32_t 4 1,char* 1 1]* 8 1"
 
-            string ln_dt = service_datatype_to_ln(key);
-            int ln_dt_size = ln_datatype_size(ln_dt);
-            ss_md << ln_dt << " " << value << endl;
+                    string vector = key.substr(0, equals_idx);
+                    string real_key = key.substr(equals_idx + 1);
+                    cout << "vector: " << vector << ", datatype: " << real_key << endl;
+                    
+                    ss_signature << "uint32_t 4 1,[";
 
-            if (ends_with(ln_dt, string("*")))
-                ss_signature << "uint32_t 4 1,";
+                    string ln_dt = service_datatype_to_ln(real_key);
+                    int ln_dt_size = ln_datatype_size(ln_dt);
 
-            ss_signature << ln_dt << " " << ln_dt_size << " " << "1";
+                    stringstream ss_sub_md;
+                    ss_sub_md << ln_dt << " " << real_key << endl;
+                    sub_mds[key] = ss_sub_md.str();
+
+                    ss_md << "define " << key << " as \"gen/" << key << "\"" << endl;
+                    ss_md << key << "* " << value << endl;
+                    
+                    if (ends_with(ln_dt, string("*")))
+                        ss_signature << "uint32_t 4 1,";
+
+                    ss_signature << ln_dt << " " << ln_dt_size << " " << "1";
+
+                    ss_signature << "]* " << sizeof(void*) << " 1";
+
+                }
+                else
+                {
+                    //name = name_value;
+                    cout << "error after vector" << endl;
+                }
+            } else {
+                string ln_dt = service_datatype_to_ln(key);
+                int ln_dt_size = ln_datatype_size(ln_dt);
+                ss_md << ln_dt << " " << value << endl;
+
+                if (ends_with(ln_dt, string("*")))
+                    ss_signature << "uint32_t 4 1,";
+
+                ss_signature << ln_dt << " " << ln_dt_size << " " << "1";
+            }
         }
     }
 
+    cout << "sig: " << ss_signature.str() << endl << "md: " << ss_md.str() << endl;
     signature = ss_signature.str();
     md = ss_md.str();
 }

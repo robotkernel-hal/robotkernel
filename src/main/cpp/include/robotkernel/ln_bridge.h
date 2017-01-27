@@ -56,6 +56,7 @@ class service {
         const robotkernel::kernel::service_t& _svc;
         ln::service *_ln_service;
         std::string md;
+        std::map<std::string, std::string> sub_mds;
         std::string signature;
 
         int handle(ln::service_request& req);
