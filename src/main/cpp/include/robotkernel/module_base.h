@@ -101,7 +101,6 @@ EXPORT_C MODULE_HANDLE mod_configure(const char* name, const char* config) {    
 namespace robotkernel {
 
 class module_base {
-//    public ln_service_configure_loglevel_base {
     private:
         module_base();          //!< prevent default construction
 
@@ -192,23 +191,21 @@ class module_base {
          * \return success or failure
          */
         virtual int request(int reqcode, void* ptr) {
-            log(robotkernel::warning, "module_base::request()-method not overloaded for request %#x(%#x)!\n",
-                reqcode, ptr);
+            log(robotkernel::warning, "module_base::request()-method not overloaded "
+                    "for request %#x(%#x)!\n", reqcode, ptr);
             return -1;
         }
 
         //! log to kernel logging facility
         void log(robotkernel::loglevel lvl, const char *format, ...);
 
-        ////! configure loglevel service
-	    //int on_configure_loglevel(ln::service_request& req,
-        //        ln_service_robotkernel_module_configure_loglevel& svc);
-
         //! service to configure modules loglevel
         /*!
-         * message service message
+         * \param request service request data
+         * \parma response service response data
          */
-        int service_configure_loglevel(YAML::Node& message);
+        int service_configure_loglevel(const service_arglist_t& request, 
+                service_arglist_t& response);
         static const std::string service_definition_configure_loglevel;
 };
 

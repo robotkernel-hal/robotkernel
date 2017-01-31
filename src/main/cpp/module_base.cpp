@@ -26,6 +26,7 @@
 #include <sstream>
 
 using namespace std;
+using namespace std::placeholders;
 using namespace robotkernel;
         
 //! construction
@@ -42,9 +43,9 @@ module_base::module_base(const std::string& modname, const std::string& name) :
     stringstream base;
     base << name << ".configure_loglevel";
 
-//    k.add_service(modname, base.str(), 
-//            module_base::service_definition_configure_loglevel,
-//            boost::bind(&module_base::service_configure_loglevel, this, _1));
+    k.add_service(modname, base.str(), 
+            module_base::service_definition_configure_loglevel,
+            std::bind(&module_base::service_configure_loglevel, this, _1, _2));
 }
 
 //! construction
@@ -76,9 +77,9 @@ module_base::module_base(const std::string& modname, const std::string& name,
     stringstream base;
     base << name << ".configure_loglevel";
 
-//    k.add_service(modname, base.str(), 
-//            module_base::service_definition_configure_loglevel,
-//            boost::bind(&module_base::service_configure_loglevel, this, _1));
+    k.add_service(modname, base.str(), 
+            module_base::service_definition_configure_loglevel,
+            std::bind(&module_base::service_configure_loglevel, this, _1, _2));
 }
 
 module_base::~module_base() {
@@ -130,28 +131,40 @@ log_exit:
 
 //! service to configure modules loglevel
 /*!
- * message service message
+ * \param request service request data
+ * \parma response service response data
  */
-int module_base::service_configure_loglevel(YAML::Node& message) {
-    message["response"]["current_log_level"] = (std::string)ll;
-    message["response"]["error_message"] = "";
-    string set_ll = get_as<string>(message["request"], "set_log_level");
+int module_base::service_configure_loglevel(const service_arglist_t& request, 
+        service_arglist_t& response) {
+    // request data
+#define CONFIGURE_LOGLEVEL_REQ_SET_LOGLEVEL         0
+    string set_loglevel = request[CONFIGURE_LOGLEVEL_REQ_SET_LOGLEVEL];
+   
+    // response data
+    string current_loglevel = (std::string)ll;
+    string error_message = "";
 
-    if (set_ll != "") {
+    if (set_loglevel != "") {
         try {
-            ll = set_ll;
+            ll = set_loglevel;
         } catch (const std::exception& e) {
-            message["response"]["error_message"] = e.what();
+            error_message = e.what();
         }
     }
+
+#define CONFIGURE_LOGLEVEL_RESP_CURRENT_LOGLEVEL    0
+#define CONFIGURE_LOGLEVEL_RESP_ERROR_MESSAGE       1
+    response.resize(2);
+    response[CONFIGURE_LOGLEVEL_RESP_CURRENT_LOGLEVEL] = current_loglevel;
+    response[CONFIGURE_LOGLEVEL_RESP_ERROR_MESSAGE]    = error_message;
 
     return 0;
 }
 
 const std::string module_base::service_definition_configure_loglevel = 
     "request:\n"
-    "    string: set_log_level\n"
+    "    string: set_loglevel\n"
     "response:\n"
-    "    string: error_message\n"
-    "    string: current_log_level\n";
+    "    string: current_loglevel\n"
+    "    string: error_message\n";
 

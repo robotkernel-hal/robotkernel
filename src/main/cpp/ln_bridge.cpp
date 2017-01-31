@@ -1,9 +1,12 @@
 #include "robotkernel/ln_bridge.h"
 #include "robotkernel/helpers.h"
+#include "robotkernel/service.h"
 
+#include <functional>
 #include <boost/algorithm/string/predicate.hpp>
 
 using namespace std;
+using namespace std::placeholders;
 
 static string service_datatype_to_ln(string datatype) {
     if (datatype == "string")
@@ -58,11 +61,11 @@ ln_bridge::client::client() {
     clnt->handle_service_group_in_thread_pool(NULL, "main");
     clnt->set_max_threads("main", 2);
 
-    robotkernel::kernel::service_provider_t *sp = 
-        new robotkernel::kernel::service_provider_t();
-    sp->add_service = boost::bind(&ln_bridge::client::add_service, this, _1);
+    robotkernel::service_provider_t *sp = 
+        new robotkernel::service_provider_t();
+    sp->add_service = std::bind(&ln_bridge::client::add_service, this, _1);
     sp->remove_service = 
-        boost::bind(&ln_bridge::client::remove_service, this, _1);
+        std::bind(&ln_bridge::client::remove_service, this, _1);
 
     robotkernel::kernel::get_instance()->service_providers.push_back(sp);
 }
@@ -81,7 +84,7 @@ ln_bridge::client::~client() {
 /*!
  * \param svc robotkernel service struct
  */
-void ln_bridge::client::add_service(const robotkernel::kernel::service_t& svc) {
+void ln_bridge::client::add_service(const robotkernel::service_t& svc) {
     ln_bridge::service *ln_svc = new ln_bridge::service(*this, svc);
     service_map[svc.name] = ln_svc;
 }
@@ -91,7 +94,7 @@ void ln_bridge::client::add_service(const robotkernel::kernel::service_t& svc) {
  * \param svc robotkernel service struct
  */
 void ln_bridge::client::remove_service(
-        const robotkernel::kernel::service_t& svc) {
+        const robotkernel::service_t& svc) {
     service_map_t::iterator it;
 
     if ((it = service_map.find(svc.name)) != service_map.end()) {
@@ -107,7 +110,7 @@ void ln_bridge::client::remove_service(
  * \param svc robotkernel service
  */
 ln_bridge::service::service(ln_bridge::client& clnt, 
-        const robotkernel::kernel::service_t& svc) 
+        const robotkernel::service_t& svc) 
     : _clnt(clnt), _svc(svc) {
     _create_ln_message_defition(); 
         
@@ -151,7 +154,7 @@ int ln_bridge::service::handle(ln::service_request& req) {
     uint64_t adr = (uint64_t)&svc[0];
 
     // request arguments
-    robotkernel::kernel::service_arglist_t service_request;
+    robotkernel::service_arglist_t service_request;
 
     YAML::Node message_definition = YAML::Load(_svc.service_definition);
     if (message_definition["request"]) {
@@ -204,7 +207,7 @@ int ln_bridge::service::handle(ln::service_request& req) {
     }
 
     // call robotkernel service
-    robotkernel::kernel::service_arglist_t service_response;
+    robotkernel::service_arglist_t service_response;
     _svc.callback(service_request, service_response);
 
     std::list<uint8_t *> to_delete;
@@ -222,7 +225,7 @@ int ln_bridge::service::handle(ln::service_request& req) {
             int ln_dt_size = ln_datatype_size(ln_dt);
 
             if (ln_dt == "char*") {
-                const string& tmp_string = boost::any_cast<string>(service_response[i++]);
+                const string& tmp_string = service_response[i++];
                 ((uint32_t *)adr)[0] = (uint32_t)tmp_string.size();
                 adr += 4;
                 if (tmp_string.size())
@@ -242,7 +245,7 @@ int ln_bridge::service::handle(ln::service_request& req) {
 
 #define add_vector_type(type) \
     if (ln_dt == #type) {                                                                       \
-        const std::vector<type> t = __as<std::vector<type> >(service_response, i++);            \
+        const std::vector<type> t = service_response[i++];            \
         ((uint32_t *)adr)[0] = (uint32_t)t.size();                                              \
         adr += 4;                                                                               \
                                                                                                 \
@@ -254,7 +257,7 @@ int ln_bridge::service::handle(ln::service_request& req) {
 
 #define add_vector_type_char(type) \
     if (ln_dt == #type) {                                                                       \
-        const std::vector<string> t = __as<std::vector<string> >(service_response, i++);        \
+        const std::vector<string> t = service_response[i++];        \
         ((uint32_t *)adr)[0] = (uint32_t)t.size();                                              \
         adr += 4;                                                                               \
                                                                                                 \
@@ -282,12 +285,12 @@ int ln_bridge::service::handle(ln::service_request& req) {
 
                 }
             } else if (ends_with(ln_dt, string("*"))) {
-                ((uint32_t *)adr)[0] = boost::any_cast<uint32_t>(service_response[i++]);
+                ((uint32_t *)adr)[0] = service_response[i++];
                 adr += 4;
 
 #define push_back_type(type) \
                 if (ln_dt == #type) {                                               \
-                    ((type*)adr)[0] = boost::any_cast<type>(service_response[i++]); \
+                    ((type*)adr)[0] = service_response[i++]; \
                     adr += sizeof(type);                                            \
                 }
 

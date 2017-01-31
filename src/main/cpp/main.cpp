@@ -108,10 +108,10 @@ int main(int argc, char** argv) {
     kernel &k = *kernel::get_instance();
     ln_bridge::client clnt;
 
-    for (kernel::service_list_t::iterator it = k.service_list.begin();
+    for (service_list_t::iterator it = k.service_list.begin();
             it != k.service_list.end(); ++it) {
         klog(info, "service %s\n", it->first.c_str());
-        kernel::service_t& svc = *(it->second);
+        service_t& svc = *(it->second);
         clnt.add_service(svc);
         //ln_bridge::service& ln_svc = *new ln_bridge::service(svc);
         //std::string ln_service_signature = ln_svc.signature;

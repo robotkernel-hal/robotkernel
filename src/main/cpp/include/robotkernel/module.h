@@ -31,6 +31,7 @@
 
 #include <robotkernel/module_intf.h>
 #include <robotkernel/interface.h>
+#include <robotkernel/service.h>
 
 #include <yaml-cpp/yaml.h>
         
@@ -187,34 +188,42 @@ class module {
             
         //! set module state
         /*!
-         * \param message service message
+         * \param request service request data
+         * \parma response service response data
          * \return success
          */
-        int service_set_state(YAML::Node& message);
+        int service_set_state(const service_arglist_t& request, 
+                service_arglist_t& response);
         static const std::string service_definition_set_state;
         
         //! get module state
         /*!
-         * \param message service message
+         * \param request service request data
+         * \parma response service response data
          * \return success
          */
-        int service_get_state(YAML::Node& message);
+        int service_get_state(const service_arglist_t& request, 
+                service_arglist_t& response);
         static const std::string service_definition_get_state;
         
-        //! service get configuration
+        //! get module config
         /*!
-         * \param message service message
+         * \param request service request data
+         * \parma response service response data
          * \return success
          */
-        int service_get_config(YAML::Node& message);
+        int service_get_config(const service_arglist_t& request, 
+                service_arglist_t& response);
         static const std::string service_definition_get_config;
         
-        //! service get module features
+        //! get module feat
         /*!
-         * \param message service message
+         * \param request service request data
+         * \parma response service response data
          * \return success
          */
-        int service_get_feat(YAML::Node& message);
+        int service_get_feat(const service_arglist_t& request, 
+                service_arglist_t& response);
         static const std::string service_definition_get_feat;
 
         friend YAML::Emitter& (::operator<<)(YAML::Emitter& out, 

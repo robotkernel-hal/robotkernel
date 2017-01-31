@@ -26,17 +26,15 @@
 #define __KERNEL_H__
 
 #include <string>
-
-#include <boost/function.hpp>
-#include <boost/bind.hpp>
-#include <boost/any.hpp>
-
-
+#include <functional>
+        
+#include <robotkernel/rk_type.h>
 #include <robotkernel/loglevel.h>
-#include <robotkernel/module.h>
 #include <robotkernel/log_thread.h>
 #include <robotkernel/dump_log.h>
 #include <robotkernel/exceptions.h>
+#include <robotkernel/module.h>
+#include <robotkernel/service.h>
 
 #define klog(...) robotkernel::kernel::get_instance()->log(__VA_ARGS__)
 
@@ -73,29 +71,7 @@ class kernel {
         ~kernel();
 
     public:
-        typedef std::vector<boost::any> service_arglist_t;
-        typedef boost::function<int(const service_arglist_t&, 
-                service_arglist_t&)> service_callback_t;
-
-        typedef struct service {
-            std::string owner;
-            std::string name;
-            std::string service_definition;
-            service_callback_t callback;
-        } service_t;
-
-        typedef std::map<std::string, service_t *> service_list_t;
         service_list_t service_list;
-
-        typedef boost::function<void(const robotkernel::kernel::service_t& svc)>
-            service_provider_cb_t;
-
-        typedef struct service_provider {
-            service_provider_cb_t add_service;
-            service_provider_cb_t remove_service;
-        } service_provider_t;
-
-        typedef std::list<service_provider_t *> service_providers_list_t;
         service_providers_list_t service_providers;
 
         //! add service to kernel

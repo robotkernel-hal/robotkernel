@@ -1,4 +1,5 @@
 #include "robotkernel/kernel.h"
+#include "robotkernel/service.h"
 
 #include "ln.h"
 #include "ln_cppwrapper.h"
@@ -19,14 +20,14 @@ class client {
         /*!
          * \param svc robotkernel service struct
          */
-        void add_service(const robotkernel::kernel::service_t& svc);
+        void add_service(const robotkernel::service_t& svc);
 
         //! unregister and remove ln service 
         /*!
          * \param svc robotkernel service struct
          */
         void remove_service(
-            const robotkernel::kernel::service_t& svc);
+            const robotkernel::service_t& svc);
         
     public:
         //! links-and-nodes client handle
@@ -45,7 +46,7 @@ class service {
          * \param svc robotkernel service
          */
         service(ln_bridge::client& clnt, 
-                const robotkernel::kernel::service_t& svc);
+                const robotkernel::service_t& svc);
 
         //! destruct ln_bridge service
         ~service();
@@ -53,7 +54,7 @@ class service {
         void _create_ln_message_defition();
 
         ln_bridge::client& _clnt;
-        const robotkernel::kernel::service_t& _svc;
+        const robotkernel::service_t& _svc;
         ln::service *_ln_service;
         std::string md;
         std::map<std::string, std::string> sub_mds;
@@ -65,8 +66,6 @@ class service {
                 void* user_data) {
             service *self = (service *)user_data;
             return self->handle(req);
-            //            ln_service_config_dump_log_base* self = (ln_service_config_dump_log_base*)user_data;
-            //ln_service_robotkernel_config_dump_log svc;
         }
 };
         

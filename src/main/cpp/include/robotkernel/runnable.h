@@ -29,7 +29,8 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <list>
-#include "robotkernel/module.h"
+
+#include <yaml-cpp/yaml.h>
 
 namespace robotkernel {
 

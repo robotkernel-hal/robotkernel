@@ -94,9 +94,11 @@ class interface_base {
 
         //! service to configure interface loglevel
         /*!
-         * message service message
+         * \param request service request data
+         * \parma response service response data
          */
-        int service_configure_loglevel(YAML::Node& message);
+        int service_configure_loglevel(const service_arglist_t& request, 
+                service_arglist_t& response);
         static const std::string service_definition_configure_loglevel;
 };
 

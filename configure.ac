@@ -7,9 +7,6 @@ AC_INIT(
 	m4_esyscmd_s([cat project.properties | grep VERSION    | cut -d'=' -f2 | xargs printf "%s"]),
 	m4_esyscmd_s([cat project.properties | grep MAINTAINER | cut -d'=' -f2 | xargs printf "%s"]))
 
-AC_CANONICAL_TARGET
-AC_CANONICAL_SYSTEM
-
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 
 RMPM_ENV # must be before AC_PROG* but after AC_PROG_MAKE_SET and after AM_INIT_AUTOMAKE

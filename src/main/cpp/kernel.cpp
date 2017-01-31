@@ -34,6 +34,7 @@
 #include "yaml-cpp/yaml.h"
 
 using namespace std;
+using namespace std::placeholders;
 using namespace robotkernel;
 
 extern module* currently_loading_module; // in module.cpp
@@ -254,17 +255,17 @@ kernel::kernel() {
     pthread_mutex_init(&module_map_lock, NULL);
 
     add_service(_name, "get_dump_log", service_definition_get_dump_log,
-            boost::bind(&kernel::service_get_dump_log, this, _1, _2));
+            std::bind(&kernel::service_get_dump_log, this, _1, _2));
     add_service(_name, "config_dump_log", service_definition_config_dump_log,
-            boost::bind(&kernel::service_config_dump_log, this, _1, _2));
+            std::bind(&kernel::service_config_dump_log, this, _1, _2));
     add_service(_name, "module_list", service_definition_module_list,
-            boost::bind(&kernel::service_module_list, this, _1, _2));
+            std::bind(&kernel::service_module_list, this, _1, _2));
     add_service(_name, "reconfigure_module", service_definition_reconfigure_module,
-            boost::bind(&kernel::service_reconfigure_module, this, _1, _2));
+            std::bind(&kernel::service_reconfigure_module, this, _1, _2));
     add_service(_name, "add_module", service_definition_add_module,
-            boost::bind(&kernel::service_add_module, this, _1, _2));
+            std::bind(&kernel::service_add_module, this, _1, _2));
     add_service(_name, "remove_module", service_definition_remove_module,
-            boost::bind(&kernel::service_remove_module, this, _1, _2));
+            std::bind(&kernel::service_remove_module, this, _1, _2));
 }
 
 //! destruction
@@ -673,12 +674,15 @@ void kernel::trigger_unregister_module(const std::string& mod_name,
 
 //! get dump log
 /*!
- * \param message service message
+ * \param request service request data
+ * \parma response service response data
  * \return success
  */
 int kernel::service_get_dump_log(const service_arglist_t& request, 
         service_arglist_t& response) {
-    response.push_back(dump_log_dump());
+#define GET_DUMP_LOG_RESP_LOG   0
+    response.resize(1);
+    response[0] = dump_log_dump();
 
     return 0;
 }
@@ -689,42 +693,49 @@ const std::string kernel::service_definition_get_dump_log =
 
 //! config dump log
 /*!
- * \param message service message
+ * \param request service request data
+ * \parma response service response data
  * \return success
  */
 int kernel::service_config_dump_log(const service_arglist_t& request, 
         service_arglist_t& response) {
     // request data
-    uint32_t max_len        = __as<uint32_t>(request, 0); 
-    uint8_t  do_ust         = __as<uint8_t> (request, 1);
-    string   set_log_level  = __as<string>  (request, 2);
+#define CONFIG_DUMP_LOG_REQ_MAX_LEN         0
+#define CONFIG_DUMP_LOG_REQ_DO_UST          1
+#define CONFIG_DUMP_LOG_REQ_SET_LOGLEVEL    2
+    uint32_t max_len        = request[CONFIG_DUMP_LOG_REQ_MAX_LEN]; 
+    uint8_t  do_ust         = request[CONFIG_DUMP_LOG_REQ_DO_UST];
+    string   set_loglevel   = request[CONFIG_DUMP_LOG_REQ_SET_LOGLEVEL];
 
     // response data
-    string current_log_level = "";
-    string error_message = "";
+    string current_loglevel = "";
+    string error_message    = "";
 
     dump_log_set_len(max_len, do_ust);
     klog(info, "dump_log len set to %d, do_ust to %d\n", max_len, do_ust);
 
 #define loglevel_to_string(x)             \
     if (ll == x)                          \
-    current_log_level = string(#x)
+    current_loglevel = string(#x)
 
     loglevel_to_string(error);
     else loglevel_to_string(warning);
     else loglevel_to_string(info);
     else loglevel_to_string(verbose);
 
-    if(set_log_level.size()) {
-        py_value *pval = eval_full(set_log_level);
+    if(set_loglevel.size()) {
+        py_value *pval = eval_full(set_loglevel);
         py_string *pstring = dynamic_cast<py_string *>(pval);
 
         if (pstring) 
             ll = string(*pstring);
     }
 
-    __to<string>(response, 0, current_log_level);
-    __to<string>(response, 1, error_message);
+#define CONFIG_DUMP_LOG_RESP_CURRENT_LOGLEVEL   0
+#define CONFIG_DUMP_LOG_RESP_ERROR_MESSAGE      1
+    response.resize(2);
+    response[CONFIG_DUMP_LOG_RESP_CURRENT_LOGLEVEL] = current_loglevel;
+    response[CONFIG_DUMP_LOG_RESP_ERROR_MESSAGE]    = error_message;
 
     return 0;
 }
@@ -733,9 +744,9 @@ const std::string kernel::service_definition_config_dump_log =
     "request:\n"
     "    uint32_t: max_len\n"
     "    uint8_t: do_ust\n"
-    "    string: set_log_level\n"
+    "    string: set_loglevel\n"
     "response:\n"
-    "    string: current_log_level\n"
+    "    string: current_loglevel\n"
     "    string: error_message\n";
 
 //! add module
@@ -747,7 +758,8 @@ const std::string kernel::service_definition_config_dump_log =
 int kernel::service_add_module(const service_arglist_t& request, 
         service_arglist_t& response) {
     // request data
-    string config = __as<string>(request, 0); 
+#define ADD_MODULE_REQ_CONFIG   0
+    string config = request[ADD_MODULE_REQ_CONFIG];
 
     //response data
     string error_message = "";
@@ -776,7 +788,9 @@ int kernel::service_add_module(const service_arglist_t& request,
         error_message = e.what();
     }
 
-    __to<string>(response, 0, error_message);
+#define ADD_MODULE_RESP_ERROR_MESSAGE   0
+    response.resize(1);
+    response[ADD_MODULE_RESP_ERROR_MESSAGE] = error_message;
 
     return 0;
 }
@@ -796,7 +810,8 @@ const std::string kernel::service_definition_add_module =
 int kernel::service_remove_module(const service_arglist_t& request, 
         service_arglist_t& response) {
     // request data
-    string mod_name = __as<string>(request, 0); 
+#define REMOVE_MODULE_REQ_MOD_NAME  0
+    string mod_name = request[REMOVE_MODULE_REQ_MOD_NAME];
 
     //response data
     string error_message = "";
@@ -816,7 +831,8 @@ int kernel::service_remove_module(const service_arglist_t& request,
         error_message = e.what();
     }
 
-    __to<string>(response, 0, error_message);
+#define REMOVE_MODULE_RESP_ERROR_MESSAGE    0
+    response[REMOVE_MODULE_RESP_ERROR_MESSAGE] = error_message;
 
     return 0;
 }
@@ -841,9 +857,7 @@ int kernel::service_module_list(const service_arglist_t& request,
 
     try {        
         int i = 0;
-        modules.resize(module_map.size()+2);
-        modules[i++] = string("test");
-        modules[i++] = string("noch ein anderer test");
+        modules.resize(module_map.size());
 
         for (module_map_t::const_iterator
                 it = module_map.begin(); it != module_map.end(); ++it) {
@@ -853,10 +867,11 @@ int kernel::service_module_list(const service_arglist_t& request,
         error_message = e.what();
     }
     
-    //__to<std::vector<string> >(response, 0, modules);
+#define MODULE_LIST_RESP_MODULES        0
+#define MODULE_LIST_RESP_ERROR_MESSAGE  1
     response.resize(2);
-    response[0] = modules;
-    response[1] = error_message;
+    response[MODULE_LIST_RESP_MODULES]       = modules;
+    response[MODULE_LIST_RESP_ERROR_MESSAGE] = error_message;
     
     return 0;
 }
@@ -875,7 +890,8 @@ const std::string kernel::service_definition_module_list =
 int kernel::service_reconfigure_module(const service_arglist_t& request, 
         service_arglist_t& response) {
     // request data
-    string mod_name = __as<string>(request, 0); 
+#define RECONFIGURE_MODULE_REQ_MOD_NAME 0
+    string mod_name = request[RECONFIGURE_MODULE_REQ_MOD_NAME]; 
 
     //response data
     uint64_t state = 0;
@@ -896,8 +912,11 @@ int kernel::service_reconfigure_module(const service_arglist_t& request,
         error_message = e.what();
     }
     
-    __to<uint64_t>(response, 0, state);
-    __to<string>(response, 1, error_message);
+#define RECONFIGURE_MODULE_RESP_STATE           0
+#define RECONFIGURE_MODULE_RESP_ERROR_MESSAGE   1
+    response.resize(2);
+    response[RECONFIGURE_MODULE_RESP_STATE]         = state;
+    response[RECONFIGURE_MODULE_RESP_ERROR_MESSAGE] = error_message;
 
     return 0;
 }

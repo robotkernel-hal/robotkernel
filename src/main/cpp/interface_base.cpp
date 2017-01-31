@@ -26,6 +26,7 @@
 #include <sstream>
 
 using namespace std;
+using namespace std::placeholders;
 using namespace robotkernel;
         
 //! construction
@@ -45,9 +46,9 @@ interface_base::interface_base(const std::string& intf_name, const YAML::Node& n
     base << mod_name << "." << dev_name  << "." << intf_name 
         << ".configure_loglevel";
 
-//    k.add_service(mod_name, base.str(), 
-//            interface_base::service_definition_configure_loglevel,
-//            boost::bind(&interface_base::service_configure_loglevel, this, _1));
+    k.add_service(mod_name, base.str(), 
+            interface_base::service_definition_configure_loglevel,
+            std::bind(&interface_base::service_configure_loglevel, this, _1, _2));
 }
 
 //! destruction
@@ -100,29 +101,40 @@ log_exit:
 
 //! service to configure interface loglevel
 /*!
- * message service message
+ * \param request service request data
+ * \parma response service response data
  */
-int interface_base::service_configure_loglevel(YAML::Node& message) {
-    message["response"]["current_log_level"] = (std::string)ll;
-    message["response"]["error_message"] = "";
+int interface_base::service_configure_loglevel(const service_arglist_t& request, 
+        service_arglist_t& response) {
+    // request data
+#define CONFIGURE_LOGLEVEL_REQ_SET_LOGLEVEL         0
+    string set_loglevel = request[CONFIGURE_LOGLEVEL_REQ_SET_LOGLEVEL];
 
-    string set_ll = get_as<string>(message["request"], "set_log_level");
+    // response data
+    string current_loglevel = (std::string)ll;
+    string error_message = "";
 
-    if (set_ll != "") {
+    if (set_loglevel != "") {
         try {
-            ll = set_ll;
+            ll = set_loglevel;
         } catch (const std::exception& e) {
-            message["response"]["error_message"] = e.what();
+            error_message = e.what();
         }
     }
+
+#define CONFIGURE_LOGLEVEL_RESP_CURRENT_LOGLEVEL    0
+#define CONFIGURE_LOGLEVEL_RESP_ERROR_MESSAGE       1
+    response.resize(2);
+    response[CONFIGURE_LOGLEVEL_RESP_CURRENT_LOGLEVEL] = current_loglevel;
+    response[CONFIGURE_LOGLEVEL_RESP_ERROR_MESSAGE]    = error_message;
 
     return 0;
 }
 
 const std::string interface_base::service_definition_configure_loglevel = 
     "request:\n"
-    "    string: set_log_level\n"
+    "    string: set_loglevel\n"
     "response:\n"
-    "    string: current_log_level\n"
+    "    string: current_loglevel\n"
     "    string: error_message\n";
 

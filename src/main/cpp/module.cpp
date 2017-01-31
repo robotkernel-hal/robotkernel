@@ -43,6 +43,7 @@
 #endif
 
 using namespace std;
+using namespace std::placeholders;
 using namespace robotkernel;
 
 const char string_state_error[]   = "<ERROR>";
@@ -287,18 +288,18 @@ module::module(const YAML::Node& node, string config_path)
     currently_loading_module = NULL;
 
     kernel& k = *kernel::get_instance();
-//    k.add_service(name, name + ".set_state",
-//            service_definition_set_state,
-//            boost::bind(&module::service_set_state, this, _1));
-//    k.add_service(name, name + ".get_state",
-//            service_definition_get_state,
-//            boost::bind(&module::service_get_state, this, _1));
-//    k.add_service(name, name + ".get_config",
-//            service_definition_get_config,
-//            boost::bind(&module::service_get_config, this, _1));
-//    k.add_service(name, name + ".get_feat",
-//            service_definition_get_feat,
-//            boost::bind(&module::service_get_feat, this, _1));
+    k.add_service(name, name + ".set_state",
+            service_definition_set_state,
+            std::bind(&module::service_set_state, this, _1, _2));
+    k.add_service(name, name + ".get_state",
+            service_definition_get_state,
+            std::bind(&module::service_get_state, this, _1, _2));
+    k.add_service(name, name + ".get_config",
+            service_definition_get_config,
+            std::bind(&module::service_get_config, this, _1, _2));
+    k.add_service(name, name + ".get_feat",
+            service_definition_get_feat,
+            std::bind(&module::service_get_feat, this, _1, _2));
 }
 
 void module::_init() {
@@ -787,19 +788,29 @@ bool module::worker_key::operator<(const worker_key& a) const {
 
 //! set module state
 /*!
- * \param message service message
+ * \param request service request data
+ * \parma response service response data
  * \return success
  */
-int module::service_set_state(YAML::Node& message) {
-    string state = get_as<string>(message["request"], "state");    
+int module::service_set_state(const service_arglist_t& request, 
+        service_arglist_t& response) {
+    // request data
+#define SET_STATE_REQ_STATE     0
+    string state = request[SET_STATE_REQ_STATE];
     kernel& k = *kernel::get_instance();
-    message["response"]["error_message"] = "";
+
+    // response data
+    string error_message = 0;
 
     try {      
         k.set_state(name, string_to_state(state.c_str()));
     } catch (const exception& e) {
-        message["response"]["error_message"] = e.what();
+        error_message = e.what();
     }
+
+#define SET_STATE_RESP_ERROR_MESSAGE    0
+    response.resize(1);
+    response[SET_STATE_RESP_ERROR_MESSAGE] = error_message;
 
     return 0;
 }
@@ -812,20 +823,30 @@ const std::string module::service_definition_set_state =
 
 //! get module state
 /*!
- * \param message service message
+ * \param request service request data
+ * \parma response service response data
  * \return success
  */
-int module::service_get_state(YAML::Node& message) {
+int module::service_get_state(const service_arglist_t& request, 
+        service_arglist_t& response) {
     kernel& k = *kernel::get_instance();
-    message["response"]["error_message"] = "";
-    message["response"]["state"] = "";
+    
+    // response data
+    string state = "";
+    string error_message = "";
 
     try {      
         module_state_t act_state = k.get_state(name);
-        message["response"]["state"] = state_to_string(act_state);
+        state = state_to_string(act_state);
     } catch (const exception& e) {
-        message["response"]["error_message"] = e.what();
+        error_message = e.what();
     }
+
+#define GET_STATE_RESP_STATE            0
+#define GET_STATE_RESP_ERROR_MESSAGE    1
+    response.resize(2);
+    response[GET_STATE_RESP_STATE]          = state;
+    response[GET_STATE_RESP_ERROR_MESSAGE]  = error_message;
 
     return 0;
 }
@@ -835,15 +856,21 @@ const std::string module::service_definition_get_state =
     "    string: state\n"
     "    string: error_message\n";
 
-//! service get configuration
+//! get module config
 /*!
- * \param message service message
+ * \param request service request data
+ * \parma response service response data
  * \return success
  */
-int module::service_get_config(YAML::Node& message) {
+int module::service_get_config(const service_arglist_t& request, 
+        service_arglist_t& response) {
     YAML::Emitter out;
     out << *this;
-    message["response"]["config"] = out.c_str();
+
+#define GET_CONFIG_RESP_CONFIG  0
+    response.resize(1);
+    response[GET_CONFIG_RESP_CONFIG] = string(out.c_str());
+
     return 0;
 }
 
@@ -851,14 +878,16 @@ const std::string module::service_definition_get_config =
     "response:\n"
     "    string: config\n";
 
-//! service get module features
+//! get module feat
 /*!
- * \param message service message
+ * \param request service request data
+ * \parma response service response data
  * \return success
  */
-int module::service_get_feat(YAML::Node& message) {
-    int feat = 0;
-    request(MOD_REQUEST_GET_MODULE_FEAT, &feat);
+int module::service_get_feat(const service_arglist_t& request, 
+        service_arglist_t& response) {
+    int32_t feat = 0;
+    this->request(MOD_REQUEST_GET_MODULE_FEAT, &feat);
 
     string features = "[ ";
 
@@ -878,8 +907,12 @@ int module::service_get_feat(YAML::Node& message) {
         features += "'sercos', ";
     features += " ]";
 
-    message["response"]["feat"]     = feat;
-    message["response"]["features"] = features;
+#define GET_FEAT_RESP_FEAT      0
+#define GET_FEAT_RESP_REATURES  1
+    response.resize(2);
+    response[GET_FEAT_RESP_FEAT]     = feat;
+    response[GET_FEAT_RESP_REATURES] = features;
+
     return 0;
 }
 
