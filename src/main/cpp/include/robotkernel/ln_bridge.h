@@ -3,12 +3,13 @@
 
 #include "ln.h"
 #include "ln_cppwrapper.h"
+#include "robotkernel/bridge_interface.h"
 
 namespace ln_bridge {
 
 class service;
 
-class client {
+class client : robotkernel::CommBridgeInterface{
     public:
         //! construct ln_bridge client
         client();
@@ -20,14 +21,13 @@ class client {
         /*!
          * \param svc robotkernel service struct
          */
-        void add_service(const robotkernel::service_t& svc);
+        void addService(const robotkernel::service_t& svc);
 
         //! unregister and remove ln service 
         /*!
          * \param svc robotkernel service struct
          */
-        void remove_service(
-            const robotkernel::service_t& svc);
+        void removeService(const robotkernel::service_t& svc);
         
     public:
         //! links-and-nodes client handle

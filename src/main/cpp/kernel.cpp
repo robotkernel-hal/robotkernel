@@ -66,7 +66,7 @@ loglevel& loglevel::operator=(const std::string& ll_string) {
     else if (ll_string == "verbose")
         value = verbose;
     else
-        throw robotkernel::str_exception("wrong loglevel value \"%s\"",
+        throw str_exception("wrong loglevel value \"%s\"",
                 ll_string.c_str());
 
     return *this;
@@ -637,7 +637,7 @@ void kernel::trigger_register_module(const std::string& mod_name,
     if (module_it == module_map.end()) {
         pthread_mutex_unlock(&module_map_lock);
 
-        throw robotkernel::str_exception("%s not found\n", 
+        throw str_exception("%s not found\n", 
                 mod_name.c_str());
     }
 
@@ -662,7 +662,7 @@ void kernel::trigger_unregister_module(const std::string& mod_name,
     if (module_it == module_map.end()) {
         pthread_mutex_unlock(&module_map_lock);
 
-        throw robotkernel::str_exception("%s not found\n", 
+        throw str_exception("%s not found\n", 
                 mod_name.c_str());
     }
 

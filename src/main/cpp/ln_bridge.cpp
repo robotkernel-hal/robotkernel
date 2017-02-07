@@ -63,9 +63,9 @@ ln_bridge::client::client() {
 
     robotkernel::service_provider_t *sp = 
         new robotkernel::service_provider_t();
-    sp->add_service = std::bind(&ln_bridge::client::add_service, this, _1);
+    sp->add_service = std::bind(&ln_bridge::client::addService, this, _1);
     sp->remove_service = 
-        std::bind(&ln_bridge::client::remove_service, this, _1);
+        std::bind(&ln_bridge::client::removeService, this, _1);
 
     robotkernel::kernel::get_instance()->service_providers.push_back(sp);
 }
@@ -84,7 +84,7 @@ ln_bridge::client::~client() {
 /*!
  * \param svc robotkernel service struct
  */
-void ln_bridge::client::add_service(const robotkernel::service_t& svc) {
+void ln_bridge::client::addService(const robotkernel::service_t& svc) {
     ln_bridge::service *ln_svc = new ln_bridge::service(*this, svc);
     service_map[svc.name] = ln_svc;
 }
@@ -93,7 +93,7 @@ void ln_bridge::client::add_service(const robotkernel::service_t& svc) {
 /*!
  * \param svc robotkernel service struct
  */
-void ln_bridge::client::remove_service(
+void ln_bridge::client::removeService(
         const robotkernel::service_t& svc) {
     service_map_t::iterator it;
 

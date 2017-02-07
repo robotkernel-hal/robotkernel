@@ -39,8 +39,10 @@
 #include <errno.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include "string_util/string_util.h" // str_exception
 
 namespace robotkernel {
+
 
 //! exception_tracer class
 /*!
@@ -121,20 +123,6 @@ class floating_point_exception : public exception_tracer, public std::exception 
 
         //! returns signal number
         static int get_signo() { return SIGFPE; }
-};
-
-class str_exception : public std::exception {
-    char msg[1024];
-
-    public:
-    str_exception(const char* format, ...) {
-        va_list ap;
-        va_start(ap, format);
-        vsnprintf(msg, 1024, format, ap);
-        va_end(ap);
-    }
-
-    virtual const char* what() const throw() { return msg; }
 };
 
 }; // namespace robotkernel

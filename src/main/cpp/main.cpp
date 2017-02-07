@@ -16,6 +16,7 @@
 #include <pthread.h>
 #include <sys/time.h>
 #include <sys/resource.h>
+#include "robotkernel/cli_bridge.h"
 
 using namespace std;
 using namespace robotkernel;
@@ -106,13 +107,15 @@ int main(int argc, char** argv) {
 #endif
 
     kernel &k = *kernel::get_instance();
-    ln_bridge::client clnt;
+    //ln_bridge::client lnBridgeClient;
+    cli_bridge::Client cliBridgeClient;
 
     for (service_list_t::iterator it = k.service_list.begin();
             it != k.service_list.end(); ++it) {
         klog(info, "service %s\n", it->first.c_str());
         service_t& svc = *(it->second);
-        clnt.add_service(svc);
+        //lnBridgeClient.addService(svc);
+        cliBridgeClient.addService(svc);
         //ln_bridge::service& ln_svc = *new ln_bridge::service(svc);
         //std::string ln_service_signature = ln_svc.signature;
         //std::string ln_message_def       = ln_svc.md;

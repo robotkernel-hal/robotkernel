@@ -136,7 +136,7 @@ class module_base {
          * \return size of read bytes
          */
         virtual size_t read(void* buf, size_t bufsize) {
-            throw robotkernel::str_exception("[%s|%s] read not implemented!\n", 
+            throw str_exception("[%s|%s] read not implemented!\n", 
                     modname.c_str(), name.c_str());
         }
         
@@ -147,13 +147,13 @@ class module_base {
          * \return size of written bytes
          */
         virtual size_t write(void* buf, size_t bufsize) {
-            throw robotkernel::str_exception("[%s|%s] write not implemented!\n",
+            throw str_exception("[%s|%s] write not implemented!\n",
                     modname.c_str(), name.c_str());
         }
         
         //! module trigger callback
         virtual void trigger() {
-            throw robotkernel::str_exception("[%s|%s] trigger not implemented!\n",
+            throw str_exception("[%s|%s] trigger not implemented!\n",
                     modname.c_str(), name.c_str());
         }
 
@@ -162,7 +162,7 @@ class module_base {
          * \param slave_id slave id to trigger
          */
         virtual void trigger_slave_id(uint32_t slave_id) {
-            throw robotkernel::str_exception("[%s|%s] trigger slave_id not implemented!\n",
+            throw str_exception("[%s|%s] trigger slave_id not implemented!\n",
                     modname.c_str(), name.c_str());
         }
 
@@ -172,7 +172,7 @@ class module_base {
          * \return success or failure
          */
         virtual int set_state(module_state_t state) {
-            throw robotkernel::str_exception("[%s|%s] set_state not implemented!\n",
+            throw str_exception("[%s|%s] set_state not implemented!\n",
                     modname.c_str(), name.c_str());
         }
 

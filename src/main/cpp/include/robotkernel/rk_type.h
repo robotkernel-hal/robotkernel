@@ -28,23 +28,69 @@
 
 #include <functional>
 #include <typeindex>
+#include <map>
+#include <pthread.h>
 
 namespace robotkernel {
+    
+    typedef std::map<uint8_t*, size_t> ReferenceMap; 
 
 class rk_type {
     protected:
         template <typename T>
         friend T rk_type_cast(rk_type&);
+    
+        static ReferenceMap __refs;
+        static pthread_mutex_t __refsLock;
 
         std::type_index __type;     //!< data type for type conversions
         uint8_t *__value;           //!< data storage pointer
+    
+    
+    /*
+    void printRefs(){
+        printf("Refs:\n");
+        for(ReferenceMap::iterator it = __refs.begin(); it != __refs.end(); ++it) {
+            printf("      %p -> %d\n", it->first, it->second);
+        }
+    }
+     */
+    
+    void setValue(uint8_t* value){
+        if(value == __value){
+            return;
+        }
+        
+        pthread_mutex_lock(&__refsLock);
+        if (__value) {
+            if(__refs[__value] <= 1){
+                __refs.erase(__value);
+                delete __value;
+            } else {
+                __refs[__value] = __refs[__value]-1;
+            }
+        }
+        __value = value;
+        if(__value){
+            ReferenceMap::iterator r = __refs.find(__value);
+            if(r == __refs.end()){
+                __refs[__value] = 1;
+            } else {
+                r->second++;
+            }
+        }
+        pthread_mutex_unlock(&__refsLock);
+    }
 
     public:
         //! default constructor
-        rk_type() : __type(typeid(int)), __value(NULL) {}
+        rk_type() : __type(typeid(int)), __value(NULL) {
+        }
 
         //! destructor
-        ~rk_type() { if (__value) delete __value; }
+        ~rk_type() {
+            setValue(NULL);
+        }
 
         //! get type of rk_type
         /*!
@@ -58,9 +104,17 @@ class rk_type {
          * \param value initial value
          */
         template <typename T>
-        rk_type(const T& value) : __type(typeid(T)) {
-            __value = (uint8_t *)new T;
+        rk_type(const T& value) : __type(typeid(T)), __value(NULL) {
+            setValue((uint8_t *)new T);
             *((T *)__value) = value;
+        }
+
+        //! copy constructor
+        /*!
+         * \param value initial value
+         */
+        rk_type(const rk_type& obj) : __type(obj.__type), __value(NULL) {
+            setValue(obj.__value);
         }
 
         //! assign operator
@@ -68,8 +122,8 @@ class rk_type {
          * \param rhs rk_type to assign
          */
         rk_type& operator=(rk_type rhs) {
+            setValue(rhs.__value);
             __type = rhs.__type;
-            std::swap(__value, rhs.__value);
             return *this;
         }
 
@@ -81,9 +135,11 @@ class rk_type {
         operator T () const {
             if (__type != typeid(T))
                 throw std::exception();
-
             return *static_cast<T*>((void*)__value);
         }
+    
+    
+    std::string toString();
 
 };
 
