@@ -30,57 +30,69 @@
 #include <typeindex>
 #include <map>
 #include <pthread.h>
+#include "string_util/string_util.h"
 
 namespace robotkernel {
-    
-    typedef std::map<uint8_t*, size_t> ReferenceMap; 
 
-class rk_type {
+    typedef std::map<uint8_t *, size_t> ReferenceMap;
+
+    class rk_type {
     protected:
-        template <typename T>
-        friend T rk_type_cast(rk_type&);
-    
+        template<typename T>
+        friend T rk_type_cast(rk_type &);
+
         static ReferenceMap __refs;
         static pthread_mutex_t __refsLock;
 
-        std::type_index __type;     //!< data type for type conversions
-        uint8_t *__value;           //!< data storage pointer
-    
-    
-    /*
-    void printRefs(){
-        printf("Refs:\n");
-        for(ReferenceMap::iterator it = __refs.begin(); it != __refs.end(); ++it) {
-            printf("      %p -> %d\n", it->first, it->second);
-        }
-    }
-     */
-    
-    void setValue(uint8_t* value){
-        if(value == __value){
-            return;
-        }
-        
-        pthread_mutex_lock(&__refsLock);
-        if (__value) {
-            if(__refs[__value] <= 1){
-                __refs.erase(__value);
-                delete __value;
-            } else {
-                __refs[__value] = __refs[__value]-1;
+        std::type_index __type;      //!< data type for type conversions
+        uint8_t *__value;     //!< data storage pointer
+
+
+        /*
+        void printRefs(){
+            printf("Refs:\n");
+            for(ReferenceMap::iterator it = __refs.begin(); it != __refs.end(); ++it) {
+                printf("      %p -> %d\n", it->first, it->second);
             }
         }
-        __value = value;
-        if(__value){
-            ReferenceMap::iterator r = __refs.find(__value);
-            if(r == __refs.end()){
-                __refs[__value] = 1;
+         */
+
+        void decreaseReference(uint8_t *ref) {
+            if (!ref) {
+                return;
+            }
+            pthread_mutex_lock(&__refsLock);
+            if (__refs[ref] <= 1) {
+                __refs.erase(ref);
+                delete ref;
+            } else {
+                __refs[ref] = __refs[ref] - 1;
+            }
+            pthread_mutex_unlock(&__refsLock);
+        }
+
+        void increaseReference(uint8_t *ref) {
+            if (!ref) {
+                return;
+            }
+            pthread_mutex_lock(&__refsLock);
+            ReferenceMap::iterator r = __refs.find(ref);
+            if (r == __refs.end()) {
+                __refs[ref] = 1;
             } else {
                 r->second++;
             }
+            pthread_mutex_unlock(&__refsLock);
         }
-        pthread_mutex_unlock(&__refsLock);
-    }
+
+        void setValue(uint8_t *value) {
+            if (value == __value) {
+                return;
+            }
+            decreaseReference(__value);
+            increaseReference(value);
+            __value = value;
+        }
 
     public:
         //! default constructor
@@ -89,7 +101,10 @@ class rk_type {
 
         //! destructor
         ~rk_type() {
-            setValue(NULL);
+            if (__value) {
+                decreaseReference(__value);
+                __value = NULL;
+            }
         }
 
         //! get type of rk_type
@@ -103,17 +118,17 @@ class rk_type {
         /*!
          * \param value initial value
          */
-        template <typename T>
-        rk_type(const T& value) : __type(typeid(T)), __value(NULL) {
-            setValue((uint8_t *)new T);
-            *((T *)__value) = value;
+        template<typename T>
+        rk_type(const T &value) : __type(typeid(T)), __value(NULL) {
+            setValue((uint8_t *) new T);
+            *((T *) __value) = value;
         }
 
         //! copy constructor
         /*!
          * \param value initial value
          */
-        rk_type(const rk_type& obj) : __type(obj.__type), __value(NULL) {
+        rk_type(const rk_type &obj) : __type(obj.__type), __value(NULL) {
             setValue(obj.__value);
         }
 
@@ -121,7 +136,7 @@ class rk_type {
         /*!
          * \param rhs rk_type to assign
          */
-        rk_type& operator=(rk_type rhs) {
+        rk_type &operator=(rk_type rhs) {
             setValue(rhs.__value);
             __type = rhs.__type;
             return *this;
@@ -131,25 +146,28 @@ class rk_type {
         /*!
          * \return casted data
          */
-        template <typename T>
-        operator T () const {
-            if (__type != typeid(T))
-                throw std::exception();
-            return *static_cast<T*>((void*)__value);
+        template<typename T>
+        operator T() const {
+            if (__type != typeid(T)) {
+                throw str_exception("Unsupported cast");
+            } else if (__value == NULL) {
+                throw str_exception("Uninitialized value!");
+            }
+            return *static_cast<T *>((void *) __value);
         }
-    
-    
-    std::string toString();
 
-};
 
-template <typename T>
-T rk_type_cast(rk_type& rhs) {
-    if (rhs.type() != typeid(T))
-        throw std::exception();
+        std::string toString();
 
-    return *static_cast<T*>((void*)rhs.__value);
-}
+    };
+
+    template<typename T>
+    T rk_type_cast(rk_type &rhs) {
+        if (rhs.type() != typeid(T))
+            throw std::exception();
+
+        return *static_cast<T *>((void *) rhs.__value);
+    }
 
 
 } // namespace robotkernel

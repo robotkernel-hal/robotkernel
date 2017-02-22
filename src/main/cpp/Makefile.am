@@ -29,7 +29,7 @@ include_HEADERS = $(headerdir)/module_intf.h \
 
 robotkernel_SOURCES = module.cpp module_intf.cpp interface.cpp main.cpp exceptions.cpp kernel.cpp kernel_worker.cpp \
 					  runnable.cpp trigger_base.cpp log_thread.cpp dump_log.cpp char_ringbuffer.cpp module_base.cpp interface_base.cpp \
-					  ln_bridge.cpp cli_bridge.cpp cli_server.cpp rt_helper.cpp rt_type.cpp
+					  ln_bridge.cpp cli_bridge.cpp cli_server.cpp rt_helper.cpp rk_type.cpp
 
 robotkernel_CXXFLAGS = -O2 -I$(top_builddir)/src/main/cpp/include -I$(srcdir) -I$(srcdir)/include/ @YAML_CPP_CFLAGS@ @LN_CFLAGS@ @LIBSTRING_UTIL_CFLAGS@
 robotkernel_LDFLAGS = -Wl,-export-dynamic -Bdynamic @ROBOTKERNEL_LDFLAGS@

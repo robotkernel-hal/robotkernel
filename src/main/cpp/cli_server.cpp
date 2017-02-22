@@ -16,7 +16,7 @@
 
 #define unlockMutex(mtx) \
         if(pthread_mutex_unlock(&mtx) != 0) {\
-            printf("Fatal: Unable to unlock mutex in %s:%d  ->  %s", __FILE__, __LINE__, strerror(errno));\ 
+            printf("Fatal: Unable to unlock mutex in %s:%d  ->  %s", __FILE__, __LINE__, strerror(errno));\
             exit(-1);\
         }
 
