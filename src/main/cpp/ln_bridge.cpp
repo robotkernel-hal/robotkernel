@@ -67,7 +67,7 @@ ln_bridge::client::client() {
     sp->remove_service = 
         std::bind(&ln_bridge::client::removeService, this, _1);
 
-    robotkernel::kernel::get_instance()->service_providers.push_back(sp);
+    robotkernel::kernel::get_instance()->add_service_provider(sp);
 }
 
 //! destruct ln_bridge client

@@ -27,7 +27,7 @@
 
 #include <string>
 #include <functional>
-        
+
 #include <robotkernel/rk_type.h>
 #include <robotkernel/loglevel.h>
 #include <robotkernel/log_thread.h>
@@ -40,27 +40,28 @@
 
 namespace robotkernel {
 
-class kernel {
+    class kernel {
     private:
         //! kernel singleton instance
         static kernel *instance;
-        
-        kernel(const kernel&);             // prevent copy-construction
-        kernel& operator=(const kernel&);  // prevent assignment
-        
+
+        kernel(const kernel &);             // prevent copy-construction
+        kernel &operator=(const kernel &);  // prevent assignment
+
         loglevel ll;    //!< robotkernel global loglevel
-        
+
         // modules map
         typedef std::map<std::string, module *> module_map_t;
         module_map_t module_map;
         pthread_mutex_t module_map_lock;
-        
+
         //! return module state
         /*!
          * \param mod_name name of module which state to return
          * \return module state
          */
         module_state_t _internal_get_state(std::string mod_name);
+
     protected:
         //! construction
         /*!
@@ -72,8 +73,8 @@ class kernel {
 
         service_list_t service_list;
         service_providers_list_t service_providers;
-    public:
 
+    public:
         //! add a service provider
         /*!
          * \param svc_provider service provider to add
@@ -88,25 +89,25 @@ class kernel {
          * \param callback service callback
          */
         void add_service(
-                const std::string& owner,
-                const std::string& name, 
-                const std::string& service_definition, 
+                const std::string &owner,
+                const std::string &name,
+                const std::string &service_definition,
                 service_callback_t callback);
 
         //! remove all services from owner
         /*!
          * \param owner service owner
          */
-        void remove_services(const std::string& owner);
-        
+        void remove_services(const std::string &owner);
+
         //! register trigger module to module named mod_name
         /*!
          * \param mod_name module name
          * \param trigger_mdl module which should be triggered by mod_name
          * \param t external trigger
          */
-        void trigger_register_module(const std::string& mod_name, 
-                module *trigger_mdl, module::external_trigger& t);
+        void trigger_register_module(const std::string &mod_name,
+                                     module *trigger_mdl, module::external_trigger &t);
 
         //! unregister trigger module from module named mod_name
         /*!
@@ -114,19 +115,20 @@ class kernel {
          * \param trigger_mdl module which was triggered by mod_name
          * \param t external trigger
          */
-        void trigger_unregister_module(const std::string& mod_name, 
-                module *trigger_mdl, module::external_trigger& t);
+        void trigger_unregister_module(const std::string &mod_name,
+                                       module *trigger_mdl, module::external_trigger &t);
 
         //! get kernel singleton instance
         /*!
          * \return kernel singleton instance
          */
-        static kernel * get_instance();
+        static kernel *get_instance();
 
         //! destroy singleton instance
         static void destroy_instance();
 
         const loglevel get_loglevel() const { return ll; }
+
         void set_loglevel(loglevel ll) { this->ll = ll; }
 
         //! construction
@@ -164,6 +166,7 @@ class kernel {
          * \return true if we are in right  state
          */
         bool state_check(std::string mod_name, module_state_t state);
+
         bool state_check();
 
         // config file name
@@ -178,7 +181,7 @@ class kernel {
          */
         static int request_cb(const char *mod_name, int reqcode, void *ptr);
 
-        typedef void* interface_id_t;
+        typedef void *interface_id_t;
 
         //! kernel register interface callback
         /*!
@@ -186,8 +189,8 @@ class kernel {
          * \param node configuration node
          * \return interface id or -1
          */
-        static interface_id_t register_interface_cb(const char *if_name, 
-                const YAML::Node& node);
+        static interface_id_t register_interface_cb(const char *if_name,
+                                                    const YAML::Node &node);
 
         //! kernel unregister interface callback
         /*!
@@ -210,7 +213,7 @@ class kernel {
           \param ptr pointer to request structure
           \return success or failure
           */
-        int request(int reqcode, void* ptr);
+        int request(int reqcode, void *ptr);
 
         bool _do_not_unload_modules;
 
@@ -224,45 +227,49 @@ class kernel {
 
         // write to logfile
         void log(loglevel ll, const char *format, ...);
-        
+
         //! get dump log
         /*!
          * \param request service request data
          * \parma response service response data
          * \return success
          */
-        int service_get_dump_log(const service_arglist_t& request, 
-                service_arglist_t& response);
+        int service_get_dump_log(const service_arglist_t &request,
+                                 service_arglist_t &response);
+
         static const std::string service_definition_get_dump_log;
-        
+
         //! config dump log
         /*!
          * \param request service request data
          * \parma response service response data
          * \return success
          */
-        int service_config_dump_log(const service_arglist_t& request, 
-                service_arglist_t& response);
+        int service_config_dump_log(const service_arglist_t &request,
+                                    service_arglist_t &response);
+
         static const std::string service_definition_config_dump_log;
-        
+
         //! add module
         /*!
          * \param request service request data
          * \parma response service response data
          * \return success
          */
-        int service_add_module(const service_arglist_t& request, 
-                service_arglist_t& response);
+        int service_add_module(const service_arglist_t &request,
+                               service_arglist_t &response);
+
         static const std::string service_definition_add_module;
-        
+
         //! remove module
         /*!
          * \param request service request data
          * \parma response service response data
          * \return success
          */
-        int service_remove_module(const service_arglist_t& request,
-                service_arglist_t& response);
+        int service_remove_module(const service_arglist_t &request,
+                                  service_arglist_t &response);
+
         static const std::string service_definition_remove_module;
 
         //! module list
@@ -271,8 +278,9 @@ class kernel {
          * \parma response service response data
          * \return success
          */
-        int service_module_list(const service_arglist_t& request, 
-                service_arglist_t& response);
+        int service_module_list(const service_arglist_t &request,
+                                service_arglist_t &response);
+
         static const std::string service_definition_module_list;
 
         //! reconfigure module
@@ -281,10 +289,11 @@ class kernel {
          * \parma response service response data
          * \return success
          */
-        int service_reconfigure_module(const service_arglist_t& request, 
-                service_arglist_t& response);
+        int service_reconfigure_module(const service_arglist_t &request,
+                                       service_arglist_t &response);
+
         static const std::string service_definition_reconfigure_module;
-};
+    };
 
 } // namespace robotkernel
 

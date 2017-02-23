@@ -22,7 +22,7 @@
  * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "robotkernel/interface_base.h"
+#include "robotkernel/service_provider_base.h"
 #include <sstream>
 
 using namespace std;
@@ -34,7 +34,7 @@ using namespace robotkernel;
  * \param intfname interface name
  * \param name instance name
  */
-interface_base::interface_base(const std::string& intf_name, const YAML::Node& node) 
+interface_base::service_provider_base(const std::string& intf_name, const YAML::Node& node) 
     : intf_name(intf_name) {
     kernel &k = *kernel::get_instance();
     mod_name = get_as<std::string>(node, "mod_name");
@@ -52,7 +52,7 @@ interface_base::interface_base(const std::string& intf_name, const YAML::Node& n
 }
 
 //! destruction
-interface_base::~interface_base() {
+interface_base::~service_provider_base() {
 //    unregister_configure_loglevel();
 }
 
