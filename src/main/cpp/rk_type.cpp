@@ -4,11 +4,11 @@
 
 #include "robotkernel/rk_type.h"
 #include "string_util/string_util.h"
+#include <sstream>
 
 namespace robotkernel {
     ReferenceMap rk_type::__refs;
     pthread_mutex_t rk_type::__refsLock = PTHREAD_MUTEX_INITIALIZER;
-
 
     std::string rk_type::toString(){
         if(__type == typeid(int8_t)){
@@ -33,7 +33,19 @@ namespace robotkernel {
             return format_string("%f", (double) *this);
         } else if(__type == typeid(std::string)){
             std::string v = *static_cast<std::string*>((void*)__value);
-            return v;
+            return std::string("\"") + v + "\"";
+        } else if(__type == typeid(std::vector<rk_type>)){
+            std::vector<rk_type> v = *static_cast<std::vector<rk_type>*>((void*)__value);
+            std::stringstream response;
+            response << '{';
+            for (unsigned int i=0; i<v.size(); ++i){
+                if(i>0){
+                    response << ", ";
+                }
+                response << v[i].toString();
+            }
+            response << '}';
+            return response.str();
         } else {
             return string("unknown_type");
         }

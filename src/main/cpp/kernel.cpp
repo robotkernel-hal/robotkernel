@@ -866,7 +866,7 @@ const std::string kernel::service_definition_remove_module =
 int kernel::service_module_list(const service_arglist_t& request, 
         service_arglist_t& response) {
     //response data
-    std::vector<rk_type> modules(0, "");   
+    std::vector<rk_type> modules(0);
     string error_message = "";
 
     try {        

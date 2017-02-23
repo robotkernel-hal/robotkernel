@@ -28,7 +28,7 @@ set(SOURCE_FILES
         src/main/cpp/module_intf.cpp
         src/main/cpp/runnable.cpp
         src/main/cpp/rt_helper.cpp
-        src/main/cpp/rt_type.cpp
+        src/main/cpp/rk_type.cpp
         src/main/cpp/cli_bridge.cpp
         src/main/cpp/cli_server.h
         src/main/cpp/cli_server.cpp
@@ -52,7 +52,7 @@ set(TEST_CLISERVER_SOURCE_FILES
         src/main/cpp/cli_server.h
         src/main/cpp/cli_server.cpp
         src/main/cpp/trigger_base.cpp
-        src/main/cpp/rt_type.cpp
+        src/main/cpp/rk_type.cpp
         src/main/cpp/cli_bridge.cpp
         src/test/cpp/test_cli_server.cpp
         )
