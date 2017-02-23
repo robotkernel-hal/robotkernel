@@ -42,7 +42,7 @@ namespace cli_bridge {
         robotkernel::service_provider_t *sp = new robotkernel::service_provider_t();
         sp->add_service = std::bind(&cli_bridge::Client::addService, this, _1);
         sp->remove_service = std::bind(&cli_bridge::Client::removeService, this, _1);
-        robotkernel::kernel::get_instance()->service_providers.push_back(sp);
+        robotkernel::kernel::get_instance()->add_service_provider(sp);
 
         cliServer.onConnectHandler    = std::bind(&cli_bridge::Client::onCliConnect, this, _1);
         cliServer.onDisconnectHandler = std::bind(&cli_bridge::Client::onCliDisconnect, this, _1);

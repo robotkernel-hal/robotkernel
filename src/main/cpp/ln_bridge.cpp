@@ -67,7 +67,7 @@ ln_bridge::client::client() {
     sp->remove_service = 
         std::bind(&ln_bridge::client::removeService, this, _1);
 
-    robotkernel::kernel::get_instance()->service_providers.push_back(sp);
+    robotkernel::kernel::get_instance()->add_service_provider(sp);
 }
 
 //! destruct ln_bridge client
@@ -242,10 +242,11 @@ int ln_bridge::service::handle(ln::service_request& req) {
                     string vector = key.substr(0, equals_idx);
                     string real_key = key.substr(equals_idx + 1);
                     string ln_dt = service_datatype_to_ln(real_key);
+        
+                    const std::vector<rk_type> t = service_response[i++];
 
 #define add_vector_type(type) \
     if (ln_dt == #type) {                                                                       \
-        const std::vector<type> t = service_response[i++];            \
         ((uint32_t *)adr)[0] = (uint32_t)t.size();                                              \
         adr += 4;                                                                               \
                                                                                                 \
@@ -257,7 +258,6 @@ int ln_bridge::service::handle(ln::service_request& req) {
 
 #define add_vector_type_char(type) \
     if (ln_dt == #type) {                                                                       \
-        const std::vector<string> t = service_response[i++];        \
         ((uint32_t *)adr)[0] = (uint32_t)t.size();                                              \
         adr += 4;                                                                               \
                                                                                                 \
@@ -281,8 +281,6 @@ int ln_bridge::service::handle(ln::service_request& req) {
                     add_vector_type(uint8_t*);
                     add_vector_type(int8_t*);
                     add_vector_type_char(char*);
-                    
-
                 }
             } else if (ends_with(ln_dt, string("*"))) {
                 ((uint32_t *)adr)[0] = service_response[i++];
