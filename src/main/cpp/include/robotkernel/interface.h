@@ -48,7 +48,7 @@ class interface {
           \param interface_file filename of interface
           \param node configuration node
           */
-        interface(const std::string& interface_file, const YAML::Node& node);
+        interface(const std::string& interface_file, const YAML::Node& node, void* sp_interface);
 
         //! interface destruction
         /*!

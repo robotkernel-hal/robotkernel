@@ -33,6 +33,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <fstream>
+#include <robotkernel/service_provider_base.h>
 
 using namespace std;
 using namespace robotkernel;
@@ -42,7 +43,7 @@ using namespace robotkernel;
   \param interface_file filename of interface
   \param node configuration node
   */
-interface::interface(const std::string& interface_file_, const YAML::Node& node)
+interface::interface(const std::string& interface_file_, const YAML::Node& node, void* sp_interface)
     : interface_file(interface_file_)
 {
     struct stat buf;
@@ -122,9 +123,9 @@ interface::interface(const std::string& interface_file_, const YAML::Node& node)
 
     // try to configure
     if (intf_register) {
-        YAML::Emitter e;
-        e << node;
-        intf_handle = intf_register(e.c_str());
+        intf_handle = intf_register();
+        ServiceProviderBase* sp = static_cast<ServiceProviderBase*>(intf_handle);
+        sp->init(node, sp_interface);
     }
 }
 

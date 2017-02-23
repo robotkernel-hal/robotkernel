@@ -29,35 +29,27 @@ using namespace std;
 using namespace std::placeholders;
 using namespace robotkernel;
         
-//! construction
-/*!
- * \param intfname interface name
- * \param name instance name
- */
-interface_base::service_provider_base(const std::string& intf_name, const YAML::Node& node) 
-    : intf_name(intf_name) {
-    kernel &k = *kernel::get_instance();
-    mod_name = get_as<std::string>(node, "mod_name");
-    dev_name = get_as<std::string>(node, "dev_name");
-    slave_id = get_as<int>(node, "slave_id");
-    ll = get_as<std::string>(node, "loglevel", k.get_loglevel());
-    
-    stringstream base;
-    base << mod_name << "." << dev_name  << "." << intf_name 
-        << ".configure_loglevel";
-
-    k.add_service(mod_name, base.str(), 
-            interface_base::service_definition_configure_loglevel,
-            std::bind(&interface_base::service_configure_loglevel, this, _1, _2));
-}
 
 //! destruction
-interface_base::~service_provider_base() {
+ServiceProviderBase::~ServiceProviderBase() {
 //    unregister_configure_loglevel();
 }
 
+std::string ServiceProviderBase::getFullQualifiedServiceName(std::string simpleName){
+    stringstream base;
+    base << mod_name << "." << dev_name << "." << intf_name << "." << simpleName;
+    return base.str();
+}
+
+void ServiceProviderBase::addService(const std::string& simpleName,
+                const std::string& service_definition,
+                service_callback_t callback){
+    kernel &k = *kernel::get_instance();
+    k.add_service(mod_name, getFullQualifiedServiceName(simpleName), service_definition, callback);
+}
+
 //! log to kernel logging facility
-void interface_base::log(loglevel lvl, const char *format, ...) {
+void ServiceProviderBase::log(loglevel lvl, const char *format, ...) {
     kernel& k = *kernel::get_instance();
     struct log_thread::log_pool_object *obj;
 
@@ -104,7 +96,7 @@ log_exit:
  * \param request service request data
  * \parma response service response data
  */
-int interface_base::service_configure_loglevel(const service_arglist_t& request, 
+int ServiceProviderBase::service_configure_loglevel(const service_arglist_t& request, 
         service_arglist_t& response) {
     // request data
 #define CONFIGURE_LOGLEVEL_REQ_SET_LOGLEVEL         0
@@ -131,7 +123,7 @@ int interface_base::service_configure_loglevel(const service_arglist_t& request,
     return 0;
 }
 
-const std::string interface_base::service_definition_configure_loglevel = 
+const std::string ServiceProviderBase::service_definition_configure_loglevel = 
     "request:\n"
     "    string: set_loglevel\n"
     "response:\n"

@@ -13,11 +13,36 @@ include_directories(
 )
 
 set(SOURCE_FILES
+        src/main/cpp/include/robotkernel/bridge_interface.h
+        src/main/cpp/include/robotkernel/char_ringbuffer.h
+        src/main/cpp/include/robotkernel/cli_bridge.h
+        src/main/cpp/include/robotkernel/cmd_delay.h
+        src/main/cpp/include/robotkernel/config.h.in
+        src/main/cpp/include/robotkernel/dump_log.h
+        src/main/cpp/include/robotkernel/exceptions.h
+        src/main/cpp/include/robotkernel/helpers.h
+        src/main/cpp/include/robotkernel/interface.h
+        src/main/cpp/include/robotkernel/interface_intf.h
+        src/main/cpp/include/robotkernel/kernel.h
+        src/main/cpp/include/robotkernel/kernel_queue.h
+        src/main/cpp/include/robotkernel/kernel_worker.h
+        src/main/cpp/include/robotkernel/ln_bridge.h
+        src/main/cpp/include/robotkernel/log_thread.h
+        src/main/cpp/include/robotkernel/loglevel.h
+        src/main/cpp/include/robotkernel/module.h
+        src/main/cpp/include/robotkernel/module_base.h
+        src/main/cpp/include/robotkernel/module_intf.h
+        src/main/cpp/include/robotkernel/rk_type.h
+        src/main/cpp/include/robotkernel/rt_helper.h
+        src/main/cpp/include/robotkernel/runnable.h
+        src/main/cpp/include/robotkernel/service.h
+        src/main/cpp/include/robotkernel/service_provider_base.h
+        src/main/cpp/include/robotkernel/trigger_base.h
         src/main/cpp/char_ringbuffer.cpp
         src/main/cpp/dump_log.cpp
         src/main/cpp/exceptions.cpp
         src/main/cpp/interface.cpp
-        src/main/cpp/interface_base.cpp
+        src/main/cpp/service_provider_base.cpp
         src/main/cpp/kernel.cpp
         src/main/cpp/kernel_worker.cpp
         src/main/cpp/ln_bridge.cpp
@@ -39,7 +64,7 @@ set(TEST_CLISERVER_SOURCE_FILES
         src/main/cpp/dump_log.cpp
         src/main/cpp/exceptions.cpp
         src/main/cpp/interface.cpp
-        src/main/cpp/interface_base.cpp
+        src/main/cpp/service_provider_base.cpp
         src/main/cpp/kernel.cpp
         src/main/cpp/kernel_worker.cpp
         src/main/cpp/ln_bridge.cpp

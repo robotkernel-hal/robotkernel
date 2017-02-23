@@ -190,7 +190,8 @@ namespace robotkernel {
          * \return interface id or -1
          */
         static interface_id_t register_interface_cb(const char *if_name,
-                                                    const YAML::Node &node);
+                                                    const YAML::Node &node,
+                                                    void* sp_interface);
 
         //! kernel unregister interface callback
         /*!
