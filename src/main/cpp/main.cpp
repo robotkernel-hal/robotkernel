@@ -109,9 +109,9 @@ int main(int argc, char** argv) {
 #endif
 
     kernel &k = *kernel::get_instance();
-    ln_bridge::client lnBridgeClient;
+//    ln_bridge::client lnBridgeClient;
 //    cli_bridge::Client cliBridgeClient;
-//    jsonrpc_bridge::Client jsonrpcBridgeClient;
+    jsonrpc_bridge::Client jsonrpcBridgeClient;
 
     klog(info, "build by: " BUILD_USER "@" BUILD_HOST "\n");
     klog(info, "build date: " BUILD_DATE "\n");

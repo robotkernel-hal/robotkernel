@@ -800,7 +800,7 @@ int module::service_set_state(const service_arglist_t& request,
     kernel& k = *kernel::get_instance();
 
     // response data
-    string error_message = 0;
+    string error_message;
 
     try {      
         k.set_state(name, string_to_state(state.c_str()));

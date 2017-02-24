@@ -213,13 +213,15 @@ void kernel::add_service(
         const std::string& service_definition, 
         service_callback_t callback) {
     
+    log(info, "adding service %s\n", name.c_str());
+
     service_t *svc          = new service_t();
     svc->owner              = owner;
     svc->name               = name;
     svc->service_definition = service_definition;
     svc->callback           = callback;
     service_list[svc->name] = svc;
-    
+
     for (service_providers_list_t::iterator it = service_providers.begin();
             it != service_providers.end(); ++it) {
         (*it)->add_service(*svc);
@@ -237,6 +239,8 @@ void kernel::remove_services(const std::string& owner) {
             ++it;
             continue;
         }
+
+        log(info, "removing service %s\n", it->second->name.c_str());
 
         for (service_providers_list_t::iterator 
                 it_prov = service_providers.begin(); 
@@ -875,6 +879,7 @@ int kernel::service_remove_module(const service_arglist_t& request,
     }
 
 #define REMOVE_MODULE_RESP_ERROR_MESSAGE    0
+    response.resize(1);
     response[REMOVE_MODULE_RESP_ERROR_MESSAGE] = error_message;
 
     return 0;

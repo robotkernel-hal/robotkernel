@@ -310,13 +310,44 @@ namespace jsonrpc_bridge {
         klog(info, "got service: %s\n", svc.name.c_str());
         services[svc.name] = svc;
 
-        server.AddMethod(new Json::Rpc::RpcMethod<Client>(*this, &Client::on_service,
-                    svc.name));
+        Json::Value root;
+        Json::Value req, resp;
+        YAML::Node message_definition = YAML::Load(svc.service_definition);
+        
+        if (message_definition["request"]) {
+            const YAML::Node& request = message_definition["request"];
 
+            for (YAML::const_iterator it = request.begin(); 
+                    it != request.end(); ++it) {
+                string key   = it->first.as<string>();
+                string value = it->second.as<string>();
+
+                req[value] = key;
+            }
+        }
+
+        if (message_definition["response"]) {
+            const YAML::Node& response = message_definition["response"];
+
+            for (YAML::const_iterator it = response.begin(); 
+                    it != response.end(); ++it) {
+                string key   = it->first.as<string>();
+                string value = it->second.as<string>();
+
+                resp[value] = key;
+            }
+        }
+
+        root["request"] = req;
+        root["response"] = resp;
+         
+        server.AddMethod(new Json::Rpc::RpcMethod<Client>(*this, &Client::on_service,
+                    svc.name, root));
     }
 
 
     void Client::removeService(const robotkernel::service_t &svc) {
+        server.DeleteMethod(svc.name);
         services.erase(svc.name);
     }
 }
