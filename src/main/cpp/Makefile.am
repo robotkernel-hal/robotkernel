@@ -35,16 +35,16 @@ robotkernel_SOURCES = module.cpp module_intf.cpp interface.cpp main.cpp \
 					  cli_server.cpp rt_helper.cpp rk_type.cpp			\
 					  jsonrpc_bridge.cpp
 
-robotkernel_CXXFLAGS = -Wno-unused-local-typedefs -O2 -I$(top_builddir)/src/main/cpp/include -I$(srcdir) -I$(srcdir)/include/ @YAML_CPP_CFLAGS@ @LN_CFLAGS@ @LIBSTRING_UTIL_CFLAGS@ @JSONRPC_CPP_CFLAGS@
+robotkernel_CXXFLAGS = -Wno-unused-local-typedefs -O2 -I$(top_builddir)/src/main/cpp/include -I$(srcdir) -I$(srcdir)/include/ @YAML_CPP_RMC_CFLAGS@ @LN_CFLAGS@ @LIBSTRING_UTIL_CFLAGS@ @JSONRPC_CPP_CFLAGS@
 robotkernel_LDFLAGS = -Wl,-export-dynamic -Bdynamic @ROBOTKERNEL_LDFLAGS@
-robotkernel_LDADD = @DL_LIBS@ @SOCKET_LIBS@ @PTHREAD_LIBS@ @RT_LIBS@ @YAML_CPP_LIBS@ @LN_LIBS@ @LIBSTRING_UTIL_LIBS@ @JSONRPC_CPP_LIBS@ #-lstdc++
+robotkernel_LDADD = @DL_LIBS@ @SOCKET_LIBS@ @PTHREAD_LIBS@ @RT_LIBS@ @YAML_CPP_RMC_LIBS@ @LN_LIBS@ @LIBSTRING_UTIL_LIBS@ @JSONRPC_CPP_LIBS@ #-lstdc++
 
 robotkernel_debug_SOURCES = $(robotkernel_SOURCES)
 
-robotkernel_debug_CXXFLAGS = -Wno-unused-local-typedefs -O0 -g3 -I$(top_builddir)/src/main/cpp/include -I$(srcdir) -I$(srcdir)/include/ @YAML_CPP_CFLAGS@ @LN_CFLAGS@ @LIBSTRING_UTIL_CFLAGS@ @JSONRPC_CPP_CFLAGS@
+robotkernel_debug_CXXFLAGS = -Wno-unused-local-typedefs -O0 -g3 -I$(top_builddir)/src/main/cpp/include -I$(srcdir) -I$(srcdir)/include/ @YAML_CPP_RMC_CFLAGS@ @LN_CFLAGS@ @LIBSTRING_UTIL_CFLAGS@ @JSONRPC_CPP_CFLAGS@
 robotkernel_debug_LDFLAGS = -Wl,-export-dynamic -Bdynamic @ROBOTKERNEL_LDFLAGS@ 
 
-robotkernel_debug_LDADD = @DL_LIBS@ @SOCKET_LIBS@ @RT_LIBS@ @PTHREAD_LIBS@ @YAML_CPP_LIBS@ @LN_LIBS@ @LIBSTRING_UTIL_LIBS@ @JSONRPC_CPP_LIBS@ #-lstdc++
+robotkernel_debug_LDADD = @DL_LIBS@ @SOCKET_LIBS@ @RT_LIBS@ @PTHREAD_LIBS@ @YAML_CPP_RMC_LIBS@ @LN_LIBS@ @LIBSTRING_UTIL_LIBS@ @JSONRPC_CPP_LIBS@ #-lstdc++
 
 if HAVE_LTTNG_UST
 robotkernel_CXXFLAGS += @LTTNG_UST_CFLAGS@

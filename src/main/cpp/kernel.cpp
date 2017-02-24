@@ -232,9 +232,11 @@ void kernel::add_service(
  */
 void kernel::remove_services(const std::string& owner) {
     for (service_list_t::iterator it = service_list.begin(); 
-            it != service_list.end(); ++it) {
-        if (it->second->owner != owner)
+            it != service_list.end(); ) {
+        if (it->second->owner != owner) {
+            ++it;
             continue;
+        }
 
         for (service_providers_list_t::iterator 
                 it_prov = service_providers.begin(); 
@@ -244,6 +246,7 @@ void kernel::remove_services(const std::string& owner) {
         }
 
         delete it->second;
+        it = service_list.erase(it);
     }
 }
 
@@ -285,20 +288,8 @@ kernel::kernel() {
 //! destruction
 kernel::~kernel() {
     log(info, "destructing...\n");
-    
-    // remove services
-    for (service_list_t::iterator it = service_list.begin(); 
-            it != service_list.end(); ++it) {
-        for (service_providers_list_t::iterator 
-                it_prov = service_providers.begin(); 
-                it_prov != service_providers.end();
-                ++it_prov) {
-            (*it_prov)->remove_service(*(it->second));
-        }
 
-        delete it->second;
-    }
-
+    log(info, "removing modules\n");
     module_map_t::iterator it;
     while ((it = module_map.begin()) != module_map.end()) {
         sp_module_t mdl = it->second;
@@ -309,6 +300,23 @@ kernel::~kernel() {
         }
 
         module_map.erase(it);
+    }
+    
+    // remove services
+    log(info, "removing services\n");
+    service_list_t::iterator slit;
+    while ((slit = service_list.begin()) != service_list.end()) {
+        for (service_providers_list_t::iterator 
+                it_prov = service_providers.begin(); 
+                it_prov != service_providers.end();
+                ++it_prov) {
+            (*it_prov)->remove_service(*(slit->second));
+        }
+
+        log(info, "    service %s\n", slit->first.c_str());
+        delete slit->second;
+
+        service_list.erase(slit);
     }
 
     pthread_mutex_destroy(&module_map_lock);
