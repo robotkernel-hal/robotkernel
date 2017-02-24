@@ -598,11 +598,11 @@ int kernel::request_cb(const char *mod_name, int reqcode, void *ptr) {
  * \return interface id or -1
  */
 kernel::interface_id_t kernel::register_interface_cb(const char *if_name, 
-        const YAML::Node& node) {
-    interface *iface = new interface(if_name, node);
+        const YAML::Node& node, void* sp_interface) {
+    interface *iface = new interface(if_name, node, sp_interface);
     if (!iface)
         return (interface_id_t)NULL;
-
+    
     return (interface_id_t)iface;
 }
 

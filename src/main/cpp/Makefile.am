@@ -11,7 +11,7 @@ include_HEADERS = $(headerdir)/module_intf.h \
 				  $(headerdir)/module.h \
 				  $(headerdir)/module_base.h \
 				  $(headerdir)/interface.h \
-				  $(headerdir)/interface_base.h \
+				  $(headerdir)/service_provider_base.h \
 				  $(headerdir)/exceptions.h \
 				  $(headerdir)/kernel.h \
 				  $(headerdir)/kernel_worker.h \
@@ -36,6 +36,7 @@ robotkernel_SOURCES = module.cpp module_intf.cpp interface.cpp main.cpp \
 					  jsonrpc_bridge.cpp
 
 robotkernel_CXXFLAGS = -Wno-unused-local-typedefs -O2 -I$(top_builddir)/src/main/cpp/include -I$(srcdir) -I$(srcdir)/include/ @YAML_CPP_RMC_CFLAGS@ @LN_CFLAGS@ @LIBSTRING_UTIL_CFLAGS@ @JSONRPC_CPP_CFLAGS@
+
 robotkernel_LDFLAGS = -Wl,-export-dynamic -Bdynamic @ROBOTKERNEL_LDFLAGS@
 robotkernel_LDADD = @DL_LIBS@ @SOCKET_LIBS@ @PTHREAD_LIBS@ @RT_LIBS@ @YAML_CPP_RMC_LIBS@ @LN_LIBS@ @LIBSTRING_UTIL_LIBS@ @JSONRPC_CPP_LIBS@ #-lstdc++
 

@@ -36,8 +36,7 @@
 namespace robotkernel {
         
     typedef std::vector<rk_type> service_arglist_t;
-    typedef std::function<int(const service_arglist_t&, 
-            service_arglist_t&)> service_callback_t;
+    typedef std::function<int(const service_arglist_t&, service_arglist_t&)> service_callback_t;
 
     typedef struct service {
         std::string owner;

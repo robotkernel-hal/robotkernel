@@ -37,7 +37,7 @@
  * \param mod_name module name to register
  * \return interface handle
  */
-typedef INTERFACE_HANDLE (*intf_register_t)(const char *config);
+typedef INTERFACE_HANDLE (*intf_register_t)();
 
 //! interface unregister
 /*!

@@ -32,8 +32,11 @@
 
 #include "yaml-cpp/yaml.h"
 
+#include <map>
+#include <functional>
+
 #ifdef __cplusplus
-#define EXPORT_C extern "C" 
+#define EXPORT_C extern "C"
 #else
 #define EXPORT_C
 #endif
@@ -43,7 +46,7 @@
     if (!dev)                                                   \
         throw robotkernel::str_exception(                       \
                 "["#intfname"] invalid interface "              \
-                "handle to <"#intfclass" *>\n"); 
+                "handle to <"#intfclass" *>\n");
 
 #define INTERFACE_DEF(intfname, intfclass)                      \
                                                                 \
@@ -53,9 +56,8 @@ EXPORT_C int intf_unregister(INTERFACE_HANDLE hdl) {            \
     return 0;                                                   \
 }                                                               \
                                                                 \
-EXPORT_C INTERFACE_HANDLE intf_register(const char* config) {   \
+EXPORT_C INTERFACE_HANDLE intf_register() {                     \
     intfclass *dev;                                             \
-    YAML::Node doc = YAML::Load(config);                        \
                                                                 \
     dev = new intfclass(doc);                                   \
     if (!dev)                                                   \
@@ -67,9 +69,12 @@ EXPORT_C INTERFACE_HANDLE intf_register(const char* config) {   \
 
 namespace robotkernel {
 
-class interface_base {
+
+    template<typename T>
+    class ServiceProviderBase {
+        typedef map<std::string, T *> ServiceInterfaceMap;
     private:
-        interface_base();       //!< prevent default construction
+        ServiceProviderBase();       //!< prevent default construction
 
     protected:
         std::string intf_name;  //!< interface name
@@ -77,17 +82,38 @@ class interface_base {
         std::string dev_name;   //!< service device name
         int slave_id;           //!< device slave id
         loglevel ll;            //!< interface loglevel
+        T *interface;
 
+        virtual void initServices() = 0;
+        std::string getFullQualifiedServiceName(std::string simpleName);
+        void addService(const std::string& simpleName, 
+                        const std::string& service_definition, 
+                        service_callback_t callback);
+        
     public:
         //! construction
         /*!
          * \param intfname interface name
          * \param name instance name
          */
-        interface_base(const std::string& intf_name, const YAML::Node& node);
+        ServiceProviderBase(const std::string &intf_name)
+                : intf_name(intf_name) {}
+
+        void init(const YAML::Node &node, void* interface) {
+            this->interface = static_cast<T*>(interface);
+            mod_name = get_as<std::string>(node, "mod_name");
+            dev_name = get_as<std::string>(node, "dev_name");
+            slave_id = get_as<int>(node, "slave_id");
+            ll = get_as<std::string>(node, "loglevel", kernel::get_instance()->get_loglevel());
+            
+            addService("configure_loglevel", service_definition_configure_loglevel, 
+                       std::bind(&ServiceProviderBase::service_configure_loglevel, this, 
+                                 std::placeholders::_1, std::placeholders::_2));
+            initServices();
+        }
 
         //! destruction
-        ~interface_base();
+        ~ServiceProviderBase();
 
         //! log to kernel logging facility
         void log(robotkernel::loglevel lvl, const char *format, ...);
@@ -97,10 +123,11 @@ class interface_base {
          * \param request service request data
          * \parma response service response data
          */
-        int service_configure_loglevel(const service_arglist_t& request, 
-                service_arglist_t& response);
+        int service_configure_loglevel(const service_arglist_t &request, service_arglist_t &response);
+
         static const std::string service_definition_configure_loglevel;
-};
+
+    };
 
 };
 

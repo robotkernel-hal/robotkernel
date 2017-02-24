@@ -169,6 +169,23 @@ namespace robotkernel {
         return *static_cast<T *>((void *) rhs.__value);
     }
 
+    template<typename T>
+    vector<rk_type> convertVector(vector<T> &in) {
+        vector<rk_type> out(in.size());
+        for (int i = 0; i < in.size(); ++i) {
+            out[i] = in[i];
+        }
+        return out;
+    }
+
+    template<typename T>
+    vector<T> convertVector2(vector<rk_type> &in) {
+        vector<T> out(in.size());
+        for (int i = 0; i < in.size(); ++i) {
+            out[i] = (T) in[i];
+        }
+        return out;
+    }
 
 } // namespace robotkernel
 
