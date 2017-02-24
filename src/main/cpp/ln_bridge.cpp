@@ -1,6 +1,7 @@
 #include "robotkernel/ln_bridge.h"
 #include "robotkernel/helpers.h"
 #include "robotkernel/service.h"
+#include "robotkernel/rk_type.h"
 
 #include <functional>
 #include <boost/algorithm/string/predicate.hpp>
@@ -166,7 +167,6 @@ int ln_bridge::service::handle(ln::service_request& req) {
             string value = it->second.as<string>();
 
             string ln_dt = service_datatype_to_ln(key);
-            int ln_dt_size = ln_datatype_size(ln_dt);
 
             if (ln_dt == "char*") {
                 uint32_t tmp_len = ((uint32_t *)adr)[0];
@@ -242,31 +242,32 @@ int ln_bridge::service::handle(ln::service_request& req) {
                     string vector = key.substr(0, equals_idx);
                     string real_key = key.substr(equals_idx + 1);
                     string ln_dt = service_datatype_to_ln(real_key);
+        
+                    const std::vector<robotkernel::rk_type> elem = service_response[i++];
 
 #define add_vector_type(type) \
     if (ln_dt == #type) {                                                                       \
-        const std::vector<type> t = service_response[i++];            \
-        ((uint32_t *)adr)[0] = (uint32_t)t.size();                                              \
+        ((uint32_t *)adr)[0] = (uint32_t)elem.size();                                           \
         adr += 4;                                                                               \
                                                                                                 \
-        for (unsigned i = 0; i < t.size(); ++i) {                                               \
-            ((type *)adr)[0] = (type)t[i];                                                      \
+        for (unsigned i = 0; i < elem.size(); ++i) {                                            \
+            ((type *)adr)[0] = (type)elem[i];                                                   \
             adr += ln_dt_size;                                                                  \
         }                                                                                       \
     }
 
 #define add_vector_type_char(type) \
     if (ln_dt == #type) {                                                                       \
-        const std::vector<string> t = service_response[i++];        \
-        ((uint32_t *)adr)[0] = (uint32_t)t.size();                                              \
+        ((uint32_t *)adr)[0] = (uint32_t)elem.size();                                           \
         adr += 4;                                                                               \
                                                                                                 \
-        ln_vector_t* entries = new ln_vector_t[t.size()];                                       \
+        ln_vector_t* entries = new ln_vector_t[elem.size()];                                    \
         to_delete.push_back((uint8_t *)entries);                                                \
                                                                                                 \
-        for (unsigned i = 0; i < t.size(); ++i) {                                               \
-            entries[i].len = t[i].length();                                                     \
-            entries[i].val = (const uint8_t *)t[i].c_str();                                     \
+        for (unsigned i = 0; i < elem.size(); ++i) {                                            \
+            string entry = elem[i];                                                             \
+            entries[i].len = entry.length();                                                    \
+            entries[i].val = (const uint8_t *)entry.c_str();                                    \
         }                                                                                       \
         ((ln_vector_t **)adr)[0] = entries;                                                     \
         adr += sizeof(void*);                                                                   \
@@ -281,8 +282,6 @@ int ln_bridge::service::handle(ln::service_request& req) {
                     add_vector_type(uint8_t*);
                     add_vector_type(int8_t*);
                     add_vector_type_char(char*);
-                    
-
                 }
             } else if (ends_with(ln_dt, string("*"))) {
                 ((uint32_t *)adr)[0] = service_response[i++];

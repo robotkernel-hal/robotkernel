@@ -1,3 +1,6 @@
+#ifndef __LN_BRIDGE_H__
+#define __LN_BRIDGE_H__
+
 #include "robotkernel/kernel.h"
 #include "robotkernel/service.h"
 
@@ -70,4 +73,6 @@ class service {
 };
         
 }
+
+#endif
 
