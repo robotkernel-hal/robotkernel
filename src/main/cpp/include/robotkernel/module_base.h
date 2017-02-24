@@ -41,7 +41,7 @@
 #define HDL_2_MODCLASS(hdl, modname, modclass)                                      \
     modclass *dev = reinterpret_cast<modclass *>(hdl);                              \
     if (!dev)                                                                       \
-        throw robotkernel::str_exception("["#modname"] invalid module "             \
+        throw str_exception("["#modname"] invalid module "             \
                 "handle to <"#modclass" *>\n"); 
 
 #define MODULE_DEF(modname, modclass)                                               \
@@ -93,7 +93,7 @@ EXPORT_C MODULE_HANDLE mod_configure(const char* name, const char* config) {    
                                                                                     \
     dev = new modclass(name, doc);                                                  \
     if (!dev)                                                                       \
-        throw robotkernel::str_exception("["#modname"] error allocating memory\n"); \
+        throw str_exception("["#modname"] error allocating memory\n"); \
                                                                                     \
     return (MODULE_HANDLE)dev;                                                      \
 }

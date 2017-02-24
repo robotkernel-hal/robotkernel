@@ -214,6 +214,13 @@ class kernel {
           */
         int request(int reqcode, void* ptr);
 
+        //! get module
+        /*!
+         * \param mod_name name of module
+         * \return shared pointer to module
+         */
+        sp_module_t get_module(const std::string& mod_name);
+  
         bool _do_not_unload_modules;
 
         std::string _name;

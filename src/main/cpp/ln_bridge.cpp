@@ -366,8 +366,6 @@ void ln_bridge::service::_create_ln_message_defition() {
             string key   = it->first.as<string>();
             string value = it->second.as<string>();
             if (boost::starts_with(key, "vector")) {
-                printf("got one vector\n");
-    
                 const size_t equals_idx = key.find_first_of('/');
                 if (std::string::npos != equals_idx)
                 {
@@ -375,7 +373,6 @@ void ln_bridge::service::_create_ln_message_defition() {
 
                     string vector = key.substr(0, equals_idx);
                     string real_key = key.substr(equals_idx + 1);
-                    cout << "vector: " << vector << ", datatype: " << real_key << endl;
                     
                     ss_signature << "uint32_t 4 1,[";
 
@@ -415,7 +412,7 @@ void ln_bridge::service::_create_ln_message_defition() {
         }
     }
 
-    cout << "sig: " << ss_signature.str() << endl << "md: " << ss_md.str() << endl;
+//    cout << "sig: " << ss_signature.str() << endl << "md: " << ss_md.str() << endl;
     signature = ss_signature.str();
     md = ss_md.str();
 }

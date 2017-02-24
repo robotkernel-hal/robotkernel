@@ -594,6 +594,20 @@ void kernel::unregister_interface_cb(interface_id_t interface_id) {
     delete iface;
 }
 
+//! get module
+/*!
+ * \param mod_name name of module
+ * \return shared pointer to module
+ */
+kernel::sp_module_t kernel::get_module(const std::string& mod_name) {
+    kernel::module_map_t::const_iterator it = module_map.find(mod_name);
+    if (it == module_map.end())
+        throw str_exception("[robotkernel] get_module: module %s not found!\n", 
+                mod_name.c_str());
+
+    return it->second;
+}
+
 //! Send a request to kernel
 /*!
   \param reqcode request code
