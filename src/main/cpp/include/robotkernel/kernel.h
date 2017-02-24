@@ -71,10 +71,9 @@ namespace robotkernel {
         //! destruction
         ~kernel();
 
+    public:
         service_list_t service_list;
         service_providers_list_t service_providers;
-
-    public:
         //! add a service provider
         /*!
          * \param svc_provider service provider to add

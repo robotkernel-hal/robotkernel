@@ -124,7 +124,7 @@ interface::interface(const std::string& interface_file_, const YAML::Node& node,
     // try to configure
     if (intf_register) {
         intf_handle = intf_register();
-        ServiceProviderBase* sp = static_cast<ServiceProviderBase*>(intf_handle);
+        ServiceProvider* sp = static_cast<ServiceProvider*>(intf_handle);
         sp->init(node, sp_interface);
     }
 }

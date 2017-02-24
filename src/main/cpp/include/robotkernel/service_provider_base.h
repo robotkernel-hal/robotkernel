@@ -29,6 +29,7 @@
 #include "robotkernel/kernel.h"
 #include "robotkernel/exceptions.h"
 #include "robotkernel/helpers.h"
+#include "robotkernel/service_provider.h"
 
 #include "yaml-cpp/yaml.h"
 
@@ -69,9 +70,16 @@ EXPORT_C INTERFACE_HANDLE intf_register() {                     \
 
 namespace robotkernel {
 
+    static const std::string service_definition_configure_loglevel =
+    "request:\n"
+    "    string: set_loglevel\n"
+    "response:\n"
+    "    string: current_loglevel\n"
+    "    string: error_message\n";
+
 
     template<typename T>
-    class ServiceProviderBase {
+    class ServiceProviderBase : ServiceProvider{
         typedef map<std::string, T *> ServiceInterfaceMap;
     private:
         ServiceProviderBase();       //!< prevent default construction
@@ -85,10 +93,19 @@ namespace robotkernel {
         T *interface;
 
         virtual void initServices() = 0;
-        std::string getFullQualifiedServiceName(std::string simpleName);
+        
+        std::string getFullQualifiedServiceName(std::string simpleName){
+            stringstream base;
+            base << mod_name << "." << dev_name << "." << intf_name << "." << simpleName;
+            return base.str();
+        }
+        
         void addService(const std::string& simpleName, 
                         const std::string& service_definition, 
-                        service_callback_t callback);
+                        service_callback_t callback){
+            kernel &k = *kernel::get_instance();
+            k.add_service(mod_name, getFullQualifiedServiceName(simpleName), service_definition, callback);
+        }
         
     public:
         //! construction
@@ -113,19 +130,86 @@ namespace robotkernel {
         }
 
         //! destruction
-        ~ServiceProviderBase();
+        ~ServiceProviderBase(){
+//    unregister_configure_loglevel();
+        }
+
 
         //! log to kernel logging facility
-        void log(robotkernel::loglevel lvl, const char *format, ...);
+        void log(robotkernel::loglevel lvl, const char *format, ...){
+            kernel& k = *kernel::get_instance();
+            struct log_thread::log_pool_object *obj;
+
+            char buf[1024];
+            int bufpos = 0;
+            bufpos += snprintf(buf+bufpos, sizeof(buf)+bufpos, "[%s|%s] ",
+                               mod_name.c_str(), intf_name.c_str());
+
+            // format argument list    
+            va_list args;
+            va_start(args, format);
+            vsnprintf(buf+bufpos, sizeof(buf)-bufpos, format, args);
+            va_end(args);
+
+            if (lvl > ll)
+                goto log_exit;
+
+            if ((obj = k.rk_log.get_pool_object()) != NULL) {
+                // only ifempty log pool avaliable!
+                struct tm timeinfo;
+                struct timespec ts;
+                clock_gettime(CLOCK_REALTIME, &ts);
+                double timestamp = (double)ts.tv_sec + (ts.tv_nsec / 1e9);
+                time_t seconds = (time_t)timestamp;
+                double mseconds = (timestamp - (double)seconds) * 1000.;
+                localtime_r(&seconds, &timeinfo);
+                strftime(obj->buf, sizeof(obj->buf), "%F %T", &timeinfo);
+
+
+                int len = strlen(obj->buf);
+                snprintf(obj->buf + len, sizeof(obj->buf) - len, ".%03.0f ", mseconds);
+                len = strlen(obj->buf);
+                snprintf(obj->buf + len, sizeof(obj->buf) - len, "%s %s",
+                         k.ll_to_string(lvl).c_str(), buf);
+                k.rk_log.log(obj);
+            }
+
+            log_exit:
+            dump_log(buf);
+        }
 
         //! service to configure interface loglevel
         /*!
          * \param request service request data
          * \parma response service response data
          */
-        int service_configure_loglevel(const service_arglist_t &request, service_arglist_t &response);
+        int service_configure_loglevel(const service_arglist_t &request, service_arglist_t &response){
+            // request data
+#define CONFIGURE_LOGLEVEL_REQ_SET_LOGLEVEL         0
+            string set_loglevel = request[CONFIGURE_LOGLEVEL_REQ_SET_LOGLEVEL];
 
-        static const std::string service_definition_configure_loglevel;
+            // response data
+            string current_loglevel = (std::string)ll;
+            string error_message = "";
+
+            if (set_loglevel != "") {
+                try {
+                    ll = set_loglevel;
+                } catch (const std::exception& e) {
+                    error_message = e.what();
+                }
+            }
+
+#define CONFIGURE_LOGLEVEL_RESP_CURRENT_LOGLEVEL    0
+#define CONFIGURE_LOGLEVEL_RESP_ERROR_MESSAGE       1
+            response.resize(2);
+            response[CONFIGURE_LOGLEVEL_RESP_CURRENT_LOGLEVEL] = current_loglevel;
+            response[CONFIGURE_LOGLEVEL_RESP_ERROR_MESSAGE]    = error_message;
+
+            return 0;
+        }
+
+        
 
     };
 
