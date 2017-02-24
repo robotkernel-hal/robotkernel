@@ -41,6 +41,8 @@
 namespace robotkernel {
 
 class kernel {
+        typedef std::shared_ptr<module> sp_module_t;
+
     private:
         //! kernel singleton instance
         static kernel *instance;
@@ -51,7 +53,7 @@ class kernel {
         loglevel ll;    //!< robotkernel global loglevel
         
         // modules map
-        typedef std::map<std::string, module *> module_map_t;
+        typedef std::map<std::string, sp_module_t> module_map_t;
         module_map_t module_map;
         pthread_mutex_t module_map_lock;
         
