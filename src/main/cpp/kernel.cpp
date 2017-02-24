@@ -186,6 +186,20 @@ module_state_t kernel::get_state(std::string mod_name) {
     return _state;
 }
 
+//! add a service provider
+/*!
+ * \param svc_provider service provider to add
+ */
+void kernel::add_service_provider(service_provider_t *svc_provider) {
+    service_providers.push_back(svc_provider);
+    
+    for (service_list_t::iterator it = service_list.begin();
+            it != service_list.end(); ++it) {
+        service_t& svc = *(it->second);
+        svc_provider->add_service(svc);
+    }
+}
+
 //! add service to kernel
 /*!
  * \param owner service owner
@@ -856,7 +870,7 @@ const std::string kernel::service_definition_remove_module =
 int kernel::service_module_list(const service_arglist_t& request, 
         service_arglist_t& response) {
     //response data
-    std::vector<rk_type> modules(0);   
+    std::vector<rk_type> modules(0);
     string error_message = "";
 
     try {        

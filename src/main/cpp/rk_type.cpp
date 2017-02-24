@@ -10,7 +10,6 @@ namespace robotkernel {
     ReferenceMap rk_type::__refs;
     pthread_mutex_t rk_type::__refsLock = PTHREAD_MUTEX_INITIALIZER;
 
-
     std::string rk_type::toString(){
         if(__type == typeid(int8_t)){
             return format_string("%d", (int8_t) *this);
@@ -39,7 +38,7 @@ namespace robotkernel {
             std::vector<rk_type> v = *static_cast<std::vector<rk_type>*>((void*)__value);
             std::stringstream response;
             response << '{';
-            for(int i=0; i<v.size(); ++i){
+            for (unsigned int i=0; i<v.size(); ++i){
                 if(i>0){
                     response << ", ";
                 }
