@@ -285,6 +285,19 @@ kernel::kernel() {
 //! destruction
 kernel::~kernel() {
     log(info, "destructing...\n");
+    
+    // remove services
+    for (service_list_t::iterator it = service_list.begin(); 
+            it != service_list.end(); ++it) {
+        for (service_providers_list_t::iterator 
+                it_prov = service_providers.begin(); 
+                it_prov != service_providers.end();
+                ++it_prov) {
+            (*it_prov)->remove_service(*(it->second));
+        }
+
+        delete it->second;
+    }
 
     module_map_t::iterator it;
     while ((it = module_map.begin()) != module_map.end()) {
