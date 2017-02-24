@@ -254,6 +254,10 @@ void kernel::remove_services(const std::string& owner) {
     }
 }
 
+void kernel::add_service_provider(service_provider_t *svc_provider) {
+    service_providers.push_back(svc_provider);
+}
+
 //! construction
 /*!
  * \param configfile config file name
