@@ -18,7 +18,6 @@
 #include <sys/resource.h>
 #include "robotkernel/ln_bridge.h"
 #include "robotkernel/cli_bridge.h"
-#include "robotkernel/jsonrpc_bridge.h"
 
 using namespace std;
 using namespace robotkernel;

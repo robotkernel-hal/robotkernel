@@ -33,8 +33,8 @@ namespace robotkernel {
 
 	//! so_file class
 	/*!
-	  This class opens a shared so_file and loads all needed symbols
-	  */
+	 * This class opens a shared so_file and loads all needed symbols
+	 */
 	class so_file {
 		private:
 			so_file();
@@ -44,14 +44,14 @@ namespace robotkernel {
 		public:
 			//! so_file construction
 			/*!
-			  \param node configuration node
-			  */
+			 * \param node configuration node
+			 */
 			so_file(const YAML::Node& node);
 
 			//! so_file destruction
 			/*!
-			  destroys so_file
-			  */
+			 * destroys so_file
+			 */
 			~so_file();
 
 			std::string file_name;			//!< so_file shared object file name
