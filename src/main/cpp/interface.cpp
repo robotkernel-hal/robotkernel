@@ -125,7 +125,12 @@ interface::interface(const std::string& interface_file_, const YAML::Node& node,
     if (intf_register) {
         intf_handle = intf_register();
         ServiceProvider* sp = static_cast<ServiceProvider*>(intf_handle);
-        sp->init(node, sp_interface);
+
+        if (!sp) {
+            klog(warning, "passed object not of type ServiceProvider*\n");
+        } else {
+            sp->init(node, sp_interface);
+        }
     }
 }
 

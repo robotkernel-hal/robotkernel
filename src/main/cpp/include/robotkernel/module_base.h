@@ -30,6 +30,7 @@
 #include "robotkernel/exceptions.h"
 #include "robotkernel/helpers.h"
 #include "robotkernel/ln_kernel_messages.h"
+#include "robotkernel/log_base.h"
 #include "yaml-cpp/yaml.h"
 
 #ifdef __cplusplus
@@ -38,51 +39,51 @@
 #define EXPORT_C
 #endif
 
-#define HDL_2_MODCLASS(hdl, modname, modclass)                                      \
+#define HDL_2_MODCLASS(hdl, instance_name, modclass)                                      \
     modclass *dev = reinterpret_cast<modclass *>(hdl);                              \
     if (!dev)                                                                       \
-        throw str_exception("["#modname"] invalid module "             \
+        throw str_exception("["#instance_name"] invalid module "             \
                 "handle to <"#modclass" *>\n"); 
 
-#define MODULE_DEF(modname, modclass)                                               \
+#define MODULE_DEF(instance_name, modclass)                                               \
                                                                                     \
 EXPORT_C size_t mod_read(MODULE_HANDLE hdl, void* buf, size_t bufsize) {            \
-    HDL_2_MODCLASS(hdl, modname, modclass)                                          \
+    HDL_2_MODCLASS(hdl, instance_name, modclass)                                          \
     return dev->read(buf, bufsize);                                                 \
 }                                                                                   \
                                                                                     \
 EXPORT_C size_t mod_write(MODULE_HANDLE hdl, void* buf, size_t bufsize) {           \
-    HDL_2_MODCLASS(hdl, modname, modclass)                                          \
+    HDL_2_MODCLASS(hdl, instance_name, modclass)                                          \
     return dev->write(buf, bufsize);                                                \
 }                                                                                   \
                                                                                     \
 EXPORT_C int mod_request(MODULE_HANDLE hdl, int reqcode, void *arg) {               \
-    HDL_2_MODCLASS(hdl, modname, modclass)                                          \
+    HDL_2_MODCLASS(hdl, instance_name, modclass)                                          \
     return dev->request(reqcode, arg);                                              \
 }                                                                                   \
                                                                                     \
 EXPORT_C void mod_trigger(MODULE_HANDLE hdl) {                                      \
-    HDL_2_MODCLASS(hdl, modname, modclass)                                          \
+    HDL_2_MODCLASS(hdl, instance_name, modclass)                                          \
     return dev->trigger();                                                          \
 }                                                                                   \
                                                                                     \
 EXPORT_C void mod_trigger_slave_id(MODULE_HANDLE hdl, uint32_t slave_id) {          \
-    HDL_2_MODCLASS(hdl, modname, modclass)                                          \
+    HDL_2_MODCLASS(hdl, instance_name, modclass)                                          \
     return dev->trigger_slave_id(slave_id);                                         \
 }                                                                                   \
                                                                                     \
 EXPORT_C size_t mod_set_state(MODULE_HANDLE hdl, module_state_t state) {            \
-    HDL_2_MODCLASS(hdl, modname, modclass)                                          \
+    HDL_2_MODCLASS(hdl, instance_name, modclass)                                          \
     return dev->set_state(state);                                                   \
 }                                                                                   \
                                                                                     \
 EXPORT_C module_state_t mod_get_state(MODULE_HANDLE hdl) {                          \
-    HDL_2_MODCLASS(hdl, modname, modclass)                                          \
+    HDL_2_MODCLASS(hdl, instance_name, modclass)                                          \
     return dev->get_state();                                                        \
 }                                                                                   \
                                                                                     \
 EXPORT_C int mod_unconfigure(MODULE_HANDLE hdl) {                                   \
-    HDL_2_MODCLASS(hdl, modname, modclass)                                          \
+    HDL_2_MODCLASS(hdl, instance_name, modclass)                                          \
     delete dev;                                                                     \
     return 0;                                                                       \
 }                                                                                   \
@@ -93,37 +94,27 @@ EXPORT_C MODULE_HANDLE mod_configure(const char* name, const char* config) {    
                                                                                     \
     dev = new modclass(name, doc);                                                  \
     if (!dev)                                                                       \
-        throw str_exception("["#modname"] error allocating memory\n"); \
+        throw str_exception("["#instance_name"] error allocating memory\n"); \
                                                                                     \
     return (MODULE_HANDLE)dev;                                                      \
 }
 
 namespace robotkernel {
 
-class module_base {
+class module_base : public log_base {
     private:
         module_base();          //!< prevent default construction
 
     public:
-        const std::string modname;  //!< module name
-        const std::string name;     //!< instance name
         module_state_t state;       //!< actual module state
-        loglevel ll;                //!< module loglevel
-
-        //! construction
-        /*!
-         * \param modname module name
-         * \param name instance name
-         */
-        module_base(const std::string& modname, const std::string& name);
         
         //! construction
         /*!
-         * \param modname module name
+         * \param instance_name module name
          * \param name instance name
          */
-        module_base(const std::string& modname, const std::string& name, 
-                const YAML::Node& node);
+        module_base(const std::string& instance_name, const std::string& name, 
+                const YAML::Node& node = YAML::Node());
 
         virtual ~module_base();
 
@@ -137,7 +128,7 @@ class module_base {
          */
         virtual size_t read(void* buf, size_t bufsize) {
             throw str_exception("[%s|%s] read not implemented!\n", 
-                    modname.c_str(), name.c_str());
+                    instance_name.c_str(), name.c_str());
         }
         
         //! cyclic process data write
@@ -148,13 +139,13 @@ class module_base {
          */
         virtual size_t write(void* buf, size_t bufsize) {
             throw str_exception("[%s|%s] write not implemented!\n",
-                    modname.c_str(), name.c_str());
+                    instance_name.c_str(), name.c_str());
         }
         
         //! module trigger callback
         virtual void trigger() {
             throw str_exception("[%s|%s] trigger not implemented!\n",
-                    modname.c_str(), name.c_str());
+                    instance_name.c_str(), name.c_str());
         }
 
         //! module trigger callback
@@ -163,7 +154,7 @@ class module_base {
          */
         virtual void trigger_slave_id(uint32_t slave_id) {
             throw str_exception("[%s|%s] trigger slave_id not implemented!\n",
-                    modname.c_str(), name.c_str());
+                    instance_name.c_str(), name.c_str());
         }
 
         //! set module state machine to defined state
@@ -173,7 +164,7 @@ class module_base {
          */
         virtual int set_state(module_state_t state) {
             throw str_exception("[%s|%s] set_state not implemented!\n",
-                    modname.c_str(), name.c_str());
+                    instance_name.c_str(), name.c_str());
         }
 
         //! get module state machine state
@@ -195,18 +186,6 @@ class module_base {
                     "for request %#x(%#x)!\n", reqcode, ptr);
             return -1;
         }
-
-        //! log to kernel logging facility
-        void log(robotkernel::loglevel lvl, const char *format, ...);
-
-        //! service to configure modules loglevel
-        /*!
-         * \param request service request data
-         * \parma response service response data
-         */
-        int service_configure_loglevel(const service_arglist_t& request, 
-                service_arglist_t& response);
-        static const std::string service_definition_configure_loglevel;
 };
 
 };

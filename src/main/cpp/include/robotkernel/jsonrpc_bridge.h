@@ -9,37 +9,44 @@
 #include "jsonrpc-cpp/jsonrpc.h"
 
 namespace jsonrpc_bridge {
+    class client : robotkernel::runnable {
+        public:
+            //! construct jsonrpc_bridge client
+            client();
 
-    class Client : robotkernel::CommBridgeInterface, robotkernel::runnable {
-    private:
-        robotkernel::service_t* parseRequest(std::string &msg, robotkernel::service_arglist_t &req);
+            //! destruct jsonrpc_bridge client
+            ~client();
 
-    public:
-        //! construct jsonrpc_bridge client
-        Client();
+            //! callback to add a service
+            /*!
+             * \param svc service to add
+             */
+            void add_service(const robotkernel::service_t &svc);
 
-        //! destruct jsonrpc_bridge client
-        ~Client();
+            //! callback to remove a service
+            /*!
+             * \param svc service to remove
+             */
+            void remove_service(const robotkernel::service_t &svc);
 
-        void addService(const robotkernel::service_t &svc);
-        void removeService(const robotkernel::service_t &svc);
+            void run();             //!< handler function called if 
 
-//        void onCliMessage(jsonrpc_bridge::CliConnection* c, char* msg, ssize_t len);
-//        void onCliConnect(jsonrpc_bridge::CliConnection* c);
-//        void onCliDisconnect(jsonrpc_bridge::CliConnection* c);
+            //! service callback
+            /*!
+             * \param root request json node
+             * \param response response json node
+             * \return success
+             */
+            bool on_service(const Json::Value& root, Json::Value& response);
 
-        void run();             //!< handler function called if 
+        private:
+            //! json rpc server
+            Json::Rpc::TcpServer server;
 
-        bool on_service(const Json::Value& root, Json::Value& response);
-
-    private:
-        Json::Rpc::TcpServer server;
-        //! Server for cli connections
-//        jsonrpc_bridge::CliServer cliServer;
-        typedef std::map<std::string, robotkernel::service_t> ServiceMap;
-        ServiceMap services;
+            //! service map
+            typedef std::map<std::string, robotkernel::service_t> service_map_t;
+            service_map_t services;
     };
-
 }
 
 #endif // __ROBOTKERNEL_JSONRPC_BRIDGE_H__

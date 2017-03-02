@@ -1,4 +1,4 @@
-//! robotkernel module base
+//! robotkernel bridge base
 /*!
  * author: Robert Burger
  *
@@ -22,7 +22,7 @@
  * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "robotkernel/module_base.h"
+#include "robotkernel/bridge_base.h"
 #include <sstream>
 
 using namespace std;
@@ -31,15 +31,11 @@ using namespace robotkernel;
 
 //! construction
 /*!
- * \param instance_name module name
+ * \param instance_name bridge name
  * \param name instance name
  */
-module_base::module_base(const std::string& instance_name, const std::string& name, 
-        const YAML::Node& node) : log_base(instance_name, name, node) {
-    state = module_state_init;
+bridge_base::bridge_base(const std::string& instance_name, 
+		const std::string& name, const YAML::Node& node) 
+	: log_base(instance_name, name, node) {
 }
-
-module_base::~module_base() {
-}
-
 

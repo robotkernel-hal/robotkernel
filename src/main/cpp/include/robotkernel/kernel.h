@@ -34,6 +34,7 @@
 #include <robotkernel/dump_log.h>
 #include <robotkernel/exceptions.h>
 #include <robotkernel/module.h>
+#include <robotkernel/bridge.h>
 #include <robotkernel/service.h>
 
 #define klog(...) robotkernel::kernel::get_instance()->log(__VA_ARGS__)
@@ -42,6 +43,7 @@ namespace robotkernel {
 
     class kernel {
         typedef std::shared_ptr<module> sp_module_t;
+		typedef std::shared_ptr<bridge> sp_bridge_t;
 
     private:
         //! kernel singleton instance
@@ -56,6 +58,10 @@ namespace robotkernel {
         typedef std::map<std::string, sp_module_t> module_map_t;
         module_map_t module_map;
         pthread_mutex_t module_map_lock;
+        
+		// bridges map
+        typedef std::map<std::string, sp_bridge_t> bridge_map_t;
+		bridge_map_t bridge_map;
 
         //! return module state
         /*!
@@ -172,6 +178,8 @@ namespace robotkernel {
 
         // config file name
         std::string config_file;
+		std::string config_file_path;
+		std::string exec_file_path;
 
         //! kernel request callback
         /*!

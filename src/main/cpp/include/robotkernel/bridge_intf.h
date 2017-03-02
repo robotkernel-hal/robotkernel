@@ -1,4 +1,4 @@
-//! robotkernel module base
+//! robotkernel module bridge definition
 /*!
  * author: Robert Burger
  *
@@ -22,24 +22,29 @@
  * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "robotkernel/module_base.h"
-#include <sstream>
+#ifndef __BRIDGE_INTF_H__
+#define __BRIDGE_INTF_H__
 
-using namespace std;
-using namespace std::placeholders;
-using namespace robotkernel;
+#include <unistd.h>
+#include <stdint.h>
+#include <list>
+#include <stdio.h>
 
-//! construction
+#define BRIDGE_HANDLE void*
+
+//! bridge configure
 /*!
- * \param instance_name module name
- * \param name instance name
+ * \param name bridge name
+ * \param config bridge config
+ * \return bridge handle
  */
-module_base::module_base(const std::string& instance_name, const std::string& name, 
-        const YAML::Node& node) : log_base(instance_name, name, node) {
-    state = module_state_init;
-}
+typedef BRIDGE_HANDLE (*bridge_configure_t)(const char* name, const char* config);
 
-module_base::~module_base() {
-}
+//! bridge unconfigure
+/*!
+ * \param hdl bridge handle
+ */
+typedef int (*bridge_unconfigure_t)(BRIDGE_HANDLE hdl);
 
+#endif // __bridge_bridge_H__
 

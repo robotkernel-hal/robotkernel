@@ -254,10 +254,6 @@ void kernel::remove_services(const std::string& owner) {
     }
 }
 
-void kernel::add_service_provider(service_provider_t *svc_provider) {
-    service_providers.push_back(svc_provider);
-}
-
 //! construction
 /*!
  * \param configfile config file name
@@ -366,17 +362,17 @@ void kernel::destroy_instance() {
  */
 void kernel::config(std::string config_file, int argc, char **argv) {
     char *real_exec_file = realpath(argv[0], NULL);
-    string path, file;
+    string file;
     if (!real_exec_file)
         throw str_exception("supplied exec file \"%s\" not found!", argv[0]);
 
-    split_file_name(string(real_exec_file), path, file);
-    log(verbose, "got exec path %s\n", path.c_str());
+    split_file_name(string(real_exec_file), exec_file_path, file);
+    log(verbose, "got exec path %s\n", exec_file_path.c_str());
     log(info, "searching interfaces and modules ....\n");
     free(real_exec_file);
 
     string base_path, sub_path;
-    split_file_name(path, base_path, sub_path);
+    split_file_name(exec_file_path, base_path, sub_path);
     if (sub_path == string("bin")) {
         struct stat buf;
         stringstream _modpath, _intfpath;
@@ -418,10 +414,10 @@ void kernel::config(std::string config_file, int argc, char **argv) {
     if (!real_config_file)
         throw str_exception("supplied config file \"%s\" not found!", config_file.c_str());
 
-    split_file_name(string(real_config_file), path, file);
+    split_file_name(string(real_config_file), config_file_path, file);
 
     log(info, "got config file path: %s, file name %s\n",
-            path.c_str(), file.c_str());
+            config_file_path.c_str(), file.c_str());
 
     this->config_file = string(real_config_file);
     free(real_config_file);
@@ -456,7 +452,7 @@ void kernel::config(std::string config_file, int argc, char **argv) {
     for (YAML::const_iterator it = modules.begin(); it != modules.end(); ++it) {
         sp_module_t mdl;
         try {
-            mdl = make_shared<module>(*it, path);
+            mdl = make_shared<module>(*it, config_file_path);
         }
         catch(const exception& e) {
             throw str_exception("exception while instantiating module %s:\n%s",
@@ -476,6 +472,28 @@ void kernel::config(std::string config_file, int argc, char **argv) {
         // add to module map
         klog(info, "adding [%s]\n", mdl->get_name().c_str());
         module_map[mdl->get_name()] = mdl;
+    }
+
+	const YAML::Node& bridges = doc["bridges"];
+    for (YAML::const_iterator it = bridges.begin(); it != bridges.end(); ++it) {
+        sp_bridge_t brdg;
+        try {
+            brdg = make_shared<bridge>(*it);
+        }
+        catch(const exception& e) {
+            throw str_exception("exception while instantiating bridge %s:\n%s",
+                                get_as<string>(*it, "name", "<no name specified>").c_str(),
+                                e.what());
+        }
+
+        if (bridge_map.find(brdg->name) != bridge_map.end()) {
+            throw str_exception("[robotkernel] duplicate module name: %s\n", 
+					brdg->name.c_str());
+        }
+
+        // add to module map
+        klog(info, "adding [%s]\n", brdg->name.c_str());
+        bridge_map[brdg->name] = brdg;
     }
 }
 

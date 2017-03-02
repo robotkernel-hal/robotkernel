@@ -39,85 +39,26 @@ using namespace robotkernel;
 
 //! bridge construction
 /*!
-  \param bridge_file filename of bridge
+  \param file_name filename of bridge
   \param node configuration node
   */
-bridge::bridge(const std::string& fn, const YAML::Node& node)
-    : bridge_file(fn)
-{
-    struct stat buf;
+bridge::bridge(const YAML::Node& node) : so_file(node) {
+    name = get_as<string>(node, "name");
     
-    // check if filename is absolute and exists
-    bool found = (stat(bridge_file.c_str(), &buf) == 0);
+	klog(verbose, "bridge constructing %s -> %s\n", 
+			name.c_str(), file_name.c_str());
 
-    if (!found) {
-        // try enviroment search path
-        char *intfpathes = getenv("ROBOTKERNEL_LIBRARY_PATH");
-        if (intfpathes) {
-            char *pch, *str = strdup(intfpathes);
-            pch = strtok(str, ":");
-            while (pch != NULL) {
-                string mod = string(pch) + "/" + bridge_file;
-                if (stat(mod.c_str(), &buf) == 0) {
-                    bridge_file = mod;
-                    found = true;
-                    break;
-                }
-                pch = strtok(NULL, ":");
-            }
+    bridge_configure   = (bridge_configure_t)  dlsym(so_handle, "bridge_configure");
+    bridge_unconfigure = (bridge_unconfigure_t)dlsym(so_handle, "bridge_unconfigure");
 
-            free(str);
-        }
-    }
-
-    if(!found)
-        klog(warning, "bridge file %s not found (checked ROBOTKERNEL_BRIDGE_PATH and internal bridge path)\nwill try to dlopen() it nevertheless!!\n", 
-            bridge_file.c_str());
-
-    assert(bridge_file != "");
-    
-#ifdef __VXWORKS__
-    klog(info, "loading bridge %s\n", 
-            bridge_file.c_str());
-
-    so_handle = dlopen(bridge_file.c_str(), 
-            RTLD_GLOBAL | RTLD_NOW);
-#else
-    if ((so_handle = dlopen(bridge_file.c_str(), 
-                    RTLD_GLOBAL | RTLD_NOW | RTLD_NOLOAD)) == NULL) {
-        klog(info, "loading bridge %s\n", 
-                bridge_file.c_str());
-
-        if (access(bridge_file.c_str(), R_OK) != 0) {
-            klog(error, "bridge file '%s' not readable!\n", 
-                    bridge_file.c_str());
-            throw str_exception("access '%s' signaled error: %s", 
-                    bridge_file.c_str(), strerror(errno));
-        }
-
-        so_handle = dlopen(bridge_file.c_str(), 
-                RTLD_GLOBAL | RTLD_NOW);
-    }
-#endif
-
-    if (!so_handle)
-        throw str_exception("dlopen signaled error: %s", strerror(errno));
-
-    intf_register   = (intf_register_t)  dlsym(so_handle, "intf_register");
-    intf_unregister = (intf_unregister_t)dlsym(so_handle, "intf_unregister");
-
-    if (!intf_register)
-        klog(verbose, "missing intf_register in %s\n", 
-                bridge_file.c_str());;
-    if (!intf_unregister)
-        klog(verbose, "missing intf_unregister in %s\n", 
-                bridge_file.c_str());
+    if (!bridge_configure)
+        klog(verbose, "missing bridge_configure in %s\n", file_name.c_str());;
+    if (!bridge_unconfigure)
+        klog(verbose, "missing bridge_unconfigure in %s\n", file_name.c_str());
 
     // try to configure
-    if (intf_register) {
-        YAML::Emitter e;
-        e << node;
-        intf_handle = intf_register(e.c_str());
+    if (bridge_configure) {
+        bridge_handle = bridge_configure(name.c_str(), config.c_str());
     }
 }
 
@@ -126,23 +67,12 @@ bridge::bridge(const std::string& fn, const YAML::Node& node)
   destroys bridge
   */
 bridge::~bridge() {
-    klog(verbose, "bridge destructing %s\n", bridge_file.c_str());
+    klog(verbose, "bridge destructing %s\n", file_name.c_str());
 
     // unconfigure bridge first
-    if (intf_handle && intf_unregister) {
-        intf_unregister(intf_handle);
-        intf_handle = NULL;
-    }
-
-    if (so_handle && !kernel::get_instance()->_do_not_unload_modules) {
-        klog(verbose, "unloading bridge %s\n", 
-                bridge_file.c_str());
-
-        if (dlclose(so_handle) != 0)
-            klog(error, "error on unloading bridge %s\n", 
-                    bridge_file.c_str());
-        else
-            so_handle = NULL;
+    if (bridge_handle && bridge_unconfigure) {
+        bridge_unconfigure(bridge_handle);
+        bridge_handle = NULL;
     }
 }
 

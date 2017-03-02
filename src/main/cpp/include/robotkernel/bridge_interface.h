@@ -24,3 +24,4 @@ namespace robotkernel {
 }
 
 #endif //PROJECT_COMMBRIDGE_H
+

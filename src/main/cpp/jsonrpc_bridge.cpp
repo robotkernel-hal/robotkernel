@@ -37,10 +37,10 @@ namespace jsonrpc_bridge {
     }
     
     
-    Client::Client() : server(std::string("127.0.0.1"), 8086) {
+    client::client() : server(std::string("127.0.0.1"), 8086) {
         robotkernel::service_provider_t *sp = new robotkernel::service_provider_t();
-        sp->add_service = std::bind(&jsonrpc_bridge::Client::addService, this, _1);
-        sp->remove_service = std::bind(&jsonrpc_bridge::Client::removeService, this, _1);
+        sp->add_service = std::bind(&jsonrpc_bridge::client::add_service, this, _1);
+        sp->remove_service = std::bind(&jsonrpc_bridge::client::remove_service, this, _1);
         robotkernel::kernel::get_instance()->add_service_provider(sp);
 
         if (!networking::init()) {
@@ -56,173 +56,20 @@ namespace jsonrpc_bridge {
         }
 
         start();
-
-//        cliServer.onConnectHandler    = std::bind(&jsonrpc_bridge::Client::onCliConnect, this, _1);
-//        cliServer.onDisconnectHandler = std::bind(&jsonrpc_bridge::Client::onCliDisconnect, this, _1);
-//        cliServer.start();
     }
 
 
-    Client::~Client() {
-//        cliServer.stop();
+    client::~client() {
+        stop();
     }
 
-    void Client::run() {
+    void client::run() {
         while (running()) {
             server.WaitMessage(1000);
         }
     }
     
-    
-//    static std::string escape(std::string in) {
-//        const int N = 3;
-//        const string escapeStrings[N] = {"\n", "\r", "\t"};
-//        const string replaceStrings[N] = {"\\n", "\\r", "\\t"};
-//
-//        for(int i=0; i<N; ++i){
-//            in = string_replace(in, escapeStrings[i], replaceStrings[i]);
-//        }
-//        return in;
-//    }
-//    
-//    
-//    rk_type parseArg(string& args, string key, string value, unsigned long* sPos){
-//        while(*sPos < args.length() && args[*sPos] == ' '){
-//            (*sPos)++;
-//        }
-//
-//        if(*sPos >= args.length()){
-//            throw str_exception("Too few arguments: Missing %s", value.c_str());
-//        }
-//
-//        if(key == TYPENAME_STRING) {
-//            if(args[*sPos] != '"'){
-//                throw str_exception("Parse error for argument: %s -> Strings must be enclosed with quotation marks", value.c_str());
-//            }
-//            unsigned long strStart = (*sPos)++;
-//            bool escape = false;
-//            while(*sPos < args.length()){
-//                char c = args[*sPos];
-//                if (c == '"' && !escape) {
-//                    string arg = args.substr(strStart+1, (*sPos)-1);
-//                    rk_type rkType(arg);
-//                    return rkType;
-//                }
-//                escape = c == '\\' && !escape;
-//                (*sPos)++;
-//            }
-//        } else {
-//            throw str_exception("Unsupported type <%s> (Not implemented yet)", key.c_str());
-//        }
-//        
-//    }
-//    
-//    
-//    void parseArgs(service_t &svc, std::string &args, service_arglist_t& req){
-//        YAML::Node message_definition = YAML::Load(svc.service_definition);
-//        if (!message_definition["request"]) {
-//            return;
-//        }
-//        
-//        const YAML::Node &request = message_definition["request"];
-//        unsigned long sPos = 0;
-//        for (YAML::const_iterator it = request.begin(); it != request.end(); ++it) {
-//            string key   = it->first.as<string>();
-//            string value = it->second.as<string>();
-//
-//            rk_type x = parseArg(args, key, value, &sPos);
-//            req.push_back(x);
-//        }
-//    }
-//    
-//    
-//    service_t* Client::parseRequest(string &msg, service_arglist_t &req) {
-//        unsigned long delim = msg.find(" ");
-//        std::string param0 = msg.substr(0, delim);
-//        ServiceMap::iterator svcIt = services.find(param0);
-//        if(svcIt == services.end()){
-//            return NULL;
-//        }
-//        service_t &svc = svcIt->second;
-//        
-//        string args = (delim == string::npos ? std::string("") : msg.substr(delim+1));
-//        parseArgs(svc, args, req);
-//        
-//        return &svc;
-//    }
-//    
-//    
-//    string parseResponse(service_t* svc, service_arglist_t& resp){
-//        stringstream response;
-//        response << "OK" << endl;
-//        
-//        YAML::Node message_definition = YAML::Load(svc->service_definition);
-//        const YAML::Node &mdResp = message_definition["response"];
-//        
-//        if (mdResp) {
-//            auto mdIt = mdResp.begin();
-//            for (auto it = resp.begin(); it != resp.end() && mdIt != mdResp.end(); ++it, ++mdIt) {
-//                response << mdIt->second.as<string>() << ": " << it->toString() << endl;
-//            }
-//        }
-//        
-//        return response.str();
-//    }
-//    
-//    
-//    void Client::onCliMessage(jsonrpc_bridge::CliConnection* c, char* buf, ssize_t len){
-//        string msg(buf, (unsigned long) (buf[len-1] == '\n' ? len-1 : len));
-//        msg = strip(msg);
-//        if(msg.empty()){
-//            return;
-//        }
-//        try {
-//            service_arglist_t req;
-//            service_t *svc = parseRequest(msg, req);
-//            string result;
-//            if(!svc){
-//                if(msg == string("!list")) {
-//                    result += "\n";
-//                    for (ServiceMap::iterator it = services.begin(); it != services.end(); it++) {
-//                        service_t &s = it->second;
-//                        result += std::string("[") + s.name + std::string("]\n") + s.service_definition + "\n";
-//                    }
-//                } else if(msg == string("!help")) {
-//                    result += "\n";
-//                    result += "'!help': Print this help.\n";
-//                    result += "'!list': Get a list of available services.\n";
-//                } else {
-//                    result = std::string("ERR: Command or service not found: '") + escape(msg) + string("'\n Use !help to get CLI instructions.\n");
-//                }
-//            } else {
-//                klog(info, "Calling: %s %s", svc->name.c_str(), svc->service_definition.c_str());
-//                
-//                service_arglist_t resp;
-//                if (svc->callback(req, resp) != 0) {
-//                    throw str_exception("CliBridge: Internal error in service call. See previous messages in error log for details.");
-//                }
-//                
-//                result = parseResponse(svc, resp);
-//            }
-//
-//            c->write(result.c_str(), result.length());
-//        } catch(str_exception e){
-//            const string& err = format_string("Exception in service call: %s\n%s\n", msg.c_str(), e.what());
-//            klog(warning, "CliBridge: %s", err.c_str());
-//            c->write(err.c_str(), err.length());
-//        }
-//    }
-//    
-//    
-//    void Client::onCliConnect(jsonrpc_bridge::CliConnection* c){
-//        c->messageHandler = std::bind(&jsonrpc_bridge::Client::onCliMessage, this, _1, _2, _3);
-//    }
-//
-//
-//    void Client::onCliDisconnect(jsonrpc_bridge::CliConnection* c){
-//    }
-    
-    bool Client::on_service(const Json::Value& root, Json::Value& response) {
+    bool client::on_service(const Json::Value& root, Json::Value& response) {
         std::cout << "Notification: " << root << std::endl;
         response = Json::Value::nullRef;
 
@@ -306,8 +153,8 @@ namespace jsonrpc_bridge {
         return true;
     }
 
-    void Client::addService(const robotkernel::service_t &svc) {
-        klog(info, "got service: %s\n", svc.name.c_str());
+    void client::add_service(const robotkernel::service_t &svc) {
+        klog(info, "jsonrpc_bridge: got service: %s\n", svc.name.c_str());
         services[svc.name] = svc;
 
         Json::Value root;
@@ -341,12 +188,12 @@ namespace jsonrpc_bridge {
         root["request"] = req;
         root["response"] = resp;
          
-        server.AddMethod(new Json::Rpc::RpcMethod<Client>(*this, &Client::on_service,
+        server.AddMethod(new Json::Rpc::RpcMethod<client>(*this, &client::on_service,
                     svc.name, root));
     }
 
 
-    void Client::removeService(const robotkernel::service_t &svc) {
+    void client::remove_service(const robotkernel::service_t &svc) {
         server.DeleteMethod(svc.name);
         services.erase(svc.name);
     }
