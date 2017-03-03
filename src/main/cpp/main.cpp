@@ -16,8 +16,6 @@
 #include <pthread.h>
 #include <sys/time.h>
 #include <sys/resource.h>
-#include "robotkernel/ln_bridge.h"
-#include "robotkernel/cli_bridge.h"
 
 using namespace std;
 using namespace robotkernel;
@@ -78,8 +76,6 @@ int ln_datatype_size(const std::string& ln_datatype) {
     return 0;
 }
 
-#include "robotkernel/ln_bridge.h"
-
 int main(int argc, char** argv) {
 
     sigset_t set;
@@ -108,9 +104,6 @@ int main(int argc, char** argv) {
 #endif
 
     kernel &k = *kernel::get_instance();
-//    ln_bridge::client lnBridgeClient;
-//    cli_bridge::Client cliBridgeClient;
-//    jsonrpc_bridge::client jsonrpcBridgeClient;
 
     klog(info, "build by: " BUILD_USER "@" BUILD_HOST "\n");
     klog(info, "build date: " BUILD_DATE "\n");

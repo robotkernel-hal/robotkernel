@@ -29,7 +29,6 @@
 #include "robotkernel/kernel.h"
 #include "robotkernel/exceptions.h"
 #include "robotkernel/helpers.h"
-#include "robotkernel/ln_kernel_messages.h"
 #include "robotkernel/log_base.h"
 #include "yaml-cpp/yaml.h"
 
