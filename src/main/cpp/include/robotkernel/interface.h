@@ -28,6 +28,7 @@
 #include <string>
 #include <stdio.h>
 #include "robotkernel/interface_intf.h"
+#include "robotkernel/so_file.h"
 #include "yaml-cpp/yaml.h"
 
 namespace robotkernel {
