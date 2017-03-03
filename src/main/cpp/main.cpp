@@ -107,7 +107,6 @@ int main(int argc, char** argv) {
 
     klog(info, "build by: " BUILD_USER "@" BUILD_HOST "\n");
     klog(info, "build date: " BUILD_DATE "\n");
-    klog(info, "links_and_nodes: " LN_VERSION "\n");
 
     string config_file = "";
     struct sigaction action;
