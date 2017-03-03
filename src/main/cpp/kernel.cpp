@@ -452,7 +452,7 @@ void kernel::config(std::string config_file, int argc, char **argv) {
     for (YAML::const_iterator it = modules.begin(); it != modules.end(); ++it) {
         sp_module_t mdl;
         try {
-            mdl = make_shared<module>(*it, config_file_path);
+            mdl = make_shared<module>(*it);
         }
         catch(const exception& e) {
             throw str_exception("exception while instantiating module %s:\n%s",
@@ -840,7 +840,7 @@ int kernel::service_add_module(const service_arglist_t& request,
 
     try {
         YAML::Node node = YAML::Load(config);
-        sp_module_t mdl = make_shared<module>(node, "");
+        sp_module_t mdl = make_shared<module>(node);
 
         if (module_map.find(mdl->get_name()) != module_map.end()) {
             string name = mdl->get_name();

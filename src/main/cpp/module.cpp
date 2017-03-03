@@ -156,7 +156,7 @@ YAML::Emitter& operator<<(YAML::Emitter& out, const module::external_trigger& t)
 YAML::Emitter& operator<<(YAML::Emitter& out, const robotkernel::module& mdl) {
     out << YAML::BeginMap;
     out << YAML::Key << "name" << YAML::Value << mdl.name;
-    out << YAML::Key << "module_file" << YAML::Value << mdl.module_file;
+    out << YAML::Key << "file_name" << YAML::Value << mdl.file_name;
 
     YAML::Node node = YAML::Load(mdl.config);
     out << YAML::Key << "config";
@@ -190,44 +190,14 @@ YAML::Emitter& operator<<(YAML::Emitter& out, const robotkernel::module& mdl) {
 /*!
  * \param node configuration node
  */
-module::module(const YAML::Node& node, string config_path)
-    :    so_handle(NULL), mod_handle(NULL), mod_configure(NULL), 
+module::module(const YAML::Node& node)
+    : so_file(node), mod_handle(NULL), mod_configure(NULL), 
     mod_unconfigure(NULL), mod_read(NULL), mod_write(NULL), 
     mod_set_state(NULL) {
     name             = get_as<string>(node, "name");
-    module_file      = get_as<string>(node, "module_file");
-    config_file_path = config_path;
 
     currently_loading_module = this;
     
-    if (node["config_file"]) {
-        string file_name = get_as<string>(node, "config_file");
-        // check for absolute/relative path
-        if (file_name[0] != '/') {
-            // relative path to config file
-            file_name = config_path + "/" + file_name;
-        }
-
-        klog(info, "%s config file \"%s\"\n", 
-                name.c_str(), file_name.c_str());
-
-        ifstream t(file_name.c_str());
-        if(t.fail()) // check failbit
-            throw str_exception("could not open config file of module %s: %s",
-                                name.c_str(), file_name.c_str());
-        stringstream buffer;
-        buffer << t.rdbuf();
-        config = buffer.str();
-
-        string fn_file;
-        split_file_name(file_name, config_file_path, fn_file);
-        
-    } else if (node["config"]) {
-        YAML::Emitter t;
-        t << node["config"];
-        config = string(t.c_str());
-    }
-
     if (node["trigger"]) {
         for (YAML::const_iterator it = node["trigger"].begin(); 
                 it != node["trigger"].end(); ++it) {
@@ -303,84 +273,6 @@ module::module(const YAML::Node& node, string config_path)
 }
 
 void module::_init() {
-    struct stat buf;
-
-    if ((module_file.c_str()[0] != '/') || (stat(module_file.c_str(), &buf) != 0)) {
-        // try path relative to config file first
-        string mod = config_file_path + "/" + module_file;
-        if (stat(mod.c_str(), &buf) != 0) {
-            bool found = false;
-
-            // no in relative path, try enviroment search path
-            char *modpathes = getenv("ROBOTKERNEL_MODULE_PATH");
-            if (modpathes) {
-                char *pch, *str = strdup(modpathes);
-                pch = strtok(str, ":");
-                while (pch != NULL) {
-                    mod = string(pch) + "/" + module_file;
-                    if (stat(mod.c_str(), &buf) == 0) {
-                        module_file = mod;
-                        found = true;
-                        break;
-                    }
-                    pch = strtok(NULL, ":");
-                }
-
-                free(str);
-            }
-
-            if (!found) {
-                // try path from robotkernel release
-                string mod = kernel::get_instance()->_internal_modpath + "/" + module_file;
-                if (stat(mod.c_str(), &buf) == 0) {
-                    module_file = mod;
-                    found = true;
-                }
-            }
-        } else
-            module_file = mod;
-    }
-
-#ifdef __VXWORKS__
-    klog(info, "loading module %s\n", module_file.c_str());
-    so_handle = dlopen(module_file.c_str(), RTLD_GLOBAL |
-            RTLD_NOW);
-#else
-    if ((so_handle = dlopen(module_file.c_str(), RTLD_GLOBAL | RTLD_NOW |
-                    RTLD_NOLOAD)) == NULL) {
-        klog(info, "loading module %s\n", module_file.c_str());
-
-        if (access(module_file.c_str(), R_OK) != 0) {
-            klog(error, "%s module file name not given as absolute filename, either set\n"
-                    "         ROBOTKERNEL_MODULE_PATH environment variable or specify absolut path!\n",
-                    module_file.c_str());
-            klog(error, "access signaled error: %s\n", strerror(errno));
-            return;
-        }
-
-        char dirname_buffer[1024];
-        strcpy(dirname_buffer, module_file.c_str());
-        char* dir = dirname(dirname_buffer);
-        DIR* dirp = opendir(dir);
-        if(dirp) {
-            struct dirent* de;
-            while((de = readdir(dirp))) {
-                // klog(error, "[%s] dir entry: %s\n", name.c_str(), de->d_name);
-            }
-            closedir(dirp);
-        }
-
-        so_handle = dlopen(module_file.c_str(), RTLD_GLOBAL |
-                RTLD_NOW);
-    }
-#endif
-
-    if (!so_handle) {
-        klog(error, "%s dlopen signaled error opening module:\n", module_file.c_str());
-        klog(error, "%s\n", dlerror());;
-        return;
-    }
-
     mod_configure           = (mod_configure_t)         dlsym(so_handle, "mod_configure");
     mod_unconfigure         = (mod_unconfigure_t)       dlsym(so_handle, "mod_unconfigure");
     mod_read                = (mod_read_t)              dlsym(so_handle, "mod_read");
@@ -392,23 +284,23 @@ void module::_init() {
     mod_trigger_slave_id    = (mod_trigger_slave_id_t)  dlsym(so_handle, "mod_trigger_slave_id");
 
     if (!mod_configure)
-        klog(warning, "missing mod_configure in %s\n", module_file.c_str());;
+        klog(warning, "missing mod_configure in %s\n", file_name.c_str());;
     if (!mod_unconfigure)
-        klog(verbose, "missing mod_unconfigure in %s\n", module_file.c_str());
+        klog(verbose, "missing mod_unconfigure in %s\n", file_name.c_str());
     if (!mod_read)
-        klog(verbose, "missing mod_read in %s\n", module_file.c_str());
+        klog(verbose, "missing mod_read in %s\n", file_name.c_str());
     if (!mod_write)
-        klog(verbose, "missing mod_write in %s\n", module_file.c_str());
+        klog(verbose, "missing mod_write in %s\n", file_name.c_str());
     if (!mod_set_state)
-        klog(verbose, "missing mod_set_state in %s\n", module_file.c_str());
+        klog(verbose, "missing mod_set_state in %s\n", file_name.c_str());
     if (!mod_get_state)
-        klog(verbose, "missing mod_get_state in %s\n", module_file.c_str());
+        klog(verbose, "missing mod_get_state in %s\n", file_name.c_str());
     if (!mod_request)
-        klog(verbose, "missing mod_request in %s\n", module_file.c_str());
+        klog(verbose, "missing mod_request in %s\n", file_name.c_str());
     if (!mod_trigger)
-        klog(verbose, "missing mod_trigger in %s\n", module_file.c_str());
+        klog(verbose, "missing mod_trigger in %s\n", file_name.c_str());
     if (!mod_trigger_slave_id)
-        klog(verbose, "missing mod_trigger_slave_id in %s\n", module_file.c_str());
+        klog(verbose, "missing mod_trigger_slave_id in %s\n", file_name.c_str());
 
     // try to configure
     reconfigure();
@@ -431,7 +323,7 @@ bool module::reconfigure() {
         mod_handle = mod_configure(name.c_str(), config.c_str());
 
     if(!mod_handle)
-        throw str_exception("mod_handle of %s is NULL, can not proceed!\n(does module export mod_configure() function?)", module_file.c_str());
+        throw str_exception("mod_handle of %s is NULL, can not proceed!\n(does module export mod_configure() function?)", file_name.c_str());
 
     // try to reach init state
     set_state(module_state_init);
@@ -444,7 +336,7 @@ bool module::reconfigure() {
   destroys module
   */
 module::~module() {
-    klog(info, "%s destructing %s\n", name.c_str(), module_file.c_str());
+    klog(info, "%s destructing %s\n", name.c_str(), file_name.c_str());
 
     while (!triggers.empty()) {
         external_trigger *trigger = triggers.front();
@@ -467,10 +359,10 @@ module::~module() {
     }
 
     if (so_handle && !kernel::get_instance()->_do_not_unload_modules) {
-        klog(info, "%s unloading module %s\n", name.c_str(), module_file.c_str());
+        klog(info, "%s unloading module %s\n", name.c_str(), file_name.c_str());
 #ifndef __VXWORKS__ // we do not dlclose on vxworks, vxworks does stupid things
         if (dlclose(so_handle) != 0)
-            klog(error, "%s error on unloading module %s\n", name.c_str(), module_file.c_str());
+            klog(error, "%s error on unloading module %s\n", name.c_str(), file_name.c_str());
         else
 #endif
             so_handle = NULL;
@@ -646,11 +538,11 @@ module_state_t module::get_state() {
   \return success or failure
   */
 int module::request(int reqcode, void* ptr) {
-    if(reqcode == MOD_REQUEST_GET_CFG_PATH) {
-        char** ret = (char**)ptr;
-        *ret = (char*)config_file_path.c_str();
-        return 0;
-    }
+//    if(reqcode == MOD_REQUEST_GET_CFG_PATH) {
+//        char** ret = (char**)ptr;
+//        *ret = (char*)config_file_path.c_str();
+//        return 0;
+//    }
     
     if (!mod_handle)
         throw str_exception("[%s] not configured\n", name.c_str());

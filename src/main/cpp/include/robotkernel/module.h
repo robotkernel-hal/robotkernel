@@ -32,6 +32,7 @@
 #include <robotkernel/module_intf.h>
 #include <robotkernel/interface.h>
 #include <robotkernel/service.h>
+#include <robotkernel/so_file.h>
 
 #include <yaml-cpp/yaml.h>
         
@@ -46,7 +47,7 @@ class kernel_worker;
 /*!
   This class opens a shared module and loads all needed symbols
  */
-class module {
+class module : public so_file {
     private:
         module();
         module(const module&);             // prevent copy-construction
@@ -88,7 +89,7 @@ class module {
         /*!
          * \param node configuration node
          */
-        module(const YAML::Node& node, std::string config_path);
+        module(const YAML::Node& node);
 
         //! module destruction
         /*!
@@ -231,9 +232,6 @@ class module {
         
     private:
         std::string name;               //! module name
-        std::string module_file;        //! module shared object file name
-        std::string config;             //! module config string
-        std::string config_file_path;   //! module config file path
         module_state_t power_up;        //! auto power up on startup
         depend_list_t depends;          //! module dependecy list
         trigger_list_t triggers;        //! module trigger list
@@ -242,7 +240,6 @@ class module {
     private:
         void _init();
 
-        void* so_handle;                //! dlopen handle
         MODULE_HANDLE mod_handle;       //! module handle
 
         struct worker_key {
