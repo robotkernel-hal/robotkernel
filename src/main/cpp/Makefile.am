@@ -36,8 +36,8 @@ robotkernel_SOURCES = module.cpp module_intf.cpp interface.cpp main.cpp \
 					  exceptions.cpp kernel.cpp kernel_worker.cpp       \
 					  runnable.cpp trigger_base.cpp log_thread.cpp 		\
 					  dump_log.cpp char_ringbuffer.cpp module_base.cpp 	\
-					  service_provider_base.cpp ln_bridge.cpp cli_bridge.cpp 	\
-					  cli_server.cpp rt_helper.cpp rk_type.cpp			\
+					  service_provider_base.cpp ln_bridge.cpp  	\
+					  rt_helper.cpp rk_type.cpp			\
 					  bridge_base.cpp log_base.cpp so_file.cpp bridge.cpp
 
 robotkernel_CXXFLAGS = -std=c++11 -Wno-unused-local-typedefs -O2 -I$(top_builddir)/src/main/cpp/include -I$(srcdir) -I$(srcdir)/include/ @YAML_CPP_RMC_CFLAGS@ @LN_CFLAGS@ @LIBSTRING_UTIL_CFLAGS@ 

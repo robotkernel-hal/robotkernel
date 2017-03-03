@@ -39,40 +39,40 @@ using namespace robotkernel;
 
 //! bridge construction
 /*!
-  \param file_name filename of bridge
-  \param node configuration node
-  */
+ * \param file_name filename of bridge
+ * \param node configuration node
+ */
 bridge::bridge(const YAML::Node& node) : so_file(node) {
-    name = get_as<string>(node, "name");
-    
-	klog(verbose, "bridge constructing %s -> %s\n", 
+	name = get_as<string>(node, "name");
+
+	klog(info, "bridge constructing %s -> %s\n", 
 			name.c_str(), file_name.c_str());
 
-    bridge_configure   = (bridge_configure_t)  dlsym(so_handle, "bridge_configure");
-    bridge_unconfigure = (bridge_unconfigure_t)dlsym(so_handle, "bridge_unconfigure");
+	bridge_configure   = (bridge_configure_t)  dlsym(so_handle, "bridge_configure");
+	bridge_unconfigure = (bridge_unconfigure_t)dlsym(so_handle, "bridge_unconfigure");
 
-    if (!bridge_configure)
-        klog(verbose, "missing bridge_configure in %s\n", file_name.c_str());;
-    if (!bridge_unconfigure)
-        klog(verbose, "missing bridge_unconfigure in %s\n", file_name.c_str());
+	if (!bridge_configure)
+		klog(warning, "missing bridge_configure in %s\n", file_name.c_str());;
+	if (!bridge_unconfigure)
+		klog(warning, "missing bridge_unconfigure in %s\n", file_name.c_str());
 
-    // try to configure
-    if (bridge_configure) {
-        bridge_handle = bridge_configure(name.c_str(), config.c_str());
-    }
+	// try to configure
+	if (bridge_configure) {
+		bridge_handle = bridge_configure(name.c_str(), config.c_str());
+	}
 }
 
 //! bridge destruction
 /*!
-  destroys bridge
-  */
+ * destroys bridge
+ */
 bridge::~bridge() {
-    klog(verbose, "bridge destructing %s\n", file_name.c_str());
+	klog(info, "bridge destructing %s\n", file_name.c_str());
 
-    // unconfigure bridge first
-    if (bridge_handle && bridge_unconfigure) {
-        bridge_unconfigure(bridge_handle);
-        bridge_handle = NULL;
-    }
+	// unconfigure bridge first
+	if (bridge_handle && bridge_unconfigure) {
+		bridge_unconfigure(bridge_handle);
+		bridge_handle = NULL;
+	}
 }
 

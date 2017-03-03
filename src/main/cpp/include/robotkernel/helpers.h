@@ -26,6 +26,8 @@
 #define __HELPERS_H__
 
 #include <time.h>
+#include <yaml-cpp/yaml.h>
+
 #include "robotkernel/exceptions.h"
 
 #define timespec_add(tvp, sec, nsec) { \
