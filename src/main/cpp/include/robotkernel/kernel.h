@@ -80,9 +80,13 @@ namespace robotkernel {
         ~kernel();
 
     public:
+		int main_argc;		//!< robotkernel's main argument counter
+		char **main_argv;	//!< robotkernel's main arguments
+
         service_list_t service_list;
         service_providers_list_t service_providers;
-        //! add a service provider
+        
+		//! add a service provider
         /*!
          * \param svc_provider service provider to add
          */
@@ -142,7 +146,7 @@ namespace robotkernel {
         /*!
          * \param configfile config file name
          */
-        void config(std::string config_file, int argc, char **argv);
+        void config(std::string config_file, int argc, char *argv[]);
 
         //! powering up modules
         bool power_up();

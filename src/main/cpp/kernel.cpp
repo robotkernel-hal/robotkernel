@@ -360,7 +360,10 @@ void kernel::destroy_instance() {
 /*!
  * \param configfile config file name
  */
-void kernel::config(std::string config_file, int argc, char **argv) {
+void kernel::config(std::string config_file, int argc, char *argv[]) {
+	main_argc = argc; 
+	main_argv = argv;
+
     char *real_exec_file = realpath(argv[0], NULL);
     string file;
     if (!real_exec_file)

@@ -76,7 +76,7 @@ int ln_datatype_size(const std::string& ln_datatype) {
     return 0;
 }
 
-int main(int argc, char** argv) {
+int main(int argc, char* argv[]) {
 
     sigset_t set;
     if (sigemptyset (&set) == -1)
