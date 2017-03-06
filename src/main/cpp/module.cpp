@@ -358,16 +358,6 @@ module::~module() {
         mod_handle = NULL;
     }
 
-    if (so_handle && !kernel::get_instance()->_do_not_unload_modules) {
-        klog(info, "%s unloading module %s\n", name.c_str(), file_name.c_str());
-#ifndef __VXWORKS__ // we do not dlclose on vxworks, vxworks does stupid things
-        if (dlclose(so_handle) != 0)
-            klog(error, "%s error on unloading module %s\n", name.c_str(), file_name.c_str());
-        else
-#endif
-            so_handle = NULL;
-    }
-
     kernel::get_instance()->remove_services(name);
 }
 

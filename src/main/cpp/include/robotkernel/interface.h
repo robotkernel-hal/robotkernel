@@ -37,7 +37,7 @@ namespace robotkernel {
 /*!
   This class opens a shared interface and loads all needed symbols
  */
-class interface {
+class interface : public so_file {
     private:
         interface();
         interface(const interface&);             // prevent copy-construction
@@ -49,7 +49,7 @@ class interface {
           \param interface_file filename of interface
           \param node configuration node
           */
-        interface(const std::string& interface_file, const YAML::Node& node, void* sp_interface);
+        interface(const YAML::Node& node, void* sp_interface);
 
         //! interface destruction
         /*!
@@ -57,13 +57,11 @@ class interface {
           */
         ~interface();
 
-        std::string interface_file;     //! interface shared object file name
         std::string mod_name;           //! module name
         std::string dev_name;           //! device name
         int offset;                     //! module offset
     
     private:
-        void* so_handle;                //! dlopen handle
         INTERFACE_HANDLE intf_handle;   //! interface handle
 
         //! interface symbols

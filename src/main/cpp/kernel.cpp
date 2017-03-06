@@ -624,7 +624,9 @@ int kernel::request_cb(const char *mod_name, int reqcode, void *ptr) {
  */
 kernel::interface_id_t kernel::register_interface_cb(const char *if_name, 
         const YAML::Node& node, void* sp_interface) {
-    interface *iface = new interface(if_name, node, sp_interface);
+	YAML::Node node_copy = node;
+	node_copy["so_file"] = string(if_name);
+    interface *iface = new interface(node_copy, sp_interface);
     if (!iface)
         return (interface_id_t)NULL;
     
