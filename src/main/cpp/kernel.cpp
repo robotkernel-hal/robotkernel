@@ -177,13 +177,7 @@ module_state_t kernel::_internal_get_state(std::string mod_name) {
  * \return actual module state
  */
 module_state_t kernel::get_state(std::string mod_name) {
-    module_state_t _state;
-
-    pthread_mutex_lock(&module_map_lock);
-    _state = _internal_get_state(mod_name);
-    pthread_mutex_unlock(&module_map_lock);
-
-    return _state;
+    return _internal_get_state(mod_name);
 }
 
 //! add bridge callbacks
@@ -416,6 +410,8 @@ kernel::kernel() {
 kernel::~kernel() {
     log(info, "destructing...\n");
 
+    pthread_mutex_lock(&module_map_lock);
+
     log(info, "removing modules\n");
     module_map_t::iterator it;
     while ((it = module_map.begin()) != module_map.end()) {
@@ -428,6 +424,8 @@ kernel::~kernel() {
 
         module_map.erase(it);
     }
+    
+	pthread_mutex_unlock(&module_map_lock);
     
     // remove services
     log(info, "removing services\n");
@@ -590,10 +588,14 @@ void kernel::config(std::string config_file, int argc, char *argv[]) {
             throw str_exception("[robotkernel] module %s not configured!\n", name.c_str());
         }
 
+		pthread_mutex_lock(&module_map_lock);
+
         if (module_map.find(mdl->get_name()) != module_map.end()) {
             string name = mdl->get_name();
             throw str_exception("[robotkernel] duplicate module name: %s\n", name.c_str());
         }
+	
+		pthread_mutex_unlock(&module_map_lock);
 
         // add to module map
         klog(info, "adding [%s]\n", mdl->get_name().c_str());
@@ -649,6 +651,8 @@ void kernel::config(std::string config_file, int argc, char *argv[]) {
 bool kernel::power_up() {
     std::list<string> failed_modules;
 
+	pthread_mutex_lock(&module_map_lock);
+
     // powering up modules to operational
     for (module_map_t::iterator it = module_map.begin();
             it != module_map.end(); ++it) {
@@ -676,6 +680,8 @@ bool kernel::power_up() {
             failed_modules.push_back(mdl->get_name());
         }
     }
+		
+	pthread_mutex_unlock(&module_map_lock);
 
     if (!failed_modules.empty()) {
         string msg = "modules failed to switch to OP: ";
@@ -695,7 +701,9 @@ bool kernel::power_up() {
 
 //! powering down modules
 void kernel::power_down() {
-    // powering up modules to operational
+	pthread_mutex_lock(&module_map_lock);
+    
+	// powering up modules to operational
     for (module_map_t::iterator it = module_map.begin();
             it != module_map.end(); ++it) {
         sp_module_t mdl = it->second;
@@ -706,6 +714,8 @@ void kernel::power_down() {
             log(error, "caught exception: %s\n", e.what());
         }
     }
+	
+	pthread_mutex_unlock(&module_map_lock);
 }
 
 //! checks if all modules are at requested state
@@ -716,15 +726,24 @@ void kernel::power_down() {
  * \return true if we are in right  state
  */
 bool kernel::state_check(std::string mod_name, module_state_t state) {
+	pthread_mutex_lock(&module_map_lock);
+
     kernel::module_map_t::const_iterator it = module_map.find(mod_name);
-    if (it == module_map.end())
+    if (it == module_map.end()) {
+		pthread_mutex_unlock(&module_map_lock);
         throw str_exception("[robotkernel] state_check: module %s not found!\n", mod_name.c_str());
+	}
 
     sp_module_t mdl = it->second;
+		
+	pthread_mutex_unlock(&module_map_lock);
+
     return (mdl->get_state() == state);
 }
 
 bool kernel::state_check() {
+	pthread_mutex_lock(&module_map_lock);
+
     kernel::module_map_t::const_iterator it;
     for (it = module_map.begin(); it != module_map.end(); ++it) {
         module_state_t state = it->second->get_state();
@@ -734,6 +753,8 @@ bool kernel::state_check() {
             set_state(it->first.c_str(), module_state_init);
         }
     }
+	
+	pthread_mutex_unlock(&module_map_lock);
 
     return true;
 }
@@ -754,42 +775,19 @@ int kernel::request_cb(const char *mod_name, int reqcode, void *ptr) {
     if (currently_loading_module && mod_name == currently_loading_module->get_name())
         return currently_loading_module->request(reqcode, ptr);
     
-    kernel::module_map_t::const_iterator it = k.module_map.find(mod_name);
-    if (it == k.module_map.end())
-        throw str_exception("[robotkernel] request_cb: module %s not found!\n", mod_name);
+	pthread_mutex_lock(&k.module_map_lock);
 
-    return it->second->request(reqcode, ptr);
+    kernel::module_map_t::const_iterator it = k.module_map.find(mod_name);
+    if (it == k.module_map.end()) {
+		pthread_mutex_unlock(&k.module_map_lock);
+        throw str_exception("[robotkernel] request_cb: module %s not found!\n", mod_name);
+	}
+	
+	sp_module_t mdl = it->second;
+	pthread_mutex_unlock(&k.module_map_lock);
+
+    return mdl->request(reqcode, ptr);
 }
-        
-////! kernel register interface callback
-///*!
-// * \param if_name interface name to register
-// * \param node configuration node
-// * \return interface id or -1
-// */
-//kernel::interface_id_t kernel::register_interface_cb(const char *if_name, 
-//        const YAML::Node& node, void* sp_interface) {
-//	YAML::Node node_copy = node;
-//	node_copy["so_file"] = string(if_name);
-//    interface *iface = new interface(node_copy, sp_interface);
-//    if (!iface)
-//        return (interface_id_t)NULL;
-//    
-//    return (interface_id_t)iface;
-//}
-//
-////! kernel unregister interface callback
-///*!
-// * \param interface_id interface id
-// * \return N/A
-// */
-//void kernel::unregister_interface_cb(interface_id_t interface_id) {
-//    interface *iface = (interface *)interface_id;
-//    if (!iface)
-//        return;
-//
-//    delete iface;
-//}
 
 //! get module
 /*!
@@ -797,12 +795,19 @@ int kernel::request_cb(const char *mod_name, int reqcode, void *ptr) {
  * \return shared pointer to module
  */
 kernel::sp_module_t kernel::get_module(const std::string& mod_name) {
+	pthread_mutex_lock(&module_map_lock);
+
     kernel::module_map_t::const_iterator it = module_map.find(mod_name);
-    if (it == module_map.end())
+    if (it == module_map.end()) {
+		pthread_mutex_unlock(&module_map_lock);
         throw str_exception("[robotkernel] get_module: module %s not found!\n", 
                 mod_name.c_str());
+	}
 
-    return it->second;
+	sp_module_t mdl = it->second;
+	pthread_mutex_unlock(&module_map_lock);
+
+    return mdl;
 }
 
 //! Send a request to kernel
@@ -992,18 +997,24 @@ int kernel::service_add_module(const service_arglist_t& request,
         YAML::Node node = YAML::Load(config);
         sp_module_t mdl = make_shared<module>(node);
 
+		pthread_mutex_lock(&module_map_lock);
+
         if (module_map.find(mdl->get_name()) != module_map.end()) {
+			pthread_mutex_unlock(&module_map_lock);
+
             string name = mdl->get_name();
             throw str_exception("[robotkernel] duplicate module name: %s\n", name.c_str());
         }
 
         if (!mdl->configured()) {
+			pthread_mutex_unlock(&module_map_lock);
             string name = mdl->get_name();
             throw str_exception("[robotkernel] module %s not configured!\n", name.c_str());
         }
 
         // add to module map
         module_map[mdl->get_name()] = mdl;
+		pthread_mutex_unlock(&module_map_lock);
     } catch(exception& e) {
         error_message = e.what();
     }
@@ -1037,15 +1048,19 @@ int kernel::service_remove_module(const service_arglist_t& request,
     string error_message = "";
 
     try {
+		pthread_mutex_lock(&module_map_lock);
         module_map_t::iterator it = module_map.find(mod_name);
-        if (it == module_map.end())
+        if (it == module_map.end()) {
+			pthread_mutex_unlock(&module_map_lock);
             throw str_exception("[robotkernel] module %s not found!\n", 
                     mod_name.c_str());
+		}
 
         sp_module_t mdl = it->second;
         set_state(mdl->get_name(), module_state_init);
 
         module_map.erase(it);
+		pthread_mutex_unlock(&module_map_lock);
     } catch (exception& e) {
         error_message = e.what();
     }
@@ -1077,12 +1092,14 @@ int kernel::service_module_list(const service_arglist_t& request,
 
     try {        
         int i = 0;
+		pthread_mutex_lock(&module_map_lock);
         modules.resize(module_map.size());
 
         for (module_map_t::const_iterator
                 it = module_map.begin(); it != module_map.end(); ++it) {
             modules[i++] = it->first;
         }
+		pthread_mutex_unlock(&module_map_lock);
     } catch(exception& e) {
         error_message = e.what();
     }
@@ -1118,12 +1135,16 @@ int kernel::service_reconfigure_module(const service_arglist_t& request,
     string error_message = "";
 
     try {
+		pthread_mutex_lock(&module_map_lock);
         module_map_t::iterator it = module_map.find(mod_name);
-        if (it == module_map.end())
+        if (it == module_map.end()) {
+			pthread_mutex_unlock(&module_map_lock);
             throw str_exception("[robotkernel] module %s not found!\n", 
                     mod_name.c_str());
+		}
 
         sp_module_t mdl = it->second;
+		pthread_mutex_unlock(&module_map_lock);
         if (get_state(mod_name) != module_state_init)
             set_state(mdl->get_name(), module_state_init);
 

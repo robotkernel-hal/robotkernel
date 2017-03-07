@@ -91,6 +91,7 @@ EXPORT_C const char *sp_get_sp_magic(SERVICE_PROVIDER_HANDLE hdl) {             
                                                                                     
 namespace robotkernel {
 
+	template <typename T>
 	class service_provider_base : public log_base {
 		private:
 			service_provider_base();                  //!< prevent default construction
@@ -101,7 +102,8 @@ namespace robotkernel {
 			 * \param instance_name service_provider name
 			 * \param name instance name
 			 */
-			service_provider_base(const std::string& instance_name);
+			service_provider_base(const std::string& instance_name)
+				: log_base(instance_name, "service_provider") {};
 
 			virtual ~service_provider_base() {};
 
@@ -111,27 +113,56 @@ namespace robotkernel {
 			 * \param dev_name name of device
 			 * \param slave_id id in module
 			 */
-			virtual void add_slave(const char *mod_name, 
-					const char *dev_name, int slave_id) = 0;
+			void add_slave(const char *mod_name, const char *dev_name, int slave_id) {
+				T *handler = new T(string(mod_name), string(dev_name), slave_id);
+				handler_map[make_pair(string(mod_name), slave_id)] = handler;
+			};
 
 			//! remove registered slave
 			/*!
 			 * \param mod_name slave owning module
 			 * \param slave_id id in module
 			 */
-			virtual void remove_slave(const char *mod_name, int slave_id) = 0;
+			void remove_slave(const char *mod_name, int slave_id) {
+				for (typename std::map<std::pair<std::string, int>, T *>::iterator it =
+						handler_map.begin(); it != handler_map.end(); ++it) {
+					if (it->first.first != string(mod_name))
+						continue; // skip this, not owr module
+
+					if (it->first.second != slave_id) 
+						continue; // skip this, not owr slave
+
+					delete it->second;
+					handler_map.erase(it);
+					return;
+				}
+			};
 
 			//! remove all slaves from module
 			/*!
 			 * \param mod_name module owning slaves
 			 */
-			virtual void remove_module(const char *mod_name) = 0;
+			void remove_module(const char *mod_name) {
+				for (typename std::map<std::pair<std::string, int>, T *>::iterator it =
+						handler_map.begin(); it != handler_map.end(); ) {
+					if (it->first.first != string(mod_name)) {
+						it++;
+						continue; // skip this, not owr module
+					}
+
+					delete it->second;
+					it = handler_map.erase(it);
+				}
+			};
 
 			//! service provider magic 
 			/*!
 			 * \return return service provider magic string
 			 */
 			virtual const char* get_sp_magic() = 0;
+
+			//! hold all created handlers, so we can remove them by name
+			std::map<std::pair<std::string, int>, T *> handler_map;
 	};
 
 }; // namespace robotkernel
