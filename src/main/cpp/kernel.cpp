@@ -390,7 +390,10 @@ kernel::kernel() {
     log(verbose, "major %d, minor %d, patch %d\n",
             _major, _minor, _patch);
 
-    pthread_mutex_init(&module_map_lock, NULL);
+	pthread_mutexattr_t module_map_lock_attr;
+	pthread_mutexattr_init(&module_map_lock_attr);
+	pthread_mutexattr_settype(&module_map_lock_attr, PTHREAD_MUTEX_RECURSIVE);
+	pthread_mutex_init(&module_map_lock, &module_map_lock_attr);
 
     add_service(_name, "get_dump_log", service_definition_get_dump_log,
             std::bind(&kernel::service_get_dump_log, this, _1, _2));
