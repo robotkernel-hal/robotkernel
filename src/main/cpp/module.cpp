@@ -345,19 +345,13 @@ module::~module() {
         delete trigger;
     }
 
-    while (!interfaces.empty()) {
-        interface *iface = interfaces.front();
-        interfaces.pop_front();
-
-        delete iface;
-    }
-
     // unconfigure module first
     if (mod_handle && mod_unconfigure) {
         mod_unconfigure(mod_handle);
         mod_handle = NULL;
     }
 
+	kernel::get_instance()->remove_service_requester(name);
     kernel::get_instance()->remove_services(name);
 }
 

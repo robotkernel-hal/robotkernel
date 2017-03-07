@@ -140,7 +140,8 @@ so_file::so_file(const YAML::Node& node) {
 #endif
 
 	if (!so_handle) {
-		throw str_exception("%s dlopen signaled error opening so_file:\n", file_name.c_str());
+		throw str_exception("%s dlopen signaled error opening so_file: %s\n", 
+				file_name.c_str(), dlerror());
 	}
 }
 

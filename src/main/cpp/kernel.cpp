@@ -186,17 +186,17 @@ module_state_t kernel::get_state(std::string mod_name) {
     return _state;
 }
 
-//! add a service provider
+//! add bridge callbacks
 /*!
- * \param svc_provider service provider to add
+ * \param cbs bridge callback to add
  */
-void kernel::add_service_provider(service_provider_t *svc_provider) {
-    service_providers.push_back(svc_provider);
+void kernel::add_bridge_cbs(bridge::cbs_t *cbs) {
+    bridge_callbacks.push_back(cbs);
     
     for (service_list_t::iterator it = service_list.begin();
             it != service_list.end(); ++it) {
         service_t& svc = *(it->second);
-        svc_provider->add_service(svc);
+        cbs->add_service(svc);
     }
 }
 
@@ -222,17 +222,43 @@ void kernel::add_service(
     svc->callback           = callback;
     service_list[svc->name] = svc;
 
-    for (service_providers_list_t::iterator it = service_providers.begin();
-            it != service_providers.end(); ++it) {
+    for (bridge::cbs_list_t::iterator it = bridge_callbacks.begin();
+            it != bridge_callbacks.end(); ++it) {
         (*it)->add_service(*svc);
     }
 }
-        
+
+//! remove on service given by name
+/*!
+ * \param name service name
+ */
+void kernel::remove_service(const std::string& name) {
+	service_list_t::iterator it;
+	if ((it = service_list.find(name)) == service_list.end())
+		return;	// service not found
+
+	for (bridge::cbs_list_t::iterator 
+			it_prov = bridge_callbacks.begin(); 
+			it_prov != bridge_callbacks.end();
+			++it_prov) {
+		(*it_prov)->remove_service(*(it->second));
+	}
+
+	delete it->second;
+	service_list.erase(it);
+}
+
 //! remove all services from owner
 /*!
  * \param owner service owner
  */
 void kernel::remove_services(const std::string& owner) {
+	// remove all slaves from service providers
+    for (service_provider_map_t::iterator it = service_provider_map.begin();
+			it != service_provider_map.end(); ++it) {
+		it->second->remove_module(owner);
+	}
+
     for (service_list_t::iterator it = service_list.begin(); 
             it != service_list.end(); ) {
         if (it->second->owner != owner) {
@@ -242,9 +268,9 @@ void kernel::remove_services(const std::string& owner) {
 
         log(info, "removing service %s\n", it->second->name.c_str());
 
-        for (service_providers_list_t::iterator 
-                it_prov = service_providers.begin(); 
-                it_prov != service_providers.end();
+        for (bridge::cbs_list_t::iterator 
+                it_prov = bridge_callbacks.begin(); 
+                it_prov != bridge_callbacks.end();
                 ++it_prov) {
             (*it_prov)->remove_service(*(it->second));
         }
@@ -252,6 +278,103 @@ void kernel::remove_services(const std::string& owner) {
         delete it->second;
         it = service_list.erase(it);
     }
+}
+
+//! add service requester
+/*!
+ * \param magic service provider magic
+ * \param owner service requester owner		 
+ * \param name service base name
+ * \param slave_id slave id
+ */
+void kernel::add_service_requester(const std::string &magic,
+		const std::string &owner, const std::string &name, int slave_id) {
+
+	for (std::list<service_requester_t *>::iterator it = service_requester_list.begin();
+		it != service_requester_list.end(); ++it) {
+		if (	((*it)->magic == magic) &&
+				((*it)->owner == owner) &&
+				((*it)->slave_id = slave_id))
+			return; // already registered that slave for magic
+	}
+
+	log(info, "adding service requester %s\n", name.c_str());
+
+    service_requester_t *req = new service_requester_t();
+	req->magic               = magic;
+    req->owner               = owner;
+    req->name                = name;
+	req->slave_id            = slave_id;
+    service_requester_list.push_back(req);
+
+
+	for (service_provider_map_t::iterator it = service_provider_map.begin();
+			it != service_provider_map.end(); ++it) {
+		if (it->second->get_sp_magic() != req->magic)
+			continue;
+
+		it->second->add_slave(req->owner, req->name, req->slave_id);
+	}
+}
+
+//! remove service requester
+/*!
+ * \param magic service provider magic
+ * \param owner service requester owner		 
+ * \param slave_id slave id
+ */
+void kernel::remove_service_requester(const std::string &magic,
+		const std::string &owner, int slave_id) {
+	for (std::list<service_requester_t *>::iterator it = service_requester_list.begin();
+		it != service_requester_list.end(); ++it) {
+		if (	((*it)->magic == magic) &&
+				((*it)->owner == owner) &&
+				((*it)->slave_id = slave_id)) {
+			// remove this one
+			service_requester_t *req = (*it);
+			
+			for (service_provider_map_t::iterator it2 = service_provider_map.begin();
+					it2 != service_provider_map.end(); ++it2) {
+				if (it2->second->get_sp_magic() != req->magic)
+					continue;
+
+				it2->second->remove_slave(req->owner, req->slave_id);
+			}
+
+			delete req;
+			service_requester_list.erase(it);
+			return;
+		}
+	}
+}
+
+//! remove all service requester for given owner
+/*!
+ * \param owner service requester owner		 
+ */
+void kernel::remove_service_requester(const std::string &owner) {
+	for (std::list<service_requester_t *>::iterator it = service_requester_list.begin();
+		it != service_requester_list.end(); ) {
+
+		if ((*it)->owner != owner) {
+			it++;
+			continue;
+		}
+
+		// remove this one
+		service_requester_t *req = (*it);
+
+		for (service_provider_map_t::iterator it2 = service_provider_map.begin();
+				it2 != service_provider_map.end(); ++it2) {
+			if (it2->second->get_sp_magic() != req->magic)
+				continue;
+
+			it2->second->remove_slave(req->owner, req->slave_id);
+		}
+
+		delete req;
+		it = service_requester_list.erase(it);
+	}
 }
 
 //! construction
@@ -310,9 +433,9 @@ kernel::~kernel() {
     log(info, "removing services\n");
     service_list_t::iterator slit;
     while ((slit = service_list.begin()) != service_list.end()) {
-        for (service_providers_list_t::iterator 
-                it_prov = service_providers.begin(); 
-                it_prov != service_providers.end();
+        for (bridge::cbs_list_t::iterator 
+                it_prov = bridge_callbacks.begin(); 
+                it_prov != bridge_callbacks.end();
                 ++it_prov) {
             (*it_prov)->remove_service(*(slit->second));
         }
@@ -498,6 +621,28 @@ void kernel::config(std::string config_file, int argc, char *argv[]) {
         klog(info, "adding [%s]\n", brdg->name.c_str());
         bridge_map[brdg->name] = brdg;
     }
+	
+	const YAML::Node& service_providers = doc["service_providers"];
+    for (YAML::const_iterator it = service_providers.begin(); it != service_providers.end(); ++it) {
+        sp_service_provider_t sp;
+        try {
+            sp = make_shared<service_provider>(*it);
+        }
+        catch(const exception& e) {
+            throw str_exception("exception while instantiating service_provider %s:\n%s",
+                                get_as<string>(*it, "name", "<no name specified>").c_str(),
+                                e.what());
+        }
+
+        if (service_provider_map.find(sp->name) != service_provider_map.end()) {
+            throw str_exception("[robotkernel] duplicate module name: %s\n", 
+					sp->name.c_str());
+        }
+
+        // add to module map
+        klog(info, "adding [%s]\n", sp->name.c_str());
+        service_provider_map[sp->name] = sp;
+    }
 }
 
 //! powering up modules
@@ -616,35 +761,35 @@ int kernel::request_cb(const char *mod_name, int reqcode, void *ptr) {
     return it->second->request(reqcode, ptr);
 }
         
-//! kernel register interface callback
-/*!
- * \param if_name interface name to register
- * \param node configuration node
- * \return interface id or -1
- */
-kernel::interface_id_t kernel::register_interface_cb(const char *if_name, 
-        const YAML::Node& node, void* sp_interface) {
-	YAML::Node node_copy = node;
-	node_copy["so_file"] = string(if_name);
-    interface *iface = new interface(node_copy, sp_interface);
-    if (!iface)
-        return (interface_id_t)NULL;
-    
-    return (interface_id_t)iface;
-}
-
-//! kernel unregister interface callback
-/*!
- * \param interface_id interface id
- * \return N/A
- */
-void kernel::unregister_interface_cb(interface_id_t interface_id) {
-    interface *iface = (interface *)interface_id;
-    if (!iface)
-        return;
-
-    delete iface;
-}
+////! kernel register interface callback
+///*!
+// * \param if_name interface name to register
+// * \param node configuration node
+// * \return interface id or -1
+// */
+//kernel::interface_id_t kernel::register_interface_cb(const char *if_name, 
+//        const YAML::Node& node, void* sp_interface) {
+//	YAML::Node node_copy = node;
+//	node_copy["so_file"] = string(if_name);
+//    interface *iface = new interface(node_copy, sp_interface);
+//    if (!iface)
+//        return (interface_id_t)NULL;
+//    
+//    return (interface_id_t)iface;
+//}
+//
+////! kernel unregister interface callback
+///*!
+// * \param interface_id interface id
+// * \return N/A
+// */
+//void kernel::unregister_interface_cb(interface_id_t interface_id) {
+//    interface *iface = (interface *)interface_id;
+//    if (!iface)
+//        return;
+//
+//    delete iface;
+//}
 
 //! get module
 /*!

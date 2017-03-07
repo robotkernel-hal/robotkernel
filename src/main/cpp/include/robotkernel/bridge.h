@@ -29,42 +29,53 @@
 #include <stdio.h>
 #include "robotkernel/bridge_intf.h"
 #include "robotkernel/so_file.h"
+#include "robotkernel/service.h"
 #include "yaml-cpp/yaml.h"
 
 namespace robotkernel {
 
-//! bridge class
-/*!
-  This class opens a shared bridge and loads all needed symbols
- */
-class bridge : public so_file {
-	private:
-		bridge();
-		bridge(const bridge&);			   // prevent copy-construction
-		bridge& operator=(const bridge&);  // prevent assignment
+	//! bridge class
+	/*!
+	  This class opens a shared bridge and loads all needed symbols
+	  */
+	class bridge : public so_file {
+		public:
+			typedef std::function<void(const robotkernel::service_t& svc)> cb_t;
 
-	public:
-		//! bridge construction
-		/*!
-		  \param node configuration node
-		  */
-		bridge(const YAML::Node& node);
+			typedef struct cbs {
+				cb_t add_service;
+				cb_t remove_service;
+			} cbs_t;
 
-		//! bridge destruction
-		/*!
-		  destroys bridge
-		  */
-		~bridge();
+			typedef std::list<cbs_t *> cbs_list_t;
 
-		std::string name;							//!< bridge name
-	
-	private:
-		BRIDGE_HANDLE bridge_handle;				//!< bridge handle
+		private:
+			bridge();
+			bridge(const bridge&);			   // prevent copy-construction
+			bridge& operator=(const bridge&);  // prevent assignment
 
-		//! bridge symbols
-		bridge_configure_t bridge_configure;		//!< configure bridge
-		bridge_unconfigure_t bridge_unconfigure;	//!< unconfigure bridge
-};
+		public:
+			//! bridge construction
+			/*!
+			  \param node configuration node
+			  */
+			bridge(const YAML::Node& node);
+
+			//! bridge destruction
+			/*!
+			  destroys bridge
+			  */
+			~bridge();
+
+			std::string name;							//!< bridge name
+
+		private:
+			BRIDGE_HANDLE bridge_handle;				//!< bridge handle
+
+			//! bridge symbols
+			bridge_configure_t bridge_configure;		//!< configure bridge
+			bridge_unconfigure_t bridge_unconfigure;	//!< unconfigure bridge
+	};
 
 } // namespace robotkernel
 

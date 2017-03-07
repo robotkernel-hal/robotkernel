@@ -29,3 +29,13 @@ using namespace std;
 using namespace std::placeholders;
 using namespace robotkernel;
         
+//! construction
+/*!
+ * \param instance_name service_provider name
+ * \param name instance name
+ */
+service_provider_base::service_provider_base(
+		const std::string& instance_name)
+	: log_base(instance_name, "service_provider") {
+}
+

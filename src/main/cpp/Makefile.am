@@ -9,7 +9,8 @@ bin_PROGRAMS = robotkernel robotkernel_debug
 include_HEADERS = $(headerdir)/module_intf.h \
 				  $(headerdir)/module.h \
 				  $(headerdir)/module_base.h \
-				  $(headerdir)/interface.h \
+				  $(headerdir)/service_provider.h \
+				  $(headerdir)/service_provider_intf.h \
 				  $(headerdir)/service_provider_base.h \
 				  $(headerdir)/exceptions.h \
 				  $(headerdir)/kernel.h \
@@ -30,7 +31,7 @@ include_HEADERS = $(headerdir)/module_intf.h \
 				  $(headerdir)/so_file.h \
 				  $(gen_headerdir)/config.h
 
-robotkernel_SOURCES = module.cpp module_intf.cpp interface.cpp main.cpp \
+robotkernel_SOURCES = module.cpp module_intf.cpp service_provider.cpp main.cpp \
 					  exceptions.cpp kernel.cpp kernel_worker.cpp       \
 					  runnable.cpp trigger_base.cpp log_thread.cpp 		\
 					  dump_log.cpp char_ringbuffer.cpp module_base.cpp 	\

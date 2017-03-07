@@ -29,12 +29,15 @@
 #include "robotkernel/kernel.h"
 #include "robotkernel/exceptions.h"
 #include "robotkernel/helpers.h"
+#include "robotkernel/service_provider_intf.h"
 #include "robotkernel/service_provider.h"
+#include "robotkernel/log_base.h"
 
 #include "yaml-cpp/yaml.h"
 
 #include <map>
 #include <functional>
+#include <string_util/string_util.h>
 
 #ifdef __cplusplus
 #define EXPORT_C extern "C"
@@ -42,10 +45,102 @@
 #define EXPORT_C
 #endif
 
+#define HDL_2_SERVICE_PROVIDERCLASS(hdl, spname, spclass)                                 \
+	spclass *dev = reinterpret_cast<spclass *>(hdl);                                      \
+	if (!dev)                                                                             \
+		throw str_exception("["#spname"] invalid sp "                                     \
+			"handle to <"#spclass" *>\n"); 
+
+#define SERVICE_PROVIDER_DEF(spname, spclass)                                             \
+EXPORT_C SERVICE_PROVIDER_HANDLE sp_register() {                                          \
+	spclass *dev = new spclass();                                                         \
+	if (!dev)                                                                             \
+		throw str_exception("error allocating memory\n");                                 \
+																					      \
+	return (SERVICE_PROVIDER_HANDLE)dev;                                                  \
+}                                                                                         \
+                                                                                          \
+EXPORT_C int sp_unregister(SERVICE_PROVIDER_HANDLE hdl) {                                 \
+	HDL_2_SERVICE_PROVIDERCLASS(hdl, spname, spclass)                                     \
+	delete dev;                                                                           \
+	return 0;                                                                             \
+}                                                                                         \
+																					      \
+EXPORT_C void sp_add_slave(SERVICE_PROVIDER_HANDLE hdl,                                   \
+		const char *mod_name, const char *dev_name, int slave_id) {                       \
+	HDL_2_SERVICE_PROVIDERCLASS(hdl, spname, spclass)                                     \
+	dev->add_slave(mod_name, dev_name, slave_id);                                         \
+}                                                                                         \
+                                                                                          \
+EXPORT_C void sp_remove_slave(SERVICE_PROVIDER_HANDLE hdl,                                \
+		const char *mod_name, int slave_id) {                                             \
+	HDL_2_SERVICE_PROVIDERCLASS(hdl, spname, spclass)                                     \
+	dev->remove_slave(mod_name, slave_id);                                                \
+}                                                                                         \
+                                                                                          \
+EXPORT_C void sp_remove_module(SERVICE_PROVIDER_HANDLE hdl,                               \
+		const char *mod_name) {                                                           \
+	HDL_2_SERVICE_PROVIDERCLASS(hdl, spname, spclass)                                     \
+	dev->remove_module(mod_name);                                                         \
+}                                                                                         \
+                                                                                          \
+EXPORT_C const char *sp_get_sp_magic(SERVICE_PROVIDER_HANDLE hdl) {                       \
+	HDL_2_SERVICE_PROVIDERCLASS(hdl, spname, spclass)                                     \
+	return dev->get_sp_magic();                                                           \
+} 
+                                                                                    
+namespace robotkernel {
+
+	class service_provider_base : public log_base {
+		private:
+			service_provider_base();                  //!< prevent default construction
+
+		public:
+			//! construction
+			/*!
+			 * \param instance_name service_provider name
+			 * \param name instance name
+			 */
+			service_provider_base(const std::string& instance_name);
+
+			virtual ~service_provider_base() {};
+
+			//! add slave
+			/*!
+			 * \param mod_name slave owning module
+			 * \param dev_name name of device
+			 * \param slave_id id in module
+			 */
+			virtual void add_slave(const char *mod_name, 
+					const char *dev_name, int slave_id) = 0;
+
+			//! remove registered slave
+			/*!
+			 * \param mod_name slave owning module
+			 * \param slave_id id in module
+			 */
+			virtual void remove_slave(const char *mod_name, int slave_id) = 0;
+
+			//! remove all slaves from module
+			/*!
+			 * \param mod_name module owning slaves
+			 */
+			virtual void remove_module(const char *mod_name) = 0;
+
+			//! service provider magic 
+			/*!
+			 * \return return service provider magic string
+			 */
+			virtual const char* get_sp_magic() = 0;
+	};
+
+}; // namespace robotkernel
+
+
 #define HDL_2_INTFCLASS(hdl, intfname, intfclass)               \
     intfclass *dev = reinterpret_cast<intfclass *>(hdl);        \
     if (!dev)                                                   \
-        throw robotkernel::str_exception(                       \
+        throw str_exception(                       \
                 "["#intfname"] invalid interface "              \
                 "handle to <"#intfclass" *>\n");
 
@@ -62,11 +157,11 @@ EXPORT_C INTERFACE_HANDLE intf_register() {                     \
                                                                 \
     dev = new intfclass(doc);                                   \
     if (!dev)                                                   \
-        throw robotkernel::str_exception(                       \
+        throw str_exception(                       \
                 "["#intfname"] error allocating memory\n");     \
                                                                 \
     return (INTERFACE_HANDLE)dev;                               \
-}
+}                                                               
 
 namespace robotkernel {
 

@@ -36,6 +36,7 @@
 #include <robotkernel/module.h>
 #include <robotkernel/bridge.h>
 #include <robotkernel/service.h>
+#include <robotkernel/service_provider.h>
 
 #define klog(...) robotkernel::kernel::get_instance()->log(__VA_ARGS__)
 
@@ -44,6 +45,7 @@ namespace robotkernel {
     class kernel {
         typedef std::shared_ptr<module> sp_module_t;
 		typedef std::shared_ptr<bridge> sp_bridge_t;
+		typedef std::shared_ptr<service_provider> sp_service_provider_t;
 
     private:
         //! kernel singleton instance
@@ -62,6 +64,10 @@ namespace robotkernel {
 		// bridges map
         typedef std::map<std::string, sp_bridge_t> bridge_map_t;
 		bridge_map_t bridge_map;
+
+		// service_providers map
+        typedef std::map<std::string, sp_service_provider_t> service_provider_map_t;
+		service_provider_map_t service_provider_map;
 
         //! return module state
         /*!
@@ -84,13 +90,14 @@ namespace robotkernel {
 		char **main_argv;	//!< robotkernel's main arguments
 
         service_list_t service_list;
-        service_providers_list_t service_providers;
+		service_requester_list_t service_requester_list;
+		bridge::cbs_list_t bridge_callbacks;
         
-		//! add a service provider
+		//! add bridge callbacks
         /*!
-         * \param svc_provider service provider to add
+         * \param cbs bridge callback to add
          */
-        void add_service_provider(service_provider_t *svc_provider);
+        void add_bridge_cbs(bridge::cbs_t *cbs);
 
         //! add service to kernel
         /*!
@@ -105,12 +112,49 @@ namespace robotkernel {
                 const std::string &service_definition,
                 service_callback_t callback);
 
+		//! remove on service given by name
+		/*!
+		 * \param name service name
+		 */
+		void remove_service(const std::string& name);
+
         //! remove all services from owner
         /*!
          * \param owner service owner
          */
         void remove_services(const std::string &owner);
 
+		//! add service requester
+		/*!
+		 * \param magic service provider magic
+		 * \param owner service requester owner		 
+		 * \param name service base name
+		 * \param slave_id slave id
+		 */
+		void add_service_requester(
+				const std::string &magic,
+				const std::string &owner,
+				const std::string &name,
+				int slave_id);
+
+		//! remove service requester
+		/*!
+		 * \param magic service provider magic
+		 * \param owner service requester owner		 
+		 * \param slave_id slave id
+		 */
+		void remove_service_requester(
+				const std::string &magic,
+				const std::string &owner,
+				int slave_id);
+		
+		//! remove all service requester for given owner
+		/*!
+		 * \param owner service requester owner		 
+		 */
+		void remove_service_requester(
+				const std::string &owner);
+		
         //! register trigger module to module named mod_name
         /*!
          * \param mod_name module name
@@ -194,24 +238,24 @@ namespace robotkernel {
          */
         static int request_cb(const char *mod_name, int reqcode, void *ptr);
 
-        typedef void *interface_id_t;
-
-        //! kernel register interface callback
-        /*!
-         * \param if_name interface name to register
-         * \param node configuration node
-         * \return interface id or -1
-         */
-        static interface_id_t register_interface_cb(const char *if_name,
-                                                    const YAML::Node &node,
-                                                    void* sp_interface);
-
-        //! kernel unregister interface callback
-        /*!
-         * \param interface_id interface id
-         * \return N/A
-         */
-        static void unregister_interface_cb(interface_id_t interface_id);
+//        typedef void *interface_id_t;
+//
+//        //! kernel register interface callback
+//        /*!
+//         * \param if_name interface name to register
+//         * \param node configuration node
+//         * \return interface id or -1
+//         */
+//        static interface_id_t register_interface_cb(const char *if_name,
+//                                                    const YAML::Node &node,
+//                                                    void* sp_interface);
+//
+//        //! kernel unregister interface callback
+//        /*!
+//         * \param interface_id interface id
+//         * \return N/A
+//         */
+//        static void unregister_interface_cb(interface_id_t interface_id);
 
         //! module state change
         /*!

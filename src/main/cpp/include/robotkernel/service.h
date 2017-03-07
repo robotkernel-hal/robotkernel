@@ -34,28 +34,19 @@
 #include "robotkernel/rk_type.h"
 
 namespace robotkernel {
-        
-    typedef std::vector<rk_type> service_arglist_t;
-    typedef std::function<int(const service_arglist_t&, service_arglist_t&)> service_callback_t;
 
-    typedef struct service {
-        std::string owner;
-        std::string name;
-        std::string service_definition;
-        service_callback_t callback;
-    } service_t;
+	typedef std::vector<rk_type> service_arglist_t;
+	typedef std::function<int(const service_arglist_t&, service_arglist_t&)> service_callback_t;
 
-    typedef std::map<std::string, service_t *> service_list_t;
+	typedef struct service {
+		std::string owner;
+		std::string name;
+		std::string service_definition;
+		service_callback_t callback;
+	} service_t;
 
-    typedef std::function<void(const robotkernel::service_t& svc)>
-        service_provider_cb_t;
+	typedef std::map<std::string, service_t *> service_list_t;
 
-    typedef struct service_provider {
-        service_provider_cb_t add_service;
-        service_provider_cb_t remove_service;
-    } service_provider_t;
-
-    typedef std::list<service_provider_t *> service_providers_list_t;
 } // namespace robotkernel
 
 #endif // __SERVICE_H__

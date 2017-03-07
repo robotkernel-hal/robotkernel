@@ -30,7 +30,6 @@
 #include <stdio.h>
 
 #include <robotkernel/module_intf.h>
-#include <robotkernel/interface.h>
 #include <robotkernel/service.h>
 #include <robotkernel/so_file.h>
 
@@ -83,7 +82,6 @@ class module : public so_file {
 
         typedef std::list<external_trigger *> trigger_list_t; //! trigger list
         typedef std::list<std::string> depend_list_t;         //! dependency list
-        typedef std::list<interface *> intf_list_t;           //! interface list
 
         //! module construction
         /*!
@@ -235,7 +233,6 @@ class module : public so_file {
         module_state_t power_up;        //! auto power up on startup
         depend_list_t depends;          //! module dependecy list
         trigger_list_t triggers;        //! module trigger list
-        intf_list_t interfaces;
 
     private:
         void _init();
