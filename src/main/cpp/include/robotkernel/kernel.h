@@ -238,25 +238,6 @@ namespace robotkernel {
          */
         static int request_cb(const char *mod_name, int reqcode, void *ptr);
 
-//        typedef void *interface_id_t;
-//
-//        //! kernel register interface callback
-//        /*!
-//         * \param if_name interface name to register
-//         * \param node configuration node
-//         * \return interface id or -1
-//         */
-//        static interface_id_t register_interface_cb(const char *if_name,
-//                                                    const YAML::Node &node,
-//                                                    void* sp_interface);
-//
-//        //! kernel unregister interface callback
-//        /*!
-//         * \param interface_id interface id
-//         * \return N/A
-//         */
-//        static void unregister_interface_cb(interface_id_t interface_id);
-
         //! module state change
         /*!
          * \param mod_name module name which changed state

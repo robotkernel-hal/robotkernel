@@ -103,7 +103,7 @@ namespace robotkernel {
 			 * \param name instance name
 			 */
 			service_provider_base(const std::string& instance_name)
-				: log_base(instance_name, "service_provider") {};
+				: log_base("service_provider", instance_name) {};
 
 			virtual ~service_provider_base() {};
 

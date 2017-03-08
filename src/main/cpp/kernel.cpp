@@ -288,7 +288,7 @@ void kernel::add_service_requester(const std::string &magic,
 		it != service_requester_list.end(); ++it) {
 		if (	((*it)->magic == magic) &&
 				((*it)->owner == owner) &&
-				((*it)->slave_id = slave_id))
+				((*it)->slave_id == slave_id))
 			return; // already registered that slave for magic
 	}
 
@@ -323,7 +323,7 @@ void kernel::remove_service_requester(const std::string &magic,
 		it != service_requester_list.end(); ++it) {
 		if (	((*it)->magic == magic) &&
 				((*it)->owner == owner) &&
-				((*it)->slave_id = slave_id)) {
+				((*it)->slave_id == slave_id)) {
 			// remove this one
 			service_requester_t *req = (*it);
 			
