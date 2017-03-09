@@ -59,7 +59,7 @@ namespace robotkernel {
         // modules map
         typedef std::map<std::string, sp_module_t> module_map_t;
         module_map_t module_map;
-        pthread_mutex_t module_map_lock;
+        pthread_rwlock_t module_map_lock;
         
 		// bridges map
         typedef std::map<std::string, sp_bridge_t> bridge_map_t;
@@ -126,10 +126,15 @@ namespace robotkernel {
 
 		//! add service requester
 		/*!
-		 * \param magic service provider magic
-		 * \param owner service requester owner		 
-		 * \param name service base name
-		 * \param slave_id slave id
+		 * \param magic service provider magic  | name of service provider 
+		 * \param owner service requester owner | name of calling module
+		 * \param name service base name        | service prefix
+		 * \param slave_id slave id             | slave id of calling slave in module
+         * \param shr_ptr<class>                | slave inteface specialization         
+         *
+         * shr_ptr<class>->owner
+         * shr_ptr<class>->slave_id
+         *
 		 */
 		void add_service_requester(
 				const std::string &magic,
