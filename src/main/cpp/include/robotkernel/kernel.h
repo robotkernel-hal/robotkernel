@@ -43,6 +43,7 @@
 namespace robotkernel {
 
     class kernel {
+    public:
         typedef std::shared_ptr<module> sp_module_t;
 		typedef std::shared_ptr<bridge> sp_bridge_t;
 		typedef std::shared_ptr<service_provider> sp_service_provider_t;

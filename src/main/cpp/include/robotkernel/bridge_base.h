@@ -40,46 +40,58 @@
 #endif
 
 #define HDL_2_BRIDGECLASS(hdl, bridgename, bridgeclass)                             \
-	bridgeclass *dev = reinterpret_cast<bridgeclass *>(hdl);                        \
-	if (!dev)                                                                       \
-		throw str_exception("["#bridgename"] invalid bridge "                       \
-			"handle to <"#bridgeclass" *>\n"); 
+    bridgeclass *dev = reinterpret_cast<bridgeclass *>(hdl);                        \
+    if (!dev)                                                                       \
+        throw str_exception("["#bridgename"] invalid bridge "                       \
+            "handle to <"#bridgeclass" *>\n"); 
 
 #define BRIDGE_DEF(bridgename, bridgeclass)                                         \
 EXPORT_C int bridge_unconfigure(BRIDGE_HANDLE hdl) {                                \
-	HDL_2_BRIDGECLASS(hdl, bridgename, bridgeclass)                                 \
-	delete dev;                                                                     \
-	return 0;                                                                       \
+    HDL_2_BRIDGECLASS(hdl, bridgename, bridgeclass)                                 \
+    delete dev;                                                                     \
+    return 0;                                                                       \
 }                                                                                   \
-																					\
+                                                                                    \
 EXPORT_C BRIDGE_HANDLE bridge_configure(const char* name, const char* config) {     \
-	bridgeclass *dev;                                                               \
-	YAML::Node doc = YAML::Load(config);                                            \
-																					\
-	dev = new bridgeclass(name, doc);                                               \
-	if (!dev)                                                                       \
-		throw str_exception("["#bridgename"] error allocating memory\n");           \
-																					\
-	return (BRIDGE_HANDLE)dev;                                                      \
+    bridgeclass *dev;                                                               \
+    YAML::Node doc = YAML::Load(config);                                            \
+                                                                                    \
+    dev = new bridgeclass(name, doc);                                               \
+    if (!dev)                                                                       \
+        throw str_exception("["#bridgename"] error allocating memory\n");           \
+                                                                                    \
+    return (BRIDGE_HANDLE)dev;                                                      \
 }
 
 namespace robotkernel {
 
-	class bridge_base : public log_base {
-		private:
-			bridge_base();                  //!< prevent default construction
+    class bridge_base : public log_base {
+        private:
+            bridge_base();                  //!< prevent default construction
 
-		public:
-			//! construction
-			/*!
-			 * \param instance_name bridge name
-			 * \param name instance name
-			 */
-			bridge_base(const std::string& instance_name, const std::string& name, 
-					const YAML::Node& node = YAML::Node());
+        public:
+            //! construction
+            /*!
+             * \param instance_name bridge name
+             * \param name instance name
+             */
+            bridge_base(const std::string& instance_name, const std::string& name, 
+                    const YAML::Node& node = YAML::Node());
 
-			virtual ~bridge_base() {};
-	};
+            virtual ~bridge_base() {};
+
+            //! create and register ln service
+            /*!
+             * \param svc robotkernel service struct
+             */
+            virtual void add_service(const robotkernel::service_t &svc) = 0;
+
+            //! unregister and remove ln service 
+            /*!
+             * \param svc robotkernel service struct
+             */
+            virtual void remove_service(const robotkernel::service_t &svc) = 0;
+    };
 
 };
 
