@@ -42,7 +42,7 @@
 #define HDL_2_BRIDGECLASS(hdl, bridgename, bridgeclass)                             \
     bridgeclass *dev = reinterpret_cast<bridgeclass *>(hdl);                        \
     if (!dev)                                                                       \
-        throw str_exception("["#bridgename"] invalid bridge "                       \
+        throw string_util::str_exception("["#bridgename"] invalid bridge "          \
             "handle to <"#bridgeclass" *>\n"); 
 
 #define BRIDGE_DEF(bridgename, bridgeclass)                                         \
@@ -58,7 +58,8 @@ EXPORT_C BRIDGE_HANDLE bridge_configure(const char* name, const char* config) { 
                                                                                     \
     dev = new bridgeclass(name, doc);                                               \
     if (!dev)                                                                       \
-        throw str_exception("["#bridgename"] error allocating memory\n");           \
+        throw string_util::str_exception(                                           \
+                "["#bridgename"] error allocating memory\n");                       \
                                                                                     \
     return (BRIDGE_HANDLE)dev;                                                      \
 }

@@ -38,51 +38,51 @@
 #define EXPORT_C
 #endif
 
-#define HDL_2_MODCLASS(hdl, instance_name, modclass)                                      \
+#define HDL_2_MODCLASS(hdl, instance_name, modclass)                                \
     modclass *dev = reinterpret_cast<modclass *>(hdl);                              \
     if (!dev)                                                                       \
-        throw str_exception("["#instance_name"] invalid module "             \
+        throw string_util::str_exception("["#instance_name"] invalid module "       \
                 "handle to <"#modclass" *>\n"); 
 
-#define MODULE_DEF(instance_name, modclass)                                               \
+#define MODULE_DEF(instance_name, modclass)                                         \
                                                                                     \
 EXPORT_C size_t mod_read(MODULE_HANDLE hdl, void* buf, size_t bufsize) {            \
-    HDL_2_MODCLASS(hdl, instance_name, modclass)                                          \
+    HDL_2_MODCLASS(hdl, instance_name, modclass)                                    \
     return dev->read(buf, bufsize);                                                 \
 }                                                                                   \
                                                                                     \
 EXPORT_C size_t mod_write(MODULE_HANDLE hdl, void* buf, size_t bufsize) {           \
-    HDL_2_MODCLASS(hdl, instance_name, modclass)                                          \
+    HDL_2_MODCLASS(hdl, instance_name, modclass)                                    \
     return dev->write(buf, bufsize);                                                \
 }                                                                                   \
                                                                                     \
 EXPORT_C int mod_request(MODULE_HANDLE hdl, int reqcode, void *arg) {               \
-    HDL_2_MODCLASS(hdl, instance_name, modclass)                                          \
+    HDL_2_MODCLASS(hdl, instance_name, modclass)                                    \
     return dev->request(reqcode, arg);                                              \
 }                                                                                   \
                                                                                     \
 EXPORT_C void mod_trigger(MODULE_HANDLE hdl) {                                      \
-    HDL_2_MODCLASS(hdl, instance_name, modclass)                                          \
+    HDL_2_MODCLASS(hdl, instance_name, modclass)                                    \
     return dev->trigger();                                                          \
 }                                                                                   \
                                                                                     \
 EXPORT_C void mod_trigger_slave_id(MODULE_HANDLE hdl, uint32_t slave_id) {          \
-    HDL_2_MODCLASS(hdl, instance_name, modclass)                                          \
+    HDL_2_MODCLASS(hdl, instance_name, modclass)                                    \
     return dev->trigger_slave_id(slave_id);                                         \
 }                                                                                   \
                                                                                     \
 EXPORT_C size_t mod_set_state(MODULE_HANDLE hdl, module_state_t state) {            \
-    HDL_2_MODCLASS(hdl, instance_name, modclass)                                          \
+    HDL_2_MODCLASS(hdl, instance_name, modclass)                                    \
     return dev->set_state(state);                                                   \
 }                                                                                   \
                                                                                     \
 EXPORT_C module_state_t mod_get_state(MODULE_HANDLE hdl) {                          \
-    HDL_2_MODCLASS(hdl, instance_name, modclass)                                          \
+    HDL_2_MODCLASS(hdl, instance_name, modclass)                                    \
     return dev->get_state();                                                        \
 }                                                                                   \
                                                                                     \
 EXPORT_C int mod_unconfigure(MODULE_HANDLE hdl) {                                   \
-    HDL_2_MODCLASS(hdl, instance_name, modclass)                                          \
+    HDL_2_MODCLASS(hdl, instance_name, modclass)                                    \
     delete dev;                                                                     \
     return 0;                                                                       \
 }                                                                                   \
@@ -93,7 +93,8 @@ EXPORT_C MODULE_HANDLE mod_configure(const char* name, const char* config) {    
                                                                                     \
     dev = new modclass(name, doc);                                                  \
     if (!dev)                                                                       \
-        throw str_exception("["#instance_name"] error allocating memory\n"); \
+        throw string_util::str_exception(                                           \
+                "["#instance_name"] error allocating memory\n");                    \
                                                                                     \
     return (MODULE_HANDLE)dev;                                                      \
 }
@@ -126,7 +127,7 @@ class module_base : public log_base {
          * \return size of read bytes
          */
         virtual size_t read(void* buf, size_t bufsize) {
-            throw str_exception("[%s|%s] read not implemented!\n", 
+            throw string_util::str_exception("[%s|%s] read not implemented!\n", 
                     instance_name.c_str(), name.c_str());
         }
         
@@ -137,13 +138,13 @@ class module_base : public log_base {
          * \return size of written bytes
          */
         virtual size_t write(void* buf, size_t bufsize) {
-            throw str_exception("[%s|%s] write not implemented!\n",
+            throw string_util::str_exception("[%s|%s] write not implemented!\n",
                     instance_name.c_str(), name.c_str());
         }
         
         //! module trigger callback
         virtual void trigger() {
-            throw str_exception("[%s|%s] trigger not implemented!\n",
+            throw string_util::str_exception("[%s|%s] trigger not implemented!\n",
                     instance_name.c_str(), name.c_str());
         }
 
@@ -152,7 +153,7 @@ class module_base : public log_base {
          * \param slave_id slave id to trigger
          */
         virtual void trigger_slave_id(uint32_t slave_id) {
-            throw str_exception("[%s|%s] trigger slave_id not implemented!\n",
+            throw string_util::str_exception("[%s|%s] trigger slave_id not implemented!\n",
                     instance_name.c_str(), name.c_str());
         }
 
@@ -162,7 +163,7 @@ class module_base : public log_base {
          * \return success or failure
          */
         virtual int set_state(module_state_t state) {
-            throw str_exception("[%s|%s] set_state not implemented!\n",
+            throw string_util::str_exception("[%s|%s] set_state not implemented!\n",
                     instance_name.c_str(), name.c_str());
         }
 

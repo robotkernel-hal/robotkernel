@@ -45,6 +45,7 @@
 using namespace std;
 using namespace std::placeholders;
 using namespace robotkernel;
+using namespace string_util;
 
 const char string_state_error[]   = "<ERROR>";
 const char string_state_unknown[] = "<UNKNOWN>";

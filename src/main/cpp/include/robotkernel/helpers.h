@@ -48,7 +48,7 @@ type get_as(const YAML::Node& node, const std::string key) {
         YAML::Emitter out;
         out << node;
 
-        throw str_exception("[config-error] key \"%s\" not found!\n\n%s\n", 
+        throw string_util::str_exception("[config-error] key \"%s\" not found!\n\n%s\n", 
                 key.c_str(), out.c_str());
     }
 
@@ -56,7 +56,7 @@ type get_as(const YAML::Node& node, const std::string key) {
         // gcc3.3 need this syntax for calling this template 
         return node[key].template as<type>();
     } catch(const std::exception& e) {
-        throw str_exception("[config-error] key \"%s\" is probably of " 
+        throw string_util::str_exception("[config-error] key \"%s\" is probably of " 
                 "wrong data-type:\n%s", key.c_str(), e.what());
     }
 }
@@ -70,7 +70,7 @@ type get_as(const YAML::Node& node, const std::string key, type dflt) {
         // gcc3.3 need this syntax for calling this template 
         return node[key].template as<type>();
     } catch(const std::exception& e) {
-        throw str_exception("[config-error] key \"%s\" is probably of "
+        throw string_util::str_exception("[config-error] key \"%s\" is probably of "
                 "wrong data-type:\n%s", key.c_str(), e.what());
     }
 }

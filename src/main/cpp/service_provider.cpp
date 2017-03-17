@@ -37,6 +37,7 @@
 
 using namespace std;
 using namespace robotkernel;
+using namespace string_util;
 
 //! service_provider construction
 /*!
@@ -50,7 +51,6 @@ service_provider::service_provider(const YAML::Node& node) : so_file(node) {
 	sp_add_slave     = (sp_add_slave_t)dlsym(so_handle, "sp_add_slave");
 	sp_remove_slave  = (sp_remove_slave_t)dlsym(so_handle, "sp_remove_slave");
 	sp_remove_module = (sp_remove_module_t)dlsym(so_handle, "sp_remove_module");
-	sp_get_sp_magic = (sp_get_sp_magic_t)dlsym(so_handle, "sp_get_sp_magic");
 
 	if (!sp_register)
 		klog(verbose, "missing sp_register in %s\n", file_name.c_str());
@@ -62,8 +62,6 @@ service_provider::service_provider(const YAML::Node& node) : so_file(node) {
 		klog(verbose, "missing sp_remove_slave in %s\n", file_name.c_str());
 	if (!sp_remove_module)
 		klog(verbose, "missing sp_remove_module in %s\n", file_name.c_str());
-	if (!sp_get_sp_magic)
-		klog(verbose, "missing sp_get_sp_magic in %s\n", file_name.c_str());
 
 	// try to configure
 	if (sp_register) {
@@ -87,13 +85,9 @@ service_provider::~service_provider() {
 
 //! add slave
 /*!
- * \param mod_name slave owning module
- * \param dev_name name of device
- * \param slave_id id in module
- * \return slv_hdl slave handle
+ * \param req slave inteface specialization         
  */
-void service_provider::add_slave(std::string mod_name, 
-		std::string dev_name, int slave_id) {
+void service_provider::add_slave(sp_service_requester_t req) {
     if (!sp_handle)
         throw str_exception("%s not configured!\n", name.c_str());
 
@@ -102,15 +96,14 @@ void service_provider::add_slave(std::string mod_name,
         return; 
     }
 
-    sp_add_slave(sp_handle, mod_name.c_str(), dev_name.c_str(), slave_id);
+    sp_add_slave(sp_handle, req);
 }
 
 //! remove registered slave
 /*!
- * \param mod_name slave owning module
- * \param slave_id id in module
+ * \param req slave inteface specialization         
  */
-void service_provider::remove_slave(std::string mod_name, int slave_id) {
+void service_provider::remove_slave(sp_service_requester_t req) {
     if (!sp_handle)
         throw str_exception("%s not configured!\n", name.c_str());
 
@@ -119,7 +112,7 @@ void service_provider::remove_slave(std::string mod_name, int slave_id) {
         return;
     }
 
-    sp_remove_slave(sp_handle, mod_name.c_str(), slave_id);
+    sp_remove_slave(sp_handle, req);
 }
 
 //! remove all slaves from module
@@ -136,22 +129,5 @@ void service_provider::remove_module(std::string mod_name) {
     }
 
     sp_remove_module(sp_handle, mod_name.c_str());
-}
-
-//! service provider magic 
-/*!
- * \return return service provider magic string
- */
-std::string service_provider::get_sp_magic() {
-    if (!sp_handle)
-        throw str_exception("%s not configured!\n", name.c_str());
-
-    if (!sp_get_sp_magic) {
-        klog(error, "%s error: no sp_get_sp_magic function\n", name.c_str());
-        return string("");
-    }
-
-    const char *magic = sp_get_sp_magic(sp_handle);
-	return string(magic);
 }
 

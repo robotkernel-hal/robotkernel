@@ -36,6 +36,7 @@
 using namespace std;
 using namespace std::placeholders;
 using namespace robotkernel;
+using namespace string_util;
 
 extern module* currently_loading_module; // in module.cpp
 
@@ -276,66 +277,42 @@ void kernel::remove_services(const std::string& owner) {
 
 //! add service requester
 /*!
- * \param magic service provider magic
- * \param owner service requester owner		 
- * \param name service base name
- * \param slave_id slave id
+ * \param req slave inteface specialization         
  */
-void kernel::add_service_requester(const std::string &magic,
-		const std::string &owner, const std::string &name, int slave_id) {
-
-	for (std::list<service_requester_t *>::iterator it = service_requester_list.begin();
+void kernel::add_service_requester(sp_service_requester_t req) {
+	for (service_requester_list_t::iterator it = service_requester_list.begin();
 		it != service_requester_list.end(); ++it) {
-		if (	((*it)->magic == magic) &&
-				((*it)->owner == owner) &&
-				((*it)->slave_id == slave_id))
+		if ((*it) == req)
 			return; // already registered that slave for magic
 	}
 
-	log(verbose, "adding service requester %s\n", name.c_str());
+	log(verbose, "adding service requester %s:%s\n", 
+            req->owner.c_str(), req->service_prefix.c_str());
 
-    service_requester_t *req = new service_requester_t();
-	req->magic               = magic;
-    req->owner               = owner;
-    req->name                = name;
-	req->slave_id            = slave_id;
     service_requester_list.push_back(req);
-
 
 	for (service_provider_map_t::iterator it = service_provider_map.begin();
 			it != service_provider_map.end(); ++it) {
-		if (it->second->get_sp_magic() != req->magic)
-			continue;
-
-		it->second->add_slave(req->owner, req->name, req->slave_id);
+		it->second->add_slave(req);
 	}
 }
 
 //! remove service requester
 /*!
- * \param magic service provider magic
- * \param owner service requester owner		 
- * \param slave_id slave id
+ * \param req slave inteface specialization         
  */
-void kernel::remove_service_requester(const std::string &magic,
-		const std::string &owner, int slave_id) {
-	for (std::list<service_requester_t *>::iterator it = service_requester_list.begin();
+void kernel::remove_service_requester(sp_service_requester_t req) {
+	for (service_requester_list_t::iterator it = service_requester_list.begin();
 		it != service_requester_list.end(); ++it) {
-		if (	((*it)->magic == magic) &&
-				((*it)->owner == owner) &&
-				((*it)->slave_id == slave_id)) {
+		if ((*it) == req) {
 			// remove this one
-			service_requester_t *req = (*it);
+			sp_service_requester_t req = (*it);
 			
 			for (service_provider_map_t::iterator it2 = service_provider_map.begin();
 					it2 != service_provider_map.end(); ++it2) {
-				if (it2->second->get_sp_magic() != req->magic)
-					continue;
-
-				it2->second->remove_slave(req->owner, req->slave_id);
+				it2->second->remove_slave(req);
 			}
 
-			delete req;
 			service_requester_list.erase(it);
 			return;
 		}
@@ -347,7 +324,7 @@ void kernel::remove_service_requester(const std::string &magic,
  * \param owner service requester owner		 
  */
 void kernel::remove_service_requester(const std::string &owner) {
-	for (std::list<service_requester_t *>::iterator it = service_requester_list.begin();
+	for (service_requester_list_t::iterator it = service_requester_list.begin();
 		it != service_requester_list.end(); ) {
 
 		if ((*it)->owner != owner) {
@@ -356,17 +333,13 @@ void kernel::remove_service_requester(const std::string &owner) {
 		}
 
 		// remove this one
-		service_requester_t *req = (*it);
+		sp_service_requester_t req = (*it);
 
 		for (service_provider_map_t::iterator it2 = service_provider_map.begin();
 				it2 != service_provider_map.end(); ++it2) {
-			if (it2->second->get_sp_magic() != req->magic)
-				continue;
-
-			it2->second->remove_slave(req->owner, req->slave_id);
+			it2->second->remove_module(req->owner);
 		}
 
-		delete req;
 		it = service_requester_list.erase(it);
 	}
 }

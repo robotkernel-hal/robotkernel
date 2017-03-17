@@ -37,6 +37,7 @@
 
 using namespace std;
 using namespace robotkernel;
+using namespace string_util;
 
 //! so_file construction
 /*!

@@ -149,9 +149,9 @@ namespace robotkernel {
         template<typename T>
         operator T() const {
             if (__type != typeid(T)) {
-                throw str_exception("Unsupported cast");
+                throw string_util::str_exception("Unsupported cast");
             } else if (__value == NULL) {
-                throw str_exception("Uninitialized value!");
+                throw string_util::str_exception("Uninitialized value!");
             }
             return *static_cast<T *>((void *) __value);
         }
@@ -170,8 +170,8 @@ namespace robotkernel {
     }
 
     template<typename T>
-    vector<rk_type> convertVector(vector<T> &in) {
-        vector<rk_type> out(in.size());
+    std::vector<rk_type> convertVector(std::vector<T> &in) {
+        std::vector<rk_type> out(in.size());
         for (int i = 0; i < in.size(); ++i) {
             out[i] = in[i];
         }
@@ -179,8 +179,8 @@ namespace robotkernel {
     }
 
     template<typename T>
-    vector<T> convertVector2(vector<rk_type> &in) {
-        vector<T> out(in.size());
+    std::vector<T> convertVector2(std::vector<rk_type> &in) {
+        std::vector<T> out(in.size());
         for (int i = 0; i < in.size(); ++i) {
             out[i] = (T) in[i];
         }

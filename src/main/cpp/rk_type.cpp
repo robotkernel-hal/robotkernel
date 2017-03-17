@@ -6,6 +6,9 @@
 #include "string_util/string_util.h"
 #include <sstream>
 
+using namespace std;
+using namespace string_util;
+
 namespace robotkernel {
     ReferenceMap rk_type::__refs;
     pthread_mutex_t rk_type::__refsLock = PTHREAD_MUTEX_INITIALIZER;

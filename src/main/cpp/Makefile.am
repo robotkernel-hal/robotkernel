@@ -12,6 +12,7 @@ include_HEADERS = $(headerdir)/module_intf.h \
 				  $(headerdir)/service_provider.h \
 				  $(headerdir)/service_provider_intf.h \
 				  $(headerdir)/service_provider_base.h \
+				  $(headerdir)/service_requester_base.h \
 				  $(headerdir)/exceptions.h \
 				  $(headerdir)/kernel.h \
 				  $(headerdir)/kernel_worker.h \

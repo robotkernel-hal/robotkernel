@@ -28,16 +28,9 @@
 #include "yaml-cpp/yaml.h"
 #include "robotkernel/kernel.h"
 #include "robotkernel/service_provider_intf.h"
+#include "robotkernel/so_file.h"
 
 namespace robotkernel {
-	typedef struct service_requester {
-		std::string magic;
-		std::string owner;
-		std::string name;
-		int slave_id;
-	} service_requester_t;
-
-	typedef std::list<service_requester_t *> service_requester_list_t;
 
 	//! service_provider class
 	/*!
@@ -81,31 +74,21 @@ namespace robotkernel {
 
 			//! add slave
 			/*!
-			 * \param mod_name slave owning module
-			 * \param dev_name name of device
-			 * \param slave_id id in module
-			 * \return slv_hdl slave handle
+             * \param req slave inteface specialization         
 			 */
-			void add_slave(std::string mod_name, std::string dev_name, int slave_id);
+			void add_slave(sp_service_requester_t req);
 
 			//! remove registered slave
 			/*!
-			 * \param mod_name slave owning module
-			 * \param slave_id id in module
+             * \param req slave inteface specialization         
 			 */
-			void remove_slave(std::string mod_name, int slave_id);
+			void remove_slave(sp_service_requester_t req);
 
 			//! remove all slaves from module
 			/*!
 			 * \param mod_name module owning slaves
 			 */
 			void remove_module(std::string mod_name);
-
-			//! service provider magic 
-			/*!
-			 * \return return service provider magic string
-			 */
-			std::string get_sp_magic(); 
 
 			std::string name;					   //!< service_provider name
 
@@ -118,21 +101,6 @@ namespace robotkernel {
 			sp_add_slave_t  	sp_add_slave;
 			sp_remove_slave_t 	sp_remove_slave;
 			sp_remove_module_t  sp_remove_module;
-			sp_get_sp_magic_t   sp_get_sp_magic;
-	};
-
-	class ServiceProvider {
-		public:
-			ServiceProvider() {}
-
-			virtual ~ServiceProvider() {}
-
-			virtual void init(const YAML::Node &node, void *interface) = 0;
-
-			virtual void log(robotkernel::loglevel lvl, const char *format, ...) = 0;
-
-			virtual int service_configure_loglevel(const robotkernel::service_arglist_t &request,
-					robotkernel::service_arglist_t &response) = 0;
 	};
 }
 

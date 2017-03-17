@@ -37,10 +37,17 @@
 #include <robotkernel/bridge.h>
 #include <robotkernel/service.h>
 #include <robotkernel/service_provider.h>
+#include <robotkernel/service_requester_base.h>
 
 #define klog(...) robotkernel::kernel::get_instance()->log(__VA_ARGS__)
 
 namespace robotkernel {
+
+    class pd_provider {
+    };
+
+    class pd_requirer {
+    };
 
     class kernel {
     public:
@@ -91,7 +98,8 @@ namespace robotkernel {
 		char **main_argv;	//!< robotkernel's main arguments
 
         service_list_t service_list;
-		service_requester_list_t service_requester_list;
+		service_requester_list_old_t service_requester_list_old;
+        service_requester_list_t service_requester_list;
 		bridge::cbs_list_t bridge_callbacks;
         
 		//! add bridge callbacks
@@ -127,32 +135,15 @@ namespace robotkernel {
 
 		//! add service requester
 		/*!
-		 * \param magic service provider magic  | name of service provider 
-		 * \param owner service requester owner | name of calling module
-		 * \param name service base name        | service prefix
-		 * \param slave_id slave id             | slave id of calling slave in module
-         * \param shr_ptr<class>                | slave inteface specialization         
-         *
-         * shr_ptr<class>->owner
-         * shr_ptr<class>->slave_id
-         *
+         * \param req slave inteface specialization         
 		 */
-		void add_service_requester(
-				const std::string &magic,
-				const std::string &owner,
-				const std::string &name,
-				int slave_id);
-
-		//! remove service requester
+		void add_service_requester(sp_service_requester_t req);
+		
+        //! remove service requester
 		/*!
-		 * \param magic service provider magic
-		 * \param owner service requester owner		 
-		 * \param slave_id slave id
+         * \param req slave inteface specialization         
 		 */
-		void remove_service_requester(
-				const std::string &magic,
-				const std::string &owner,
-				int slave_id);
+		void remove_service_requester(sp_service_requester_t req);
 		
 		//! remove all service requester for given owner
 		/*!

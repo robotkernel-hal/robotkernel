@@ -30,6 +30,8 @@
 #include <list>
 #include <stdio.h>
 
+#include "robotkernel/service_requester_base.h"
+
 #define SERVICE_PROVIDER_HANDLE void*
 
 //! service_provider register
@@ -51,21 +53,19 @@ typedef int (*sp_unregister_t)(SERVICE_PROVIDER_HANDLE hdl);
 //! add slave
 /*!
  * \param hdl service provider handle
- * \param mod_name slave owning module
- * \param dev_name name of device
- * \param slave_id id in module
+ * \param req slave inteface specialization         
  */
 typedef void (*sp_add_slave_t)(SERVICE_PROVIDER_HANDLE hdl, 
-		const char *mod_name, const char *dev_name, int slave_id);
+		robotkernel::sp_service_requester_t req);
 
 //! remove registered slave
 /*!
  * \param hdl service provider handle
- * \param mod_name slave owning module
+ * \param req slave inteface specialization         
  * \param slave_id id in module
  */
 typedef void (*sp_remove_slave_t)(SERVICE_PROVIDER_HANDLE hdl, 
-		const char *mod_name, int slave_id);
+		robotkernel::sp_service_requester_t req);
 
 //! remove module
 /*!

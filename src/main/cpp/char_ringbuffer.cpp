@@ -25,6 +25,8 @@
 
 #include "robotkernel/char_ringbuffer.h"
 
+using namespace string_util;
+
 flolock::flolock(bool locked) {
 	this->locked = false;
 	int ret = pthread_mutex_init(&rwlock, NULL);
