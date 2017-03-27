@@ -50,6 +50,13 @@ typedef int (*sp_unregister_t)(SERVICE_PROVIDER_HANDLE hdl);
 
 #define SERVICE_PROVIDER_SLAVE_HANDLE void*
 
+//! test service requester
+/*!
+ * \return true if we can handle service requester
+ */
+typedef bool (*sp_test_slave_t)(SERVICE_PROVIDER_HANDLE hdl,
+        robotkernel::sp_service_requester_t req);
+
 //! add slave
 /*!
  * \param hdl service provider handle

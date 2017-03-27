@@ -32,76 +32,83 @@
 
 namespace robotkernel {
 
-	//! service_provider class
-	/*!
-	  This class opens a shared service_provider and loads all needed symbols
-	  */
-	class service_provider : public so_file {
-		public:
-			typedef struct slave_id {
-				std::string mod_name;           //! module name
-				std::string dev_name;           //! device name
-				int offset;                     //! module offset
-			} slave_id_t;
+    //! service_provider class
+    /*!
+      This class opens a shared service_provider and loads all needed symbols
+      */
+    class service_provider : public so_file {
+        public:
+            typedef struct slave_id {
+                std::string mod_name;           //! module name
+                std::string dev_name;           //! device name
+                int offset;                     //! module offset
+            } slave_id_t;
 
-			typedef std::function<void(const slave_id_t& svc)> cb_t;
+            typedef std::function<void(const slave_id_t& svc)> cb_t;
 
-			typedef struct cbs {
-				cb_t add_slave_id;
-				cb_t remove_slave_id;
-			} cbs_t;
+            typedef struct cbs {
+                cb_t add_slave_id;
+                cb_t remove_slave_id;
+            } cbs_t;
 
-			typedef std::list<cbs_t *> cbs_list_t;
+            typedef std::list<cbs_t *> cbs_list_t;
 
-		private:
-			service_provider();
-			service_provider(const service_provider&);             // prevent copy-construction
-			service_provider& operator=(const service_provider&);  // prevent assignment
+        private:
+            service_provider();
+            service_provider(const service_provider&);             // prevent copy-construction
+            service_provider& operator=(const service_provider&);  // prevent assignment
 
-		public:
-			//! service_provider construction
-			/*!
-			  \param service_provider_file filename of service_provider
-			  \param node configuration node
-			  */
-			service_provider(const YAML::Node& node);
+        public:
+            //! service_provider construction
+            /*!
+              \param service_provider_file filename of service_provider
+              \param node configuration node
+              */
+            service_provider(const YAML::Node& node);
 
-			//! service_provider destruction
-			/*!
-			  destroys service_provider
-			  */
-			~service_provider();
+            //! service_provider destruction
+            /*!
+              destroys service_provider
+              */
+            ~service_provider();
 
-			//! add slave
-			/*!
+            //! add slave
+            /*!
              * \param req slave inteface specialization         
-			 */
-			void add_slave(sp_service_requester_t req);
+             */
+            void add_slave(sp_service_requester_t req);
 
-			//! remove registered slave
-			/*!
+            //! remove registered slave
+            /*!
              * \param req slave inteface specialization         
-			 */
-			void remove_slave(sp_service_requester_t req);
+             */
+            void remove_slave(sp_service_requester_t req);
 
-			//! remove all slaves from module
-			/*!
-			 * \param mod_name module owning slaves
-			 */
-			void remove_module(std::string mod_name);
+            //! remove all slaves from module
+            /*!
+             * \param mod_name module owning slaves
+             */
+            void remove_module(std::string mod_name);
 
-			std::string name;					   //!< service_provider name
+            //! test slave service requester
+            /*!
+             * \param return true if we can handle it
+             */
+            bool test_slave(sp_service_requester_t req);
 
-		private:
-			SERVICE_PROVIDER_HANDLE sp_handle;   //! service_provider handle
+            std::string name;                      //!< service_provider name
 
-			//! service_provider symbols
-			sp_register_t   	sp_register;
-			sp_unregister_t 	sp_unregister;
-			sp_add_slave_t  	sp_add_slave;
-			sp_remove_slave_t 	sp_remove_slave;
-			sp_remove_module_t  sp_remove_module;
-	};
+        private:
+            SERVICE_PROVIDER_HANDLE sp_handle;   //! service_provider handle
+
+            //! service_provider symbols
+            sp_register_t                   sp_register;
+            sp_unregister_t                 sp_unregister;
+            sp_add_slave_t                  sp_add_slave;
+            sp_remove_slave_t               sp_remove_slave;
+            sp_remove_module_t              sp_remove_module;
+            sp_test_slave_t                 sp_test_slave;
+    };
 }
 
 #endif //PROJECT_SERVICE_PROVIDER_H

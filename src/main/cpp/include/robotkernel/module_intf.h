@@ -32,7 +32,7 @@
 
 #define MODULE_HANDLE void*
 
-const static uint16_t module_state_unknown  = 0x0000;
+const static uint16_t module_state_config   = 0x0000;
 const static uint16_t module_state_init     = 0x0001;
 const static uint16_t module_state_preop    = 0x0002;
 const static uint16_t module_state_safeop   = 0x0004;

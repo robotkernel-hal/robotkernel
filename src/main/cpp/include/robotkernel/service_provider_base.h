@@ -38,6 +38,8 @@
 #include <map>
 #include <functional>
 #include <string_util/string_util.h>
+#include <typeindex>
+#include <typeinfo>
 
 #ifdef __cplusplus
 #define EXPORT_C extern "C"
@@ -83,10 +85,17 @@ EXPORT_C void sp_remove_module(SERVICE_PROVIDER_HANDLE hdl,                     
 	HDL_2_SERVICE_PROVIDERCLASS(hdl, spname, spclass)                                     \
 	dev->remove_module(mod_name);                                                         \
 }                                                                                         \
+                                                                                          \
+EXPORT_C bool sp_test_slave(SERVICE_PROVIDER_HANDLE hdl,                                  \
+		robotkernel::sp_service_requester_t req) {                                        \
+	HDL_2_SERVICE_PROVIDERCLASS(hdl, spname, spclass)                                     \
+	return dev->test_slave(req);                                                          \
+}                                                                                         \
+                                                                                    
                                                                                     
 namespace robotkernel {
 
-	template <typename T>
+	template <typename T, typename S>
 	class service_provider_base : public log_base {
 		private:
 			service_provider_base();                  //!< prevent default construction
@@ -160,6 +169,10 @@ namespace robotkernel {
 					it = handler_map.erase(it);
 				}
 			};
+
+            bool test_slave(sp_service_requester_t req) {
+                return (std::dynamic_pointer_cast<S>(req) != NULL);
+            }
 
 			//! hold all created handlers, so we can remove them by name
 			handler_map_t handler_map;

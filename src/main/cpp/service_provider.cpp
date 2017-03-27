@@ -44,29 +44,32 @@ using namespace string_util;
   \param node configuration node
   */
 service_provider::service_provider(const YAML::Node& node) : so_file(node) {
-	name = get_as<string>(node, "name");
+    name = get_as<string>(node, "name");
 
-	sp_register      = (sp_register_t)  dlsym(so_handle, "sp_register");
-	sp_unregister    = (sp_unregister_t)dlsym(so_handle, "sp_unregister");
-	sp_add_slave     = (sp_add_slave_t)dlsym(so_handle, "sp_add_slave");
-	sp_remove_slave  = (sp_remove_slave_t)dlsym(so_handle, "sp_remove_slave");
-	sp_remove_module = (sp_remove_module_t)dlsym(so_handle, "sp_remove_module");
+    sp_register      = (sp_register_t)  dlsym(so_handle, "sp_register");
+    sp_unregister    = (sp_unregister_t)dlsym(so_handle, "sp_unregister");
+    sp_add_slave     = (sp_add_slave_t)dlsym(so_handle, "sp_add_slave");
+    sp_remove_slave  = (sp_remove_slave_t)dlsym(so_handle, "sp_remove_slave");
+    sp_remove_module = (sp_remove_module_t)dlsym(so_handle, "sp_remove_module");
+    sp_test_slave    = (sp_test_slave_t)dlsym(so_handle, "sp_test_slave");
 
-	if (!sp_register)
-		klog(verbose, "missing sp_register in %s\n", file_name.c_str());
-	if (!sp_unregister)
-		klog(verbose, "missing sp_unregister in %s\n", file_name.c_str());
-	if (!sp_add_slave)
-		klog(verbose, "missing sp_add_slave in %s\n", file_name.c_str());
-	if (!sp_remove_slave)
-		klog(verbose, "missing sp_remove_slave in %s\n", file_name.c_str());
-	if (!sp_remove_module)
-		klog(verbose, "missing sp_remove_module in %s\n", file_name.c_str());
+    if (!sp_register)
+        klog(verbose, "missing sp_register in %s\n", file_name.c_str());
+    if (!sp_unregister)
+        klog(verbose, "missing sp_unregister in %s\n", file_name.c_str());
+    if (!sp_add_slave)
+        klog(verbose, "missing sp_add_slave in %s\n", file_name.c_str());
+    if (!sp_remove_slave)
+        klog(verbose, "missing sp_remove_slave in %s\n", file_name.c_str());
+    if (!sp_remove_module)
+        klog(verbose, "missing sp_remove_module in %s\n", file_name.c_str());
+    if (!sp_test_slave)
+        klog(verbose, "missing sp_test_slave in %s\n", file_name.c_str());
 
-	// try to configure
-	if (sp_register) {
-		sp_handle = sp_register();
-	}
+    // try to configure
+    if (sp_register) {
+        sp_handle = sp_register();
+    }
 }
 
 //! service_provider destruction
@@ -74,13 +77,13 @@ service_provider::service_provider(const YAML::Node& node) : so_file(node) {
   destroys service_provider
   */
 service_provider::~service_provider() {
-	klog(verbose, "service_provider destructing %s\n", file_name.c_str());
+    klog(verbose, "service_provider destructing %s\n", file_name.c_str());
 
-	// unconfigure service_provider first
-	if (sp_handle && sp_unregister) {
-		sp_unregister(sp_handle);
-		sp_handle = NULL;
-	}
+    // unconfigure service_provider first
+    if (sp_handle && sp_unregister) {
+        sp_unregister(sp_handle);
+        sp_handle = NULL;
+    }
 }
 
 //! add slave
@@ -96,7 +99,8 @@ void service_provider::add_slave(sp_service_requester_t req) {
         return; 
     }
 
-    sp_add_slave(sp_handle, req);
+    if (test_slave(req))
+        sp_add_slave(sp_handle, req);
 }
 
 //! remove registered slave
@@ -129,5 +133,20 @@ void service_provider::remove_module(std::string mod_name) {
     }
 
     sp_remove_module(sp_handle, mod_name.c_str());
+}
+
+//! test slave service requester 
+/*!
+ * \param return true if we can handle it
+ */
+bool service_provider::test_slave(sp_service_requester_t req) {
+    if (!sp_handle)
+        throw str_exception("%s not configured!\n", name.c_str());
+
+    if (!sp_test_slave) {
+        throw str_exception("%s error: no sp_test_slave\n", name.c_str());
+    }
+
+    return sp_test_slave(sp_handle, req);
 }
 

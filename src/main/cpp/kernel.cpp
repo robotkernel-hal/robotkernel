@@ -617,6 +617,11 @@ void kernel::config(std::string config_file, int argc, char *argv[]) {
         // add to module map
         klog(info, "adding [%s]\n", sp->name.c_str());
         service_provider_map[sp->name] = sp;
+	
+        for (service_requester_list_t::iterator it = service_requester_list.begin();
+                it != service_requester_list.end(); ++it) {
+            sp->add_slave(*it);
+        }
     }
 }
 
