@@ -67,7 +67,7 @@ public:
 	char_ringbuffer(unsigned int size) {
 		data = (char*) malloc(size);
 		if(!data)
-			throw string_util::errno_exception_tb("could not get char_ringbuffer of size %d bytes\n", size);
+			throw errno_exception_tb("could not get char_ringbuffer of size %d bytes\n", size);
 		memset(data, 0, size);
 		this->size = size;
 		write_start = 0;
