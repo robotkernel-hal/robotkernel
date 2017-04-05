@@ -11,7 +11,6 @@ AC_INIT([robotkernel],
 	m4_esyscmd_s([cat project.properties | grep VERSION    | cut -d'=' -f2 | xargs printf "%s"]),
 	m4_esyscmd_s([cat project.properties | grep MAINTAINER | cut -d'=' -f2 | xargs printf "%s"]))
 
-AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADERS([src/main/cpp/include/robotkernel/config.h])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
