@@ -105,9 +105,6 @@ int main(int argc, char* argv[]) {
 
     kernel &k = *kernel::get_instance();
 
-    klog(info, "build by: " BUILD_USER "@" BUILD_HOST "\n");
-    klog(info, "build date: " BUILD_DATE "\n");
-
     string config_file = "";
     struct sigaction action;
 
