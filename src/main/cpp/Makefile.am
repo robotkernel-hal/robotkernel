@@ -43,10 +43,10 @@ robotkernel_SOURCES = module.cpp module_intf.cpp service_provider.cpp main.cpp 	
 robotkernel_CXXFLAGS = -Wno-unused-local-typedefs 					\
 					   -I$(top_builddir)/src/main/cpp/include 		\
 					   -I$(srcdir)/include/ 						\
-					   @YAML_CPP_RMC_CFLAGS@ @LIBSTRING_UTIL_CFLAGS@ 
+					   @YAML_CPP_CFLAGS@ @LIBSTRING_UTIL_CFLAGS@ 
 
 robotkernel_LDFLAGS = -Wl,-export-dynamic -Bdynamic
-robotkernel_LDADD = @PTHREAD_LIBS@ @YAML_CPP_RMC_LIBS@ @LIBSTRING_UTIL_LIBS@
+robotkernel_LDADD = @PTHREAD_LIBS@ @YAML_CPP_LIBS@ @LIBSTRING_UTIL_LIBS@
 
 
 if HAVE_LTTNG_UST
