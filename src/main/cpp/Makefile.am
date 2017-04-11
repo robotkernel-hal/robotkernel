@@ -19,6 +19,7 @@ include_HEADERS = $(headerdir)/module_intf.h \
 				  $(headerdir)/runnable.h \
 				  $(headerdir)/trigger_base.h \
 				  $(headerdir)/log_thread.h \
+				  $(headerdir)/loglevel.h \
 				  $(headerdir)/dump_log.h \
 				  $(headerdir)/interface_intf.h \
 				  $(headerdir)/helpers.h \
@@ -30,6 +31,7 @@ include_HEADERS = $(headerdir)/module_intf.h \
 				  $(headerdir)/bridge_intf.h \
 				  $(headerdir)/log_base.h \
 				  $(headerdir)/so_file.h \
+				  $(headerdir)/rk_type.h \
 				  $(gen_headerdir)/config.h
 
 robotkernel_SOURCES = module.cpp module_intf.cpp service_provider.cpp main.cpp 	\
