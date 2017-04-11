@@ -6,32 +6,37 @@ headerdir = $(srcdir)/include/robotkernel
 gen_headerdir = $(top_builddir)/src/main/cpp/include/robotkernel
 
 bin_PROGRAMS = robotkernel
-include_HEADERS = $(headerdir)/module_intf.h \
-				  $(headerdir)/module.h \
-				  $(headerdir)/module_base.h \
-				  $(headerdir)/service_provider.h \
-				  $(headerdir)/service_provider_intf.h \
-				  $(headerdir)/service_provider_base.h \
-				  $(headerdir)/service_requester_base.h \
-				  $(headerdir)/exceptions.h \
-				  $(headerdir)/kernel.h \
-				  $(headerdir)/kernel_worker.h \
-				  $(headerdir)/runnable.h \
-				  $(headerdir)/trigger_base.h \
-				  $(headerdir)/log_thread.h \
-				  $(headerdir)/loglevel.h \
-				  $(headerdir)/dump_log.h \
-				  $(headerdir)/interface_intf.h \
-				  $(headerdir)/helpers.h \
+include_HEADERS = $(headerdir)/bridge_base.h	\
+				  $(headerdir)/bridge.h \
+				  $(headerdir)/bridge_intf.h \
 				  $(headerdir)/char_ringbuffer.h \
 				  $(headerdir)/cmd_delay.h \
+				  $(headerdir)/config.h.in \
+				  $(headerdir)/config.h.in~ \
+				  $(headerdir)/dump_log.h \
+				  $(headerdir)/exceptions.h \
+				  $(headerdir)/helpers.h \
+				  $(headerdir)/interface_intf.h \
+				  $(headerdir)/kernel.h \
 				  $(headerdir)/kernel_queue.h \
-				  $(headerdir)/service.h \
-				  $(headerdir)/bridge_base.h \
-				  $(headerdir)/bridge_intf.h \
+				  $(headerdir)/kernel_worker.h \
 				  $(headerdir)/log_base.h \
-				  $(headerdir)/so_file.h \
+				  $(headerdir)/loglevel.h \
+				  $(headerdir)/log_thread.h \
+				  $(headerdir)/module_base.h \
+				  $(headerdir)/module.h \
+				  $(headerdir)/module_intf.h \
+				  $(headerdir)/process_data.h \
 				  $(headerdir)/rk_type.h \
+				  $(headerdir)/rt_helper.h \
+				  $(headerdir)/runnable.h \
+				  $(headerdir)/service.h \
+				  $(headerdir)/service_provider_base.h \
+				  $(headerdir)/service_provider.h \
+				  $(headerdir)/service_provider_intf.h \
+				  $(headerdir)/service_requester_base.h \
+				  $(headerdir)/so_file.h \
+				  $(headerdir)/trigger_base.h \
 				  $(gen_headerdir)/config.h
 
 robotkernel_SOURCES = module.cpp module_intf.cpp service_provider.cpp main.cpp 	\
