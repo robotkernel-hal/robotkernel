@@ -12,7 +12,6 @@ include_HEADERS = $(headerdir)/bridge_base.h	\
 				  $(headerdir)/char_ringbuffer.h \
 				  $(headerdir)/cmd_delay.h \
 				  $(headerdir)/config.h.in \
-				  $(headerdir)/config.h.in~ \
 				  $(headerdir)/dump_log.h \
 				  $(headerdir)/exceptions.h \
 				  $(headerdir)/helpers.h \
