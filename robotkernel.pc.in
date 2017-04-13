@@ -7,4 +7,6 @@ Name: robotkernel
 Description: the robotkernel device driver framework
 URL: rmc-github.robotic.dlr.de:robotkernel/robotkernel.git
 Version: @VERSION@
-Cflags: -I@includedir@
+Cflags: -I@includedir@ @LIBSTRING_UTILS_CFLAGS@ @YAML_CPP_RMC_CFLAGS@
+Libs: @LIBSTRING_UTILS_LIBS@ @YAML_CPP_RMC_LIBS@
+
