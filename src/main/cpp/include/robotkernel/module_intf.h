@@ -42,6 +42,31 @@ const static uint16_t module_state_error    = 0x8000;
 
 typedef uint16_t module_state_t;
 
+#define GEN_STATE(from, to) \
+    ((uint32_t)from << 16 | to)
+
+#define DEFINE_STATE(from, to) \
+    const static uint32_t from ## _2_ ## to = GEN_STATE(module_state_ ## from, module_state_ ## to)
+
+DEFINE_STATE(init, init);
+DEFINE_STATE(init, preop);
+DEFINE_STATE(init, safeop);
+DEFINE_STATE(init, op);
+DEFINE_STATE(preop, init);
+DEFINE_STATE(preop, preop);
+DEFINE_STATE(preop, safeop);
+DEFINE_STATE(preop, op);
+DEFINE_STATE(safeop, init);
+DEFINE_STATE(safeop, preop);
+DEFINE_STATE(safeop, safeop);
+DEFINE_STATE(safeop, op);
+DEFINE_STATE(op, init);
+DEFINE_STATE(op, preop);
+DEFINE_STATE(op, safeop);
+DEFINE_STATE(op, op);
+
+typedef uint32_t transition_t;
+
 #define __MOD_REQUEST(m, r, s)          (((s) << 24) | ((m) << 16) | (r))
 #define __MOD_REQUEST_TYPE(s)           (sizeof(s))
 

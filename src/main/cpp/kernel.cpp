@@ -458,10 +458,11 @@ void kernel::config(std::string config_file, int argc, char *argv[]) {
 	main_argc = argc; 
 	main_argv = argv;
 
-    char *real_exec_file = realpath(argv[0], NULL);
+    char *real_exec_file = realpath("/proc/self/exe", NULL);
     string file;
     if (!real_exec_file)
-        throw str_exception("supplied exec file \"%s\" not found!", argv[0]);
+        throw str_exception("supplied exec file \"%s\" not found: %s", argv[0], 
+                strerror(errno));
 
     split_file_name(string(real_exec_file), exec_file_path, file);
     log(verbose, "got exec path %s\n", exec_file_path.c_str());
