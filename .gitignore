@@ -1,4 +1,10 @@
-
+src/main/cpp/include/robotkernel/stamp-h1
+src/main/cpp/include/robotkernel/config.h
+/**/Makefile
+config.log
+config.status
+libtool
+robotkernel.pc
 /**/*~
 /**/.*
 /**/#*
