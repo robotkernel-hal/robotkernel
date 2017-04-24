@@ -32,7 +32,6 @@
 
 #define MODULE_HANDLE void*
 
-const static uint16_t module_state_config   = 0x0000;
 const static uint16_t module_state_init     = 0x0001;
 const static uint16_t module_state_preop    = 0x0002;
 const static uint16_t module_state_safeop   = 0x0004;
@@ -48,18 +47,27 @@ typedef uint16_t module_state_t;
 #define DEFINE_STATE(from, to) \
     const static uint32_t from ## _2_ ## to = GEN_STATE(module_state_ ## from, module_state_ ## to)
 
+DEFINE_STATE(boot, boot);
+DEFINE_STATE(boot, init);
+DEFINE_STATE(boot, preop);
+DEFINE_STATE(boot, safeop);
+DEFINE_STATE(boot, op);
+DEFINE_STATE(init, boot);
 DEFINE_STATE(init, init);
 DEFINE_STATE(init, preop);
 DEFINE_STATE(init, safeop);
 DEFINE_STATE(init, op);
+DEFINE_STATE(preop, boot);
 DEFINE_STATE(preop, init);
 DEFINE_STATE(preop, preop);
 DEFINE_STATE(preop, safeop);
 DEFINE_STATE(preop, op);
+DEFINE_STATE(safeop, boot);
 DEFINE_STATE(safeop, init);
 DEFINE_STATE(safeop, preop);
 DEFINE_STATE(safeop, safeop);
 DEFINE_STATE(safeop, op);
+DEFINE_STATE(op, boot);
 DEFINE_STATE(op, init);
 DEFINE_STATE(op, preop);
 DEFINE_STATE(op, safeop);

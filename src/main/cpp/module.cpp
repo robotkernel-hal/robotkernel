@@ -48,7 +48,6 @@ using namespace robotkernel;
 using namespace string_util;
 
 const char string_state_error[]   = "<ERROR>";
-const char string_state_config[]  = "<CONFIG>";
 const char string_state_init[]    = "<INIT>";
 const char string_state_preop[]   = "<PREOP>";
 const char string_state_safeop[]  = "<SAFEOP>";
@@ -64,8 +63,6 @@ void split_file_name(const string& str, string& path, string& file);
 const char *state_to_string(module_state_t state) {
     switch (state) {
         default:
-        case module_state_config:
-            return string_state_config;
         case module_state_error:
             return string_state_error;
         case module_state_init:
@@ -87,14 +84,13 @@ module_state_t string_to_state(const char* state_ptr) {
             (int (*)(int))tolower);
 #define ret_state(a) if(state == #a) return module_state_ ## a;
     ret_state(error);
-    ret_state(config);
     ret_state(boot);
     ret_state(init);
     ret_state(preop);
     ret_state(safeop);
     ret_state(op);
 
-    return module_state_config;
+    return module_state_init;
 }
 
 //! generate new trigger object
@@ -507,7 +503,7 @@ module_state_t module::get_state() {
 
     if (!mod_get_state) {
         klog(error, "%s error: no mod_get_state function\n", name.c_str()); 
-        return module_state_config;
+        return module_state_init;
     }
 
     return mod_get_state(mod_handle); 
