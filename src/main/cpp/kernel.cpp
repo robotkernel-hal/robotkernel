@@ -110,7 +110,7 @@ int kernel::set_state(std::string mod_name, module_state_t state) {
             return mdl->get_state();
         }
 
-        if (dep_mod_state < state) {
+        if ((dep_mod_state < state) || (dep_mod_state == module_state_boot)) {
             log(info, "powering up %s module dependencies %s\n",
                     mod_name.c_str(), d_mod_name.c_str());
 
