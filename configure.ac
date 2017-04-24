@@ -13,7 +13,8 @@ AC_INIT([robotkernel],
 
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADERS([src/main/cpp/include/robotkernel/config.h])
-AM_INIT_AUTOMAKE([-Wall -Werror foreign])
+AM_INIT_AUTOMAKE([-Wall -Werror foreign silent-rules])
+m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
 #
 # Checks for programs.
@@ -35,8 +36,8 @@ AS_IF([test -e src/dump_log_tp.tp],
 )
 AM_CONDITIONAL([HAVE_LTTNG_UST], [test -n "$LTTNG_UST_LIBS"])
 
-PKG_CHECK_MODULES([YAML_CPP], [yaml-cpp], [], [])
-PKG_CHECK_MODULES([LIBSTRING_UTIL], [libstring_util], [], [])
+PKG_CHECK_MODULES([YAML_CPP], [yaml-cpp = 0.5.3])
+PKG_CHECK_MODULES([LIBSTRING_UTIL], [libstring_util > 1.1])
 
 # Checks for header files.
 AC_CHECK_HEADERS([stdint.h stdlib.h string.h sys/ioctl.h unistd.h execinfo.h termios.h sys/syscall.h process.h])
