@@ -35,24 +35,73 @@
 
 namespace robotkernel {
 
-	typedef std::vector<rk_type> process_data_arglist_t;
-	typedef std::function<int(const process_data_arglist_t&, process_data_arglist_t&)> process_data_callback_t;
+    //! process data management class 
+    /*!
+     * This class describe managed process data by the robotkernel. It also uses
+     * a double buffer support to ensure data consistency.
+     */
+    class process_data 
+    {
+        private:
+            process_data();     //!< prevent default construction
 
-	typedef struct process_data {
-		std::string owner;
-		std::string name;
-		std::string process_data_definition;
-		process_data_callback_t callback;
-	} process_data_t;
+        public:
+            //! construction
+            /*!
+             * \param length byte length of process data
+             * \param owner name of owning module
+             * \param name process data name
+             * \param process_data_definition yaml-string representating the structure of the pd
+             */
+            process_data(size_t length, std::string owner, std::string name, 
+                    std::string process_data_definition = "") :
+                length(length), owner(owner), name(name), 
+                process_data_definition(process_data_definition)
+            {
+                data_index = 0;
 
-	typedef std::map<std::string, process_data_t *> process_data_list_t;
+                data[0].resize(length);
+                data[1].resize(length);
+            }
 
-    // typedef std::function<int(char *buf, ssize_t buflen)> pd_cb_t;
-    //
-    // module calls 
-    //    k.register_pd_provider(owner, name, pd_definition, pd_cb) 
-    //
-    //    
+            //! return current read buffer
+            const std::vector<uint8_t>& get_read_buffer() 
+            {
+                written = false;
+                return data[data_index];
+            }
+
+            //! return current read buffer
+            std::vector<uint8_t>& get_write_buffer()
+            {
+                int write_index = (data_index + 1) % 2;
+                return data[write_index];
+            }
+
+            //! swaps the buffers and mark as written
+            void swap_buffers() 
+            {
+                data_index = (data_index + 1) % 2;
+                written = true;
+            }
+
+            //! returns if there was a write since last read
+            bool written_since_last_read() {
+                return written;
+            }
+
+        public:
+            const size_t length;
+            const std::string owner;
+            const std::string name;
+            const std::string process_data_definition;
+            
+        private:
+            std::vector<uint8_t> data[2];
+            int data_index;
+            bool written;
+    };
+
 } // namespace robotkernel
 
 #endif // __PROCESS_DATA_H__

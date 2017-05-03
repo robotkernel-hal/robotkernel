@@ -31,6 +31,7 @@
 #include "robotkernel/exceptions.h"
 #include "robotkernel/module_base.h"
 #include "robotkernel/cmd_delay.h"
+#include "robotkernel/process_data.h"
 #include "yaml-cpp/yaml.h"
 
 using namespace std;
@@ -342,6 +343,58 @@ void kernel::remove_service_requester(const std::string &owner) {
 
 		it = service_requester_list.erase(it);
 	}
+}
+        
+//! add process data
+/*!
+ * \param req slave inteface specialization         
+ */
+void kernel::add_process_data(sp_process_data_t req) {
+    auto pd_name = req->owner + "." + req->name;
+    if (process_data_map.find(pd_name) != process_data_map.end())
+        return; // already in
+
+    log(info, "registered process data \"%s\", \ndefinition:\n%s\n", pd_name.c_str(), req->process_data_definition.c_str());
+    process_data_map[pd_name] = req;
+}
+
+//! remove process data
+/*!
+ * \param req slave inteface specialization         
+ */
+void kernel::remove_process_data(sp_process_data_t req) {
+    for (auto it = process_data_map.begin(); it != process_data_map.end(); ++it) {
+        if (it->second == req) {
+            process_data_map.erase(it);
+            return;
+        }
+    }
+}
+
+//! remove all process data for given owner
+/*!
+ * \param owner process data owner		 
+ */
+void kernel::remove_process_data(const std::string &owner) {
+    for (auto it = process_data_map.begin(), next_it = process_data_map.begin();
+            it != process_data_map.end(); it = next_it) {
+        next_it = it; next_it++;
+
+        if (it->second->owner == owner)
+            process_data_map.erase(it);
+    }
+}
+
+//! get named process data
+/*!
+ * \param pd_name name of process data
+ * \return process data shared pointer
+ */
+kernel::sp_process_data_t kernel::get_process_data(const std::string& pd_name) {
+    if (process_data_map.find(pd_name) == process_data_map.end())
+        throw str_exception("process data with name %s not found!\n", pd_name.c_str());
+
+    return process_data_map[pd_name];
 }
 
 //! construction

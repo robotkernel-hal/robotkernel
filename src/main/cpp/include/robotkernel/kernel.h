@@ -38,6 +38,7 @@
 #include <robotkernel/service.h>
 #include <robotkernel/service_provider.h>
 #include <robotkernel/service_requester_base.h>
+#include <robotkernel/process_data.h>
 
 #define klog(...) robotkernel::kernel::get_instance()->log(__VA_ARGS__)
 
@@ -52,9 +53,9 @@ namespace robotkernel {
     class kernel {
     public:
         typedef std::shared_ptr<module> sp_module_t;
-		typedef std::shared_ptr<bridge> sp_bridge_t;
-		typedef std::shared_ptr<service_provider> sp_service_provider_t;
-
+        typedef std::shared_ptr<bridge> sp_bridge_t;
+        typedef std::shared_ptr<service_provider> sp_service_provider_t;
+        typedef std::shared_ptr<process_data> sp_process_data_t;
     private:
         //! kernel singleton instance
         static kernel *instance;
@@ -69,13 +70,13 @@ namespace robotkernel {
         module_map_t module_map;
         pthread_rwlock_t module_map_lock;
         
-		// bridges map
+        // bridges map
         typedef std::map<std::string, sp_bridge_t> bridge_map_t;
-		bridge_map_t bridge_map;
+        bridge_map_t bridge_map;
 
-		// service_providers map
+        // service_providers map
         typedef std::map<std::string, sp_service_provider_t> service_provider_map_t;
-		service_provider_map_t service_provider_map;
+        service_provider_map_t service_provider_map;
 
         //! return module state
         /*!
@@ -94,15 +95,18 @@ namespace robotkernel {
         ~kernel();
 
     public:
-		int main_argc;		//!< robotkernel's main argument counter
-		char **main_argv;	//!< robotkernel's main arguments
+        int main_argc;      //!< robotkernel's main argument counter
+        char **main_argv;   //!< robotkernel's main arguments
 
         service_list_t service_list;
-		service_requester_list_old_t service_requester_list_old;
+        service_requester_list_old_t service_requester_list_old;
         service_requester_list_t service_requester_list;
-		bridge::cbs_list_t bridge_callbacks;
+        bridge::cbs_list_t bridge_callbacks;
         
-		//! add bridge callbacks
+        //! holds all registered process data
+        std::map<std::string, sp_process_data_t> process_data_map;
+
+        //! add bridge callbacks
         /*!
          * \param cbs bridge callback to add
          */
@@ -121,11 +125,11 @@ namespace robotkernel {
                 const std::string &service_definition,
                 service_callback_t callback);
 
-		//! remove on service given by name
-		/*!
-		 * \param name service name
-		 */
-		void remove_service(const std::string& name);
+        //! remove on service given by name
+        /*!
+         * \param name service name
+         */
+        void remove_service(const std::string& name);
 
         //! remove all services from owner
         /*!
@@ -133,25 +137,51 @@ namespace robotkernel {
          */
         void remove_services(const std::string &owner);
 
-		//! add service requester
-		/*!
+        //! add service requester
+        /*!
          * \param req slave inteface specialization         
-		 */
-		void add_service_requester(sp_service_requester_t req);
-		
+         */
+        void add_service_requester(sp_service_requester_t req);
+        
         //! remove service requester
-		/*!
+        /*!
          * \param req slave inteface specialization         
-		 */
-		void remove_service_requester(sp_service_requester_t req);
-		
-		//! remove all service requester for given owner
-		/*!
-		 * \param owner service requester owner		 
-		 */
-		void remove_service_requester(
-				const std::string &owner);
-		
+         */
+        void remove_service_requester(sp_service_requester_t req);
+        
+        //! remove all service requester for given owner
+        /*!
+         * \param owner service requester owner      
+         */
+        void remove_service_requester(
+                const std::string &owner);
+        
+        //! add process data
+        /*!
+         * \param req slave inteface specialization         
+         */
+        void add_process_data(sp_process_data_t req);
+        
+        //! remove process data
+        /*!
+         * \param req slave inteface specialization         
+         */
+        void remove_process_data(sp_process_data_t req);
+        
+        //! remove all process data for given owner
+        /*!
+         * \param owner process data owner       
+         */
+        void remove_process_data(
+                const std::string &owner);
+
+        //! get named process data
+        /*!
+         * \param pd_name name of process data
+         * \return process data shared pointer
+         */
+        sp_process_data_t get_process_data(const std::string& pd_name);
+        
         //! register trigger module to module named mod_name
         /*!
          * \param mod_name module name
@@ -223,8 +253,8 @@ namespace robotkernel {
 
         // config file name
         std::string config_file;
-		std::string config_file_path;
-		std::string exec_file_path;
+        std::string config_file_path;
+        std::string exec_file_path;
 
         //! kernel request callback
         /*!
