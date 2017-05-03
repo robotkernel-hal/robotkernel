@@ -10,4 +10,3 @@ Version: @VERSION@
 Requires: libstring_util >= 1.1, yaml-cpp >= 0.5.3
 Cflags: -I@includedir@
 Libs:
-
