@@ -48,7 +48,7 @@ namespace robotkernel {
 					const YAML::Node& node = YAML::Node());
 
 			//! virtual destruction
-			virtual ~log_base() {};
+			virtual ~log_base();
 
 			//! service to configure modules loglevel
 			/*!

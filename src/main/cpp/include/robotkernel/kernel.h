@@ -112,6 +112,12 @@ namespace robotkernel {
          */
         void add_bridge_cbs(bridge::cbs_t *cbs);
 
+        //! remove bridge callbacks
+        /*!
+         * \param cbs bridge callback to remove 
+         */
+        void remove_bridge_cbs(bridge::cbs_t *cbs);
+
         //! add service to kernel
         /*!
          * \param owner service owner

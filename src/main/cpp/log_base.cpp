@@ -27,6 +27,7 @@
 using namespace std;
 using namespace std::placeholders;
 using namespace robotkernel;
+using namespace string_util;
 
 //! construction
 /*!
@@ -61,6 +62,12 @@ log_base::log_base(const std::string& instance_name,
 	k.add_service(instance_name, base.str(), 
 			log_base::service_definition_configure_loglevel,
 			std::bind(&log_base::service_configure_loglevel, this, _1, _2));
+}
+
+//! destruction
+log_base::~log_base() {
+    kernel& k = *kernel::get_instance();
+    k.remove_service(format_string("%s.configure_loglevel", name.c_str()));
 }
 
 //! service to configure loglevels loglevel

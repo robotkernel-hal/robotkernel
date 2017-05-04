@@ -196,6 +196,19 @@ void kernel::add_bridge_cbs(bridge::cbs_t *cbs) {
     }
 }
 
+//! remove bridge callbacks
+/*!
+ * \param cbs bridge callback to remove
+ */
+void kernel::remove_bridge_cbs(bridge::cbs_t *cbs) {
+    for (auto it = bridge_callbacks.begin(); it != bridge_callbacks.end(); ++it) {
+        if (*it == cbs) {
+            bridge_callbacks.erase(it);
+            break;
+        }
+    }
+}
+
 //! add service to kernel
 /*!
  * \param owner service owner
@@ -354,7 +367,8 @@ void kernel::add_process_data(sp_process_data_t req) {
     if (process_data_map.find(pd_name) != process_data_map.end())
         return; // already in
 
-    log(info, "registered process data \"%s\", \ndefinition:\n%s\n", pd_name.c_str(), req->process_data_definition.c_str());
+    log(verbose, "registered process data \"%s\", \ndefinition:\n%s\n", 
+            pd_name.c_str(), req->process_data_definition.c_str());
     process_data_map[pd_name] = req;
 }
 
@@ -453,8 +467,17 @@ kernel::~kernel() {
     
 	pthread_rwlock_unlock(&module_map_lock);
     
+    log(info, "removing bridges\n");
+    bridge_map_t::iterator bit;
+    while ((bit = bridge_map.begin()) != bridge_map.end()) {
+        sp_bridge_t bridge = bit->second;
+        bridge_map.erase(bit);
+
+        log(verbose, "    bridge %s\n", bridge->name.c_str());
+    }
+
     // remove services
-    log(info, "removing services\n");
+    log(verbose, "removing services\n");
     service_list_t::iterator slit;
     while ((slit = service_list.begin()) != service_list.end()) {
         for (bridge::cbs_list_t::iterator 
@@ -464,10 +487,19 @@ kernel::~kernel() {
             (*it_prov)->remove_service(*(slit->second));
         }
 
-        log(info, "    service %s\n", slit->first.c_str());
+        log(verbose, "    service %s\n", slit->first.c_str());
         delete slit->second;
 
         service_list.erase(slit);
+    }
+
+
+    // remove process data
+    log(verbose, "removing process data\n");
+    std::map<std::string, sp_process_data_t>::iterator pdit;
+    while ((pdit = process_data_map.begin()) != process_data_map.end()) {
+        log(verbose, "    process_data %d\n", pdit->first.c_str());
+        process_data_map.erase(pdit);
     }
 
     pthread_rwlock_destroy(&module_map_lock);
