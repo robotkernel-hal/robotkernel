@@ -154,6 +154,9 @@ int main(int argc, char* argv[]) {
     try {
         while (!sig_shutdown) {
             k.state_check();
+
+            struct timespec ts = {0, 100000000 };
+            nanosleep(&ts, NULL);
         }
     } catch (exception& e) {
         printf("exception: %s\n", e.what());
