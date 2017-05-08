@@ -1286,3 +1286,19 @@ log_exit:
     ::dump_log(buf);
 }
 
+
+//! list process data objects
+/*!
+ * \param request service request data
+ * \parma response service response data
+ * \return success
+ */
+int kernel::service_list_process_data(const service_arglist_t &request,
+        service_arglist_t &response) {
+    return 0;
+}
+
+const std::string service_definition_list_process_data =
+"response:\n"
+"    vector/string: process_data\n";
+

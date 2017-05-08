@@ -372,6 +372,17 @@ namespace robotkernel {
                                        service_arglist_t &response);
 
         static const std::string service_definition_reconfigure_module;
+
+        //! list process data objects
+        /*!
+         * \param request service request data
+         * \parma response service response data
+         * \return success
+         */
+        int service_list_process_data(const service_arglist_t &request,
+                                       service_arglist_t &response);
+
+        static const std::string service_definition_list_process_data;
     };
 
 } // namespace robotkernel
