@@ -85,7 +85,8 @@ kernel *kernel::instance = NULL;
  * \param state new module state
  * \return state
  */
-int kernel::set_state(std::string mod_name, module_state_t state) {
+int kernel::set_state(std::string mod_name, module_state_t state, 
+        std::list<std::string> caller) {
     module_map_t::const_iterator it = module_map.find(mod_name);
     if (it == module_map.end())
         throw str_exception("[robotkernel] set_state: module %s not "
@@ -99,6 +100,17 @@ int kernel::set_state(std::string mod_name, module_state_t state) {
     for (module::depend_list_t::const_iterator d_it = mdl->get_depends().begin();
             d_it != mdl->get_depends().end(); ++d_it) {
         const std::string& d_mod_name = *d_it;
+        
+        bool skip = false;
+        for (auto caller_it = caller.begin(); caller_it != caller.end(); ++caller_it)
+            if (d_mod_name == *caller_it) {
+                skip = true;
+                break;
+            }
+
+        if (skip)
+            continue;
+
         module_state_t dep_mod_state = get_state(d_mod_name);
         if ((dep_mod_state == module_state_error) && (state == module_state_init))
             continue;
@@ -115,7 +127,8 @@ int kernel::set_state(std::string mod_name, module_state_t state) {
             log(info, "powering up %s module dependencies %s\n",
                     mod_name.c_str(), d_mod_name.c_str());
 
-            set_state(d_mod_name, state);
+            caller.push_back(mod_name);
+            set_state(d_mod_name, state, caller);
         }
     }
 
@@ -131,13 +144,25 @@ int kernel::set_state(std::string mod_name, module_state_t state) {
         for (module::depend_list_t::const_iterator d_it = mdl2->get_depends().begin();
                 d_it != mdl2->get_depends().end(); ++d_it) {
             const std::string& d_mod_name = *d_it;
+        
+            bool skip = false;
+            for (auto caller_it = caller.begin(); caller_it != caller.end(); ++caller_it)
+                if (d_mod_name == *caller_it) {
+                    skip = true;
+                    break;
+                }
+
+            if (skip)
+                continue;
+
             if (d_mod_name != mod_name)
                 continue;
 
             if (get_state(mdl2->get_name()) > state) {
                 log(info, "%s depends on %s -> setting state to init\n",
                         mdl2->get_name().c_str(), mod_name.c_str());
-                set_state(mdl2->get_name(), module_state_init);
+                caller.push_back(mod_name);
+                set_state(mdl2->get_name(), module_state_init, caller);
                 break;
             } else
                 log(verbose, "%s depend on %s but is always in a lower"
@@ -450,8 +475,6 @@ kernel::kernel() {
 kernel::~kernel() {
     log(info, "destructing...\n");
 
-    pthread_rwlock_wrlock(&module_map_lock);
-
     log(info, "removing modules\n");
     module_map_t::iterator it;
     while ((it = module_map.begin()) != module_map.end()) {
@@ -462,10 +485,11 @@ kernel::~kernel() {
             // ignore this on destruction
         }
 
+        pthread_rwlock_wrlock(&module_map_lock);
         module_map.erase(it);
+	    pthread_rwlock_unlock(&module_map_lock);
     }
     
-	pthread_rwlock_unlock(&module_map_lock);
     
     log(info, "removing bridges\n");
     bridge_map_t::iterator bit;

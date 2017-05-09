@@ -237,7 +237,8 @@ namespace robotkernel {
          * \param state new module state
          * \return state
          */
-        int set_state(std::string mod_name, module_state_t state);
+        int set_state(std::string mod_name, module_state_t state, 
+                std::list<std::string> caller=std::list<std::string>());
 
         //! return module state
         /*!
