@@ -469,6 +469,10 @@ kernel::kernel() {
             std::bind(&kernel::service_add_module, this, _1, _2));
     add_service(_name, "remove_module", service_definition_remove_module,
             std::bind(&kernel::service_remove_module, this, _1, _2));
+    add_service(_name, "list_process_data", service_definition_list_process_data,
+            std::bind(&kernel::service_list_process_data, this, _1, _2));
+    add_service(_name, "process_data_info", service_definition_process_data_info,
+            std::bind(&kernel::service_process_data_info, this, _1, _2));
 }
 
 //! destruction
@@ -1319,10 +1323,73 @@ log_exit:
  */
 int kernel::service_list_process_data(const service_arglist_t &request,
         service_arglist_t &response) {
+    //response data
+    std::vector<rk_type> process_datas(0);
+    string error_message = "";
+
+    for (const auto& pd : process_data_map)
+        process_datas.push_back(pd.first);
+
+#define LIST_PROCESS_DATA_RESP_PROCESS_DATAS   0
+#define LIST_PROCESS_DATA_RESP_ERROR_MESSAGE   1
+    response.resize(2);
+    response[LIST_PROCESS_DATA_RESP_PROCESS_DATAS] = process_datas;
+    response[LIST_PROCESS_DATA_RESP_ERROR_MESSAGE] = error_message;
+
     return 0;
 }
 
-const std::string service_definition_list_process_data =
+const std::string kernel::service_definition_list_process_data = 
 "response:\n"
-"    vector/string: process_data\n";
+"    vector/string: process_data\n"
+"    string: error_message\n";
+
+//! process data information
+/*!
+ * \param request service request data
+ * \parma response service response data
+ * \return success
+ */
+int kernel::service_process_data_info(const service_arglist_t &request,
+        service_arglist_t &response) {
+    // request data
+#define PROCESS_DATA_INFO_REQ_NAME 0
+    string name = request[PROCESS_DATA_INFO_REQ_NAME]; 
+
+    //response data
+    string owner = "";
+    string definiton = "";
+    int32_t length = 0;
+    string error_message = "";
+
+    if (process_data_map.find(name) != process_data_map.end()) {
+        auto pd   = process_data_map[name];
+        owner     = pd->owner;
+        definiton = pd->process_data_definition;
+        length    = pd->length;
+    } else
+        error_message = 
+            format_string("process data with name \"%s\" not found!", name);
+
+#define PROCESS_DATA_INFO_RESP_OWNER            0
+#define PROCESS_DATA_INFO_RESP_DEFINITION       1
+#define PROCESS_DATA_INFO_RESP_LENGTH           2
+#define PROCESS_DATA_INFO_RESP_ERROR_MESSAGE    3
+    response.resize(4);
+    response[PROCESS_DATA_INFO_RESP_OWNER]          = owner;
+    response[PROCESS_DATA_INFO_RESP_DEFINITION]     = definiton;
+    response[PROCESS_DATA_INFO_RESP_LENGTH]         = length;
+    response[PROCESS_DATA_INFO_RESP_ERROR_MESSAGE]  = error_message;
+
+    return 0;
+}
+
+const std::string kernel::service_definition_process_data_info = 
+"request:\n"
+"    string: name\n"
+"response:\n"
+"    string: owner\n"
+"    string: definition\n"
+"    int32_t: length\n"
+"    string: error_message\n";
 

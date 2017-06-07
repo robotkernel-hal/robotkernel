@@ -384,6 +384,17 @@ namespace robotkernel {
                                        service_arglist_t &response);
 
         static const std::string service_definition_list_process_data;
+
+        //! process data information
+        /*!
+         * \param request service request data
+         * \parma response service response data
+         * \return success
+         */
+        int service_process_data_info(const service_arglist_t &request,
+                service_arglist_t &response);
+
+        static const std::string service_definition_process_data_info;
     };
 
 } // namespace robotkernel
