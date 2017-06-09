@@ -25,8 +25,25 @@
 #include "robotkernel/trigger_base.h"
 #include "robotkernel/kernel.h"
 
+#include "string_util/string_util.h"
+
 using namespace robotkernel;
+using namespace string_util;
         
+bool trigger_base::worker_key::operator<(const worker_key& a) const {
+    if (prio < a.prio)
+        return true;
+    if (prio > a.prio)
+        return false;
+
+    if (affinity < a.affinity)
+        return true;
+    if (affinity > a.affinity)
+        return false;
+
+    return (int) divisor < (int)a.divisor;
+}
+
 trigger_base::trigger_base(const std::string& trigger_dev_name) 
     : trigger_dev_name(trigger_dev_name)
 {
@@ -40,20 +57,49 @@ trigger_base::~trigger_base() {
 //! add a trigger callback function
 /*!
  * \param cb trigger callback
- * \return true on success, false if no ring is present or
- *         callback function pointer is NULL
  */
-bool trigger_base::add_trigger_module(set_trigger_cb_t& cb) {
-    if (cb.cb == NULL) {
-        klog(info, "could not register, callback is NULL\n");
-        return false;
-    }
+void trigger_base::add_trigger_module(set_trigger_cb_t& cb) {
+    if (cb.cb == NULL) 
+        throw str_exception("could not register, callback is NULL\n");
     
     pthread_mutex_lock(&list_lock);
     trigger_cbs.push_back(cb);
     pthread_mutex_unlock(&list_lock);
-    
-    return true;
+}
+
+//! add a module to trigger device
+/*!
+ * \param mdl module to add
+ * \param trigger trigger options
+ */
+void trigger_base::add_trigger_modules(module *mdl, const module::external_trigger& trigger) {
+    if (trigger.direct_mode) {
+        set_trigger_cb_t cb = set_trigger_cb_t();
+        cb.cb               = module::trigger_wrapper;
+        cb.hdl              = mdl;
+        cb.divisor          = trigger.divisor;
+        cb.cnt              = 0;
+        
+        return add_trigger_module(cb);
+    }
+
+    worker_key k = { trigger.prio, trigger.affinity_mask, trigger.divisor };
+    if (workers.find(k) == workers.end()) {
+        // create new worker thread
+        kernel_worker *w = new kernel_worker(trigger.prio, trigger.affinity_mask);
+        workers[k] = w;
+
+        set_trigger_cb_t cb = set_trigger_cb_t();
+        cb.cb               = kernel_worker::trigger_wrapper;
+        cb.hdl              = w;
+        cb.divisor          = trigger.divisor;
+        cb.cnt              = 0;
+
+        add_trigger_module(cb);
+    }
+
+    kernel_worker *w = workers[k];
+    w->add_module(mdl);
 }
 
 //! remove a trigger callback function
@@ -99,11 +145,12 @@ bool trigger_base::remove_trigger_module(set_trigger_cb_t& cb) {
 void trigger_base::trigger_modules(int clk_id) {
     pthread_mutex_lock(&list_lock);
     
-    for (cb_list_t::iterator it = trigger_cbs.begin();
-            it != trigger_cbs.end(); ++it) {
-        if (clk_id == -1 || clk_id == it->clk_id)
-            (*(it->cb))(it->hdl);
-    }
+    for (auto& trigger : trigger_cbs)
+        if (((++trigger.cnt) % trigger.divisor) == 0) {
+            trigger.cnt = 0;
+
+            (*(trigger.cb))(trigger.hdl);
+        }
 
     pthread_mutex_unlock(&list_lock);
 }

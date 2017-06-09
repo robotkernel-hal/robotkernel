@@ -63,15 +63,14 @@ class module : public so_file {
                 external_trigger& operator=(const external_trigger&);  
 
             public:
-                std::string _mod_name;  //! name of trigger module
-                int _clk_id;            //! trigger module clock id
-                int _prio;              //! trigger priority
-                int _affinity_mask;     //! trigger affinity mask
-                int _divisor;           //! trigger divisor
+                std::string mod_name;  //! name of trigger module
+                int prio;              //! trigger priority
+                int affinity_mask;     //! trigger affinity mask
+                int divisor;           //! trigger divisor
 
-                bool _direct_mode;      //! direct or threaded
-                int  _direct_cnt;       //! direct mode counter
-                module *_direct_mdl;    //! direct mode module pointer
+                bool direct_mode;      //! direct or threaded
+                int  direct_cnt;       //! direct mode counter
+                module *direct_mdl;    //! direct mode module pointer
 
                 //! generate new trigger object
                 /*!
@@ -139,33 +138,9 @@ class module : public so_file {
           */
         module_state_t get_state();
 
-        //! Send a request to module
-        /*!
-          \param reqcode request code
-          \param ptr pointer to request structure
-          \return success or failure
-          */
-        int request(int reqcode, void* ptr);
-
-        //! register trigger module
-        /*!
-         * \param mdl module to register
-         */
-        void trigger_register_module(module *mdl, external_trigger& t);
-
-        //! unregister trigger module
-        /*!
-         * \param mdl module to register
-         */
-        void trigger_unregister_module(module *mdl, external_trigger& t);
-
+        //! trigger wrapper
         static void trigger_wrapper(void *ptr) {
-            external_trigger *t = (external_trigger *)ptr;
-        
-//            if ((++t->_direct_cnt%t->_divisor != 0))
-//                return;
-
-            t->_direct_mdl->trigger();
+            ((module *)ptr)->trigger();
         };
         
         //! trigger module's slave id
@@ -238,19 +213,6 @@ class module : public so_file {
         void _init();
 
         MODULE_HANDLE mod_handle;       //! module handle
-
-        struct worker_key {
-            int prio;
-            int affinity;
-            int clk_id;
-            int divisor;
-
-            bool operator<(const worker_key& a) const;
-        };
-
-        //! kernel worker
-        typedef std::map<worker_key, kernel_worker *> worker_map_t;
-        worker_map_t _worker;
 
         //! module symbols
         mod_configure_t         mod_configure;

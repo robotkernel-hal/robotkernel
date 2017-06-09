@@ -30,8 +30,8 @@
 using namespace robotkernel;
 using namespace std;
 
-kernel_worker::kernel_worker(int prio, int affinity_mask, int divisor) 
-    : runnable(prio, affinity_mask), divisor(divisor), divisor_cnt(0) {
+kernel_worker::kernel_worker(int prio, int affinity_mask) 
+    : runnable(prio, affinity_mask) {
     pthread_cond_init(&cond, NULL);
     pthread_mutex_init(&mutex, NULL);
 
@@ -104,12 +104,6 @@ void kernel_worker::run() {
         // wait for trigger, this will unlock mutex
         // other threads can now safely add/remove something from _modules
         int ret = pthread_cond_timedwait(&cond, &mutex, &ts);
-
-        if (ret != 0 || (++divisor_cnt%divisor != 0))
-            continue;
-
-        // reset divisor count
-        divisor_cnt = 0;
 
         for (module_list_t::iterator it = modules.begin();
                 it != modules.end(); ++it) {

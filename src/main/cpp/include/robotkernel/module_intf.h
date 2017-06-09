@@ -118,7 +118,8 @@ typedef struct set_pd {
 typedef struct set_trigger_cb {
     void (*cb)(MODULE_HANDLE hdl);
     MODULE_HANDLE hdl;
-    int clk_id;
+    int divisor;    //! rate divisor
+    int cnt;        //! rate counter
 } set_trigger_cb_t;
 typedef std::list<set_trigger_cb_t> cb_list_t;
 

@@ -98,53 +98,51 @@ module_state_t string_to_state(const char* state_ptr) {
  * \param node configuration node
  */
 module::external_trigger::external_trigger(const YAML::Node& node) {
-    _mod_name       = get_as<string>(node, "mod_name");
-    _clk_id         = get_as<int>(node, "clk_id");
-    _prio           = 0;
-    _affinity_mask  = 0;
-    _divisor        = get_as<int>(node, "divisor", 1);
-    _direct_mode    = get_as<bool>(node, "direct_mode", false);
+    mod_name       = get_as<string>(node, "mod_name");
+    prio           = 0;
+    affinity_mask  = 0;
+    divisor        = get_as<int>(node, "divisor", 1);
+    direct_mode    = get_as<bool>(node, "direct_mode", false);
 
     if (node["prio"]) {
-        _prio = get_as<int>(node, "prio");
+        prio = get_as<int>(node, "prio");
 
-        if (_direct_mode)
+        if (direct_mode)
             klog(info, "external_trigger prio will not have any effect in direct mode!\n");
     }
 
     if(node["affinity"]) {
         const YAML::Node& affinity = node["affinity"];
         if (affinity.Type() == YAML::NodeType::Scalar)
-            _affinity_mask = (1 << affinity.as<int>());
+            affinity_mask = (1 << affinity.as<int>());
         else if (affinity.Type() == YAML::NodeType::Sequence)
             for (YAML::const_iterator it = affinity.begin(); it != affinity.end(); ++it)
-                _affinity_mask |= (1 << it->as<int>());
+                affinity_mask |= (1 << it->as<int>());
 
-        if (_direct_mode)
+        if (direct_mode)
             klog(info, "external_trigger affinity will not have any effect in direct mode!\n");
     }
 }
 
 YAML::Emitter& operator<<(YAML::Emitter& out, const module::external_trigger& t) {
     out << YAML::BeginMap;
-    out << YAML::Key << "mod_name" << YAML::Value << t._mod_name;
-    out << YAML::Key << "clk_id"   << YAML::Value << t._clk_id;
+    out << YAML::Key << "mod_name" << YAML::Value << t.mod_name;
 
-    if (t._direct_mode)
-        out << YAML::Key << "direct_mode" << YAML::Value << t._direct_mode;
+    if (t.direct_mode)
+        out << YAML::Key << "direct_mode" << YAML::Value << t.direct_mode;
     else {
-        out << YAML::Key << "prio"     << YAML::Value << t._prio;
+        out << YAML::Key << "prio"     << YAML::Value << t.prio;
         out << YAML::Key << "affinity" << YAML::Value;
 
         out << YAML::Flow;
         out << YAML::BeginSeq;
         for (int i = 0; i < 32; ++i)
-            if (t._affinity_mask & (1 << i))
+            if (t.affinity_mask & (1 << i))
                 out << i;
         out << YAML::EndSeq;
     }
 
-    out << YAML::Key << "divisor"  << YAML::Value << t._divisor;
+    out << YAML::Key << "divisor"  << YAML::Value << t.divisor;
     out << YAML::EndMap;
 
     return out;
@@ -276,7 +274,6 @@ void module::_init() {
     mod_write               = (mod_write_t)             dlsym(so_handle, "mod_write");
     mod_set_state           = (mod_set_state_t)         dlsym(so_handle, "mod_set_state");
     mod_get_state           = (mod_get_state_t)         dlsym(so_handle, "mod_get_state");
-    mod_request             = (mod_request_t)           dlsym(so_handle, "mod_request");
     mod_trigger             = (mod_trigger_t)           dlsym(so_handle, "mod_trigger");
     mod_trigger_slave_id    = (mod_trigger_slave_id_t)  dlsym(so_handle, "mod_trigger_slave_id");
 
@@ -292,8 +289,6 @@ void module::_init() {
         klog(verbose, "missing mod_set_state in %s\n", file_name.c_str());
     if (!mod_get_state)
         klog(verbose, "missing mod_get_state in %s\n", file_name.c_str());
-    if (!mod_request)
-        klog(verbose, "missing mod_request in %s\n", file_name.c_str());
     if (!mod_trigger)
         klog(verbose, "missing mod_trigger in %s\n", file_name.c_str());
     if (!mod_trigger_slave_id)
@@ -410,10 +405,10 @@ int module::set_state(module_state_t state) {
             for (trigger_list_t::iterator it = triggers.begin();
                     it != triggers.end(); ++it) {
                 klog(info, "%s removing module trigger %s\n",
-                        name.c_str(), (*it)->_mod_name.c_str());
+                        name.c_str(), (*it)->mod_name.c_str());
 
                 kernel& k = *kernel::get_instance();
-                k.trigger_unregister_module((*it)->_mod_name, this, **it);
+                k.trigger_unregister_module((*it)->mod_name, this, **it);
             }
 
             klog(info, "%s setting state from %s to %s\n", name.c_str(), 
@@ -438,24 +433,12 @@ int module::set_state(module_state_t state) {
                     return ret;
             }
 
-            for (trigger_list_t::iterator it = triggers.begin();
-                    it != triggers.end(); ++it) {
+            for (const auto& et : triggers) {
                 klog(info, "%s adding module trigger %s\n",
-                        name.c_str(), (*it)->_mod_name.c_str());
+                        name.c_str(), et->mod_name.c_str());
                 
-                kernel& k = *kernel::get_instance();
-                try {
-                    auto t_dev = k.get_trigger_device((*it)->_mod_name);
-        (*it)->_direct_cnt       = 0;
-        (*it)->_direct_mdl       = this;
-                    set_trigger_cb_t cb = set_trigger_cb_t();
-                    cb.cb               = module::trigger_wrapper;
-                    cb.hdl              = (*it);
-                    cb.clk_id           = 0;//t._clk_id;
-                    t_dev->add_trigger_module(cb);
-                } catch (std::exception& e) {
-                    k.trigger_register_module((*it)->_mod_name, this, **it);
-                }
+                auto t_dev = kernel::get_instance()->get_trigger_device(et->mod_name);
+                t_dev->add_trigger_modules(this, *et);
             }
 
             klog(info, "%s setting state from %s to %s\n", name.c_str(), 
@@ -520,106 +503,6 @@ module_state_t module::get_state() {
     return mod_get_state(mod_handle); 
 }
 
-//! Send a request to module
-/*! 
-  \param reqcode request code
-  \param ptr pointer to request structure
-  \return success or failure
-  */
-int module::request(int reqcode, void* ptr) {
-//    if(reqcode == MOD_REQUEST_GET_CFG_PATH) {
-//        char** ret = (char**)ptr;
-//        *ret = (char*)config_file_path.c_str();
-//        return 0;
-//    }
-    
-    if (!mod_handle)
-        throw str_exception("[%s] not configured\n", name.c_str());
-
-    if (!mod_request)
-        return 0;
-
-    return mod_request(mod_handle, reqcode, ptr);
-}
-
-//! register trigger module 
-/*!
- * \param mdl module to register
- */
-void module::trigger_register_module(module *mdl, external_trigger& t) {
-    // let mdl know, that it is triggered by us
-    char *triggered_by = strdup(name.c_str());
-    mdl->request(MOD_REQUEST_TRIGGERED_BY, &triggered_by);
-    free(triggered_by);
-
-    if (t._direct_mode) {
-        t._direct_cnt       = 0;
-        t._direct_mdl       = mdl;
-
-        set_trigger_cb_t cb = set_trigger_cb_t();
-        cb.cb               = module::trigger_wrapper;
-        cb.hdl              = &t;
-        cb.clk_id           = t._clk_id;
-        request(MOD_REQUEST_SET_TRIGGER_CB, &cb);        
-        return;
-    }
-
-    worker_key k = { t._clk_id, t._prio, t._affinity_mask, t._divisor };
-    worker_map_t::iterator it = _worker.find(k); 
-    if (it == _worker.end()) {
-        klog(info, "%s new kernel worker from %s, clk_id %d, prio %d, divisor %d\n",
-                name.c_str(), mdl->name.c_str(), t._clk_id, t._prio, t._divisor);
-
-        // create new worker thread
-        kernel_worker *w = new kernel_worker(t._prio, t._affinity_mask, t._divisor);
-        _worker[k] = w;
-
-        set_trigger_cb_t cb = set_trigger_cb_t();
-        cb.cb               = w->kernel_worker_trigger;
-        cb.hdl              = w;
-        cb.clk_id           = t._clk_id;
-        request(MOD_REQUEST_SET_TRIGGER_CB, &cb);        
-    }
-
-    kernel_worker *w = _worker[k];
-    w->add_module(mdl);
-}
-
-//! unregister trigger module 
-/*!
- * \param mdl module to register
- */
-void module::trigger_unregister_module(module *mdl, external_trigger& t) {
-    if (t._direct_mode) {
-        set_trigger_cb_t cb = set_trigger_cb_t();
-        cb.cb               = module::trigger_wrapper;
-        cb.hdl              = &t;
-        cb.clk_id           = t._clk_id;
-        request(MOD_REQUEST_UNSET_TRIGGER_CB, &cb);        
-        return;
-    }
-
-    worker_key k = { t._clk_id, t._prio, t._affinity_mask, t._divisor };
-    worker_map_t::iterator it = _worker.find(k); 
-    if (it == _worker.end()) {
-        klog(verbose, "%s kernel worker from %s, clk_id %d, prio %d not found\n",
-                name.c_str(), mdl->name.c_str(), t._clk_id, t._prio);
-        return;
-    }
-
-    kernel_worker *w = _worker[k];
-    if (w->remove_module(mdl)) {
-        set_trigger_cb_t cb = set_trigger_cb_t();
-        cb.cb               = w->kernel_worker_trigger;
-        cb.hdl              = w;
-        cb.clk_id           = t._clk_id;
-        request(MOD_REQUEST_UNSET_TRIGGER_CB, &cb);        
-
-        _worker.erase(it);
-        delete w;
-    }
-}
-
 //! trigger module's slave id
 /*!
  * \param slave_id slave id to trigger
@@ -647,25 +530,6 @@ void module::trigger() {
     (*mod_trigger)(mod_handle);
 }
 
-
-bool module::worker_key::operator<(const worker_key& a) const {
-    if (prio < a.prio)
-        return true;
-    if (prio > a.prio)
-        return false;
-
-    if (affinity < a.affinity)
-        return true;
-    if (affinity > a.affinity)
-        return false;
-
-    if (clk_id < a.clk_id)
-        return true;
-    if (clk_id > a.clk_id)
-        return false;
-
-    return (int) divisor < (int)a.divisor;
-}
 
 //! set module state
 /*!
@@ -768,7 +632,7 @@ const std::string module::service_definition_get_config =
 int module::service_get_feat(const service_arglist_t& request, 
         service_arglist_t& response) {
     int32_t feat = 0;
-    this->request(MOD_REQUEST_GET_MODULE_FEAT, &feat);
+    //this->request(MOD_REQUEST_GET_MODULE_FEAT, &feat);
 
     string features = "[ ";
 

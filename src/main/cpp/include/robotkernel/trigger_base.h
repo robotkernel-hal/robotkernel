@@ -28,6 +28,8 @@
 #include <pthread.h>
 #include <string>
 #include "robotkernel/module_intf.h"
+#include "robotkernel/kernel_worker.h"
+#include "robotkernel/module.h"
 
 namespace robotkernel {
 
@@ -39,10 +41,21 @@ class trigger_base {
         //! protection for trigger list
         pthread_mutex_t list_lock;
         
-        typedef std::list<set_trigger_cb_t> cb_list_t;
-        
         //! trigger callback list
+        typedef std::list<set_trigger_cb_t> cb_list_t;
         cb_list_t trigger_cbs;
+
+        struct worker_key {
+            int prio;
+            int affinity;
+            int divisor;
+
+            bool operator<(const worker_key& a) const;
+        };
+
+        //! workers
+        typedef std::map<worker_key, kernel_worker *> kernel_workers_t;
+        kernel_workers_t workers;
 
     public:
         //! trigger device name
@@ -58,10 +71,15 @@ class trigger_base {
         //! add a trigger callback function
         /*!
          * \param cb trigger callback
-         * \return true on success, false if no ring is present or
-         *         callback function pointer is NULL
          */
-        bool add_trigger_module(set_trigger_cb_t& cb);
+        void add_trigger_module(set_trigger_cb_t& cb);
+
+        //! add a module to trigger device
+        /*!
+         * \param mdl module to add
+         * \param trigger trigger options
+         */
+        void add_trigger_modules(module *mdl, const module::external_trigger& trigger);
 
         //! remove a trigger callback function
         /*!

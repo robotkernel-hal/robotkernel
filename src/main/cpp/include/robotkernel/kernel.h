@@ -214,23 +214,23 @@ namespace robotkernel {
          */
         sp_trigger_device_t get_trigger_device(const std::string& trigger_name);
 
-        //! register trigger module to module named mod_name
+        //! register trigger module to named trigger device
         /*!
-         * \param mod_name module name
-         * \param trigger_mdl module which should be triggered by mod_name
+         * \param t_dev trigger_device name
+         * \param trigger_mdl module which should be triggered by t_dev
          * \param t external trigger
          */
-        void trigger_register_module(const std::string &mod_name,
-                                     module *trigger_mdl, module::external_trigger &t);
+        void trigger_register_module(const std::string& t_dev, 
+                module *trigger_mdl, module::external_trigger& t);
 
-        //! unregister trigger module from module named mod_name
+        //! unregister trigger module from named trigger device
         /*!
-         * \param mod_name module name
-         * \param trigger_mdl module which was triggered by mod_name
+         * \param t_dev trigger_device name
+         * \param trigger_mdl module which was triggered by t_dev
          * \param t external trigger
          */
-        void trigger_unregister_module(const std::string &mod_name,
-                                       module *trigger_mdl, module::external_trigger &t);
+        void trigger_unregister_module(const std::string& t_dev, 
+                module *trigger_mdl, module::external_trigger& t);
 
         //! get kernel singleton instance
         /*!
@@ -289,15 +289,6 @@ namespace robotkernel {
         std::string config_file_path;
         std::string exec_file_path;
 
-        //! kernel request callback
-        /*!
-         * \param mod_name module name to send request to
-         * \param reqcode request code
-         * \param ptr request specifix pointer
-         * \return request status code
-         */
-        static int request_cb(const char *mod_name, int reqcode, void *ptr);
-
         //! module state change
         /*!
          * \param mod_name module name which changed state
@@ -305,14 +296,6 @@ namespace robotkernel {
          * \retun success
          */
         int state_change(const char *mod_name, module_state_t new_state);
-
-        //! Send a request to kernel
-        /*!
-          \param reqcode request code
-          \param ptr pointer to request structure
-          \return success or failure
-          */
-        int request(int reqcode, void *ptr);
 
         //! get module
         /*!

@@ -889,36 +889,6 @@ bool kernel::state_check() {
     return true;
 }
 
-//! kernel register interface callback
-/*!
- * \param mod_name module name to send request to
- * \param reqcode request code
- * \param ptr request specifix pointer
- * \return request status code
- */
-int kernel::request_cb(const char *mod_name, int reqcode, void *ptr) {
-    kernel& k = *get_instance();
-
-    if (mod_name == NULL)
-        return k.request(reqcode, ptr);
-
-    if (currently_loading_module && mod_name == currently_loading_module->get_name())
-        return currently_loading_module->request(reqcode, ptr);
-    
-	pthread_rwlock_rdlock(&k.module_map_lock);
-
-    kernel::module_map_t::const_iterator it = k.module_map.find(mod_name);
-    if (it == k.module_map.end()) {
-		pthread_rwlock_unlock(&k.module_map_lock);
-        throw str_exception("[robotkernel] request_cb: module %s not found!\n", mod_name);
-	}
-	
-	sp_module_t mdl = it->second;
-	pthread_rwlock_unlock(&k.module_map_lock);
-
-    return mdl->request(reqcode, ptr);
-}
-
 //! get module
 /*!
  * \param mod_name name of module
@@ -938,18 +908,6 @@ kernel::sp_module_t kernel::get_module(const std::string& mod_name) {
 	pthread_rwlock_unlock(&module_map_lock);
 
     return mdl;
-}
-
-//! Send a request to kernel
-/*!
-  \param reqcode request code
-  \param ptr pointer to request structure
-  \return success or failure
-  */
-int kernel::request(int reqcode, void* ptr) {
-    klog(error, "request %d\n", reqcode);
-
-    return 0;
 }
 
 //! module state change
@@ -979,52 +937,52 @@ int kernel::state_change(const char *mod_name, module_state_t new_state) {
     return ret;
 }
         
-//! register trigger module to module named mod_name
+//! register trigger module to named trigger device
 /*!
- * \param mod_name module name
- * \param trigger_mdl module which should be triggered by mod_name
+ * \param t_dev trigger_device name
+ * \param trigger_mdl module which should be triggered by t_dev
  * \param t external trigger
  */
-void kernel::trigger_register_module(const std::string& mod_name, 
+void kernel::trigger_register_module(const std::string& t_dev, 
         module *trigger_mdl, module::external_trigger& t) {
 
     pthread_rwlock_rdlock(&module_map_lock);
 
-    module_map_t::iterator module_it = module_map.find(mod_name);
+    module_map_t::iterator module_it = module_map.find(t_dev);
     if (module_it == module_map.end()) {
         pthread_rwlock_unlock(&module_map_lock);
 
         throw str_exception("%s not found\n", 
-                mod_name.c_str());
+                t_dev.c_str());
     }
 
     sp_module_t mdl = module_it->second;
-    mdl->trigger_register_module(trigger_mdl, t);
+    //mdl->trigger_register_module(trigger_mdl, t);
 
     pthread_rwlock_unlock(&module_map_lock);
 }
 
-//! unregister trigger module from module named mod_name
+//! unregister trigger module from named trigger device
 /*!
- * \param mod_name module name
- * \param trigger_mdl module which was triggered by mod_name
+ * \param t_dev trigger_device name
+ * \param trigger_mdl module which was triggered by t_dev
  * \param t external trigger
  */
-void kernel::trigger_unregister_module(const std::string& mod_name, 
+void kernel::trigger_unregister_module(const std::string& t_dev, 
         module *trigger_mdl, module::external_trigger& t) {
 
     pthread_rwlock_rdlock(&module_map_lock);
 
-    module_map_t::iterator module_it = module_map.find(mod_name);
+    module_map_t::iterator module_it = module_map.find(t_dev);
     if (module_it == module_map.end()) {
         pthread_rwlock_unlock(&module_map_lock);
 
         throw str_exception("%s not found\n", 
-                mod_name.c_str());
+                t_dev.c_str());
     }
 
     sp_module_t mdl = module_it->second;
-    mdl->trigger_unregister_module(trigger_mdl, t);
+    //mdl->trigger_unregister_module(trigger_mdl, t);
 
     pthread_rwlock_unlock(&module_map_lock);
 }

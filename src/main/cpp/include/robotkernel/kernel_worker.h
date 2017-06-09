@@ -33,6 +33,9 @@
 #include "robotkernel/runnable.h"
 
 namespace robotkernel {
+#ifdef EMACS
+}
+#endif
 
 //! kernel worker thread
 /*!
@@ -45,7 +48,7 @@ class kernel_worker : public runnable {
 
     public:
         //! default construction
-        kernel_worker(int prio = 60, int affinity_mask = 0xFF, int divisor = 1);
+        kernel_worker(int prio = 60, int affinity_mask = 0xFF);
 
         //! destruction
         ~kernel_worker();
@@ -63,11 +66,13 @@ class kernel_worker : public runnable {
          */
         bool remove_module(module *mdl);
 
-        //! trigger callback
-        /*!
-         * \param hdl module handle
-         */
-        static void kernel_worker_trigger(MODULE_HANDLE hdl);
+        //! trigger wrapper
+        static void trigger_wrapper(void *ptr) {
+            ((kernel_worker *)ptr)->trigger();
+        };
+
+        //! trigger worker
+        void trigger();
 
         //! handler function called if thread is running
         void run();
@@ -76,8 +81,6 @@ class kernel_worker : public runnable {
         typedef std::list<module *> module_list_t;
 
         module_list_t modules;  //!< list of module triggered by worker
-        int divisor;            //!< divisor
-        int divisor_cnt;        //!< divisor counter
         pthread_mutex_t mutex;  //!< ipc lock
         pthread_cond_t cond;    //!< ipc condition
 };
@@ -86,14 +89,14 @@ class kernel_worker : public runnable {
 /*!
  * \param hdl module handle
  */
-inline void kernel_worker::kernel_worker_trigger(MODULE_HANDLE hdl) {
-    // hdl is our this pointer
-    kernel_worker *worker = (kernel_worker *)hdl;
-
+inline void kernel_worker::trigger() {
     // trigger worker thread
-    pthread_cond_signal(&worker->cond);
+    pthread_cond_signal(&cond);
 }
 
+#ifdef EMACS
+{
+#endif
 } // namespace robotkernel
 
 #endif // __KERNEL_WORKER_H__
