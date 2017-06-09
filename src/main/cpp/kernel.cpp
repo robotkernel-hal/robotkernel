@@ -97,19 +97,9 @@ int kernel::set_state(std::string mod_name, module_state_t state,
         return state;
 
     // iterate through dependencies
-    for (module::depend_list_t::const_iterator d_it = mdl->get_depends().begin();
-            d_it != mdl->get_depends().end(); ++d_it) {
-        const std::string& d_mod_name = *d_it;
-        
-        bool skip = false;
-        for (auto caller_it = caller.begin(); caller_it != caller.end(); ++caller_it)
-            if (d_mod_name == *caller_it) {
-                skip = true;
-                break;
-            }
-
-        if (skip)
-            continue;
+    for (const auto& d_mod_name : mdl->get_depends()) {
+        if (std::find(caller.begin(), caller.end(), d_mod_name) != caller.end())
+            continue; // do not recurse any further
 
         module_state_t dep_mod_state = get_state(d_mod_name);
         if ((dep_mod_state == module_state_error) && (state == module_state_init))
@@ -133,29 +123,17 @@ int kernel::set_state(std::string mod_name, module_state_t state,
     }
 
     // check if other module depend on this one
-    for (module_map_t::iterator m_it = module_map.begin();
-            m_it != module_map.end(); ++m_it) {
-        sp_module_t mdl2 = m_it->second;
+    for (auto& kv : module_map) {
+        sp_module_t mdl2 = kv.second;
         if (mdl2->get_name() == mod_name)
             // skip this one
             continue;
 
         // iterate through dependencies
-        for (module::depend_list_t::const_iterator d_it = mdl2->get_depends().begin();
-                d_it != mdl2->get_depends().end(); ++d_it) {
-            const std::string& d_mod_name = *d_it;
-        
-            bool skip = false;
-            for (auto caller_it = caller.begin(); caller_it != caller.end(); ++caller_it)
-                if (d_mod_name == *caller_it) {
-                    skip = true;
-                    break;
-                }
-
-            if (skip)
-                continue;
-
-            if (d_mod_name != mod_name)
+        for (const auto& d_mod_name : mdl2->get_depends()) {
+            if (std::find(caller.begin(), caller.end(), d_mod_name) != caller.end())
+                continue; // do not recurse any further
+            if (d_mod_name == mod_name)
                 continue;
 
             if (get_state(mdl2->get_name()) > state) {
@@ -883,7 +861,7 @@ bool kernel::state_check() {
             set_state(it->first.c_str(), module_state_init);
         }
     }
-	
+
 	pthread_rwlock_unlock(&module_map_lock);
 
     return true;
@@ -1181,12 +1159,10 @@ int kernel::service_module_list(const service_arglist_t& request,
     try {        
         int i = 0;
 		pthread_rwlock_rdlock(&module_map_lock);
-        modules.resize(module_map.size());
 
-        for (module_map_t::const_iterator
-                it = module_map.begin(); it != module_map.end(); ++it) {
-            modules[i++] = it->first;
-        }
+        for (const auto& kv : module_map) 
+            modules.push_back(kv.first);
+
 		pthread_rwlock_unlock(&module_map_lock);
     } catch(exception& e) {
         error_message = e.what();

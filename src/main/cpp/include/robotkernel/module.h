@@ -63,7 +63,7 @@ class module : public so_file {
                 external_trigger& operator=(const external_trigger&);  
 
             public:
-                std::string mod_name;  //! name of trigger module
+                std::string dev_name;  //! name of trigger device
                 int prio;              //! trigger priority
                 int affinity_mask;     //! trigger affinity mask
                 int divisor;           //! trigger divisor

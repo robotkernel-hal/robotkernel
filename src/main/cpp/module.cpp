@@ -98,7 +98,7 @@ module_state_t string_to_state(const char* state_ptr) {
  * \param node configuration node
  */
 module::external_trigger::external_trigger(const YAML::Node& node) {
-    mod_name       = get_as<string>(node, "mod_name");
+    dev_name       = get_as<string>(node, "dev_name");
     prio           = 0;
     affinity_mask  = 0;
     divisor        = get_as<int>(node, "divisor", 1);
@@ -126,23 +126,27 @@ module::external_trigger::external_trigger(const YAML::Node& node) {
 
 YAML::Emitter& operator<<(YAML::Emitter& out, const module::external_trigger& t) {
     out << YAML::BeginMap;
-    out << YAML::Key << "mod_name" << YAML::Value << t.mod_name;
+    out << YAML::Key << "dev_name" << YAML::Value << t.dev_name;
 
     if (t.direct_mode)
         out << YAML::Key << "direct_mode" << YAML::Value << t.direct_mode;
     else {
-        out << YAML::Key << "prio"     << YAML::Value << t.prio;
-        out << YAML::Key << "affinity" << YAML::Value;
+        if (t.prio)
+            out << YAML::Key << "prio"     << YAML::Value << t.prio;
+        if (t.affinity_mask) {
+            out << YAML::Key << "affinity" << YAML::Value;
 
-        out << YAML::Flow;
-        out << YAML::BeginSeq;
-        for (int i = 0; i < 32; ++i)
-            if (t.affinity_mask & (1 << i))
-                out << i;
-        out << YAML::EndSeq;
+            out << YAML::Flow;
+            out << YAML::BeginSeq;
+            for (int i = 0; i < 32; ++i)
+                if (t.affinity_mask & (1 << i))
+                    out << i;
+            out << YAML::EndSeq;
+        }
     }
 
-    out << YAML::Key << "divisor"  << YAML::Value << t.divisor;
+    if (t.divisor != 1)
+        out << YAML::Key << "divisor"  << YAML::Value << t.divisor;
     out << YAML::EndMap;
 
     return out;
@@ -151,7 +155,7 @@ YAML::Emitter& operator<<(YAML::Emitter& out, const module::external_trigger& t)
 YAML::Emitter& operator<<(YAML::Emitter& out, const robotkernel::module& mdl) {
     out << YAML::BeginMap;
     out << YAML::Key << "name" << YAML::Value << mdl.name;
-    out << YAML::Key << "file_name" << YAML::Value << mdl.file_name;
+    out << YAML::Key << "so_file" << YAML::Value << mdl.file_name;
 
     YAML::Node node = YAML::Load(mdl.config);
     out << YAML::Key << "config";
@@ -198,7 +202,6 @@ module::module(const YAML::Node& node)
                 it != node["trigger"].end(); ++it) {
             try {
                 external_trigger *trigger = new external_trigger(*it);
-                //depends.push_back(trigger->_mod_name);
                 triggers.push_back(trigger);
             } catch (YAML::Exception& e) {
                 YAML::Emitter t;
@@ -262,9 +265,6 @@ module::module(const YAML::Node& node)
     k.add_service(name, name + ".get_config",
             service_definition_get_config,
             std::bind(&module::service_get_config, this, _1, _2));
-    k.add_service(name, name + ".get_feat",
-            service_definition_get_feat,
-            std::bind(&module::service_get_feat, this, _1, _2));
 }
 
 void module::_init() {
@@ -395,96 +395,100 @@ int module::set_state(module_state_t state) {
     }
 
     module_state_t act_state = get_state();
+    
+    // get transition
+    uint32_t transition = GEN_STATE(act_state, state);
 
-    if (act_state == state)
-        return act_state;
+#define set_state__check(to_state) {                \
+    int ret = mod_set_state(mod_handle, to_state);  \
+    if (ret != to_state) return -1; }                          
 
-    int ret = -1;
-    switch (state) {
-        case module_state_init:
-            for (trigger_list_t::iterator it = triggers.begin();
-                    it != triggers.end(); ++it) {
+    switch (transition) {
+        case op_2_safeop:
+        case op_2_preop:
+        case op_2_init:
+        case op_2_boot:
+            set_state__check(module_state_safeop);
+
+            // ====> stop sending commands
+            if (state == module_state_safeop)
+                break;
+        case safeop_2_preop:
+        case safeop_2_init:
+        case safeop_2_boot:
+            // ====> stop receiving measurements, unregistering triggers
+            for (const auto& et : triggers) {
                 klog(info, "%s removing module trigger %s\n",
-                        name.c_str(), (*it)->mod_name.c_str());
-
-                kernel& k = *kernel::get_instance();
-                k.trigger_unregister_module((*it)->mod_name, this, **it);
+                        name.c_str(), et->dev_name.c_str());
+                
+                auto t_dev = kernel::get_instance()->get_trigger_device(et->dev_name);
+                t_dev->remove_trigger_modules(this, *et);
             }
+            
+            set_state__check(module_state_preop);
 
-            klog(info, "%s setting state from %s to %s\n", name.c_str(), 
-                    state_to_string(get_state()), state_to_string(state));
+            if (state == module_state_preop)
+                break;
+        case preop_2_init:
+        case preop_2_boot:
+            // ====> deinit devices
+        case init_2_init:
+            // ====> re-/open device
+            set_state__check(module_state_init);
 
-            ret = mod_set_state(mod_handle, state);
+            if (state == module_state_init)
+                break;
+        case init_2_boot:
             break;
-        case module_state_preop:
-            if (act_state != module_state_init) {
-                if ((ret = set_state(module_state_init)) == -1)
-                    return ret;
-            }
+        case boot_2_init:
+        case boot_2_preop:
+        case boot_2_safeop:
+        case boot_2_op:
+            // ====> re-/open device
+            set_state__check(module_state_init);
 
-            klog(info, "%s setting state from %s to %s\n", name.c_str(), 
-                    state_to_string(get_state()), state_to_string(state));
+            if (state == module_state_init)
+                break;
+        case init_2_op:
+        case init_2_safeop:
+        case init_2_preop:
+            // ====> initial devices            
+            set_state__check(module_state_preop);
 
-            ret = mod_set_state(mod_handle, state);
-            break;
-        case module_state_safeop:
-            if (act_state != module_state_preop) {
-                if ((ret = set_state(module_state_preop)) == -1)
-                    return ret;
-            }
-
+            if (state == module_state_preop)
+                break;
+        case preop_2_op:
+        case preop_2_safeop:
+            // ====> start receiving measurements, registering triggers
             for (const auto& et : triggers) {
                 klog(info, "%s adding module trigger %s\n",
-                        name.c_str(), et->mod_name.c_str());
+                        name.c_str(), et->dev_name.c_str());
                 
-                auto t_dev = kernel::get_instance()->get_trigger_device(et->mod_name);
+                auto t_dev = kernel::get_instance()->get_trigger_device(et->dev_name);
                 t_dev->add_trigger_modules(this, *et);
             }
+            
+            set_state__check(module_state_safeop);
 
-            klog(info, "%s setting state from %s to %s\n", name.c_str(), 
-                    state_to_string(get_state()), state_to_string(state));
-
-            if ((ret = mod_set_state(mod_handle, state)) == -1)
-                return ret;
-
-            act_state = get_state();
-            if (act_state != module_state_safeop)
-                return -1;
-
+            if (state == module_state_safeop)
+                break;
+        case safeop_2_op:
+            // ====> start sending commands           
+            set_state__check(module_state_op);
+            
             break;
-        case module_state_op:
-            if (act_state != module_state_safeop) {
-                if (set_state(module_state_safeop) == -1)
-                    return ret;
-            }
-
-            klog(info, "%s setting state from %s to %s\n", name.c_str(), 
-                    state_to_string(get_state()), state_to_string(state));
-
-            if ((ret = mod_set_state(mod_handle, state)) == -1)
-                return ret;
-
-            act_state = get_state();
-            if (act_state != module_state_op)
-                return -1;
-
+        case op_2_op:
+        case safeop_2_safeop:
+        case preop_2_preop:
+            // ====> do nothing
+            set_state__check(state);
             break;
-        case module_state_boot:
-            if (act_state != module_state_init) {
-                if (set_state(module_state_init) == -1)
-                    return ret;
-            }
 
-            klog(info, "%s setting state from %s to %s\n", name.c_str(), 
-                    state_to_string(get_state()), state_to_string(state));
-
-            ret = mod_set_state(mod_handle, state);
-            break;
         default:
-            break;
+            return -1;
     }
-
-    return ret;
+            
+    return 0;
 }
 
 //! Get module state
@@ -622,47 +626,4 @@ int module::service_get_config(const service_arglist_t& request,
 const std::string module::service_definition_get_config =
     "response:\n"
     "    string: config\n";
-
-//! get module feat
-/*!
- * \param request service request data
- * \parma response service response data
- * \return success
- */
-int module::service_get_feat(const service_arglist_t& request, 
-        service_arglist_t& response) {
-    int32_t feat = 0;
-    //this->request(MOD_REQUEST_GET_MODULE_FEAT, &feat);
-
-    string features = "[ ";
-
-    if (feat & MODULE_FEAT_PD)
-        features += "'pd', ";
-    if (feat & MODULE_FEAT_READ)
-        features += "'read', ";
-    if (feat & MODULE_FEAT_WRITE)
-        features += "'write', ";
-    if (feat & MODULE_FEAT_TRIGGER)
-        features += "'trigger', ";
-    if (feat & MODULE_FEAT_CANOPEN)
-        features += "'canopen', ";
-    if (feat & MODULE_FEAT_ETHERCAT)
-        features += "'ethercat', ";
-    if (feat & MODULE_FEAT_SERCOS)
-        features += "'sercos', ";
-    features += " ]";
-
-#define GET_FEAT_RESP_FEAT      0
-#define GET_FEAT_RESP_REATURES  1
-    response.resize(2);
-    response[GET_FEAT_RESP_FEAT]     = feat;
-    response[GET_FEAT_RESP_REATURES] = features;
-
-    return 0;
-}
-
-const std::string module::service_definition_get_feat = 
-    "response:\n"
-    "    int32_t: feat\n"
-    "    string: features\n";
 

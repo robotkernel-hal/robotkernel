@@ -89,6 +89,14 @@ class trigger_base {
          */
         bool remove_trigger_module(set_trigger_cb_t& cb);
 
+        //! remove a module to trigger device
+        /*!
+         * \param mdl module to remove
+         * \param trigger trigger options
+         */
+        void remove_trigger_modules(module *mdl, 
+                const module::external_trigger& trigger);
+
         //! trigger all modules in list
         /*!
          * \param clk_id clock id to trigger, -1 all clocks

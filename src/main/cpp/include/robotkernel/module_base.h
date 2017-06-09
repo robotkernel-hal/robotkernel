@@ -56,11 +56,6 @@ EXPORT_C size_t mod_write(MODULE_HANDLE hdl, void* buf, size_t bufsize) {       
     return dev->write(buf, bufsize);                                                \
 }                                                                                   \
                                                                                     \
-EXPORT_C int mod_request(MODULE_HANDLE hdl, int reqcode, void *arg) {               \
-    HDL_2_MODCLASS(hdl, instance_name, modclass)                                    \
-    return dev->request(reqcode, arg);                                              \
-}                                                                                   \
-                                                                                    \
 EXPORT_C void mod_trigger(MODULE_HANDLE hdl) {                                      \
     HDL_2_MODCLASS(hdl, instance_name, modclass)                                    \
     return dev->trigger();                                                          \
@@ -175,17 +170,6 @@ class module_base : public log_base {
             return state;
         }
 
-        //! send a request to module
-        /*!
-         * \param reqcode request code
-         * \param ptr pointer to request structure
-         * \return success or failure
-         */
-        virtual int request(int reqcode, void* ptr) {
-            log(robotkernel::warning, "module_base::request()-method not overloaded "
-                    "for request %#x(%#x)!\n", reqcode, ptr);
-            return -1;
-        }
 };
 
 };

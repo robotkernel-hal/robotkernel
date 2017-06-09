@@ -52,6 +52,14 @@ trigger_base::trigger_base(const std::string& trigger_dev_name)
 
 trigger_base::~trigger_base() {
     pthread_mutex_destroy(&list_lock);
+
+    pthread_mutex_lock(&list_lock);
+    trigger_cbs.clear();
+    pthread_mutex_unlock(&list_lock);
+
+    for (auto& kv : workers) {
+        delete kv.second;
+    }
 }
 
 //! add a trigger callback function
@@ -100,6 +108,39 @@ void trigger_base::add_trigger_modules(module *mdl, const module::external_trigg
 
     kernel_worker *w = workers[k];
     w->add_module(mdl);
+}
+
+//! remove a module to trigger device
+/*!
+ * \param mdl module to remove
+ * \param trigger trigger options
+ */
+void trigger_base::remove_trigger_modules(module *mdl, 
+        const module::external_trigger& trigger) {
+    pthread_mutex_lock(&list_lock);
+
+    if (trigger.direct_mode) {
+        for (auto it = trigger_cbs.begin(); it != trigger_cbs.end(); ++it) {
+            if (((*it).hdl == mdl) && ((*it).divisor == trigger.divisor)) {
+                trigger_cbs.erase(it);
+                pthread_mutex_unlock(&list_lock);
+                return;
+            }
+        }
+
+        throw str_exception("could not unregister trigger for module %s, "
+                "none registered before!", mdl->get_name().c_str());
+    }
+
+    worker_key k = { trigger.prio, trigger.affinity_mask, trigger.divisor };
+    if (workers.find(k) == workers.end())
+        throw str_exception("could not unregister trigger for module %s, "
+                "no worker exists!", mdl->get_name().c_str());
+
+    kernel_worker *w = workers[k];
+    w->remove_module(mdl);
+
+    pthread_mutex_unlock(&list_lock);
 }
 
 //! remove a trigger callback function
