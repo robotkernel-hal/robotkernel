@@ -435,6 +435,44 @@ kernel::sp_process_data_t kernel::get_process_data(const std::string& pd_name) {
 
     return process_data_map[pd_name];
 }
+        
+//! add a named trigger device
+/*!
+ * \param req trigger device to add
+ */
+void kernel::add_trigger_device(sp_trigger_device_t req) {
+    if (trigger_device_map.find(req->trigger_dev_name) != trigger_device_map.end())
+        return; // already in
+
+    log(info, "registered trigger device \"%s\"\n", 
+            req->trigger_dev_name.c_str());
+    trigger_device_map[req->trigger_dev_name] = req;
+}
+
+//! remove a named trigger device
+/*!
+ * \param req trigger device to remove
+ */
+void kernel::remove_trigger_device(sp_trigger_device_t req) {
+    for (auto it = trigger_device_map.begin(); it != trigger_device_map.end(); ++it) {
+        if (it->second == req) {
+            trigger_device_map.erase(it);
+            return;
+        }
+    }
+}
+
+//! get a trigger device by name
+/*!
+ * \param trigger_name trigger device name
+ * \return trigger device
+ */
+kernel::sp_trigger_device_t kernel::get_trigger_device(const std::string& trigger_name) {
+    if (trigger_device_map.find(trigger_name) == trigger_device_map.end())
+        throw str_exception("trigger device with name %s not found!\n", trigger_name.c_str());
+
+    return trigger_device_map[trigger_name];
+}
 
 //! construction
 /*!

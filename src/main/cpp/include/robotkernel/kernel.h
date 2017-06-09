@@ -39,6 +39,7 @@
 #include <robotkernel/service_provider.h>
 #include <robotkernel/service_requester_base.h>
 #include <robotkernel/process_data.h>
+#include <robotkernel/trigger_base.h>
 
 #define klog(...) robotkernel::kernel::get_instance()->log(__VA_ARGS__)
 
@@ -56,6 +57,8 @@ namespace robotkernel {
         typedef std::shared_ptr<bridge> sp_bridge_t;
         typedef std::shared_ptr<service_provider> sp_service_provider_t;
         typedef std::shared_ptr<process_data> sp_process_data_t;
+        typedef std::shared_ptr<trigger_base> sp_trigger_device_t;
+
     private:
         //! kernel singleton instance
         static kernel *instance;
@@ -77,6 +80,10 @@ namespace robotkernel {
         // service_providers map
         typedef std::map<std::string, sp_service_provider_t> service_provider_map_t;
         service_provider_map_t service_provider_map;
+
+        // trigger_device map
+        typedef std::map<std::string, sp_trigger_device_t> trigger_device_map_t;
+        trigger_device_map_t trigger_device_map;
 
         //! return module state
         /*!
@@ -188,6 +195,25 @@ namespace robotkernel {
          */
         sp_process_data_t get_process_data(const std::string& pd_name);
         
+        //! add a named trigger device
+        /*!
+         * \param req trigger device to add
+         */
+        void add_trigger_device(sp_trigger_device_t req);
+        
+        //! remove a named trigger device
+        /*!
+         * \param req trigger device to remove
+         */
+        void remove_trigger_device(sp_trigger_device_t req);
+
+        //! get a trigger device by name
+        /*!
+         * \param trigger_name trigger device name
+         * \return trigger device
+         */
+        sp_trigger_device_t get_trigger_device(const std::string& trigger_name);
+
         //! register trigger module to module named mod_name
         /*!
          * \param mod_name module name

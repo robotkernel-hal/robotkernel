@@ -26,7 +26,7 @@
 #define __TRIGGER_BASE_H__
 
 #include <pthread.h>
-#include "robotkernel/kernel.h"
+#include <string>
 #include "robotkernel/module_intf.h"
 
 namespace robotkernel {
@@ -43,9 +43,14 @@ class trigger_base {
         
         //! trigger callback list
         cb_list_t trigger_cbs;
+
+    public:
+        //! trigger device name
+        const std::string trigger_dev_name;
+
     public:
         //! construction
-        trigger_base();
+        trigger_base(const std::string& trigger_dev_name);
 
         //! destruction
         ~trigger_base();

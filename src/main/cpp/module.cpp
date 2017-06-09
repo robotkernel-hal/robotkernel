@@ -200,7 +200,7 @@ module::module(const YAML::Node& node)
                 it != node["trigger"].end(); ++it) {
             try {
                 external_trigger *trigger = new external_trigger(*it);
-                depends.push_back(trigger->_mod_name);
+                //depends.push_back(trigger->_mod_name);
                 triggers.push_back(trigger);
             } catch (YAML::Exception& e) {
                 YAML::Emitter t;
@@ -442,9 +442,20 @@ int module::set_state(module_state_t state) {
                     it != triggers.end(); ++it) {
                 klog(info, "%s adding module trigger %s\n",
                         name.c_str(), (*it)->_mod_name.c_str());
-
+                
                 kernel& k = *kernel::get_instance();
-                k.trigger_register_module((*it)->_mod_name, this, **it);
+                try {
+                    auto t_dev = k.get_trigger_device((*it)->_mod_name);
+        (*it)->_direct_cnt       = 0;
+        (*it)->_direct_mdl       = this;
+                    set_trigger_cb_t cb = set_trigger_cb_t();
+                    cb.cb               = module::trigger_wrapper;
+                    cb.hdl              = (*it);
+                    cb.clk_id           = 0;//t._clk_id;
+                    t_dev->add_trigger_module(cb);
+                } catch (std::exception& e) {
+                    k.trigger_register_module((*it)->_mod_name, this, **it);
+                }
             }
 
             klog(info, "%s setting state from %s to %s\n", name.c_str(), 

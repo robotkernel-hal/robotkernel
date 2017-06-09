@@ -23,10 +23,13 @@
  */
 
 #include "robotkernel/trigger_base.h"
+#include "robotkernel/kernel.h"
 
 using namespace robotkernel;
         
-trigger_base::trigger_base() {
+trigger_base::trigger_base(const std::string& trigger_dev_name) 
+    : trigger_dev_name(trigger_dev_name)
+{
     pthread_mutex_init(&list_lock, NULL);
 }
 

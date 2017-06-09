@@ -162,8 +162,8 @@ class module : public so_file {
         static void trigger_wrapper(void *ptr) {
             external_trigger *t = (external_trigger *)ptr;
         
-            if ((++t->_direct_cnt%t->_divisor != 0))
-                return;
+//            if ((++t->_direct_cnt%t->_divisor != 0))
+//                return;
 
             t->_direct_mdl->trigger();
         };
