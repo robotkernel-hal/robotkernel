@@ -42,4 +42,12 @@ module_base::module_base(const std::string& instance_name, const std::string& na
 module_base::~module_base() {
 }
 
+//! get robotkernel module
+/*!
+ * \returns shared pointer to our robotkernel module class
+ */
+robotkernel::kernel::sp_module_t module_base::get_module() {
+    kernel& k = *kernel::get_instance();
+    return k.get_module(name);
+}
 

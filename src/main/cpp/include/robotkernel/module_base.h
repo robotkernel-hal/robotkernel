@@ -115,6 +115,12 @@ class module_base : public log_base {
 
         std::string get_name() { return name; }
     
+        //! get robotkernel module
+        /*!
+         * \returns shared pointer to our robotkernel module class
+         */
+        robotkernel::kernel::sp_module_t get_module();
+
         //! cyclic process data read
         /*!
          * \param buf process data buffer
