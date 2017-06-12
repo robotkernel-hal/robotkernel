@@ -57,13 +57,17 @@ class trigger_base {
         typedef std::map<worker_key, kernel_worker *> kernel_workers_t;
         kernel_workers_t workers;
 
+    protected:
+        //! trigger rate in [Hz]
+        double rate;
+
     public:
         //! trigger device name
         const std::string trigger_dev_name;
 
     public:
         //! construction
-        trigger_base(const std::string& trigger_dev_name);
+        trigger_base(const std::string& trigger_dev_name, double rate=0.);
 
         //! destruction
         ~trigger_base();
@@ -80,6 +84,21 @@ class trigger_base {
          * \param trigger trigger options
          */
         void add_trigger_modules(module *mdl, const module::external_trigger& trigger);
+
+        //! get rate of trigger
+        /*!
+         * return the current rate of the trigger device
+         */
+        double get_rate() const { return rate; }
+
+        //! set rate of trigger device
+        /*!
+         * set the rate of the current trigger
+         * overload in derived trigger class
+         *
+         * \param new_rate new trigger rate to set
+         */
+        virtual void set_rate(double new_rate);
 
         //! remove a trigger callback function
         /*!

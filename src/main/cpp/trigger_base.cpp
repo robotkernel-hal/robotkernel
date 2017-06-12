@@ -44,12 +44,14 @@ bool trigger_base::worker_key::operator<(const worker_key& a) const {
     return (int) divisor < (int)a.divisor;
 }
 
-trigger_base::trigger_base(const std::string& trigger_dev_name) 
-    : trigger_dev_name(trigger_dev_name)
+//! construction
+trigger_base::trigger_base(const std::string& trigger_dev_name, double rate) 
+    : trigger_dev_name(trigger_dev_name), rate(rate)
 {
     pthread_mutex_init(&list_lock, NULL);
 }
 
+//! destruction
 trigger_base::~trigger_base() {
     pthread_mutex_destroy(&list_lock);
 
@@ -60,6 +62,17 @@ trigger_base::~trigger_base() {
     for (auto& kv : workers) {
         delete kv.second;
     }
+}
+
+//! set rate of trigger device
+/*!
+ * set the rate of the current trigger
+ * overload in derived trigger class
+ *
+ * \param new_rate new trigger rate to set
+ */
+void trigger_base::set_rate(double new_rate) {
+    throw str_exception("setting rate not permitted!");
 }
 
 //! add a trigger callback function

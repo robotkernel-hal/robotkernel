@@ -203,11 +203,12 @@ class module : public so_file {
         friend YAML::Emitter& (::operator<<)(YAML::Emitter& out, 
                 const robotkernel::module& mdl);
         
+        depend_list_t depends;          //! module dependecy list
+        trigger_list_t triggers;        //! module trigger list
+
     private:
         std::string name;               //! module name
         module_state_t power_up;        //! auto power up on startup
-        depend_list_t depends;          //! module dependecy list
-        trigger_list_t triggers;        //! module trigger list
 
     private:
         void _init();
