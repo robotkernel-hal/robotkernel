@@ -114,7 +114,7 @@ typedef struct set_pd {
 
 // ----------------------------------------------------------------------------
 // trigger callbacks
-
+#if old
 typedef struct set_trigger_cb {
     void (*cb)(MODULE_HANDLE hdl);
     MODULE_HANDLE hdl;
@@ -130,7 +130,7 @@ typedef std::list<set_trigger_cb_t> cb_list_t;
 #define MOD_REQUEST_SET_TRIGGER_INTERVAL  MOD_REQUEST(0x000E, double)
 #define MOD_REQUEST_TRIGGERED_BY          MOD_REQUEST(0x000F, char*)
 #define MOD_REQUEST_SHIFT_NEXT_TRIGGER    MOD_REQUEST(0x0010, double)
-
+#endif
 // -----------------------------------------------------------------------------------
 // module features
 // -----------------------------------------------------------------------------------

@@ -32,6 +32,7 @@
 #include <robotkernel/module_intf.h>
 #include <robotkernel/service.h>
 #include <robotkernel/so_file.h>
+#include <robotkernel/trigger_base.h>
 
 #include <yaml-cpp/yaml.h>
         
@@ -49,7 +50,11 @@ class kernel_worker;
 /*!
   This class opens a shared module and loads all needed symbols
  */
-class module : public so_file {
+class module : 
+    public std::enable_shared_from_this<module>, 
+    public robotkernel::so_file, 
+    public robotkernel::trigger_base 
+{
     private:
         module();
         module(const module&);             // prevent copy-construction

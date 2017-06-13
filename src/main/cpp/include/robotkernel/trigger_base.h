@@ -1,8 +1,6 @@
 //! robotkernel base class for triggers
 /*!
- * author: Robert Burger
- *
- * $Id$
+ * author: Robert Burger <robert.burger@dlr.de>
  */
 
 /*
@@ -22,32 +20,49 @@
  * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __TRIGGER_BASE_H__
-#define __TRIGGER_BASE_H__
+#ifndef __trigger_device_H__
+#define __trigger_device_H__
 
 #include <pthread.h>
 #include <string>
 #include "robotkernel/module_intf.h"
-#include "robotkernel/kernel_worker.h"
-#include "robotkernel/module.h"
+#include "robotkernel/runnable.h"
 
 namespace robotkernel {
 #ifdef EMACS
 }
 #endif
 
+//! trigger_base
+/*
+ * derive from this class if you want to get 
+ * triggered by a trigger_device
+ */
 class trigger_base {
+    public:
+        int divisor;        //!< trigger every ""divisor"" step
+        int cnt;            //!< internal step counter
+
+        trigger_base(int divisor=1) : divisor(divisor), cnt(0) {};
+    
+        //! trigger function
+        virtual void trigger() = 0;
+};
+
+typedef std::shared_ptr<trigger_base> sp_trigger_base_t;
+typedef std::list<sp_trigger_base_t> trigger_list_t;
+
+//! trigger worker thread
+class trigger_worker : 
+    public robotkernel::runnable, 
+    public robotkernel::trigger_base 
+{
     private:
-        trigger_base(const trigger_base&);             // prevent copy-construction
-        trigger_base& operator=(const trigger_base&);  // prevent assignment
+        trigger_worker();
+        trigger_worker(const trigger_worker&);             // prevent copy-construction
+        trigger_worker& operator=(const trigger_worker&);  // prevent assignment
 
-        //! protection for trigger list
-        pthread_mutex_t list_lock;
-
-        //! trigger callback list
-        typedef std::list<set_trigger_cb_t> cb_list_t;
-        cb_list_t trigger_cbs;
-
+    public:
         struct worker_key {
             int prio;
             int affinity;
@@ -56,37 +71,80 @@ class trigger_base {
             bool operator<(const worker_key& a) const;
         };
 
-        //! workers
-        typedef std::map<worker_key, kernel_worker *> kernel_workers_t;
-        kernel_workers_t workers;
+        //! default construction
+        trigger_worker(int prio = 60, int affinity_mask = 0xFF, int divisor=1);
+
+        //! destruction
+        ~trigger_worker();
+
+        //! add trigger_callback to worker
+        /*!
+         * \param trigger trigger callback to add
+         */
+        void add_trigger_callback(sp_trigger_base_t trigger);
+
+        //! remove trigger_callback from worker
+        /*!
+         * \param trigger trigger callback to remove
+         */
+        void remove_trigger_callback(sp_trigger_base_t trigger);
+
+        //! trigger worker
+        void trigger();
+
+        //! handler function called if thread is running
+        void run();
+
+        //! return size of triggers
+        size_t size() { return triggers.size(); }
+
+    private:
+        trigger_list_t triggers;
+
+        pthread_mutex_t mutex;  //!< ipc lock
+        pthread_cond_t cond;    //!< ipc condition
+};
+        
+typedef std::shared_ptr<trigger_worker> sp_trigger_worker_t;
+typedef std::map<trigger_worker::worker_key, sp_trigger_worker_t> trigger_workers_t;
+
+class trigger_device 
+{
+    private:
+        trigger_device(const trigger_device&);             // prevent copy-construction
+        trigger_device& operator=(const trigger_device&);  // prevent assignment
+
+        pthread_mutex_t list_lock;              //!< protection for trigger list
+        trigger_list_t triggers;                //!< trigger callback list
+        trigger_workers_t workers;              //!< workers
 
     protected:
-        //! trigger rate in [Hz]
-        double rate;
+        double rate;                            //!< trigger rate in [Hz]
 
     public:
-        //! trigger device name
-        const std::string trigger_dev_name;
+        const std::string trigger_dev_name;     //!< trigger device name
 
     public:
         //! construction
-        trigger_base(const std::string& trigger_dev_name, double rate=0.);
+        trigger_device(const std::string& trigger_dev_name, double rate=0.);
 
         //! destruction
-        ~trigger_base();
+        ~trigger_device();
 
         //! add a trigger callback function
         /*!
          * \param cb trigger callback
+         * \param divisor rate divisor
+         * \return trigger object to newly inserted callback
          */
-        void add_trigger_module(set_trigger_cb_t& cb);
+        void add_trigger_callback(sp_trigger_base_t trigger, bool direct_mode=true,
+                int worker_prio=0, int worker_affinity=0);
 
-        //! add a module to trigger device
+        //! remove a trigger callback function
         /*!
-         * \param mdl module to add
-         * \param trigger trigger options
+         * \param obj trigger object to trigger callback
          */
-        void add_trigger_modules(module *mdl, const module::external_trigger& trigger);
+        void remove_trigger_callback(sp_trigger_base_t trigger);
 
         //! get rate of trigger
         /*!
@@ -103,45 +161,11 @@ class trigger_base {
          */
         virtual void set_rate(double new_rate);
 
-        //! remove a trigger callback function
-        /*!
-         * \param cb trigger callback
-         * \return true on success, false if no ring is present or
-         *         callback function pointer is NULL
-         */
-        bool remove_trigger_module(set_trigger_cb_t& cb);
-
-        //! remove a module to trigger device
-        /*!
-         * \param mdl module to remove
-         * \param trigger trigger options
-         */
-        void remove_trigger_modules(module *mdl, 
-                const module::external_trigger& trigger);
-
         //! trigger all modules in list
-        /*!
-         * \param clk_id clock id to trigger, -1 all clocks
-         */
-        void trigger_modules(int clk_id = -1);
-
-        //! handle request for trigger base
-        /*! 
-          \param reqcode request code
-          \param ptr pointer to request structure
-          \return success or failure
-          */
-        int request(int reqcode, void* ptr);
-
-        //!< return size of trigger list
-        int get_trigger_size();
+        void trigger_modules();
 };
 
-inline int trigger_base::get_trigger_size() {
-    return trigger_cbs.size();
-}
-
-typedef std::shared_ptr<trigger_base> sp_trigger_device_t;
+typedef std::shared_ptr<trigger_device> sp_trigger_device_t;
 typedef std::map<std::string, sp_trigger_device_t> trigger_device_map_t;
 
 #ifdef EMACS 
@@ -149,5 +173,5 @@ typedef std::map<std::string, sp_trigger_device_t> trigger_device_map_t;
 #endif
 } // namespace robotkernel
 
-#endif // __TRIGGER_BASE_H__
+#endif // __trigger_device_H__
 

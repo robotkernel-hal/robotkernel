@@ -1,8 +1,6 @@
 //! robotkernel base class for triggers
 /*!
- * author: Robert Burger
- *
- * $Id$
+ * author: Robert Burger <robert.burger@dlr.de>
  */
 
 /*
@@ -27,10 +25,11 @@
 
 #include "string_util/string_util.h"
 
+using namespace std;
 using namespace robotkernel;
 using namespace string_util;
         
-bool trigger_base::worker_key::operator<(const worker_key& a) const {
+bool trigger_worker::worker_key::operator<(const worker_key& a) const {
     if (prio < a.prio)
         return true;
     if (prio > a.prio)
@@ -41,27 +40,161 @@ bool trigger_base::worker_key::operator<(const worker_key& a) const {
     if (affinity > a.affinity)
         return false;
 
+    if (divisor < a.divisor)
+        return true;
+    if (divisor > a.divisor)
+        return false;
+
     return (int) divisor < (int)a.divisor;
 }
 
+trigger_worker::trigger_worker(int prio, int affinity_mask, int divisor) 
+    : runnable(prio, affinity_mask), trigger_base(divisor) {
+    pthread_cond_init(&cond, NULL);
+    pthread_mutex_init(&mutex, NULL);
+
+    // start worker thread
+    start();
+
+    klog(info, "[trigger_worker] created with prio %d\n", prio);
+};
+        
+//! destruction
+trigger_worker::~trigger_worker() {
+    // stop worker thread
+    stop();
+
+    klog(info, "[trigger_worker] destructed\n");
+}
+
+//! add trigger_callback to worker
+/*!
+ * \param trigger trigger callback to add
+ */
+void trigger_worker::add_trigger_callback(sp_trigger_base_t trigger) {
+    // push to module list
+    for (const auto& t : triggers) {
+        if (t == trigger) 
+            throw str_exception("there was a try to register a trigger twice!");
+    }
+
+    pthread_mutex_lock(&mutex);
+    triggers.push_back(trigger);
+    pthread_mutex_unlock(&mutex);
+}
+
+//! remove trigger_callback from worker
+/*!
+ * \param trigger trigger callback to remove
+ */
+void trigger_worker::remove_trigger_callback(sp_trigger_base_t trigger) {
+    // remove from module list
+    pthread_mutex_lock(&mutex);
+    triggers.remove(trigger);
+    pthread_mutex_unlock(&mutex);
+}
+
+//! handler function called if thread is running
+void trigger_worker::run() {
+    klog(info, "[trigger_worker] running worker thread\n");
+
+    // lock mutex cause we access _modules
+    pthread_mutex_lock(&mutex);
+    
+    while (running()) {
+        struct timespec ts;
+        clock_gettime(CLOCK_REALTIME, &ts);
+        ts.tv_sec++;
+
+        // wait for trigger, this will unlock mutex
+        // other threads can now safely add/remove something from triggers
+        int ret = pthread_cond_timedwait(&cond, &mutex, &ts);
+
+        for (const auto& t : triggers)
+            t->trigger();
+    }
+        
+    // unlock mutex cause we have accessed _modules
+    pthread_mutex_unlock(&mutex);
+
+    klog(info, "[trigger_worker] finished worker thread\n");
+}
+
+//! trigger worker
+void trigger_worker::trigger() {
+    pthread_mutex_lock(&mutex);
+    pthread_cond_signal(&cond);
+    pthread_mutex_unlock(&mutex);
+}
+
 //! construction
-trigger_base::trigger_base(const std::string& trigger_dev_name, double rate) 
+trigger_device::trigger_device(const std::string& trigger_dev_name, double rate) 
     : trigger_dev_name(trigger_dev_name), rate(rate)
 {
     pthread_mutex_init(&list_lock, NULL);
 }
 
 //! destruction
-trigger_base::~trigger_base() {
+trigger_device::~trigger_device() {
     pthread_mutex_destroy(&list_lock);
 
     pthread_mutex_lock(&list_lock);
-    trigger_cbs.clear();
+    triggers.clear();
     pthread_mutex_unlock(&list_lock);
 
     for (auto& kv : workers) {
-        delete kv.second;
+        kv.second.reset();
     }
+}
+
+//! add a trigger callback function
+/*!
+ * \param cb trigger callback
+ * \param divisor rate divisor
+ * \return trigger object to newly inserted callback
+ */
+void trigger_device::add_trigger_callback(sp_trigger_base_t trigger, 
+        bool direct_mode, int worker_prio, int worker_affinity) {
+    trigger_worker::worker_key k = { worker_prio, worker_affinity, trigger->divisor };
+
+    pthread_mutex_lock(&list_lock);
+
+    if (direct_mode) {
+        triggers.push_back(trigger);
+        goto func_exit;
+    }
+
+    if (workers.find(k) == workers.end()) {
+        // create new worker thread
+        workers[k] = make_shared<trigger_worker>(worker_prio, worker_affinity, trigger->divisor);
+        triggers.push_back(workers[k]);
+    }
+
+    workers[k]->add_trigger_callback(trigger);
+    
+func_exit:
+    pthread_mutex_unlock(&list_lock);
+}
+
+//! remove a trigger callback function
+/*!
+ * \param obj trigger object to trigger callback
+ */
+void trigger_device::remove_trigger_callback(sp_trigger_base_t trigger) {
+    pthread_mutex_lock(&list_lock);
+
+    triggers.remove(trigger);
+
+    for (auto it = workers.begin(); it != workers.end(); ) {
+        it->second->remove_trigger_callback(it->second);
+        auto act_it = it++;
+
+        printf("worker size is %d\n", act_it->second->size());
+        if (!act_it->second->size())
+            workers.erase(act_it);
+    }
+
+    pthread_mutex_unlock(&list_lock);
 }
 
 //! set rate of trigger device
@@ -71,163 +204,21 @@ trigger_base::~trigger_base() {
  *
  * \param new_rate new trigger rate to set
  */
-void trigger_base::set_rate(double new_rate) {
+void trigger_device::set_rate(double new_rate) {
     throw str_exception("setting rate not permitted!");
 }
 
-//! add a trigger callback function
-/*!
- * \param cb trigger callback
- */
-void trigger_base::add_trigger_module(set_trigger_cb_t& cb) {
-    if (cb.cb == NULL) 
-        throw str_exception("could not register, callback is NULL\n");
-    
-    pthread_mutex_lock(&list_lock);
-    trigger_cbs.push_back(cb);
-    pthread_mutex_unlock(&list_lock);
-}
-
-//! add a module to trigger device
-/*!
- * \param mdl module to add
- * \param trigger trigger options
- */
-void trigger_base::add_trigger_modules(module *mdl, const module::external_trigger& trigger) {
-    if (trigger.direct_mode) {
-        set_trigger_cb_t cb = set_trigger_cb_t();
-        cb.cb               = module::trigger_wrapper;
-        cb.hdl              = mdl;
-        cb.divisor          = trigger.divisor;
-        cb.cnt              = 0;
-        
-        return add_trigger_module(cb);
-    }
-
-    worker_key k = { trigger.prio, trigger.affinity_mask, trigger.divisor };
-    if (workers.find(k) == workers.end()) {
-        // create new worker thread
-        kernel_worker *w = new kernel_worker(trigger.prio, trigger.affinity_mask);
-        workers[k] = w;
-
-        set_trigger_cb_t cb = set_trigger_cb_t();
-        cb.cb               = kernel_worker::trigger_wrapper;
-        cb.hdl              = w;
-        cb.divisor          = trigger.divisor;
-        cb.cnt              = 0;
-
-        add_trigger_module(cb);
-    }
-
-    kernel_worker *w = workers[k];
-    w->add_module(mdl);
-}
-
-//! remove a module to trigger device
-/*!
- * \param mdl module to remove
- * \param trigger trigger options
- */
-void trigger_base::remove_trigger_modules(module *mdl, 
-        const module::external_trigger& trigger) {
-    pthread_mutex_lock(&list_lock);
-
-    if (trigger.direct_mode) {
-        for (auto it = trigger_cbs.begin(); it != trigger_cbs.end(); ++it) {
-            if (((*it).hdl == mdl) && ((*it).divisor == trigger.divisor)) {
-                trigger_cbs.erase(it);
-                pthread_mutex_unlock(&list_lock);
-                return;
-            }
-        }
-
-        throw str_exception("could not unregister trigger for module %s, "
-                "none registered before!", mdl->get_name().c_str());
-    }
-
-    worker_key k = { trigger.prio, trigger.affinity_mask, trigger.divisor };
-    if (workers.find(k) == workers.end())
-        throw str_exception("could not unregister trigger for module %s, "
-                "no worker exists!", mdl->get_name().c_str());
-
-    kernel_worker *w = workers[k];
-    w->remove_module(mdl);
-
-    pthread_mutex_unlock(&list_lock);
-}
-
-//! remove a trigger callback function
-/*!
- * \param cb trigger callback
- * \return true on success, false if no ring is present or
- *         callback function pointer is NULL
- */
-bool trigger_base::remove_trigger_module(set_trigger_cb_t& cb) {
-    if (cb.cb == NULL) {
-        klog(info, "could not unregister, callback is NULL\n");
-        return false;
-    }
-
-    bool found = false;
-
-    pthread_mutex_lock(&list_lock);
-    
-    for (cb_list_t::iterator it = trigger_cbs.begin(); 
-            it != trigger_cbs.end(); ++it) {
-        if (it->cb == cb.cb && it->hdl == cb.hdl) {
-            trigger_cbs.erase(it);
-            found = true;
-            break;
-        }
-    }
-    
-    pthread_mutex_unlock(&list_lock);
-
-    if(!found) {
-        klog(info, "could not unregister, callback %p with handle "
-                "%p not in our trigger-list of length %d\n", cb.cb, cb.hdl);
-        return false;
-    }
-
-    return true;
-}
-
 //! trigger all modules in list
-/*!
- * \param clk_id clock id to trigger, -1 all clocks
- */
-void trigger_base::trigger_modules(int clk_id) {
+void trigger_device::trigger_modules() {
     pthread_mutex_lock(&list_lock);
-    
-    for (auto& trigger : trigger_cbs)
-        if (((++trigger.cnt) % trigger.divisor) == 0) {
-            trigger.cnt = 0;
+    for (auto& t : triggers) {
+        if (((++t->cnt) % t->divisor) == 0) {
+            t->cnt = 0;
 
-            (*(trigger.cb))(trigger.hdl);
+            t->trigger();
         }
-
-    pthread_mutex_unlock(&list_lock);
-}
-
-int trigger_base::request(int reqcode, void* ptr) {
-    int ret = 0;
-
-    switch (reqcode) {
-        case MOD_REQUEST_SET_TRIGGER_CB: {
-            set_trigger_cb_t *cb = (set_trigger_cb_t *)ptr;
-            add_trigger_module(*cb);
-            break;
-        }
-        case MOD_REQUEST_UNSET_TRIGGER_CB: {
-            set_trigger_cb_t *cb = (set_trigger_cb_t *)ptr;
-            remove_trigger_module(*cb);
-            break;
-        }
-        default:
-            ret = -1;
-            break;
     }
 
-    return ret;
+    pthread_mutex_unlock(&list_lock);
 }
 

@@ -39,12 +39,17 @@
 #endif
 
 #define HDL_2_MODCLASS(hdl, instance_name, modclass)                                \
-    modclass *dev = reinterpret_cast<modclass *>(hdl);                              \
+    struct instance_name ## _wrapper *wr =                                          \
+        reinterpret_cast<struct instance_name ## _wrapper *>(hdl);                  \
+    std::shared_ptr<modclass> dev = wr->sp;                                         \
     if (!dev)                                                                       \
         throw string_util::str_exception("["#instance_name"] invalid module "       \
                 "handle to <"#modclass" *>\n"); 
 
 #define MODULE_DEF(instance_name, modclass)                                         \
+struct instance_name ## _wrapper {                                                  \
+    std::shared_ptr<modclass> sp;                                                   \
+};                                                                                  \
                                                                                     \
 EXPORT_C size_t mod_read(MODULE_HANDLE hdl, void* buf, size_t bufsize) {            \
     HDL_2_MODCLASS(hdl, instance_name, modclass)                                    \
@@ -78,25 +83,29 @@ EXPORT_C module_state_t mod_get_state(MODULE_HANDLE hdl) {                      
                                                                                     \
 EXPORT_C int mod_unconfigure(MODULE_HANDLE hdl) {                                   \
     HDL_2_MODCLASS(hdl, instance_name, modclass)                                    \
-    delete dev;                                                                     \
+    delete wr;                                                                      \
     return 0;                                                                       \
 }                                                                                   \
                                                                                     \
 EXPORT_C MODULE_HANDLE mod_configure(const char* name, const char* config) {        \
-    modclass *dev;                                                                  \
+    struct instance_name ## _wrapper *wr;                                           \
     YAML::Node doc = YAML::Load(config);                                            \
                                                                                     \
-    dev = new modclass(name, doc);                                                  \
-    if (!dev)                                                                       \
+    wr = new struct instance_name ## _wrapper();                                    \
+    if (!wr)                                                                        \
         throw string_util::str_exception(                                           \
                 "["#instance_name"] error allocating memory\n");                    \
+    wr->sp = std::make_shared<modclass>(name, doc);                                 \
                                                                                     \
-    return (MODULE_HANDLE)dev;                                                      \
+    return (MODULE_HANDLE)wr;                                                       \
 }
 
 namespace robotkernel {
 
-class module_base : public log_base {
+class module_base : 
+    public log_base//,  
+//    public std::enable_shared_from_this<module_base>
+{
     private:
         module_base();          //!< prevent default construction
 

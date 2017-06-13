@@ -422,7 +422,7 @@ int module::set_state(module_state_t state) {
                         name.c_str(), et->dev_name.c_str());
                 
                 auto t_dev = kernel::get_instance()->get_trigger_device(et->dev_name);
-                t_dev->remove_trigger_modules(this, *et);
+                t_dev->remove_trigger_callback(shared_from_this());
             }
             
             set_state__check(module_state_preop);
@@ -465,7 +465,8 @@ int module::set_state(module_state_t state) {
                         name.c_str(), et->dev_name.c_str());
                 
                 auto t_dev = kernel::get_instance()->get_trigger_device(et->dev_name);
-                t_dev->add_trigger_modules(this, *et);
+                divisor = et->divisor;
+                t_dev->add_trigger_callback(shared_from_this(), et->direct_mode, et->prio, et->affinity_mask);
             }
             
             set_state__check(module_state_safeop);
