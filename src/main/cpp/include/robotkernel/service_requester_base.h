@@ -1,6 +1,6 @@
 //! robotkernel service_requester class
 /*!
- * author: Robert Burger
+ * author: Robert Burger <robert.burger@dlr.de>
  *
  */
 
@@ -30,31 +30,37 @@
 #include "robotkernel/kernel.h"
 
 namespace robotkernel {
-    class service_requester_base {
-        public:
-            std::string owner;
-            std::string service_prefix;
+#ifdef EMACS
+}
+#endif
 
-            service_requester_base(std::string owner, 
-                    std::string service_prefix) : 
-                owner(owner), service_prefix(service_prefix) {};
+class service_requester_base {
+    public:
+        std::string owner;              //!< owner
+        std::string service_prefix;     //!< service prefix
 
-            virtual ~service_requester_base() = 0;
-    };
+        //! construction
+        /*!
+         * \param owner service requester owner string
+         * \param service_prefix prefix all service with this prefix
+         */
+        service_requester_base(std::string owner, 
+                std::string service_prefix) : 
+            owner(owner), service_prefix(service_prefix) {};
 
-    inline service_requester_base::~service_requester_base() {}
+        //! destruction
+        virtual ~service_requester_base() = 0;
+};
 
-	typedef struct service_requester {
-        std::string magic;
-		std::string owner;
-		std::string name;
-		int slave_id;
-	} service_requester_t;
+//! destruction
+inline service_requester_base::~service_requester_base() {}
 
-	typedef std::list<service_requester_t *> service_requester_list_old_t;
+typedef std::shared_ptr<service_requester_base> sp_service_requester_t;
+typedef std::list<sp_service_requester_t> service_requester_list_t;
 
-    typedef std::shared_ptr<service_requester_base> sp_service_requester_t;
-    typedef std::list<sp_service_requester_t> service_requester_list_t;
+#ifdef EMACS
+{
+#endif
 }
 
 #endif // __ROBOTKERNEL_SERVICE_PROVIDER_H__

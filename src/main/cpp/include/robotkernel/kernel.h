@@ -1,8 +1,6 @@
 //! robotkernel kernel
 /*!
- * author: Robert Burger
- *
- * $Id$
+ * author: Robert Burger <robert.burger@dlr.de>
  */
 
 /*
@@ -44,21 +42,11 @@
 #define klog(...) robotkernel::kernel::get_instance()->log(__VA_ARGS__)
 
 namespace robotkernel {
+#ifdef EMACS
+}
+#endif
 
-    class pd_provider {
-    };
-
-    class pd_requirer {
-    };
-
-    class kernel {
-    public:
-        typedef std::shared_ptr<module> sp_module_t;
-        typedef std::shared_ptr<bridge> sp_bridge_t;
-        typedef std::shared_ptr<service_provider> sp_service_provider_t;
-        typedef std::shared_ptr<process_data> sp_process_data_t;
-        typedef std::shared_ptr<trigger_base> sp_trigger_device_t;
-
+class kernel {
     private:
         //! kernel singleton instance
         static kernel *instance;
@@ -66,36 +54,20 @@ namespace robotkernel {
         kernel(const kernel &);             // prevent copy-construction
         kernel &operator=(const kernel &);  // prevent assignment
 
-        loglevel ll;    //!< robotkernel global loglevel
-
-        // modules map
-        typedef std::map<std::string, sp_module_t> module_map_t;
-        module_map_t module_map;
-        pthread_rwlock_t module_map_lock;
-        
-        // bridges map
-        typedef std::map<std::string, sp_bridge_t> bridge_map_t;
-        bridge_map_t bridge_map;
-
-        // service_providers map
-        typedef std::map<std::string, sp_service_provider_t> service_provider_map_t;
-        service_provider_map_t service_provider_map;
-
-        // trigger_device map
-        typedef std::map<std::string, sp_trigger_device_t> trigger_device_map_t;
-        trigger_device_map_t trigger_device_map;
-
-        //! return module state
-        /*!
-         * \param mod_name name of module which state to return
-         * \return module state
-         */
-        module_state_t _internal_get_state(std::string mod_name);
+        loglevel                    ll;                         //!< robotkernel global loglevel
+        bridge_map_t                bridge_map;                 //!< bridges map
+        service_provider_map_t      service_provider_map;       //!< service_providers map
+        trigger_device_map_t        trigger_device_map;         //!< trigger_device map
+        module_map_t                module_map;                 //!< modules map
+        pthread_rwlock_t            module_map_lock;            //!< module map lock
+        service_list_t              service_list;               //!< service list
+        service_requester_list_t    service_requester_list;     //!< service requester list
+        bridge::cbs_list_t          bridge_callbacks;           //!< bridge list
 
     protected:
         //! construction
         /*!
-         */
+        */
         kernel();
 
         //! destruction
@@ -105,13 +77,8 @@ namespace robotkernel {
         int main_argc;      //!< robotkernel's main argument counter
         char **main_argv;   //!< robotkernel's main arguments
 
-        service_list_t service_list;
-        service_requester_list_old_t service_requester_list_old;
-        service_requester_list_t service_requester_list;
-        bridge::cbs_list_t bridge_callbacks;
-        
         //! holds all registered process data
-        std::map<std::string, sp_process_data_t> process_data_map;
+        process_data_map_t process_data_map;
 
         //! add bridge callbacks
         /*!
@@ -155,32 +122,32 @@ namespace robotkernel {
          * \param req slave inteface specialization         
          */
         void add_service_requester(sp_service_requester_t req);
-        
+
         //! remove service requester
         /*!
          * \param req slave inteface specialization         
          */
         void remove_service_requester(sp_service_requester_t req);
-        
+
         //! remove all service requester for given owner
         /*!
          * \param owner service requester owner      
          */
         void remove_service_requester(
                 const std::string &owner);
-        
+
         //! add process data
         /*!
          * \param req slave inteface specialization         
          */
         void add_process_data(sp_process_data_t req);
-        
+
         //! remove process data
         /*!
          * \param req slave inteface specialization         
          */
         void remove_process_data(sp_process_data_t req);
-        
+
         //! remove all process data for given owner
         /*!
          * \param owner process data owner       
@@ -194,13 +161,13 @@ namespace robotkernel {
          * \return process data shared pointer
          */
         sp_process_data_t get_process_data(const std::string& pd_name);
-        
+
         //! add a named trigger device
         /*!
          * \param req trigger device to add
          */
         void add_trigger_device(sp_trigger_device_t req);
-        
+
         //! remove a named trigger device
         /*!
          * \param req trigger device to remove
@@ -303,7 +270,7 @@ namespace robotkernel {
          * \return shared pointer to module
          */
         sp_module_t get_module(const std::string& mod_name);
-  
+
         bool _do_not_unload_modules;
 
         std::string _name;
@@ -324,7 +291,7 @@ namespace robotkernel {
          * \return success
          */
         int service_get_dump_log(const service_arglist_t &request,
-                                 service_arglist_t &response);
+                service_arglist_t &response);
 
         static const std::string service_definition_get_dump_log;
 
@@ -335,7 +302,7 @@ namespace robotkernel {
          * \return success
          */
         int service_config_dump_log(const service_arglist_t &request,
-                                    service_arglist_t &response);
+                service_arglist_t &response);
 
         static const std::string service_definition_config_dump_log;
 
@@ -346,7 +313,7 @@ namespace robotkernel {
          * \return success
          */
         int service_add_module(const service_arglist_t &request,
-                               service_arglist_t &response);
+                service_arglist_t &response);
 
         static const std::string service_definition_add_module;
 
@@ -357,7 +324,7 @@ namespace robotkernel {
          * \return success
          */
         int service_remove_module(const service_arglist_t &request,
-                                  service_arglist_t &response);
+                service_arglist_t &response);
 
         static const std::string service_definition_remove_module;
 
@@ -368,7 +335,7 @@ namespace robotkernel {
          * \return success
          */
         int service_module_list(const service_arglist_t &request,
-                                service_arglist_t &response);
+                service_arglist_t &response);
 
         static const std::string service_definition_module_list;
 
@@ -379,7 +346,7 @@ namespace robotkernel {
          * \return success
          */
         int service_reconfigure_module(const service_arglist_t &request,
-                                       service_arglist_t &response);
+                service_arglist_t &response);
 
         static const std::string service_definition_reconfigure_module;
 
@@ -390,7 +357,7 @@ namespace robotkernel {
          * \return success
          */
         int service_list_process_data(const service_arglist_t &request,
-                                       service_arglist_t &response);
+                service_arglist_t &response);
 
         static const std::string service_definition_list_process_data;
 
@@ -404,8 +371,11 @@ namespace robotkernel {
                 service_arglist_t &response);
 
         static const std::string service_definition_process_data_info;
-    };
+};
 
+#ifdef EMACS
+{
+#endif
 } // namespace robotkernel
 
 #endif // __KERNEL_H__

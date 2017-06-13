@@ -119,7 +119,7 @@ class module_base : public log_base {
         /*!
          * \returns shared pointer to our robotkernel module class
          */
-        robotkernel::kernel::sp_module_t get_module();
+        robotkernel::sp_module_t get_module();
 
         //! cyclic process data read
         /*!

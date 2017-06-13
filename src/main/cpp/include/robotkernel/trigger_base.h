@@ -32,6 +32,9 @@
 #include "robotkernel/module.h"
 
 namespace robotkernel {
+#ifdef EMACS
+}
+#endif
 
 class trigger_base {
     private:
@@ -40,7 +43,7 @@ class trigger_base {
 
         //! protection for trigger list
         pthread_mutex_t list_lock;
-        
+
         //! trigger callback list
         typedef std::list<set_trigger_cb_t> cb_list_t;
         cb_list_t trigger_cbs;
@@ -129,14 +132,21 @@ class trigger_base {
           \return success or failure
           */
         int request(int reqcode, void* ptr);
-        
-        int get_trigger_size(); //!< return size of trigger list
+
+        //!< return size of trigger list
+        int get_trigger_size();
 };
 
 inline int trigger_base::get_trigger_size() {
     return trigger_cbs.size();
 }
 
+typedef std::shared_ptr<trigger_base> sp_trigger_device_t;
+typedef std::map<std::string, sp_trigger_device_t> trigger_device_map_t;
+
+#ifdef EMACS 
+{
+#endif
 } // namespace robotkernel
 
 #endif // __TRIGGER_BASE_H__

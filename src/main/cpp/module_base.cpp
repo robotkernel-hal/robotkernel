@@ -46,7 +46,7 @@ module_base::~module_base() {
 /*!
  * \returns shared pointer to our robotkernel module class
  */
-robotkernel::kernel::sp_module_t module_base::get_module() {
+robotkernel::sp_module_t module_base::get_module() {
     kernel& k = *kernel::get_instance();
     return k.get_module(name);
 }

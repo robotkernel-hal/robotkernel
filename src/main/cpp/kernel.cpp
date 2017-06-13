@@ -133,8 +133,8 @@ int kernel::set_state(std::string mod_name, module_state_t state,
         for (const auto& d_mod_name : mdl2->get_depends()) {
             if (std::find(caller.begin(), caller.end(), d_mod_name) != caller.end())
                 continue; // do not recurse any further
-            if (d_mod_name == mod_name)
-                continue;
+            if (d_mod_name != mod_name)
+                continue; // not dependent to us
 
             if (get_state(mdl2->get_name()) > state) {
                 log(info, "%s depends on %s -> setting state to init\n",
@@ -162,9 +162,9 @@ int kernel::set_state(std::string mod_name, module_state_t state,
 //! return module state
 /*!
  * \param mod_name name of module which state to return
- * \return module state
+ * \return actual module state
  */
-module_state_t kernel::_internal_get_state(std::string mod_name) {
+module_state_t kernel::get_state(std::string mod_name) {
     module_map_t::const_iterator it = module_map.find(mod_name);
     if (it == module_map.end())
         throw str_exception("[robotkernel] get_state: module %s not found!\n", mod_name.c_str());
@@ -174,15 +174,6 @@ module_state_t kernel::_internal_get_state(std::string mod_name) {
 
     sp_module_t mdl = it->second;
     return mdl->get_state();
-}
-
-//! return module state
-/*!
- * \param mod_name name of module which state to return
- * \return actual module state
- */
-module_state_t kernel::get_state(std::string mod_name) {
-    return _internal_get_state(mod_name);
 }
 
 //! add bridge callbacks
@@ -407,7 +398,7 @@ void kernel::remove_process_data(const std::string &owner) {
  * \param pd_name name of process data
  * \return process data shared pointer
  */
-kernel::sp_process_data_t kernel::get_process_data(const std::string& pd_name) {
+sp_process_data_t kernel::get_process_data(const std::string& pd_name) {
     if (process_data_map.find(pd_name) == process_data_map.end())
         throw str_exception("process data with name %s not found!\n", pd_name.c_str());
 
@@ -445,7 +436,7 @@ void kernel::remove_trigger_device(sp_trigger_device_t req) {
  * \param trigger_name trigger device name
  * \return trigger device
  */
-kernel::sp_trigger_device_t kernel::get_trigger_device(const std::string& trigger_name) {
+sp_trigger_device_t kernel::get_trigger_device(const std::string& trigger_name) {
     if (trigger_device_map.find(trigger_name) == trigger_device_map.end())
         throw str_exception("trigger device with name %s not found!\n", trigger_name.c_str());
 
@@ -836,7 +827,7 @@ void kernel::power_down() {
 bool kernel::state_check(std::string mod_name, module_state_t state) {
 	pthread_rwlock_rdlock(&module_map_lock);
 
-    kernel::module_map_t::const_iterator it = module_map.find(mod_name);
+    module_map_t::const_iterator it = module_map.find(mod_name);
     if (it == module_map.end()) {
 		pthread_rwlock_unlock(&module_map_lock);
         throw str_exception("[robotkernel] state_check: module %s not found!\n", mod_name.c_str());
@@ -852,13 +843,12 @@ bool kernel::state_check(std::string mod_name, module_state_t state) {
 bool kernel::state_check() {
 	pthread_rwlock_rdlock(&module_map_lock);
 
-    kernel::module_map_t::const_iterator it;
-    for (it = module_map.begin(); it != module_map.end(); ++it) {
-        module_state_t state = it->second->get_state();
+    for (auto& kv : module_map) {
+        module_state_t state = kv.second->get_state();
         if (state == module_state_error) {
             klog(error, "module %s signaled error, switching "
-                    "to init\n", it->first.c_str());
-            set_state(it->first.c_str(), module_state_init);
+                    "to init\n", kv.first.c_str());
+            set_state(kv.first.c_str(), module_state_init);
         }
     }
 
@@ -872,10 +862,10 @@ bool kernel::state_check() {
  * \param mod_name name of module
  * \return shared pointer to module
  */
-kernel::sp_module_t kernel::get_module(const std::string& mod_name) {
+sp_module_t kernel::get_module(const std::string& mod_name) {
 	pthread_rwlock_rdlock(&module_map_lock);
 
-    kernel::module_map_t::const_iterator it = module_map.find(mod_name);
+    module_map_t::const_iterator it = module_map.find(mod_name);
     if (it == module_map.end()) {
 		pthread_rwlock_unlock(&module_map_lock);
         throw str_exception("[robotkernel] get_module: module %s not found!\n", 

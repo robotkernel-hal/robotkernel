@@ -33,50 +33,59 @@
 #include "yaml-cpp/yaml.h"
 
 namespace robotkernel {
+#ifdef EMACS
+}
+#endif
 
-	//! bridge class
-	/*!
-	  This class opens a shared bridge and loads all needed symbols
-	  */
-	class bridge : public so_file {
-		public:
-			typedef std::function<void(const robotkernel::service_t& svc)> cb_t;
+//! bridge class
+/*!
+  This class opens a shared bridge and loads all needed symbols
+  */
+class bridge : public so_file {
+    public:
+        typedef std::function<void(const robotkernel::service_t& svc)> cb_t;
 
-			typedef struct cbs {
-				cb_t add_service;
-				cb_t remove_service;
-			} cbs_t;
+        typedef struct cbs {
+            cb_t add_service;
+            cb_t remove_service;
+        } cbs_t;
 
-			typedef std::list<cbs_t *> cbs_list_t;
+        typedef std::list<cbs_t *> cbs_list_t;
 
-		private:
-			bridge();
-			bridge(const bridge&);			   // prevent copy-construction
-			bridge& operator=(const bridge&);  // prevent assignment
+    private:
+        bridge();
+        bridge(const bridge&);			   // prevent copy-construction
+        bridge& operator=(const bridge&);  // prevent assignment
 
-		public:
-			//! bridge construction
-			/*!
-			  \param node configuration node
-			  */
-			bridge(const YAML::Node& node);
+    public:
+        //! bridge construction
+        /*!
+          \param node configuration node
+          */
+        bridge(const YAML::Node& node);
 
-			//! bridge destruction
-			/*!
-			  destroys bridge
-			  */
-			~bridge();
+        //! bridge destruction
+        /*!
+          destroys bridge
+          */
+        ~bridge();
 
-			std::string name;							//!< bridge name
+        std::string name;							//!< bridge name
 
-		private:
-			BRIDGE_HANDLE bridge_handle;				//!< bridge handle
+    private:
+        BRIDGE_HANDLE bridge_handle;				//!< bridge handle
 
-			//! bridge symbols
-			bridge_configure_t bridge_configure;		//!< configure bridge
-			bridge_unconfigure_t bridge_unconfigure;	//!< unconfigure bridge
-	};
+        //! bridge symbols
+        bridge_configure_t bridge_configure;		//!< configure bridge
+        bridge_unconfigure_t bridge_unconfigure;	//!< unconfigure bridge
+};
 
+typedef std::shared_ptr<bridge> sp_bridge_t;
+typedef std::map<std::string, sp_bridge_t> bridge_map_t;
+
+#ifdef EMACS
+{
+#endif
 } // namespace robotkernel
 
 #endif // __ROBOTKERNEL_BRIDGE_H__

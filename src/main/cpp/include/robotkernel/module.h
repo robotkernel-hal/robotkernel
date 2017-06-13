@@ -39,6 +39,9 @@ namespace robotkernel { class module; };
 YAML::Emitter& operator<<(YAML::Emitter& out, const robotkernel::module& mdl);
 
 namespace robotkernel {
+#ifdef EMACS
+}
+#endif
 
 class kernel_worker;
 
@@ -253,11 +256,17 @@ inline void module::remove_depends(std::string other_module) {
 	}
 }
 
+typedef std::shared_ptr<module> sp_module_t;
+typedef std::map<std::string, sp_module_t> module_map_t;
+
 //! return power up state
 inline const module_state_t module::get_power_up() {
     return power_up;
 }
 
+#ifdef EMACS
+{
+#endif
 } // namespace robotkernel
 
 #endif // __MODULE_H__
