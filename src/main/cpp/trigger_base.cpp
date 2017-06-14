@@ -186,12 +186,14 @@ void trigger_device::remove_trigger_callback(sp_trigger_base_t trigger) {
     triggers.remove(trigger);
 
     for (auto it = workers.begin(); it != workers.end(); ) {
-        it->second->remove_trigger_callback(it->second);
+        it->second->remove_trigger_callback(trigger);
         auto act_it = it++;
 
-        printf("worker size is %d\n", act_it->second->size());
-        if (!act_it->second->size())
+        if (!act_it->second->size()) {
+            auto& w = act_it->second;
             workers.erase(act_it);
+            w.reset();
+        }
     }
 
     pthread_mutex_unlock(&list_lock);
