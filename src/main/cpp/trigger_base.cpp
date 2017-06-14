@@ -190,9 +190,9 @@ void trigger_device::remove_trigger_callback(sp_trigger_base_t trigger) {
         auto act_it = it++;
 
         if (!act_it->second->size()) {
-            auto& w = act_it->second;
+            auto w = act_it->second;
+            triggers.remove(w);
             workers.erase(act_it);
-            w.reset();
         }
     }
 
