@@ -196,7 +196,7 @@ void kernel::add_service(
     svc->name               = name;
     svc->service_definition = service_definition;
     svc->callback           = callback;
-    service_list[svc->name] = svc;
+    services[std::make_pair(owner, name)] = svc;
 
     for (const auto& kv : bridge_map)
         kv.second->add_service(*svc);
@@ -204,18 +204,19 @@ void kernel::add_service(
 
 //! remove on service given by name
 /*!
- * \param name service name
+ * \param[in] owner     Owner of service.
+ * \param[in] name      Name of service.
  */
-void kernel::remove_service(const std::string& name) {
-	service_list_t::iterator it;
-	if ((it = service_list.find(name)) == service_list.end())
+void kernel::remove_service(const std::string& owner, const std::string& name) {
+	service_map_t::iterator it;
+	if ((it = services.find(std::make_pair(owner, name))) == services.end())
 		return;	// service not found
     
     for (const auto& kv : bridge_map)
         kv.second->remove_service(*(it->second));
 
 	delete it->second;
-	service_list.erase(it);
+	services.erase(it);
 }
 
 //! remove all services from owner
@@ -229,24 +230,23 @@ void kernel::remove_services(const std::string& owner) {
 		it->second->remove_module(owner);
 	}
 
-    for (service_list_t::iterator it = service_list.begin(); 
-            it != service_list.end(); ) {
-        if (it->second->owner != owner) {
+    for (service_map_t::iterator it = services.begin(); 
+            it != services.end(); ) {
+        const auto& svc = *(it->second);
+
+        if (svc.owner != owner) {
             ++it;
             continue;
         }
 
-        log(verbose, "removing service %s\n", it->second->name.c_str());
+        log(verbose, "removing service %s.%s\n", svc.owner.c_str(), svc.name.c_str());
+    
+        for (const auto& kv : bridge_map)
+            kv.second->remove_service(svc);
 
-/* TODO
-        for (const auto& kv : device_map) {
-            const auto& bridge = std::dynamic_pointer_cast<bridge_device>(kv.second);
-            if (bridge)
-                bridge->remove_service(*(it->second));
-        }
-       */  
+
         delete it->second;
-        it = service_list.erase(it);
+        it = services.erase(it);
     }
 }
 
@@ -389,20 +389,17 @@ kernel::~kernel() {
 
     // remove services
     log(verbose, "removing services\n");
-    service_list_t::iterator slit;
-    while ((slit = service_list.begin()) != service_list.end()) {
-        /* TODO
-        for (const auto& kv : device_map) {
-            const auto& bridge = std::dynamic_pointer_cast<bridge_device>(kv.second);
-            if (bridge)
-                bridge->remove_service(*(slit->second));
-        }
-        */
+    service_map_t::iterator slit;
+    while ((slit = services.begin()) != services.end()) {
+        const auto& svc = *(slit->second);
 
-        log(verbose, "    service %s\n", slit->first.c_str());
+        log(verbose, "    service %s.%s\n", svc.owner.c_str(), svc.name.c_str());
+    
+        for (const auto& kv : bridge_map)
+            kv.second->remove_service(svc);
+
         delete slit->second;
-
-        service_list.erase(slit);
+        services.erase(slit);
     }
 
 

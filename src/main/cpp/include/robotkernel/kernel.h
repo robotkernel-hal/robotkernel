@@ -61,7 +61,7 @@ class kernel {
         service_provider_map_t      service_provider_map;       //!< service_providers map
         module_map_t                module_map;                 //!< modules map
         pthread_rwlock_t            module_map_lock;            //!< module map lock
-        service_list_t              service_list;               //!< service list
+        service_map_t               services;                   //!< service list
 
         device_map_t device_map;
 
@@ -96,9 +96,10 @@ class kernel {
 
         //! remove on service given by name
         /*!
-         * \param name service name
+         * \param[in] owner     Owner of service.
+         * \param[in] name      Name of service.
          */
-        void remove_service(const std::string& name);
+        void remove_service(const std::string& owner, const std::string& name);
 
         //! remove all services from owner
         /*!

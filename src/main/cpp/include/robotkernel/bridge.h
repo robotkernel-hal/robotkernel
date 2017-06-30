@@ -1,8 +1,6 @@
 //! robotkernel bridge class
 /*!
  * author: Robert Burger
- *
- * $Id$
  */
 
 /*

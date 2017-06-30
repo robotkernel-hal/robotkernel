@@ -45,7 +45,7 @@ namespace robotkernel {
 		service_callback_t callback;
 	} service_t;
 
-	typedef std::map<std::string, service_t *> service_list_t;
+	typedef std::map<std::pair<std::string, std::string>, service_t *> service_map_t;
 
 } // namespace robotkernel
 
