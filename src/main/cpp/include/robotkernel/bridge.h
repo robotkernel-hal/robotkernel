@@ -42,16 +42,6 @@ namespace robotkernel {
   This class opens a shared bridge and loads all needed symbols
   */
 class bridge : public so_file {
-    public:
-        typedef std::function<void(const robotkernel::service_t& svc)> cb_t;
-
-        typedef struct cbs {
-            cb_t add_service;
-            cb_t remove_service;
-        } cbs_t;
-
-        typedef std::list<cbs_t *> cbs_list_t;
-
     private:
         bridge();
         bridge(const bridge&);			   // prevent copy-construction
@@ -69,6 +59,18 @@ class bridge : public so_file {
           destroys bridge
           */
         ~bridge();
+        
+        //! create and register ln service
+        /*!
+         * \param[in] svc   Service which should be added to bridge.
+         */
+        void add_service(const robotkernel::service_t &svc);
+
+        //! unregister and remove ln service 
+        /*!
+         * \param[in] svc   Service which should be removed from bridge.
+         */
+        void remove_service(const robotkernel::service_t &svc);
 
         std::string name;							//!< bridge name
 
@@ -76,8 +78,10 @@ class bridge : public so_file {
         BRIDGE_HANDLE bridge_handle;				//!< bridge handle
 
         //! bridge symbols
-        bridge_configure_t bridge_configure;		//!< configure bridge
-        bridge_unconfigure_t bridge_unconfigure;	//!< unconfigure bridge
+        bridge_configure_t bridge_configure;		        //!< configure bridge
+        bridge_unconfigure_t bridge_unconfigure;	        //!< unconfigure bridge
+        bridge_add_service_t bridge_add_service;            //!< add service to bridge
+        bridge_remove_service_t bridge_remove_service;      //!< remove service to bridge
 };
 
 typedef std::shared_ptr<bridge> sp_bridge_t;

@@ -30,6 +30,8 @@
 #include <list>
 #include <stdio.h>
 
+#include <robotkernel/service.h>
+
 #define BRIDGE_HANDLE void*
 
 //! bridge configure
@@ -45,6 +47,18 @@ typedef BRIDGE_HANDLE (*bridge_configure_t)(const char* name, const char* config
  * \param hdl bridge handle
  */
 typedef int (*bridge_unconfigure_t)(BRIDGE_HANDLE hdl);
+
+//! create and register ln service
+/*!
+ * \param svc robotkernel service struct
+ */
+typedef void (*bridge_add_service_t)(BRIDGE_HANDLE hdl, const robotkernel::service_t &svc);
+
+//! unregister and remove ln service 
+/*!
+ * \param svc robotkernel service struct
+ */
+typedef void (*bridge_remove_service_t)(BRIDGE_HANDLE hdl, const robotkernel::service_t &svc);
 
 #endif // __bridge_bridge_H__
 

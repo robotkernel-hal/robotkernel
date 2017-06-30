@@ -35,9 +35,11 @@
 #include <robotkernel/bridge.h>
 #include <robotkernel/service.h>
 #include <robotkernel/service_provider.h>
-#include <robotkernel/service_requester_base.h>
-#include <robotkernel/process_data.h>
-#include <robotkernel/trigger_base.h>
+
+#include <robotkernel/process_data_device.h>
+#include <robotkernel/trigger_device.h>
+#include <robotkernel/service_collector_device.h>
+
 
 #define klog(...) robotkernel::kernel::get_instance()->log(__VA_ARGS__)
 
@@ -57,12 +59,11 @@ class kernel {
         loglevel                    ll;                         //!< robotkernel global loglevel
         bridge_map_t                bridge_map;                 //!< bridges map
         service_provider_map_t      service_provider_map;       //!< service_providers map
-        trigger_device_map_t        trigger_device_map;         //!< trigger_device map
         module_map_t                module_map;                 //!< modules map
         pthread_rwlock_t            module_map_lock;            //!< module map lock
         service_list_t              service_list;               //!< service list
-        service_requester_list_t    service_requester_list;     //!< service requester list
-        bridge::cbs_list_t          bridge_callbacks;           //!< bridge list
+
+        device_map_t device_map;
 
     protected:
         //! construction
@@ -78,19 +79,7 @@ class kernel {
         char **main_argv;   //!< robotkernel's main arguments
 
         //! holds all registered process data
-        process_data_map_t process_data_map;
-
-        //! add bridge callbacks
-        /*!
-         * \param cbs bridge callback to add
-         */
-        void add_bridge_cbs(bridge::cbs_t *cbs);
-
-        //! remove bridge callbacks
-        /*!
-         * \param cbs bridge callback to remove 
-         */
-        void remove_bridge_cbs(bridge::cbs_t *cbs);
+        process_data_device_map_t process_data_map;
 
         //! add service to kernel
         /*!
@@ -116,88 +105,46 @@ class kernel {
          * \param owner service owner
          */
         void remove_services(const std::string &owner);
-
-        //! add service requester
-        /*!
-         * \param req slave inteface specialization         
+        
+        //! add a named device
+        /*
+         * \param req device to add
          */
-        void add_service_requester(sp_service_requester_t req);
+        void add_device(sp_device_t req);
 
-        //! remove service requester
+        //! remove a named device
         /*!
-         * \param req slave inteface specialization         
+         * \param req device to remove
          */
-        void remove_service_requester(sp_service_requester_t req);
+        void remove_device(sp_device_t req);
 
-        //! remove all service requester for given owner
+        //! remove all devices from owner
         /*!
-         * \param owner service requester owner      
+         * \param[in] owner unique owner string
          */
-        void remove_service_requester(
-                const std::string &owner);
+        void remove_devices(const std::string& owner);
 
-        //! add process data
+        //! get a device by name
         /*!
-         * \param req slave inteface specialization         
+         * \param dev_name device name
+         * \return device
          */
-        void add_process_data(sp_process_data_t req);
+        template <typename T>
+        std::shared_ptr<T> get_device(const std::string& dev_name);
+        
+        //! wrapper around \link get_device \endlink
+        /*!
+         * \param[in] name  Trigger device name.
+         * \return shared pointer to trigger device
+         */
+        sp_trigger_device_t get_trigger_device(const std::string& name);
 
-        //! remove process data
+        //! wrapper around \link get_device \endlink
         /*!
-         * \param req slave inteface specialization         
+         * \param[in] name  process data device name.
+         * \return shared pointer to process data device
          */
-        void remove_process_data(sp_process_data_t req);
-
-        //! remove all process data for given owner
-        /*!
-         * \param owner process data owner       
-         */
-        void remove_process_data(
-                const std::string &owner);
-
-        //! get named process data
-        /*!
-         * \param pd_name name of process data
-         * \return process data shared pointer
-         */
-        sp_process_data_t get_process_data(const std::string& pd_name);
-
-        //! add a named trigger device
-        /*!
-         * \param req trigger device to add
-         */
-        void add_trigger_device(sp_trigger_device_t req);
-
-        //! remove a named trigger device
-        /*!
-         * \param req trigger device to remove
-         */
-        void remove_trigger_device(sp_trigger_device_t req);
-
-        //! get a trigger device by name
-        /*!
-         * \param trigger_name trigger device name
-         * \return trigger device
-         */
-        sp_trigger_device_t get_trigger_device(const std::string& trigger_name);
-
-        //! register trigger module to named trigger device
-        /*!
-         * \param t_dev trigger_device name
-         * \param trigger_mdl module which should be triggered by t_dev
-         * \param t external trigger
-         */
-        void trigger_register_module(const std::string& t_dev, 
-                module *trigger_mdl, module::external_trigger& t);
-
-        //! unregister trigger module from named trigger device
-        /*!
-         * \param t_dev trigger_device name
-         * \param trigger_mdl module which was triggered by t_dev
-         * \param t external trigger
-         */
-        void trigger_unregister_module(const std::string& t_dev, 
-                module *trigger_mdl, module::external_trigger& t);
+        sp_process_data_device_t get_process_data_device(const std::string& name);
 
         //! get kernel singleton instance
         /*!
@@ -356,10 +303,10 @@ class kernel {
          * \parma response service response data
          * \return success
          */
-        int service_list_process_data(const service_arglist_t &request,
+        int service_list_devices(const service_arglist_t &request,
                 service_arglist_t &response);
 
-        static const std::string service_definition_list_process_data;
+        static const std::string service_definition_list_devices;
 
         //! process data information
         /*!
@@ -367,10 +314,34 @@ class kernel {
          * \parma response service response data
          * \return success
          */
-        int service_process_data_info(const service_arglist_t &request,
+        int service_process_data_device_info(const service_arglist_t &request,
                 service_arglist_t &response);
 
-        static const std::string service_definition_process_data_info;
+        static const std::string service_definition_process_data_device_info;
+};
+        
+// wrapper around \link get_device \endlink
+inline sp_trigger_device_t kernel::get_trigger_device(const std::string& name) {
+    return get_device<trigger_device>(name);
+}
+
+// wrapper around \link get_device \endlink
+inline sp_process_data_device_t kernel::get_process_data_device(const std::string& name) {
+    return get_device<process_data_device>(name);
+}
+        
+// get a device by name
+template <typename T>
+inline std::shared_ptr<T> kernel::get_device(const std::string& dev_name) {
+    if (device_map.find(dev_name) == device_map.end()) 
+        throw string_util::str_exception("device %s not found\n", dev_name.c_str());
+
+    std::shared_ptr<T> retval = std::dynamic_pointer_cast<T>(device_map[dev_name]);
+    if (!retval)
+        throw string_util::str_exception("device %s is not of type %s\n", 
+                dev_name.c_str(), typeid(T).name());
+
+    return retval;
 };
 
 #ifdef EMACS

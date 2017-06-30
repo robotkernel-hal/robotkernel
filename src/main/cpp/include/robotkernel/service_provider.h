@@ -40,22 +40,6 @@ namespace robotkernel {
   This class opens a shared service_provider and loads all needed symbols
   */
 class service_provider : public so_file {
-    public:
-        typedef struct slave_id {
-            std::string mod_name;           //! module name
-            std::string dev_name;           //! device name
-            int offset;                     //! module offset
-        } slave_id_t;
-
-        typedef std::function<void(const slave_id_t& svc)> cb_t;
-
-        typedef struct cbs {
-            cb_t add_slave_id;
-            cb_t remove_slave_id;
-        } cbs_t;
-
-        typedef std::list<cbs_t *> cbs_list_t;
-
     private:
         service_provider();
         service_provider(const service_provider&);             // prevent copy-construction
@@ -79,13 +63,13 @@ class service_provider : public so_file {
         /*!
          * \param req slave inteface specialization         
          */
-        void add_slave(sp_service_requester_t req);
+        void add_collector(sp_service_collector_device_t req);
 
         //! remove registered slave
         /*!
          * \param req slave inteface specialization         
          */
-        void remove_slave(sp_service_requester_t req);
+        void remove_collector(sp_service_collector_device_t req);
 
         //! remove all slaves from module
         /*!
@@ -97,7 +81,7 @@ class service_provider : public so_file {
         /*!
          * \param return true if we can handle it
          */
-        bool test_slave(sp_service_requester_t req);
+        bool test_collector(sp_service_collector_device_t req);
 
         std::string name;                      //!< service_provider name
 
@@ -107,10 +91,10 @@ class service_provider : public so_file {
         //! service_provider symbols
         sp_register_t                   sp_register;
         sp_unregister_t                 sp_unregister;
-        sp_add_slave_t                  sp_add_slave;
-        sp_remove_slave_t               sp_remove_slave;
+        sp_add_collector_t              sp_add_collector;
+        sp_remove_collector_t           sp_remove_collector;
         sp_remove_module_t              sp_remove_module;
-        sp_test_slave_t                 sp_test_slave;
+        sp_test_collector_t             sp_test_collector;
 };
 
 typedef std::shared_ptr<service_provider> sp_service_provider_t;

@@ -12,6 +12,7 @@ include_HEADERS = $(headerdir)/bridge_base.h	\
 				  $(headerdir)/char_ringbuffer.h \
 				  $(headerdir)/cmd_delay.h \
 				  $(headerdir)/config.h.in \
+				  $(headerdir)/device.h \
 				  $(headerdir)/dump_log.h \
 				  $(headerdir)/exceptions.h \
 				  $(headerdir)/helpers.h \
@@ -25,7 +26,7 @@ include_HEADERS = $(headerdir)/bridge_base.h	\
 				  $(headerdir)/module_base.h \
 				  $(headerdir)/module.h \
 				  $(headerdir)/module_intf.h \
-				  $(headerdir)/process_data.h \
+				  $(headerdir)/process_data_device.h \
 				  $(headerdir)/rk_type.h \
 				  $(headerdir)/rt_helper.h \
 				  $(headerdir)/runnable.h \
@@ -33,18 +34,35 @@ include_HEADERS = $(headerdir)/bridge_base.h	\
 				  $(headerdir)/service_provider_base.h \
 				  $(headerdir)/service_provider.h \
 				  $(headerdir)/service_provider_intf.h \
-				  $(headerdir)/service_requester_base.h \
+				  $(headerdir)/service_collector_device.h \
 				  $(headerdir)/so_file.h \
 				  $(headerdir)/trigger_base.h \
+				  $(headerdir)/trigger_device.h \
+				  $(headerdir)/trigger_worker.h \
 				  $(gen_headerdir)/config.h
 
-robotkernel_SOURCES = module.cpp module_intf.cpp service_provider.cpp main.cpp 	\
-					  exceptions.cpp kernel.cpp kernel_worker.cpp       		\
-					  runnable.cpp trigger_base.cpp log_thread.cpp 				\
-					  dump_log.cpp char_ringbuffer.cpp module_base.cpp 			\
-					  service_provider_base.cpp 								\
-					  rt_helper.cpp rk_type.cpp									\
-					  bridge_base.cpp log_base.cpp so_file.cpp bridge.cpp
+robotkernel_SOURCES = bridge.cpp				\
+					  bridge_base.cpp			\
+					  char_ringbuffer.cpp 		\
+					  dump_log.cpp 				\
+					  exceptions.cpp 			\
+					  kernel.cpp 				\
+					  kernel_worker.cpp       	\
+					  log_base.cpp 				\
+					  log_thread.cpp 			\
+					  main.cpp 					\
+					  module.cpp				\
+					  module_base.cpp 			\
+					  module_intf.cpp 			\
+					  rk_type.cpp				\
+					  rt_helper.cpp 			\
+					  runnable.cpp 				\
+					  service_provider.cpp 		\
+					  service_provider_base.cpp \
+					  so_file.cpp 				\
+					  trigger_base.cpp 			\
+					  trigger_device.cpp		\
+					  trigger_worker.cpp
 
 robotkernel_CXXFLAGS = -Wno-unused-local-typedefs 					\
 					   -I$(top_builddir)/src/main/cpp/include 		\

@@ -31,7 +31,7 @@
 #include "robotkernel/exceptions.h"
 #include "robotkernel/module_base.h"
 #include "robotkernel/cmd_delay.h"
-#include "robotkernel/process_data.h"
+#include "robotkernel/bridge_base.h"
 #include "yaml-cpp/yaml.h"
 
 using namespace std;
@@ -176,33 +176,6 @@ module_state_t kernel::get_state(std::string mod_name) {
     return mdl->get_state();
 }
 
-//! add bridge callbacks
-/*!
- * \param cbs bridge callback to add
- */
-void kernel::add_bridge_cbs(bridge::cbs_t *cbs) {
-    bridge_callbacks.push_back(cbs);
-    
-    for (service_list_t::iterator it = service_list.begin();
-            it != service_list.end(); ++it) {
-        service_t& svc = *(it->second);
-        cbs->add_service(svc);
-    }
-}
-
-//! remove bridge callbacks
-/*!
- * \param cbs bridge callback to remove
- */
-void kernel::remove_bridge_cbs(bridge::cbs_t *cbs) {
-    for (auto it = bridge_callbacks.begin(); it != bridge_callbacks.end(); ++it) {
-        if (*it == cbs) {
-            bridge_callbacks.erase(it);
-            break;
-        }
-    }
-}
-
 //! add service to kernel
 /*!
  * \param owner service owner
@@ -225,10 +198,8 @@ void kernel::add_service(
     svc->callback           = callback;
     service_list[svc->name] = svc;
 
-    for (bridge::cbs_list_t::iterator it = bridge_callbacks.begin();
-            it != bridge_callbacks.end(); ++it) {
-        (*it)->add_service(*svc);
-    }
+    for (const auto& kv : bridge_map)
+        kv.second->add_service(*svc);
 }
 
 //! remove on service given by name
@@ -239,13 +210,9 @@ void kernel::remove_service(const std::string& name) {
 	service_list_t::iterator it;
 	if ((it = service_list.find(name)) == service_list.end())
 		return;	// service not found
-
-	for (bridge::cbs_list_t::iterator 
-			it_prov = bridge_callbacks.begin(); 
-			it_prov != bridge_callbacks.end();
-			++it_prov) {
-		(*it_prov)->remove_service(*(it->second));
-	}
+    
+    for (const auto& kv : bridge_map)
+        kv.second->remove_service(*(it->second));
 
 	delete it->second;
 	service_list.erase(it);
@@ -271,18 +238,20 @@ void kernel::remove_services(const std::string& owner) {
 
         log(verbose, "removing service %s\n", it->second->name.c_str());
 
-        for (bridge::cbs_list_t::iterator 
-                it_prov = bridge_callbacks.begin(); 
-                it_prov != bridge_callbacks.end();
-                ++it_prov) {
-            (*it_prov)->remove_service(*(it->second));
+/* TODO
+        for (const auto& kv : device_map) {
+            const auto& bridge = std::dynamic_pointer_cast<bridge_device>(kv.second);
+            if (bridge)
+                bridge->remove_service(*(it->second));
         }
-
+       */  
         delete it->second;
         it = service_list.erase(it);
     }
 }
 
+//TODO
+#if 0
 //! add service requester
 /*!
  * \param req slave inteface specialization         
@@ -351,97 +320,7 @@ void kernel::remove_service_requester(const std::string &owner) {
 		it = service_requester_list.erase(it);
 	}
 }
-        
-//! add process data
-/*!
- * \param req slave inteface specialization         
- */
-void kernel::add_process_data(sp_process_data_t req) {
-    auto pd_name = req->owner + "." + req->name;
-    if (process_data_map.find(pd_name) != process_data_map.end())
-        return; // already in
-
-    log(verbose, "registered process data \"%s\", \ndefinition:\n%s\n", 
-            pd_name.c_str(), req->process_data_definition.c_str());
-    process_data_map[pd_name] = req;
-}
-
-//! remove process data
-/*!
- * \param req slave inteface specialization         
- */
-void kernel::remove_process_data(sp_process_data_t req) {
-    for (auto it = process_data_map.begin(); it != process_data_map.end(); ++it) {
-        if (it->second == req) {
-            process_data_map.erase(it);
-            return;
-        }
-    }
-}
-
-//! remove all process data for given owner
-/*!
- * \param owner process data owner		 
- */
-void kernel::remove_process_data(const std::string &owner) {
-    for (auto it = process_data_map.begin(), next_it = process_data_map.begin();
-            it != process_data_map.end(); it = next_it) {
-        next_it = it; next_it++;
-
-        if (it->second->owner == owner)
-            process_data_map.erase(it);
-    }
-}
-
-//! get named process data
-/*!
- * \param pd_name name of process data
- * \return process data shared pointer
- */
-sp_process_data_t kernel::get_process_data(const std::string& pd_name) {
-    if (process_data_map.find(pd_name) == process_data_map.end())
-        throw str_exception("process data with name %s not found!\n", pd_name.c_str());
-
-    return process_data_map[pd_name];
-}
-        
-//! add a named trigger device
-/*!
- * \param req trigger device to add
- */
-void kernel::add_trigger_device(sp_trigger_device_t req) {
-    if (trigger_device_map.find(req->trigger_dev_name) != trigger_device_map.end())
-        return; // already in
-
-    log(info, "registered trigger device \"%s\"\n", 
-            req->trigger_dev_name.c_str());
-    trigger_device_map[req->trigger_dev_name] = req;
-}
-
-//! remove a named trigger device
-/*!
- * \param req trigger device to remove
- */
-void kernel::remove_trigger_device(sp_trigger_device_t req) {
-    for (auto it = trigger_device_map.begin(); it != trigger_device_map.end(); ++it) {
-        if (it->second == req) {
-            trigger_device_map.erase(it);
-            return;
-        }
-    }
-}
-
-//! get a trigger device by name
-/*!
- * \param trigger_name trigger device name
- * \return trigger device
- */
-sp_trigger_device_t kernel::get_trigger_device(const std::string& trigger_name) {
-    if (trigger_device_map.find(trigger_name) == trigger_device_map.end())
-        throw str_exception("trigger device with name %s not found!\n", trigger_name.c_str());
-
-    return trigger_device_map[trigger_name];
-}
+#endif        
 
 //! construction
 /*!
@@ -450,9 +329,6 @@ sp_trigger_device_t kernel::get_trigger_device(const std::string& trigger_name) 
 kernel::kernel() {
     ll = info;
     _name = "robotkernel";
-    char *ln_program_name = getenv("LN_PROGRAM_NAME");
-    if (ln_program_name)
-        _name = string(ln_program_name);
 
     log(info, PACKAGE_STRING "\n");
 
@@ -476,10 +352,10 @@ kernel::kernel() {
             std::bind(&kernel::service_add_module, this, _1, _2));
     add_service(_name, "remove_module", service_definition_remove_module,
             std::bind(&kernel::service_remove_module, this, _1, _2));
-    add_service(_name, "list_process_data", service_definition_list_process_data,
-            std::bind(&kernel::service_list_process_data, this, _1, _2));
-    add_service(_name, "process_data_info", service_definition_process_data_info,
-            std::bind(&kernel::service_process_data_info, this, _1, _2));
+    add_service(_name, "list_devices", service_definition_list_devices,
+            std::bind(&kernel::service_list_devices, this, _1, _2));
+    add_service(_name, "process_data_device_info", service_definition_process_data_device_info,
+            std::bind(&kernel::service_process_data_device_info, this, _1, _2));
 }
 
 //! destruction
@@ -515,12 +391,13 @@ kernel::~kernel() {
     log(verbose, "removing services\n");
     service_list_t::iterator slit;
     while ((slit = service_list.begin()) != service_list.end()) {
-        for (bridge::cbs_list_t::iterator 
-                it_prov = bridge_callbacks.begin(); 
-                it_prov != bridge_callbacks.end();
-                ++it_prov) {
-            (*it_prov)->remove_service(*(slit->second));
+        /* TODO
+        for (const auto& kv : device_map) {
+            const auto& bridge = std::dynamic_pointer_cast<bridge_device>(kv.second);
+            if (bridge)
+                bridge->remove_service(*(slit->second));
         }
+        */
 
         log(verbose, "    service %s\n", slit->first.c_str());
         delete slit->second;
@@ -531,7 +408,7 @@ kernel::~kernel() {
 
     // remove process data
     log(verbose, "removing process data\n");
-    std::map<std::string, sp_process_data_t>::iterator pdit;
+    std::map<std::string, sp_process_data_device_t>::iterator pdit;
     while ((pdit = process_data_map.begin()) != process_data_map.end()) {
         log(verbose, "    process_data %d\n", pdit->first.c_str());
         process_data_map.erase(pdit);
@@ -540,6 +417,7 @@ kernel::~kernel() {
     pthread_rwlock_destroy(&module_map_lock);
 
     log(info, "clean up finished\n");
+    dump_log_free();
 }
 
 //! get kernel singleton instance
@@ -739,9 +617,10 @@ void kernel::config(std::string config_file, int argc, char *argv[]) {
         klog(info, "adding [%s]\n", sp->name.c_str());
         service_provider_map[sp->name] = sp;
 	
-        for (service_requester_list_t::iterator it = service_requester_list.begin();
-                it != service_requester_list.end(); ++it) {
-            sp->add_slave(*it);
+        for (const auto& kv : device_map) {
+            const auto& coll = std::dynamic_pointer_cast<service_collector_device>(kv.second);
+            if (coll)
+                sp->add_collector(coll);
         }
     }
 }
@@ -905,54 +784,47 @@ int kernel::state_change(const char *mod_name, module_state_t new_state) {
     return ret;
 }
         
-//! register trigger module to named trigger device
-/*!
- * \param t_dev trigger_device name
- * \param trigger_mdl module which should be triggered by t_dev
- * \param t external trigger
- */
-void kernel::trigger_register_module(const std::string& t_dev, 
-        module *trigger_mdl, module::external_trigger& t) {
+// add a named device
+void kernel::add_device(sp_device_t req) {
+    auto map_index = req->id();
+    if (device_map.find(map_index) != device_map.end())
+        return; // already in
 
-    pthread_rwlock_rdlock(&module_map_lock);
-
-    module_map_t::iterator module_it = module_map.find(t_dev);
-    if (module_it == module_map.end()) {
-        pthread_rwlock_unlock(&module_map_lock);
-
-        throw str_exception("%s not found\n", 
-                t_dev.c_str());
+    const auto& collector = std::dynamic_pointer_cast<service_collector_device>(req);
+    if (collector) {
+        for (const auto& kv : service_provider_map) 
+            kv.second->add_collector(collector);
     }
 
-    sp_module_t mdl = module_it->second;
-    //mdl->trigger_register_module(trigger_mdl, t);
+    log(verbose, "registered device \"%s\"\n", map_index.c_str());
+    device_map[map_index] = req;
+};
+        
+// remove a named device
+void kernel::remove_device(sp_device_t req) {
+    auto map_index = req->id();
 
-    pthread_rwlock_unlock(&module_map_lock);
-}
-
-//! unregister trigger module from named trigger device
-/*!
- * \param t_dev trigger_device name
- * \param trigger_mdl module which was triggered by t_dev
- * \param t external trigger
- */
-void kernel::trigger_unregister_module(const std::string& t_dev, 
-        module *trigger_mdl, module::external_trigger& t) {
-
-    pthread_rwlock_rdlock(&module_map_lock);
-
-    module_map_t::iterator module_it = module_map.find(t_dev);
-    if (module_it == module_map.end()) {
-        pthread_rwlock_unlock(&module_map_lock);
-
-        throw str_exception("%s not found\n", 
-                t_dev.c_str());
+    const auto& collector = std::dynamic_pointer_cast<service_collector_device>(req);
+    if (collector) {
+        for (const auto& kv : service_provider_map) 
+            kv.second->remove_collector(collector);
     }
 
-    sp_module_t mdl = module_it->second;
-    //mdl->trigger_unregister_module(trigger_mdl, t);
+    auto it = device_map.find(map_index);
+    if (it == device_map.end())
+        return; // no device with name found
 
-    pthread_rwlock_unlock(&module_map_lock);
+    device_map.erase(it);
+};
+
+// remove all devices from owner
+void kernel::remove_devices(const std::string& owner) {
+    for (auto it = device_map.begin(); it != device_map.end(); ) {
+        auto it_act = it++;
+
+        if (it_act->second->owner == owner)
+            device_map.erase(it_act);
+    }
 }
 
 //! get dump log
@@ -1283,27 +1155,29 @@ log_exit:
  * \parma response service response data
  * \return success
  */
-int kernel::service_list_process_data(const service_arglist_t &request,
+int kernel::service_list_devices(const service_arglist_t &request,
         service_arglist_t &response) {
     //response data
-    std::vector<rk_type> process_datas(0);
+    std::vector<rk_type> devices(0);
     string error_message = "";
 
-    for (const auto& pd : process_data_map)
-        process_datas.push_back(pd.first);
+    //for (const auto& pd : devices_map)
+    //    devicess.push_back(pd.first);
+    for (const auto& kv : device_map)
+        devices.push_back(kv.first);
 
-#define LIST_PROCESS_DATA_RESP_PROCESS_DATAS   0
-#define LIST_PROCESS_DATA_RESP_ERROR_MESSAGE   1
+#define LIST_DEVICES_RESP_DEVICESS   0
+#define LIST_DEVICES_RESP_ERROR_MESSAGE   1
     response.resize(2);
-    response[LIST_PROCESS_DATA_RESP_PROCESS_DATAS] = process_datas;
-    response[LIST_PROCESS_DATA_RESP_ERROR_MESSAGE] = error_message;
+    response[LIST_DEVICES_RESP_DEVICESS] = devices;
+    response[LIST_DEVICES_RESP_ERROR_MESSAGE] = error_message;
 
     return 0;
 }
 
-const std::string kernel::service_definition_list_process_data = 
+const std::string kernel::service_definition_list_devices = 
 "response:\n"
-"    vector/string: process_data\n"
+"    vector/string: devices\n"
 "    string: error_message\n";
 
 //! process data information
@@ -1312,11 +1186,11 @@ const std::string kernel::service_definition_list_process_data =
  * \parma response service response data
  * \return success
  */
-int kernel::service_process_data_info(const service_arglist_t &request,
+int kernel::service_process_data_device_info(const service_arglist_t &request,
         service_arglist_t &response) {
     // request data
-#define PROCESS_DATA_INFO_REQ_NAME 0
-    string name = request[PROCESS_DATA_INFO_REQ_NAME]; 
+#define DEVICES_INFO_REQ_NAME 0
+    string name = request[DEVICES_INFO_REQ_NAME]; 
 
     //response data
     string owner = "";
@@ -1324,29 +1198,34 @@ int kernel::service_process_data_info(const service_arglist_t &request,
     int32_t length = 0;
     string error_message = "";
 
-    if (process_data_map.find(name) != process_data_map.end()) {
-        auto pd   = process_data_map[name];
-        owner     = pd->owner;
-        definiton = pd->process_data_definition;
-        length    = pd->length;
+    if (device_map.find(name) != device_map.end()) {
+        const auto& pd = std::dynamic_pointer_cast<process_data_device>(device_map[name]);
+
+        if (pd) {
+            owner     = pd->owner;
+            definiton = pd->process_data_definition;
+            length    = pd->length;
+        } else 
+            error_message = 
+                format_string("device with name \"%s\" is not a process data device!", name.c_str());
     } else
         error_message = 
-            format_string("process data with name \"%s\" not found!", name);
+            format_string("process data device with name \"%s\" not found!", name.c_str());
 
-#define PROCESS_DATA_INFO_RESP_OWNER            0
-#define PROCESS_DATA_INFO_RESP_DEFINITION       1
-#define PROCESS_DATA_INFO_RESP_LENGTH           2
-#define PROCESS_DATA_INFO_RESP_ERROR_MESSAGE    3
+#define DEVICES_INFO_RESP_OWNER            0
+#define DEVICES_INFO_RESP_DEFINITION       1
+#define DEVICES_INFO_RESP_LENGTH           2
+#define DEVICES_INFO_RESP_ERROR_MESSAGE    3
     response.resize(4);
-    response[PROCESS_DATA_INFO_RESP_OWNER]          = owner;
-    response[PROCESS_DATA_INFO_RESP_DEFINITION]     = definiton;
-    response[PROCESS_DATA_INFO_RESP_LENGTH]         = length;
-    response[PROCESS_DATA_INFO_RESP_ERROR_MESSAGE]  = error_message;
+    response[DEVICES_INFO_RESP_OWNER]          = owner;
+    response[DEVICES_INFO_RESP_DEFINITION]     = definiton;
+    response[DEVICES_INFO_RESP_LENGTH]         = length;
+    response[DEVICES_INFO_RESP_ERROR_MESSAGE]  = error_message;
 
     return 0;
 }
 
-const std::string kernel::service_definition_process_data_info = 
+const std::string kernel::service_definition_process_data_device_info = 
 "request:\n"
 "    string: name\n"
 "response:\n"

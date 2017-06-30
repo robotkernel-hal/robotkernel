@@ -96,6 +96,7 @@ EXPORT_C MODULE_HANDLE mod_configure(const char* name, const char* config) {    
         throw string_util::str_exception(                                           \
                 "["#instance_name"] error allocating memory\n");                    \
     wr->sp = std::make_shared<modclass>(name, doc);                                 \
+    wr->sp->init();                                                                 \
                                                                                     \
     return (MODULE_HANDLE)wr;                                                       \
 }
@@ -103,8 +104,8 @@ EXPORT_C MODULE_HANDLE mod_configure(const char* name, const char* config) {    
 namespace robotkernel {
 
 class module_base : 
-    public log_base//,  
-//    public std::enable_shared_from_this<module_base>
+    public robotkernel::log_base,  
+    public robotkernel::trigger_base
 {
     private:
         module_base();          //!< prevent default construction
@@ -123,6 +124,12 @@ class module_base :
         virtual ~module_base();
 
         std::string get_name() { return name; }
+
+        //! optional initiazation methon
+        /* 
+         * usefull to call shared_from_this() at construction time
+         */
+        void init() {};
     
         //! get robotkernel module
         /*!

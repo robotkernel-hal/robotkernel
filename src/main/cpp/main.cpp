@@ -34,7 +34,7 @@ void signal_handler(int s) {
 }
 
 int usage(int argc, char** argv) {
-    klog(info, "usage: robotkernel [--config, -c <filename>] "
+    klog(info, "usage: robotkernel --config | -c <filename> "
             "[--quiet, -q] [--verbose, -v] [--help, -h]\n");
     klog(info, "\n");
     klog(info, "  --config, -c <filename>     specify config file\n");
@@ -77,6 +77,7 @@ int ln_datatype_size(const std::string& ln_datatype) {
 }
 
 int main(int argc, char* argv[]) {
+    bool power_up_state = false;
 
     sigset_t set;
     if (sigemptyset (&set) == -1)
@@ -112,7 +113,8 @@ int main(int argc, char* argv[]) {
         if ((strcmp(argv[i], "--config") == 0) || (strcmp(argv[i], "-c") == 0)) {
             if (++i >= argc) {
                 klog(info, "--config filename missing\n");
-                return usage(argc, argv);
+                usage(argc, argv);
+                goto Exit;
             }
 
             config_file = string(argv[i]);
@@ -125,10 +127,10 @@ int main(int argc, char* argv[]) {
             return usage(argc, argv);
     }
 
-    if (config_file == "")
-        klog(info, "no config file supplied, starting up without config.\n");
-
-    bool power_up_state = false;
+    if (config_file == "") {
+        usage(argc, argv);
+        goto Exit;
+    }
 
     try {
         k.config(config_file, argc, argv);        

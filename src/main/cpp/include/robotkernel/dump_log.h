@@ -28,6 +28,7 @@
 #include <string>
 #include <stdarg.h>
 
+void dump_log_free();
 void dump_log_set_len(unsigned int len, unsigned int do_ust);
 void dump_log(const char* format, ...);
 void vdump_log(const char* format, va_list nap);

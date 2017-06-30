@@ -67,14 +67,20 @@ void format_time(char* ts_buffer, int ts_buffer_len) {
 	snprintf(ts_buffer + sl, ts_buffer_len - sl, ".%06.0f", mseconds);
 }
 
+void dump_log_free() {
+    if (_dump_log_buffer)
+        delete _dump_log_buffer;
+}
+
 void dump_log_set_len(unsigned int len, unsigned int do_ust) {
 	_dump_log_len = len;
 	_do_ust = do_ust;
 
         if(_dump_log_len > 0) {
-            if(!_dump_log_buffer)
+            if(!_dump_log_buffer) {
+                printf("allocating %d bytes\n", _dump_log_len);
                 _dump_log_buffer = new char_ringbuffer(_dump_log_len);
-            else
+            } else
                 _dump_log_buffer->set_size(_dump_log_len);
         }
 }

@@ -27,6 +27,7 @@
 #include "robotkernel/kernel_worker.h"
 #include "robotkernel/exceptions.h"
 #include "robotkernel/helpers.h"
+#include "robotkernel/trigger_device.h"
 #include <sys/stat.h>
 #include <dlfcn.h>
 #include <iostream>
@@ -340,7 +341,7 @@ module::~module() {
         mod_handle = NULL;
     }
 
-	kernel::get_instance()->remove_service_requester(name);
+	kernel::get_instance()->remove_devices(name);
     kernel::get_instance()->remove_services(name);
 }
 
@@ -394,13 +395,19 @@ int module::set_state(module_state_t state) {
         return -1;
     }
 
+    auto& k = *kernel::get_instance();
     module_state_t act_state = get_state();
     
     // get transition
     uint32_t transition = GEN_STATE(act_state, state);
 
-#define set_state__check(to_state) {                \
-    int ret = mod_set_state(mod_handle, to_state);  \
+#define set_state__check(to_state) {                    \
+    int ret = 0;                                        \
+    try {                                               \
+        ret = mod_set_state(mod_handle, to_state);      \
+    } catch (exception& e) {                            \
+        klog(error, "set_state: %s\n", e.what());       \
+    }                                                   \
     if (ret != to_state) return -1; }                          
 
     switch (transition) {
@@ -421,8 +428,8 @@ int module::set_state(module_state_t state) {
                 klog(info, "%s removing module trigger %s\n",
                         name.c_str(), et->dev_name.c_str());
                 
-                auto t_dev = kernel::get_instance()->get_trigger_device(et->dev_name);
-                t_dev->remove_trigger_callback(shared_from_this());
+                auto t_dev = k.get_trigger_device(et->dev_name);
+                t_dev->remove_trigger(shared_from_this());
             }
             
             set_state__check(module_state_preop);
@@ -464,9 +471,9 @@ int module::set_state(module_state_t state) {
                 klog(info, "%s adding module trigger %s\n",
                         name.c_str(), et->dev_name.c_str());
                 
-                auto t_dev = kernel::get_instance()->get_trigger_device(et->dev_name);
+                auto t_dev = k.get_trigger_device(et->dev_name);
                 divisor = et->divisor;
-                t_dev->add_trigger_callback(shared_from_this(), et->direct_mode, et->prio, et->affinity_mask);
+                t_dev->add_trigger(shared_from_this(), et->direct_mode, et->prio, et->affinity_mask);
             }
             
             set_state__check(module_state_safeop);

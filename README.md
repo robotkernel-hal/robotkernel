@@ -12,3 +12,14 @@ To build the code execute
     ./configure
     make
 
+# devices
+
+robotkernel::device base class 
+
+all devices share a unique device_name and an owner string
+
+* trigger_device
+* process_data_device
+* bridge_device
+* service_provider_device
+

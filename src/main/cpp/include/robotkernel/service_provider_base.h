@@ -68,16 +68,16 @@ EXPORT_C int sp_unregister(SERVICE_PROVIDER_HANDLE hdl) {                       
 	return 0;                                                                             \
 }                                                                                         \
 																					      \
-EXPORT_C void sp_add_slave(SERVICE_PROVIDER_HANDLE hdl,                                   \
-		robotkernel::sp_service_requester_t req) {                                        \
+EXPORT_C void sp_add_collector(SERVICE_PROVIDER_HANDLE hdl,                               \
+		robotkernel::sp_service_collector_device_t req) {                                 \
 	HDL_2_SERVICE_PROVIDERCLASS(hdl, spname, spclass)                                     \
-	dev->add_slave(req);                                                                  \
+	dev->add_collector(req);                                                              \
 }                                                                                         \
                                                                                           \
-EXPORT_C void sp_remove_slave(SERVICE_PROVIDER_HANDLE hdl,                                \
-		robotkernel::sp_service_requester_t req) {                                        \
+EXPORT_C void sp_remove_collector(SERVICE_PROVIDER_HANDLE hdl,                            \
+		robotkernel::sp_service_collector_device_t req) {                                 \
 	HDL_2_SERVICE_PROVIDERCLASS(hdl, spname, spclass)                                     \
-	dev->remove_slave(req);                                                               \
+	dev->remove_collector(req);                                                           \
 }                                                                                         \
                                                                                           \
 EXPORT_C void sp_remove_module(SERVICE_PROVIDER_HANDLE hdl,                               \
@@ -86,98 +86,123 @@ EXPORT_C void sp_remove_module(SERVICE_PROVIDER_HANDLE hdl,                     
 	dev->remove_module(mod_name);                                                         \
 }                                                                                         \
                                                                                           \
-EXPORT_C bool sp_test_slave(SERVICE_PROVIDER_HANDLE hdl,                                  \
-		robotkernel::sp_service_requester_t req) {                                        \
+EXPORT_C bool sp_test_collector(SERVICE_PROVIDER_HANDLE hdl,                              \
+		robotkernel::sp_service_collector_device_t req) {                                 \
 	HDL_2_SERVICE_PROVIDERCLASS(hdl, spname, spclass)                                     \
-	return dev->test_slave(req);                                                          \
+	return dev->test_collector(req);                                                      \
 }                                                                                         \
                                                                                     
-                                                                                    
 namespace robotkernel {
+#ifdef EMACS
+}
+#endif
 
-	template <typename T, typename S>
-	class service_provider_base : public log_base {
-		private:
-			service_provider_base();                  //!< prevent default construction
+template <class T, class S>
+class service_provider_base : 
+    public log_base 
+{
+    private:
+        service_provider_base();                  //!< prevent default construction
 
-		public:
-            typedef std::map<std::pair<std::string, std::string>, T *> handler_map_t;
+    public:
+        typedef std::map<std::pair<std::string, std::string>, T *> handler_map_t;
 
-			//! construction
-			/*!
-			 * \param instance_name service_provider name
-			 * \param name instance name
-			 */
-			service_provider_base(const std::string& instance_name)
-				: log_base("service_provider", instance_name) {};
+        //! construction
+        /*!
+         * \param instance_name service_provider name
+         * \param name instance name
+         */
+        service_provider_base(const std::string& instance_name)
+            : log_base("service_provider", instance_name) {};
 
-			virtual ~service_provider_base() {};
+        virtual ~service_provider_base() {};
 
-			//! add slave
-			/*!
-			 * \param mod_name slave owning module
-			 * \param dev_name name of device
-			 * \param slave_id id in module
-			 */
-			void add_slave(sp_service_requester_t req) {
-                T *handler;
+        //! Add a collector to our provided services
+        /*!
+         * \param[in] req   Shared pointer to a collector which should be added.
+         */
+        void add_collector(sp_service_collector_device_t req);
 
-                try {
-				    handler = new T(req);
-                } catch (std::exception& e) {
-                    // if exception is thrown, req does not belong to us
-                    handler = NULL;
-                }
+        //! Remove a previously registered collector.
+        /*!
+         * \param[in] req   Shared pointer to a collector which should be removed.
+         */
+        void remove_collector(sp_service_collector_device_t req);
 
-                if (handler)
-                    handler_map[make_pair(req->owner, req->service_prefix)] = handler;
-			};
+        //! Remove all collectors from one module.
+        /*!
+         * \param owner module owning slaves
+         */
+        void remove_module(const char *owner);
 
-			//! remove registered slave
-			/*!
-			 * \param mod_name slave owning module
-			 * \param slave_id id in module
-			 */
-			void remove_slave(sp_service_requester_t req) {
-				for (typename handler_map_t::iterator it =
-						handler_map.begin(); it != handler_map.end(); ++it) {
-					if (it->first.first != req->owner)
-						continue; // skip this, not owr module
+        //! Test collector if it belongs to us
+        /*!
+         * \param[in] req   Shared pointer to a collector which should be testet.
+         * \returns True if \p req belongs to us
+         */
+        bool test_collector(sp_service_collector_device_t req);
 
-					if (it->first.second != req->service_prefix) 
-						continue; // skip this, not owr slave
+        //! hold all created handlers, so we can remove them by name
+        handler_map_t handler_map;
+};
+        
+// add slave
+template <class T, class S>
+inline void service_provider_base<T, S>::add_collector(sp_service_collector_device_t req) {
+    T *handler;
 
-					delete it->second;
-					handler_map.erase(it);
-					return;
-				}
-			};
+    try {
+        handler = new T(req);
+    } catch (std::exception& e) {
+        // if exception is thrown, req does not belong to us
+        handler = NULL;
+    }
 
-			//! remove all slaves from module
-			/*!
-			 * \param mod_name module owning slaves
-			 */
-			void remove_module(const char *owner) {
-				for (typename handler_map_t::iterator it =
-						handler_map.begin(); it != handler_map.end(); ) {
-					if (it->first.first != owner) {
-						it++;
-						continue; // skip this, not owr module
-					}
+    if (handler)
+        handler_map[std::make_pair(req->owner, req->id())] = handler;
+};
 
-					delete it->second;
-					it = handler_map.erase(it);
-				}
-			};
+// remove registered slave
+template <class T, class S>
+inline void service_provider_base<T, S>::remove_collector(sp_service_collector_device_t req) {
+    for (class handler_map_t::iterator it =
+            handler_map.begin(); it != handler_map.end(); ++it) {
+        if (it->first.first != req->owner)
+            continue; // skip this, not owr module
 
-            bool test_slave(sp_service_requester_t req) {
-                return (std::dynamic_pointer_cast<S>(req) != NULL);
-            }
+        if (it->first.second != req->id()) 
+            continue; // skip this, not owr slave
 
-			//! hold all created handlers, so we can remove them by name
-			handler_map_t handler_map;
-	};
+        delete it->second;
+        handler_map.erase(it);
+        return;
+    }
+};
 
+// remove all slaves from module
+template <class T, class S>
+inline void service_provider_base<T, S>::remove_module(const char *owner) {
+    for (class handler_map_t::iterator it =
+            handler_map.begin(); it != handler_map.end(); ) {
+        if (it->first.first != owner) {
+            it++;
+            continue; // skip this, not owr module
+        }
+
+        delete it->second;
+        it = handler_map.erase(it);
+    }
+};
+
+// test collector if it belongs to us
+template <class T, class S>
+inline bool service_provider_base<T, S>::test_collector(sp_service_collector_device_t req) {
+    return (std::dynamic_pointer_cast<S>(req) != NULL);
+}
+
+#ifdef EMACS
+{
+#endif
 }; // namespace robotkernel
 
 #endif // __ROBOTKERNEL_INTERFACE_BASE_H__
