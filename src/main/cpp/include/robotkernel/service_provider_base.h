@@ -68,16 +68,16 @@ EXPORT_C int sp_unregister(SERVICE_PROVIDER_HANDLE hdl) {                       
 	return 0;                                                                             \
 }                                                                                         \
 																					      \
-EXPORT_C void sp_add_collector(SERVICE_PROVIDER_HANDLE hdl,                               \
-		robotkernel::sp_service_collector_device_t req) {                                 \
+EXPORT_C void sp_add_interface(SERVICE_PROVIDER_HANDLE hdl,                               \
+		robotkernel::sp_service_interface_t req) {                                 \
 	HDL_2_SERVICE_PROVIDERCLASS(hdl, spname, spclass)                                     \
-	dev->add_collector(req);                                                              \
+	dev->add_interface(req);                                                              \
 }                                                                                         \
                                                                                           \
-EXPORT_C void sp_remove_collector(SERVICE_PROVIDER_HANDLE hdl,                            \
-		robotkernel::sp_service_collector_device_t req) {                                 \
+EXPORT_C void sp_remove_interface(SERVICE_PROVIDER_HANDLE hdl,                            \
+		robotkernel::sp_service_interface_t req) {                                 \
 	HDL_2_SERVICE_PROVIDERCLASS(hdl, spname, spclass)                                     \
-	dev->remove_collector(req);                                                           \
+	dev->remove_interface(req);                                                           \
 }                                                                                         \
                                                                                           \
 EXPORT_C void sp_remove_module(SERVICE_PROVIDER_HANDLE hdl,                               \
@@ -86,10 +86,10 @@ EXPORT_C void sp_remove_module(SERVICE_PROVIDER_HANDLE hdl,                     
 	dev->remove_module(mod_name);                                                         \
 }                                                                                         \
                                                                                           \
-EXPORT_C bool sp_test_collector(SERVICE_PROVIDER_HANDLE hdl,                              \
-		robotkernel::sp_service_collector_device_t req) {                                 \
+EXPORT_C bool sp_test_interface(SERVICE_PROVIDER_HANDLE hdl,                              \
+		robotkernel::sp_service_interface_t req) {                                 \
 	HDL_2_SERVICE_PROVIDERCLASS(hdl, spname, spclass)                                     \
-	return dev->test_collector(req);                                                      \
+	return dev->test_interface(req);                                                      \
 }                                                                                         \
                                                                                     
 namespace robotkernel {
@@ -117,30 +117,30 @@ class service_provider_base :
 
         virtual ~service_provider_base() {};
 
-        //! Add a collector to our provided services
+        //! Add a interface to our provided services
         /*!
-         * \param[in] req   Shared pointer to a collector which should be added.
+         * \param[in] req   Shared pointer to a interface which should be added.
          */
-        void add_collector(sp_service_collector_device_t req);
+        void add_interface(sp_service_interface_t req);
 
-        //! Remove a previously registered collector.
+        //! Remove a previously registered interface.
         /*!
-         * \param[in] req   Shared pointer to a collector which should be removed.
+         * \param[in] req   Shared pointer to a interface which should be removed.
          */
-        void remove_collector(sp_service_collector_device_t req);
+        void remove_interface(sp_service_interface_t req);
 
-        //! Remove all collectors from one module.
+        //! Remove all interfaces from one module.
         /*!
          * \param owner module owning slaves
          */
         void remove_module(const char *owner);
 
-        //! Test collector if it belongs to us
+        //! Test interface if it belongs to us
         /*!
-         * \param[in] req   Shared pointer to a collector which should be testet.
+         * \param[in] req   Shared pointer to a interface which should be testet.
          * \returns True if \p req belongs to us
          */
-        bool test_collector(sp_service_collector_device_t req);
+        bool test_interface(sp_service_interface_t req);
 
         //! hold all created handlers, so we can remove them by name
         handler_map_t handler_map;
@@ -148,7 +148,7 @@ class service_provider_base :
         
 // add slave
 template <class T, class S>
-inline void service_provider_base<T, S>::add_collector(sp_service_collector_device_t req) {
+inline void service_provider_base<T, S>::add_interface(sp_service_interface_t req) {
     T *handler;
 
     try {
@@ -164,7 +164,7 @@ inline void service_provider_base<T, S>::add_collector(sp_service_collector_devi
 
 // remove registered slave
 template <class T, class S>
-inline void service_provider_base<T, S>::remove_collector(sp_service_collector_device_t req) {
+inline void service_provider_base<T, S>::remove_interface(sp_service_interface_t req) {
     for (class handler_map_t::iterator it =
             handler_map.begin(); it != handler_map.end(); ++it) {
         if (it->first.first != req->owner)
@@ -194,9 +194,9 @@ inline void service_provider_base<T, S>::remove_module(const char *owner) {
     }
 };
 
-// test collector if it belongs to us
+// test interface if it belongs to us
 template <class T, class S>
-inline bool service_provider_base<T, S>::test_collector(sp_service_collector_device_t req) {
+inline bool service_provider_base<T, S>::test_interface(sp_service_interface_t req) {
     return (std::dynamic_pointer_cast<S>(req) != NULL);
 }
 

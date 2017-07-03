@@ -354,8 +354,8 @@ kernel::kernel() {
             std::bind(&kernel::service_remove_module, this, _1, _2));
     add_service(_name, "list_devices", service_definition_list_devices,
             std::bind(&kernel::service_list_devices, this, _1, _2));
-    add_service(_name, "process_data_device_info", service_definition_process_data_device_info,
-            std::bind(&kernel::service_process_data_device_info, this, _1, _2));
+    add_service(_name, "process_data_info", service_definition_process_data_info,
+            std::bind(&kernel::service_process_data_info, this, _1, _2));
 }
 
 //! destruction
@@ -405,7 +405,7 @@ kernel::~kernel() {
 
     // remove process data
     log(verbose, "removing process data\n");
-    std::map<std::string, sp_process_data_device_t>::iterator pdit;
+    std::map<std::string, sp_process_data_t>::iterator pdit;
     while ((pdit = process_data_map.begin()) != process_data_map.end()) {
         log(verbose, "    process_data %d\n", pdit->first.c_str());
         process_data_map.erase(pdit);
@@ -615,9 +615,9 @@ void kernel::config(std::string config_file, int argc, char *argv[]) {
         service_provider_map[sp->name] = sp;
 	
         for (const auto& kv : device_map) {
-            const auto& coll = std::dynamic_pointer_cast<service_collector_device>(kv.second);
+            const auto& coll = std::dynamic_pointer_cast<service_interface>(kv.second);
             if (coll)
-                sp->add_collector(coll);
+                sp->add_interface(coll);
         }
     }
 }
@@ -787,10 +787,10 @@ void kernel::add_device(sp_device_t req) {
     if (device_map.find(map_index) != device_map.end())
         return; // already in
 
-    const auto& collector = std::dynamic_pointer_cast<service_collector_device>(req);
-    if (collector) {
+    const auto& interface = std::dynamic_pointer_cast<service_interface>(req);
+    if (interface) {
         for (const auto& kv : service_provider_map) 
-            kv.second->add_collector(collector);
+            kv.second->add_interface(interface);
     }
 
     log(verbose, "registered device \"%s\"\n", map_index.c_str());
@@ -801,10 +801,10 @@ void kernel::add_device(sp_device_t req) {
 void kernel::remove_device(sp_device_t req) {
     auto map_index = req->id();
 
-    const auto& collector = std::dynamic_pointer_cast<service_collector_device>(req);
-    if (collector) {
+    const auto& interface = std::dynamic_pointer_cast<service_interface>(req);
+    if (interface) {
         for (const auto& kv : service_provider_map) 
-            kv.second->remove_collector(collector);
+            kv.second->remove_interface(interface);
     }
 
     auto it = device_map.find(map_index);
@@ -1183,7 +1183,7 @@ const std::string kernel::service_definition_list_devices =
  * \parma response service response data
  * \return success
  */
-int kernel::service_process_data_device_info(const service_arglist_t &request,
+int kernel::service_process_data_info(const service_arglist_t &request,
         service_arglist_t &response) {
     // request data
 #define DEVICES_INFO_REQ_NAME 0
@@ -1196,7 +1196,7 @@ int kernel::service_process_data_device_info(const service_arglist_t &request,
     string error_message = "";
 
     if (device_map.find(name) != device_map.end()) {
-        const auto& pd = std::dynamic_pointer_cast<process_data_device>(device_map[name]);
+        const auto& pd = std::dynamic_pointer_cast<process_data>(device_map[name]);
 
         if (pd) {
             owner     = pd->owner;
@@ -1222,7 +1222,7 @@ int kernel::service_process_data_device_info(const service_arglist_t &request,
     return 0;
 }
 
-const std::string kernel::service_definition_process_data_device_info = 
+const std::string kernel::service_definition_process_data_info = 
 "request:\n"
 "    string: name\n"
 "response:\n"

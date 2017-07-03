@@ -63,13 +63,13 @@ class service_provider : public so_file {
         /*!
          * \param req slave inteface specialization         
          */
-        void add_collector(sp_service_collector_device_t req);
+        void add_interface(sp_service_interface_t req);
 
         //! remove registered slave
         /*!
          * \param req slave inteface specialization         
          */
-        void remove_collector(sp_service_collector_device_t req);
+        void remove_interface(sp_service_interface_t req);
 
         //! remove all slaves from module
         /*!
@@ -81,7 +81,7 @@ class service_provider : public so_file {
         /*!
          * \param return true if we can handle it
          */
-        bool test_collector(sp_service_collector_device_t req);
+        bool test_interface(sp_service_interface_t req);
 
         std::string name;                      //!< service_provider name
 
@@ -91,10 +91,10 @@ class service_provider : public so_file {
         //! service_provider symbols
         sp_register_t                   sp_register;
         sp_unregister_t                 sp_unregister;
-        sp_add_collector_t              sp_add_collector;
-        sp_remove_collector_t           sp_remove_collector;
+        sp_add_interface_t              sp_add_interface;
+        sp_remove_interface_t           sp_remove_interface;
         sp_remove_module_t              sp_remove_module;
-        sp_test_collector_t             sp_test_collector;
+        sp_test_interface_t             sp_test_interface;
 };
 
 typedef std::shared_ptr<service_provider> sp_service_provider_t;

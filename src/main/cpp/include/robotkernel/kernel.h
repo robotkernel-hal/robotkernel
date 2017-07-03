@@ -36,9 +36,9 @@
 #include <robotkernel/service.h>
 #include <robotkernel/service_provider.h>
 
-#include <robotkernel/process_data_device.h>
-#include <robotkernel/trigger_device.h>
-#include <robotkernel/service_collector_device.h>
+#include <robotkernel/process_data.h>
+#include <robotkernel/trigger.h>
+#include <robotkernel/service_interface.h>
 
 
 #define klog(...) robotkernel::kernel::get_instance()->log(__VA_ARGS__)
@@ -79,7 +79,7 @@ class kernel {
         char **main_argv;   //!< robotkernel's main arguments
 
         //! holds all registered process data
-        process_data_device_map_t process_data_map;
+        process_data_map_t process_data_map;
 
         //! add service to kernel
         /*!
@@ -138,14 +138,14 @@ class kernel {
          * \param[in] name  Trigger device name.
          * \return shared pointer to trigger device
          */
-        sp_trigger_device_t get_trigger_device(const std::string& name);
+        sp_trigger_t get_trigger(const std::string& name);
 
         //! wrapper around \link get_device \endlink
         /*!
          * \param[in] name  process data device name.
          * \return shared pointer to process data device
          */
-        sp_process_data_device_t get_process_data_device(const std::string& name);
+        sp_process_data_t get_process_data(const std::string& name);
 
         //! get kernel singleton instance
         /*!
@@ -315,20 +315,20 @@ class kernel {
          * \parma response service response data
          * \return success
          */
-        int service_process_data_device_info(const service_arglist_t &request,
+        int service_process_data_info(const service_arglist_t &request,
                 service_arglist_t &response);
 
-        static const std::string service_definition_process_data_device_info;
+        static const std::string service_definition_process_data_info;
 };
         
 // wrapper around \link get_device \endlink
-inline sp_trigger_device_t kernel::get_trigger_device(const std::string& name) {
-    return get_device<trigger_device>(name);
+inline sp_trigger_t kernel::get_trigger(const std::string& name) {
+    return get_device<trigger>(name);
 }
 
 // wrapper around \link get_device \endlink
-inline sp_process_data_device_t kernel::get_process_data_device(const std::string& name) {
-    return get_device<process_data_device>(name);
+inline sp_process_data_t kernel::get_process_data(const std::string& name) {
+    return get_device<process_data>(name);
 }
         
 // get a device by name

@@ -20,7 +20,7 @@
  * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "robotkernel/trigger_device.h"
+#include "robotkernel/trigger.h"
 #include "robotkernel/trigger_worker.h"
 #include "robotkernel/kernel.h"
 
@@ -31,14 +31,14 @@ using namespace robotkernel;
 using namespace string_util;
         
 // construction
-trigger_device::trigger_device(const std::string& owner, const std::string& name, double rate) 
+trigger::trigger(const std::string& owner, const std::string& name, double rate) 
     : device(owner, name, "trigger"), rate(rate)
 {
     pthread_mutex_init(&list_lock, NULL);
 }
 
 //! destruction
-trigger_device::~trigger_device() {
+trigger::~trigger() {
     pthread_mutex_destroy(&list_lock);
 
     pthread_mutex_lock(&list_lock);
@@ -56,7 +56,7 @@ trigger_device::~trigger_device() {
  * \param divisor rate divisor
  * \return trigger object to newly inserted callback
  */
-void trigger_device::add_trigger(sp_trigger_base_t trigger, 
+void trigger::add_trigger(sp_trigger_base_t trigger, 
         bool direct_mode, int worker_prio, int worker_affinity) {
     trigger_worker::worker_key k = { worker_prio, worker_affinity, trigger->divisor };
 
@@ -83,7 +83,7 @@ func_exit:
 /*!
  * \param obj trigger object to trigger callback
  */
-void trigger_device::remove_trigger(sp_trigger_base_t trigger) {
+void trigger::remove_trigger(sp_trigger_base_t trigger) {
     pthread_mutex_lock(&list_lock);
 
     triggers.remove(trigger);
@@ -109,12 +109,12 @@ void trigger_device::remove_trigger(sp_trigger_base_t trigger) {
  *
  * \param new_rate new trigger rate to set
  */
-void trigger_device::set_rate(double new_rate) {
+void trigger::set_rate(double new_rate) {
     throw str_exception("setting rate not permitted!");
 }
 
 //! trigger all modules in list
-void trigger_device::trigger_modules() {
+void trigger::trigger_modules() {
     pthread_mutex_lock(&list_lock);
     for (auto& t : triggers) {
         if (((++t->cnt) % t->divisor) == 0) {

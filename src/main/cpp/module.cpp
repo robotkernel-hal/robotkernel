@@ -27,7 +27,7 @@
 #include "robotkernel/kernel_worker.h"
 #include "robotkernel/exceptions.h"
 #include "robotkernel/helpers.h"
-#include "robotkernel/trigger_device.h"
+#include "robotkernel/trigger.h"
 #include <sys/stat.h>
 #include <dlfcn.h>
 #include <iostream>
@@ -428,7 +428,7 @@ int module::set_state(module_state_t state) {
                 klog(info, "%s removing module trigger %s\n",
                         name.c_str(), et->dev_name.c_str());
                 
-                auto t_dev = k.get_trigger_device(et->dev_name);
+                auto t_dev = k.get_trigger(et->dev_name);
                 t_dev->remove_trigger(shared_from_this());
             }
             
@@ -471,7 +471,7 @@ int module::set_state(module_state_t state) {
                 klog(info, "%s adding module trigger %s\n",
                         name.c_str(), et->dev_name.c_str());
                 
-                auto t_dev = k.get_trigger_device(et->dev_name);
+                auto t_dev = k.get_trigger(et->dev_name);
                 divisor = et->divisor;
                 t_dev->add_trigger(shared_from_this(), et->direct_mode, et->prio, et->affinity_mask);
             }

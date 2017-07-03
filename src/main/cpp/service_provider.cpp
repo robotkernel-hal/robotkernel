@@ -48,23 +48,23 @@ service_provider::service_provider(const YAML::Node& node) : so_file(node) {
 
     sp_register         = (sp_register_t)  dlsym(so_handle, "sp_register");
     sp_unregister       = (sp_unregister_t)dlsym(so_handle, "sp_unregister");
-    sp_add_collector    = (sp_add_collector_t)dlsym(so_handle, "sp_add_collector");
-    sp_remove_collector = (sp_remove_collector_t)dlsym(so_handle, "sp_remove_collector");
+    sp_add_interface    = (sp_add_interface_t)dlsym(so_handle, "sp_add_interface");
+    sp_remove_interface = (sp_remove_interface_t)dlsym(so_handle, "sp_remove_interface");
     sp_remove_module    = (sp_remove_module_t)dlsym(so_handle, "sp_remove_module");
-    sp_test_collector   = (sp_test_collector_t)dlsym(so_handle, "sp_test_collector");
+    sp_test_interface   = (sp_test_interface_t)dlsym(so_handle, "sp_test_interface");
 
     if (!sp_register)
         klog(verbose, "missing sp_register in %s\n", file_name.c_str());
     if (!sp_unregister)
         klog(verbose, "missing sp_unregister in %s\n", file_name.c_str());
-    if (!sp_add_collector)
-        klog(verbose, "missing sp_add_collector in %s\n", file_name.c_str());
-    if (!sp_remove_collector)
-        klog(verbose, "missing sp_remove_collector in %s\n", file_name.c_str());
+    if (!sp_add_interface)
+        klog(verbose, "missing sp_add_interface in %s\n", file_name.c_str());
+    if (!sp_remove_interface)
+        klog(verbose, "missing sp_remove_interface in %s\n", file_name.c_str());
     if (!sp_remove_module)
         klog(verbose, "missing sp_remove_module in %s\n", file_name.c_str());
-    if (!sp_test_collector)
-        klog(verbose, "missing sp_test_collector in %s\n", file_name.c_str());
+    if (!sp_test_interface)
+        klog(verbose, "missing sp_test_interface in %s\n", file_name.c_str());
 
     // try to configure
     if (sp_register) {
@@ -90,33 +90,33 @@ service_provider::~service_provider() {
 /*!
  * \param req slave inteface specialization         
  */
-void service_provider::add_collector(sp_service_collector_device_t req) {
+void service_provider::add_interface(sp_service_interface_t req) {
     if (!sp_handle)
         throw str_exception("%s not configured!\n", name.c_str());
 
-    if (!sp_add_collector) {
-        klog(error, "%s error: no sp_add_collector function\n", name.c_str());
+    if (!sp_add_interface) {
+        klog(error, "%s error: no sp_add_interface function\n", name.c_str());
         return; 
     }
 
-    if (test_collector(req))
-        sp_add_collector(sp_handle, req);
+    if (test_interface(req))
+        sp_add_interface(sp_handle, req);
 }
 
 //! remove registered slave
 /*!
  * \param req slave inteface specialization         
  */
-void service_provider::remove_collector(sp_service_collector_device_t req) {
+void service_provider::remove_interface(sp_service_interface_t req) {
     if (!sp_handle)
         throw str_exception("%s not configured!\n", name.c_str());
 
-    if (!sp_remove_collector) {
-        klog(error, "%s error: no sp_remove_collector function\n", name.c_str());
+    if (!sp_remove_interface) {
+        klog(error, "%s error: no sp_remove_interface function\n", name.c_str());
         return;
     }
 
-    sp_remove_collector(sp_handle, req);
+    sp_remove_interface(sp_handle, req);
 }
 
 //! remove all slaves from module
@@ -139,14 +139,14 @@ void service_provider::remove_module(std::string mod_name) {
 /*!
  * \param return true if we can handle it
  */
-bool service_provider::test_collector(sp_service_collector_device_t req) {
+bool service_provider::test_interface(sp_service_interface_t req) {
     if (!sp_handle)
         throw str_exception("%s not configured!\n", name.c_str());
 
-    if (!sp_test_collector) {
-        throw str_exception("%s error: no sp_test_collector\n", name.c_str());
+    if (!sp_test_interface) {
+        throw str_exception("%s error: no sp_test_interface\n", name.c_str());
     }
 
-    return sp_test_collector(sp_handle, req);
+    return sp_test_interface(sp_handle, req);
 }
 

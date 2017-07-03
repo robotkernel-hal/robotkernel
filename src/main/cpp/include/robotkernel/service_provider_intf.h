@@ -30,7 +30,7 @@
 #include <list>
 #include <stdio.h>
 
-#include "robotkernel/service_collector_device.h"
+#include "robotkernel/service_interface.h"
 
 #define SERVICE_PROVIDER_HANDLE void*
 
@@ -52,16 +52,16 @@ typedef int (*sp_unregister_t)(SERVICE_PROVIDER_HANDLE hdl);
 /*!
  * \return true if we can handle service requester
  */
-typedef bool (*sp_test_collector_t)(SERVICE_PROVIDER_HANDLE hdl,
-        robotkernel::sp_service_collector_device_t req);
+typedef bool (*sp_test_interface_t)(SERVICE_PROVIDER_HANDLE hdl,
+        robotkernel::sp_service_interface_t req);
 
 //! add slave
 /*!
  * \param hdl service provider handle
  * \param req slave inteface specialization         
  */
-typedef void (*sp_add_collector_t)(SERVICE_PROVIDER_HANDLE hdl, 
-		robotkernel::sp_service_collector_device_t req);
+typedef void (*sp_add_interface_t)(SERVICE_PROVIDER_HANDLE hdl, 
+		robotkernel::sp_service_interface_t req);
 
 //! remove registered slave
 /*!
@@ -69,8 +69,8 @@ typedef void (*sp_add_collector_t)(SERVICE_PROVIDER_HANDLE hdl,
  * \param req slave inteface specialization         
  * \param slave_id id in module
  */
-typedef void (*sp_remove_collector_t)(SERVICE_PROVIDER_HANDLE hdl, 
-		robotkernel::sp_service_collector_device_t req);
+typedef void (*sp_remove_interface_t)(SERVICE_PROVIDER_HANDLE hdl, 
+		robotkernel::sp_service_interface_t req);
 
 //! remove module
 /*!

@@ -26,7 +26,7 @@ include_HEADERS = $(headerdir)/bridge_base.h	\
 				  $(headerdir)/module_base.h \
 				  $(headerdir)/module.h \
 				  $(headerdir)/module_intf.h \
-				  $(headerdir)/process_data_device.h \
+				  $(headerdir)/process_data.h \
 				  $(headerdir)/rk_type.h \
 				  $(headerdir)/rt_helper.h \
 				  $(headerdir)/runnable.h \
@@ -34,10 +34,10 @@ include_HEADERS = $(headerdir)/bridge_base.h	\
 				  $(headerdir)/service_provider_base.h \
 				  $(headerdir)/service_provider.h \
 				  $(headerdir)/service_provider_intf.h \
-				  $(headerdir)/service_collector_device.h \
+				  $(headerdir)/service_interface.h \
 				  $(headerdir)/so_file.h \
 				  $(headerdir)/trigger_base.h \
-				  $(headerdir)/trigger_device.h \
+				  $(headerdir)/trigger.h \
 				  $(headerdir)/trigger_worker.h \
 				  $(gen_headerdir)/config.h
 
@@ -60,7 +60,6 @@ robotkernel_SOURCES = bridge.cpp				\
 					  service_provider.cpp 		\
 					  service_provider_base.cpp \
 					  so_file.cpp 				\
-					  trigger_base.cpp 			\
 					  trigger_device.cpp		\
 					  trigger_worker.cpp
 
