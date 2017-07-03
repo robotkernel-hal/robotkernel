@@ -101,7 +101,10 @@ class bridge_base :
          * \param name instance name
          */
         bridge_base(const std::string& instance_name, const std::string& name, 
-                const YAML::Node& node = YAML::Node());
+                const YAML::Node& node = YAML::Node()) :
+            device(instance_name, name, "bridge"), log_base(instance_name, name, node)
+        {
+        }
 
         virtual ~bridge_base() {};
 

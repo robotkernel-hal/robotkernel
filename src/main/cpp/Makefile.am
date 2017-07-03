@@ -42,7 +42,6 @@ include_HEADERS = $(headerdir)/bridge_base.h	\
 				  $(gen_headerdir)/config.h
 
 robotkernel_SOURCES = bridge.cpp				\
-					  bridge_base.cpp			\
 					  char_ringbuffer.cpp 		\
 					  dump_log.cpp 				\
 					  exceptions.cpp 			\
@@ -53,12 +52,10 @@ robotkernel_SOURCES = bridge.cpp				\
 					  main.cpp 					\
 					  module.cpp				\
 					  module_base.cpp 			\
-					  module_intf.cpp 			\
 					  rk_type.cpp				\
 					  rt_helper.cpp 			\
 					  runnable.cpp 				\
 					  service_provider.cpp 		\
-					  service_provider_base.cpp \
 					  so_file.cpp 				\
 					  trigger_device.cpp		\
 					  trigger_worker.cpp
