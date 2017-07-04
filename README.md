@@ -1,18 +1,22 @@
 [![BuildBot Status](http://rmc-chimaere:8010/badge.png?builder=robotkernel/robotkernel&branch=master)](http://rmc-chimaere:8010/builders/robotkernel%2Frobotkernel)
 
-                     README for robotkernel
+# README.md for robotkernel
+
+## build robotkernel
 
 This directory contains all the source code needed to build the robotkernel 
 and serveral modules.
 
 To generate the build system execute
-    ./autogen.sh
+  
+    autoreconf -if
     
 To build the code execute
+
     ./configure
     make
 
-# devices
+## devices
 
 robotkernel::device base class 
 
