@@ -68,11 +68,11 @@ class kernel_worker : public runnable {
 
         //! trigger wrapper
         static void trigger_wrapper(void *ptr) {
-            ((kernel_worker *)ptr)->trigger();
+            ((kernel_worker *)ptr)->tick();
         };
 
         //! trigger worker
-        void trigger();
+        void tick();
 
         //! handler function called if thread is running
         void run();
@@ -89,7 +89,7 @@ class kernel_worker : public runnable {
 /*!
  * \param hdl module handle
  */
-inline void kernel_worker::trigger() {
+inline void kernel_worker::tick() {
     // trigger worker thread
     pthread_cond_signal(&cond);
 }
