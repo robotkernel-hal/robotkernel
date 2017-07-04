@@ -66,11 +66,6 @@ EXPORT_C void mod_trigger(MODULE_HANDLE hdl) {                                  
     return dev->trigger();                                                          \
 }                                                                                   \
                                                                                     \
-EXPORT_C void mod_trigger_slave_id(MODULE_HANDLE hdl, uint32_t slave_id) {          \
-    HDL_2_MODCLASS(hdl, impl, modclass)                                             \
-    return dev->trigger_slave_id(slave_id);                                         \
-}                                                                                   \
-                                                                                    \
 EXPORT_C size_t mod_set_state(MODULE_HANDLE hdl, module_state_t state) {            \
     HDL_2_MODCLASS(hdl, impl, modclass)                                             \
     return dev->set_state(state);                                                   \
