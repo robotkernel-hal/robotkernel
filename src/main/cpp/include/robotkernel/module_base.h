@@ -38,63 +38,63 @@
 #define EXPORT_C
 #endif
 
-#define HDL_2_MODCLASS(hdl, instance_name, modclass)                                \
-    struct instance_name ## _wrapper *wr =                                          \
-        reinterpret_cast<struct instance_name ## _wrapper *>(hdl);                  \
+#define HDL_2_MODCLASS(hdl, impl, modclass)                                         \
+    struct impl ## _wrapper *wr =                                                   \
+        reinterpret_cast<struct impl ## _wrapper *>(hdl);                           \
     std::shared_ptr<modclass> dev = wr->sp;                                         \
     if (!dev)                                                                       \
-        throw string_util::str_exception("["#instance_name"] invalid module "       \
+        throw string_util::str_exception("["#impl"] invalid module "                \
                 "handle to <"#modclass" *>\n"); 
 
-#define MODULE_DEF(instance_name, modclass)                                         \
-struct instance_name ## _wrapper {                                                  \
+#define MODULE_DEF(impl, modclass)                                                  \
+struct impl ## _wrapper {                                                           \
     std::shared_ptr<modclass> sp;                                                   \
 };                                                                                  \
                                                                                     \
 EXPORT_C size_t mod_read(MODULE_HANDLE hdl, void* buf, size_t bufsize) {            \
-    HDL_2_MODCLASS(hdl, instance_name, modclass)                                    \
+    HDL_2_MODCLASS(hdl, impl, modclass)                                             \
     return dev->read(buf, bufsize);                                                 \
 }                                                                                   \
                                                                                     \
 EXPORT_C size_t mod_write(MODULE_HANDLE hdl, void* buf, size_t bufsize) {           \
-    HDL_2_MODCLASS(hdl, instance_name, modclass)                                    \
+    HDL_2_MODCLASS(hdl, impl, modclass)                                             \
     return dev->write(buf, bufsize);                                                \
 }                                                                                   \
                                                                                     \
 EXPORT_C void mod_trigger(MODULE_HANDLE hdl) {                                      \
-    HDL_2_MODCLASS(hdl, instance_name, modclass)                                    \
+    HDL_2_MODCLASS(hdl, impl, modclass)                                             \
     return dev->trigger();                                                          \
 }                                                                                   \
                                                                                     \
 EXPORT_C void mod_trigger_slave_id(MODULE_HANDLE hdl, uint32_t slave_id) {          \
-    HDL_2_MODCLASS(hdl, instance_name, modclass)                                    \
+    HDL_2_MODCLASS(hdl, impl, modclass)                                             \
     return dev->trigger_slave_id(slave_id);                                         \
 }                                                                                   \
                                                                                     \
 EXPORT_C size_t mod_set_state(MODULE_HANDLE hdl, module_state_t state) {            \
-    HDL_2_MODCLASS(hdl, instance_name, modclass)                                    \
+    HDL_2_MODCLASS(hdl, impl, modclass)                                             \
     return dev->set_state(state);                                                   \
 }                                                                                   \
                                                                                     \
 EXPORT_C module_state_t mod_get_state(MODULE_HANDLE hdl) {                          \
-    HDL_2_MODCLASS(hdl, instance_name, modclass)                                    \
+    HDL_2_MODCLASS(hdl, impl, modclass)                                             \
     return dev->get_state();                                                        \
 }                                                                                   \
                                                                                     \
 EXPORT_C int mod_unconfigure(MODULE_HANDLE hdl) {                                   \
-    HDL_2_MODCLASS(hdl, instance_name, modclass)                                    \
+    HDL_2_MODCLASS(hdl, impl, modclass)                                             \
     delete wr;                                                                      \
     return 0;                                                                       \
 }                                                                                   \
                                                                                     \
 EXPORT_C MODULE_HANDLE mod_configure(const char* name, const char* config) {        \
-    struct instance_name ## _wrapper *wr;                                           \
+    struct impl ## _wrapper *wr;                                                    \
     YAML::Node doc = YAML::Load(config);                                            \
                                                                                     \
-    wr = new struct instance_name ## _wrapper();                                    \
+    wr = new struct impl ## _wrapper();                                             \
     if (!wr)                                                                        \
         throw string_util::str_exception(                                           \
-                "["#instance_name"] error allocating memory\n");                    \
+                "["#impl"] error allocating memory\n");                             \
     wr->sp = std::make_shared<modclass>(name, doc);                                 \
     wr->sp->init();                                                                 \
                                                                                     \
@@ -102,91 +102,98 @@ EXPORT_C MODULE_HANDLE mod_configure(const char* name, const char* config) {    
 }
 
 namespace robotkernel {
+#ifdef EMACS
+}
+#endif
 
 class module_base : 
     public robotkernel::log_base,  
     public robotkernel::trigger_base
 {
     private:
-        module_base();          //!< prevent default construction
+        module_base();                  //!< prevent default construction
 
     public:
-        module_state_t state;       //!< actual module state
+        module_state_t state;           //!< actual module state
         
-        //! construction
+        //! Module construction
         /*!
-         * \param instance_name module name
-         * \param name instance name
+         * \param[in] impl     Name of the module.
+         * \param[in] name     Instance name of the module.
          */
-        module_base(const std::string& instance_name, const std::string& name, 
-                const YAML::Node& node = YAML::Node());
+        module_base(const std::string& impl, const std::string& name, 
+                const YAML::Node& node = YAML::Node()) : 
+            log_base(impl, name, node), state(module_state_init)
+        { }
 
+        //! Module destruction
         virtual ~module_base();
 
+        //! Get module instance name
+        /*!
+         * \return Module instance name.
+         */
         std::string get_name() { return name; }
 
-        //! optional initiazation methon
+        //! Optional initiazation method
         /* 
          * usefull to call shared_from_this() at construction time
          */
         void init() {};
     
-        //! get robotkernel module
+        //! Get robotkernel module
         /*!
-         * \returns shared pointer to our robotkernel module class
+         * \returns Shared pointer to our robotkernel module class.
          */
-        robotkernel::sp_module_t get_module();
+        robotkernel::sp_module_t get_module() {
+            kernel& k = *kernel::get_instance();
+            return k.get_module(name);
+        }
 
-        //! cyclic process data read
+        //! Cyclic process data read
         /*!
-         * \param buf process data buffer
-         * \param bufsize size of process data buffer
-         * \return size of read bytes
+         * \param[out] buf       Pointer to a buffer which will return process data.
+         * \param[in] bufsize    Size of process data buffer.
+         *
+         * \return Size of read bytes.
          */
         virtual size_t read(void* buf, size_t bufsize) {
             throw string_util::str_exception("[%s|%s] read not implemented!\n", 
-                    instance_name.c_str(), name.c_str());
+                    impl.c_str(), name.c_str());
         }
         
-        //! cyclic process data write
+        //! Cyclic process data write
         /*!
-         * \param buf process data buffer
-         * \param bufsize size of process data buffer
-         * \return size of written bytes
+         * \param[in] buf       Pointer to a buffer which holds process data.
+         * \param[in] bufsize   Size of process data buffer.
+         *
+         * \return Size of written bytes.
          */
         virtual size_t write(void* buf, size_t bufsize) {
             throw string_util::str_exception("[%s|%s] write not implemented!\n",
-                    instance_name.c_str(), name.c_str());
+                    impl.c_str(), name.c_str());
         }
         
-        //! module trigger callback
+        //! Module trigger implementation.
         virtual void trigger() {
             throw string_util::str_exception("[%s|%s] trigger not implemented!\n",
-                    instance_name.c_str(), name.c_str());
+                    impl.c_str(), name.c_str());
         }
 
-        //! module trigger callback
+        //! Set module state machine to defined state.
         /*!
-         * \param slave_id slave id to trigger
-         */
-        virtual void trigger_slave_id(uint32_t slave_id) {
-            throw string_util::str_exception("[%s|%s] trigger slave_id not implemented!\n",
-                    instance_name.c_str(), name.c_str());
-        }
-
-        //! set module state machine to defined state
-        /*!
-         * \param state requested state
+         * \param[in] state     Requested state which will be tried to switch to.
+         *
          * \return success or failure
          */
         virtual int set_state(module_state_t state) {
             throw string_util::str_exception("[%s|%s] set_state not implemented!\n",
-                    instance_name.c_str(), name.c_str());
+                    impl.c_str(), name.c_str());
         }
 
-        //! get module state machine state
+        //! Get module state machine state.
         /*!
-         * \return current state
+         * \return Current state.
          */
         virtual module_state_t get_state() {
             return state;
@@ -194,6 +201,9 @@ class module_base :
 
 };
 
+#ifdef EMACS
+{
+#endif
 };
 
 #endif // __ROBOTKERNEL_MODULE_BASE_H__

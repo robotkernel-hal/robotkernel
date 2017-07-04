@@ -31,9 +31,9 @@ using namespace string_util;
 /*!
  * \param node config node
  */
-log_base::log_base(const std::string& instance_name, 
+log_base::log_base(const std::string& impl, 
         const std::string& name, const YAML::Node& node) :
-    instance_name(instance_name), name(name) 
+    impl(impl), name(name) 
 {
     kernel& k = *kernel::get_instance();
     ll = k.get_loglevel();
@@ -55,7 +55,7 @@ log_base::log_base(const std::string& instance_name,
         } 
     }
 
-    k.add_service(instance_name, "configure_loglevel", log_base::service_definition_configure_loglevel,
+    k.add_service(name, "configure_loglevel", log_base::service_definition_configure_loglevel,
             std::bind(&log_base::service_configure_loglevel, this, _1, _2));
 }
 
@@ -112,7 +112,7 @@ void log_base::log(loglevel lvl, const char *format, ...) {
     char buf[1024];
     int bufpos = 0;
     bufpos += snprintf(buf+bufpos, sizeof(buf)-bufpos, "[%s|%s] ", 
-            name.c_str(), instance_name.c_str());
+            name.c_str(), impl.c_str());
 
     // format argument list    
     va_list args;

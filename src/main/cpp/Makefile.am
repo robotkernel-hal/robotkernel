@@ -51,7 +51,6 @@ robotkernel_SOURCES = bridge.cpp				\
 					  log_thread.cpp 			\
 					  main.cpp 					\
 					  module.cpp				\
-					  module_base.cpp 			\
 					  rk_type.cpp				\
 					  rt_helper.cpp 			\
 					  runnable.cpp 				\
