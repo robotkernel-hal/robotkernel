@@ -120,7 +120,7 @@ void trigger::trigger_modules() {
         if (((++t->cnt) % t->divisor) == 0) {
             t->cnt = 0;
 
-            t->trigger();
+            t->tick();
         }
     }
 

@@ -111,7 +111,7 @@ void trigger_worker::run() {
         int ret = pthread_cond_timedwait(&cond, &mutex, &ts);
 
         for (const auto& t : triggers)
-            t->trigger();
+            t->tick();
     }
         
     // unlock mutex cause we have accessed _modules
@@ -121,7 +121,7 @@ void trigger_worker::run() {
 }
 
 //! trigger worker
-void trigger_worker::trigger() {
+void trigger_worker::tick() {
     pthread_mutex_lock(&mutex);
     pthread_cond_signal(&cond);
     pthread_mutex_unlock(&mutex);

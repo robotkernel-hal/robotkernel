@@ -515,24 +515,10 @@ module_state_t module::get_state() {
     return mod_get_state(mod_handle); 
 }
 
-//! trigger module's slave id
-/*!
- * \param slave_id slave id to trigger
- */
-void module::trigger(uint32_t slave_id) {
-    if (!mod_handle)
-        throw str_exception("[%s] not configured\n", name.c_str());
-
-    if (!mod_trigger_slave_id)
-        return;
-
-    (*mod_trigger_slave_id)(mod_handle, slave_id);
-}
-
 //! trigger module 
 /*!
 */
-void module::trigger() {
+void module::tick() {
     if (!mod_handle)
         throw str_exception("[%s] not configured\n", name.c_str());
 

@@ -72,7 +72,7 @@ class trigger_worker :
         void remove_trigger(sp_trigger_base_t trigger);
 
         //! trigger worker
-        void trigger();
+        void tick();
 
         //! handler function called if thread is running
         void run();

@@ -107,7 +107,7 @@ void kernel_worker::run() {
 
         for (module_list_t::iterator it = modules.begin();
                 it != modules.end(); ++it) {
-            (*it)->trigger();
+            (*it)->tick();
         }
     }
         

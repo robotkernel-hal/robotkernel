@@ -46,7 +46,7 @@ class trigger_base {
         trigger_base(int divisor=1) : divisor(divisor), cnt(0) {};
     
         //! trigger function
-        virtual void trigger() = 0;
+        virtual void tick() = 0;
 };
 
 typedef std::shared_ptr<trigger_base> sp_trigger_base_t;

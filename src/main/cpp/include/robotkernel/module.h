@@ -146,21 +146,10 @@ class module :
           */
         module_state_t get_state();
 
-        //! trigger wrapper
-        static void trigger_wrapper(void *ptr) {
-            ((module *)ptr)->trigger();
-        };
-        
-        //! trigger module's slave id
-        /*!
-         * \param slave_id slave id to trigger
-         */
-        void trigger(uint32_t slave_id);
-
         //! trigger module
         /*!
         */
-        void trigger();
+        void tick();
 
         std::string get_name();                 //!< return module name
         const depend_list_t& get_depends();     //!< return dependency list
