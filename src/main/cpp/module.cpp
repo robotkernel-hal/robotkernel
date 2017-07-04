@@ -275,8 +275,7 @@ void module::_init() {
     mod_write               = (mod_write_t)             dlsym(so_handle, "mod_write");
     mod_set_state           = (mod_set_state_t)         dlsym(so_handle, "mod_set_state");
     mod_get_state           = (mod_get_state_t)         dlsym(so_handle, "mod_get_state");
-    mod_trigger             = (mod_trigger_t)           dlsym(so_handle, "mod_trigger");
-    mod_trigger_slave_id    = (mod_trigger_slave_id_t)  dlsym(so_handle, "mod_trigger_slave_id");
+    mod_tick                = (mod_tick_t)           dlsym(so_handle, "mod_tick");
 
     if (!mod_configure)
         klog(warning, "missing mod_configure in %s\n", file_name.c_str());;
@@ -290,10 +289,8 @@ void module::_init() {
         klog(verbose, "missing mod_set_state in %s\n", file_name.c_str());
     if (!mod_get_state)
         klog(verbose, "missing mod_get_state in %s\n", file_name.c_str());
-    if (!mod_trigger)
-        klog(verbose, "missing mod_trigger in %s\n", file_name.c_str());
-    if (!mod_trigger_slave_id)
-        klog(verbose, "missing mod_trigger_slave_id in %s\n", file_name.c_str());
+    if (!mod_tick)
+        klog(verbose, "missing mod_tick in %s\n", file_name.c_str());
 
     // try to configure
     reconfigure();
@@ -522,10 +519,10 @@ void module::tick() {
     if (!mod_handle)
         throw str_exception("[%s] not configured\n", name.c_str());
 
-    if (!mod_trigger)
+    if (!mod_tick)
         return;
 
-    (*mod_trigger)(mod_handle);
+    (*mod_tick)(mod_handle);
 }
 
 

@@ -220,8 +220,7 @@ class module :
         mod_set_state_t         mod_set_state;
         mod_get_state_t         mod_get_state;
         mod_request_t           mod_request;
-        mod_trigger_t           mod_trigger;
-        mod_trigger_slave_id_t  mod_trigger_slave_id;
+        mod_tick_t              mod_tick;
 };
         
 //! return module name

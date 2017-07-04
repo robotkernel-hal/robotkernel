@@ -61,9 +61,9 @@ EXPORT_C size_t mod_write(MODULE_HANDLE hdl, void* buf, size_t bufsize) {       
     return dev->write(buf, bufsize);                                                \
 }                                                                                   \
                                                                                     \
-EXPORT_C void mod_tick(MODULE_HANDLE hdl) {                                      \
+EXPORT_C void mod_tick(MODULE_HANDLE hdl) {                                         \
     HDL_2_MODCLASS(hdl, impl, modclass)                                             \
-    return dev->tick();                                                          \
+    return dev->tick();                                                             \
 }                                                                                   \
                                                                                     \
 EXPORT_C size_t mod_set_state(MODULE_HANDLE hdl, module_state_t state) {            \
@@ -122,7 +122,7 @@ class module_base :
         { }
 
         //! Module destruction
-        virtual ~module_base();
+        virtual ~module_base() {};
 
         //! Get module instance name
         /*!

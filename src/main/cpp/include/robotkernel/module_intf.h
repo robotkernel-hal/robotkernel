@@ -210,18 +210,11 @@ typedef module_state_t (*mod_get_state_t)(MODULE_HANDLE hdl);
  */
 typedef int (*mod_request_t)(MODULE_HANDLE hdl, int reqcode, void* ptr);
 
-//! module trigger callback
+//! module tick callback
 /*!
  * \param hdl module handle
  */
-typedef void (*mod_trigger_t)(MODULE_HANDLE hdl);
-
-//! module trigger callback
-/*!
- * \param hdl module handle
- * \param slave_id slave id to trigger
- */
-typedef void (*mod_trigger_slave_id_t)(MODULE_HANDLE hdl, uint32_t slave_id);
+typedef void (*mod_tick_t)(MODULE_HANDLE hdl);
 
 #endif // __MODULE_INTF_H__
 
