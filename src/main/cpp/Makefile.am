@@ -56,7 +56,7 @@ robotkernel_SOURCES = bridge.cpp				\
 					  runnable.cpp 				\
 					  service_provider.cpp 		\
 					  so_file.cpp 				\
-					  trigger_device.cpp		\
+					  trigger.cpp               \
 					  trigger_worker.cpp
 
 robotkernel_CXXFLAGS = -Wno-unused-local-typedefs 					\
