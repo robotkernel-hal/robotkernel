@@ -118,13 +118,13 @@ class bridge_base :
         /*!
          * \param svc robotkernel service struct
          */
-        void add_service(const robotkernel::service_t &svc);
+        virtual void add_service(const robotkernel::service_t &svc) = 0;
 
         //! unregister and remove ln service 
         /*!
          * \param svc robotkernel service struct
          */
-        void remove_service(const robotkernel::service_t &svc);
+        virtual void remove_service(const robotkernel::service_t &svc) = 0;
 };
 
 #ifdef EMACS
