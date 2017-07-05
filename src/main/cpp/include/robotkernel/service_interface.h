@@ -1,0 +1,65 @@
+//! robotkernel service_interface class
+/*!
+ * author: Robert Burger <robert.burger@dlr.de>
+ *
+ */
+
+/*
+ * This file is part of robotkernel.
+ *
+ * robotkernel is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * robotkernel is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#ifndef __ROBOTKERNEL_SERVICE_INTERFACE_H__
+#define __ROBOTKERNEL_SERVICE_INTERFACE_H__
+
+#include <string>
+
+#include "yaml-cpp/yaml.h"
+#include "robotkernel/device.h"
+
+namespace robotkernel {
+#ifdef EMACS
+}
+#endif
+
+class service_interface :
+    public device
+{
+    public:
+        //! construction
+        /*!
+         * \param[in] owner             Service interface owner string.
+         * \param[in] service_suffix    Name of service, will be prepended by \p owner.
+         */
+        service_interface(std::string owner, std::string service_suffix) : 
+            device(owner, service_suffix, "service_interface") {};
+
+        //! destruction
+        virtual ~service_interface() = 0;
+};
+
+//! destruction
+inline service_interface::~service_interface() {}
+
+typedef std::shared_ptr<service_interface> sp_service_interface_t;
+typedef std::list<sp_service_interface_t> service_interface_list_t;
+
+#ifdef EMACS
+{
+#endif
+}
+
+#endif // __ROBOTKERNEL_SERVICE_INTERFACE_H__
+
