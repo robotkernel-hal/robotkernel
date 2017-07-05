@@ -257,13 +257,13 @@ module::module(const YAML::Node& node)
     currently_loading_module = NULL;
 
     kernel& k = *kernel::get_instance();
-    k.add_service(name, name + ".set_state",
+    k.add_service(name, "set_state",
             service_definition_set_state,
             std::bind(&module::service_set_state, this, _1, _2));
-    k.add_service(name, name + ".get_state",
+    k.add_service(name, "get_state",
             service_definition_get_state,
             std::bind(&module::service_get_state, this, _1, _2));
-    k.add_service(name, name + ".get_config",
+    k.add_service(name, "get_config",
             service_definition_get_config,
             std::bind(&module::service_get_config, this, _1, _2));
 }
@@ -275,7 +275,7 @@ void module::_init() {
     mod_write               = (mod_write_t)             dlsym(so_handle, "mod_write");
     mod_set_state           = (mod_set_state_t)         dlsym(so_handle, "mod_set_state");
     mod_get_state           = (mod_get_state_t)         dlsym(so_handle, "mod_get_state");
-    mod_tick                = (mod_tick_t)           dlsym(so_handle, "mod_tick");
+    mod_tick                = (mod_tick_t)              dlsym(so_handle, "mod_tick");
 
     if (!mod_configure)
         klog(warning, "missing mod_configure in %s\n", file_name.c_str());;
@@ -334,6 +334,7 @@ module::~module() {
 
     // unconfigure module first
     if (mod_handle && mod_unconfigure) {
+        klog(verbose, "%s calling unconfigure\n", name.c_str());
         mod_unconfigure(mod_handle);
         mod_handle = NULL;
     }
