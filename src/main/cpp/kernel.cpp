@@ -189,7 +189,8 @@ void kernel::add_service(
         const std::string& service_definition, 
         service_callback_t callback) {
     
-    log(verbose, "adding service %s\n", name.c_str());
+    log(verbose, "adding service owner \"%s\", name \"%s\", service_definition:\n%s\n", 
+            owner.c_str(), name.c_str(), service_definition.c_str());
 
     service_t *svc          = new service_t();
     svc->owner              = owner;
@@ -376,7 +377,6 @@ kernel::~kernel() {
         module_map.erase(it);
 	    pthread_rwlock_unlock(&module_map_lock);
     }
-    
     
     log(info, "removing bridges\n");
     bridge_map_t::iterator bit;
@@ -591,6 +591,9 @@ void kernel::config(std::string config_file, int argc, char *argv[]) {
         // add to module map
         klog(info, "adding [%s]\n", brdg->name.c_str());
         bridge_map[brdg->name] = brdg;
+
+        for (const auto& kv : services)
+            brdg->add_service(*(kv.second));
     }
 	
 	const YAML::Node& service_providers = doc["service_providers"];
@@ -801,6 +804,8 @@ void kernel::add_device(sp_device_t req) {
 void kernel::remove_device(sp_device_t req) {
     auto map_index = req->id();
 
+    klog(verbose, "removing device %s\n", map_index.c_str());
+
     const auto& interface = std::dynamic_pointer_cast<service_interface>(req);
     if (interface) {
         for (const auto& kv : service_provider_map) 
@@ -811,16 +816,18 @@ void kernel::remove_device(sp_device_t req) {
     if (it == device_map.end())
         return; // no device with name found
 
+    device_map[map_index] = nullptr;
     device_map.erase(it);
 };
 
 // remove all devices from owner
 void kernel::remove_devices(const std::string& owner) {
     for (auto it = device_map.begin(); it != device_map.end(); ) {
-        auto it_act = it++;
-
-        if (it_act->second->owner == owner)
-            device_map.erase(it_act);
+        if (it->second->owner == owner) {
+            klog(verbose, "removing device %s\n", it->second->id().c_str());
+            it = device_map.erase(it);
+        } else
+            ++it;
     }
 }
 

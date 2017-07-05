@@ -78,6 +78,7 @@ EXPORT_C module_state_t mod_get_state(MODULE_HANDLE hdl) {                      
                                                                                     \
 EXPORT_C int mod_unconfigure(MODULE_HANDLE hdl) {                                   \
     HDL_2_MODCLASS(hdl, impl, modclass)                                             \
+    wr->sp = nullptr;                                                               \
     delete wr;                                                                      \
     return 0;                                                                       \
 }                                                                                   \
