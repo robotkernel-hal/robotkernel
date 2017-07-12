@@ -466,7 +466,7 @@ int module::set_state(module_state_t state) {
         case preop_2_safeop:
             // ====> start receiving measurements, registering triggers
             for (const auto& et : triggers) {
-                klog(info, "%s adding module trigger %s\n",
+                klog(info, "%s adding module trigger \"%s\"\n",
                         name.c_str(), et->dev_name.c_str());
                 
                 auto t_dev = k.get_trigger(et->dev_name);
