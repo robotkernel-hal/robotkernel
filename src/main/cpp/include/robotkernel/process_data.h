@@ -92,14 +92,12 @@ class process_data :
         //! return current read buffer
         const std::vector<uint8_t>& front_buffer() {
             int idx = indices.load(std::memory_order_consume) & front_buffer_mask;
-            printf("%d -> ", idx);
             return data[idx];
         }
 
-        //! return current read buffer
+        //! return current write buffer
         std::vector<uint8_t>& back_buffer() {
             int idx = (indices.load(std::memory_order_consume) & back_buffer_mask) >> 2;
-            printf("<- %d ", idx);
             return data[idx];
         }
 
