@@ -1,8 +1,6 @@
 //! robotkernel process_data
 /*!
- * author: Robert Burger
- *
- * $Id$
+ * author: Robert Burger <robert.burger@dlr.de>
  */
 
 /*

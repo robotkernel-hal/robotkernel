@@ -219,6 +219,12 @@ class kernel {
          */
         sp_module_t get_module(const std::string& mod_name);
 
+        //! loads additional modules
+        /*!
+         * \param[in] config    New module configuration.
+         */
+        void load_module(const YAML::Node& config);
+
         bool _do_not_unload_modules;
 
         std::string _name;

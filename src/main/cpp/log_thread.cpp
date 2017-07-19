@@ -99,12 +99,16 @@ log_thread::~log_thread() {
  * \return empty pool object
  */
 struct log_thread::log_pool_object *log_thread::get_pool_object() {
-    if (empty_pool.empty())
-        return NULL;
+    log_thread::log_pool_object *obj = NULL;
 
     pthread_mutex_lock(&mutex);
-    struct log_pool_object *obj = empty_pool.front();
+    if (empty_pool.empty())
+        goto func_exit;
+
+    obj = empty_pool.front();
     empty_pool.pop_front();
+
+func_exit:
     pthread_mutex_unlock(&mutex);
 
     return obj;

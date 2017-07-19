@@ -53,7 +53,7 @@ class log_thread : public runnable {
         /*!
          * \param size number of buffers in pool
          */
-        log_thread(int pool_size = 1000);
+        log_thread(int pool_size = 100000);
         ~log_thread();
 
         //! get empty object from log pool
