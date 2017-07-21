@@ -22,6 +22,7 @@
  * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <sys/mman.h>
 #include <fstream>
 #include <iostream>
 #include <algorithm>
@@ -520,6 +521,10 @@ void kernel::config(std::string config_file, int argc, char *argv[]) {
     char *ln_program_name = getenv("LN_PROGRAM_NAME");
     if (doc["name"] && !ln_program_name)
         _name = get_as<string>(doc, "name");
+
+    // locking all current and future memory to keep it hold in 
+    // memory without swapping
+    mlockall(MCL_CURRENT | MCL_FUTURE);
 
     // search for loglevel
     ll = get_as<string>(doc, "loglevel", "info");
