@@ -38,6 +38,7 @@
 
 #include <robotkernel/process_data.h>
 #include <robotkernel/trigger.h>
+#include <robotkernel/stream.h>
 #include <robotkernel/service_interface.h>
 
 
@@ -146,6 +147,13 @@ class kernel {
          * \return shared pointer to process data device
          */
         sp_process_data_t get_process_data(const std::string& name);
+
+        //! wrapper around \link get_device \endlink
+        /*!
+         * \param[in] name  process data device name.
+         * \return shared pointer to process data device
+         */
+        sp_stream_t get_stream(const std::string& name);
 
         //! get kernel singleton instance
         /*!
@@ -335,6 +343,11 @@ inline sp_trigger_t kernel::get_trigger(const std::string& name) {
 // wrapper around \link get_device \endlink
 inline sp_process_data_t kernel::get_process_data(const std::string& name) {
     return get_device<process_data>(name);
+}
+
+// wrapper around \link get_device \endlink
+inline sp_stream_t kernel::get_stream(const std::string& name) {
+    return get_device<stream>(name);
 }
         
 // get a device by name

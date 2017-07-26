@@ -59,10 +59,7 @@ class stream :
          *
          * \return Size of read bytes.
          */
-        virtual size_t read(void* buf, size_t bufsize) {
-            throw string_util::str_exception("[%s|%s] read not implemented!\n", 
-                    impl.c_str(), name.c_str());
-        }
+        virtual size_t read(void* buf, size_t bufsize) = 0;
         
         //! Character stream based data write
         /*!
@@ -71,11 +68,7 @@ class stream :
          *
          * \return Size of written bytes.
          */
-        virtual size_t write(void* buf, size_t bufsize) {
-            throw string_util::str_exception("[%s|%s] write not implemented!\n",
-                    impl.c_str(), name.c_str());
-        }
-
+        virtual size_t write(void* buf, size_t bufsize) = 0;
 };
 
 typedef std::shared_ptr<stream> sp_stream_t;
