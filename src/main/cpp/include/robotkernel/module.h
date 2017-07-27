@@ -117,22 +117,6 @@ class module :
             return mod_handle != NULL;
         }
 
-        //! Read process data from module
-        /*!
-          \param buf buffer to store cyclic data
-          \param busize size of buffer
-          \return size of read bytes
-          */
-        size_t read(char* buf, size_t bufsize);
-
-        //! Write process data to module
-        /*!
-          \param buf buffer with new cyclic data
-          \param busize size of buffer
-          \return size of written bytes
-          */
-        size_t write(char* buf, size_t bufsize);
-
         //! Set module state
         /*!
           \param state new model state
@@ -215,8 +199,6 @@ class module :
         //! module symbols
         mod_configure_t         mod_configure;
         mod_unconfigure_t       mod_unconfigure;
-        mod_read_t              mod_read;
-        mod_write_t             mod_write;
         mod_set_state_t         mod_set_state;
         mod_get_state_t         mod_get_state;
         mod_request_t           mod_request;

@@ -51,16 +51,6 @@ struct impl ## _wrapper {                                                       
     std::shared_ptr<modclass> sp;                                                   \
 };                                                                                  \
                                                                                     \
-EXPORT_C size_t mod_read(MODULE_HANDLE hdl, void* buf, size_t bufsize) {            \
-    HDL_2_MODCLASS(hdl, impl, modclass)                                             \
-    return dev->read(buf, bufsize);                                                 \
-}                                                                                   \
-                                                                                    \
-EXPORT_C size_t mod_write(MODULE_HANDLE hdl, void* buf, size_t bufsize) {           \
-    HDL_2_MODCLASS(hdl, impl, modclass)                                             \
-    return dev->write(buf, bufsize);                                                \
-}                                                                                   \
-                                                                                    \
 EXPORT_C void mod_tick(MODULE_HANDLE hdl) {                                         \
     HDL_2_MODCLASS(hdl, impl, modclass)                                             \
     return dev->tick();                                                             \
@@ -146,30 +136,6 @@ class module_base :
             return k.get_module(name);
         }
 
-        //! Cyclic process data read
-        /*!
-         * \param[out] buf       Pointer to a buffer which will return process data.
-         * \param[in] bufsize    Size of process data buffer.
-         *
-         * \return Size of read bytes.
-         */
-        virtual size_t read(void* buf, size_t bufsize) {
-            throw string_util::str_exception("[%s|%s] read not implemented!\n", 
-                    impl.c_str(), name.c_str());
-        }
-        
-        //! Cyclic process data write
-        /*!
-         * \param[in] buf       Pointer to a buffer which holds process data.
-         * \param[in] bufsize   Size of process data buffer.
-         *
-         * \return Size of written bytes.
-         */
-        virtual size_t write(void* buf, size_t bufsize) {
-            throw string_util::str_exception("[%s|%s] write not implemented!\n",
-                    impl.c_str(), name.c_str());
-        }
-        
         //! Module trigger implementation.
         virtual void tick() {
             throw string_util::str_exception("[%s|%s] trigger not implemented!\n",

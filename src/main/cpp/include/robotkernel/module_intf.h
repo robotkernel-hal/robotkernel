@@ -153,24 +153,6 @@ static const int MODULE_FEAT_SERCOS     = 0x00004000;
 extern "C" const char *state_to_string(module_state_t state);
 extern "C" module_state_t string_to_state(const char *state);
 
-//! cyclic process data read
-/*!
-  \param hdl module handle
-  \param buf process data buffer
-  \param bufsize size of process data buffer
-  \return size of read bytes
- */
-typedef ssize_t (*mod_read_t)(MODULE_HANDLE hdl, void* buf, size_t bufsize);
-
-//! cyclic process data write
-/*!
-  \param hdl module handle
-  \param buf process data buffer
-  \param bufsize size of process data buffer
-  \return size of written bytes
- */
-typedef ssize_t (*mod_write_t)(MODULE_HANDLE hdl, void* buf, size_t bufsize);
-
 //! configures module
 /*!
   \param name module name

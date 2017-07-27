@@ -192,8 +192,7 @@ YAML::Emitter& operator<<(YAML::Emitter& out, const robotkernel::module& mdl) {
  */
 module::module(const YAML::Node& node)
     : so_file(node), mod_handle(NULL), mod_configure(NULL), 
-    mod_unconfigure(NULL), mod_read(NULL), mod_write(NULL), 
-    mod_set_state(NULL) {
+    mod_unconfigure(NULL), mod_set_state(NULL) {
     name             = get_as<string>(node, "name");
 
     currently_loading_module = this;
@@ -271,8 +270,6 @@ module::module(const YAML::Node& node)
 void module::_init() {
     mod_configure           = (mod_configure_t)         dlsym(so_handle, "mod_configure");
     mod_unconfigure         = (mod_unconfigure_t)       dlsym(so_handle, "mod_unconfigure");
-    mod_read                = (mod_read_t)              dlsym(so_handle, "mod_read");
-    mod_write               = (mod_write_t)             dlsym(so_handle, "mod_write");
     mod_set_state           = (mod_set_state_t)         dlsym(so_handle, "mod_set_state");
     mod_get_state           = (mod_get_state_t)         dlsym(so_handle, "mod_get_state");
     mod_tick                = (mod_tick_t)              dlsym(so_handle, "mod_tick");
@@ -281,10 +278,6 @@ void module::_init() {
         klog(warning, "missing mod_configure in %s\n", file_name.c_str());;
     if (!mod_unconfigure)
         klog(verbose, "missing mod_unconfigure in %s\n", file_name.c_str());
-    if (!mod_read)
-        klog(verbose, "missing mod_read in %s\n", file_name.c_str());
-    if (!mod_write)
-        klog(verbose, "missing mod_write in %s\n", file_name.c_str());
     if (!mod_set_state)
         klog(verbose, "missing mod_set_state in %s\n", file_name.c_str());
     if (!mod_get_state)
@@ -341,42 +334,6 @@ module::~module() {
 
 	kernel::get_instance()->remove_devices(name);
     kernel::get_instance()->remove_services(name);
-}
-
-//! Read process data from module
-/*!
-  \param buf buffer to store cyclic data
-  \param busize size of buffer 
-  \return size of read bytes 
-  */
-size_t module::read(char* buf, size_t bufsize) {
-    if (!mod_handle)
-        throw str_exception("%s not configured!\n", name.c_str());
-
-    if (!mod_read) {
-        klog(error, "%s error: no mod_read function\n", name.c_str());
-        return 0;
-    }
-
-    return mod_read(mod_handle, buf, bufsize); 
-}
-
-//! Write process data to module
-/*!
-  \param buf buffer with new cyclic data
-  \param busize size of buffer 
-  \return size of written bytes 
-  */
-size_t module::write(char* buf, size_t bufsize) {
-    if (!mod_handle)
-        throw str_exception("%s not configured!\n", name.c_str());
-
-    if (!mod_write) {
-        klog(error, "%s error: no mod_write function\n", name.c_str());
-        return 0;
-    }
-
-    return mod_write(mod_handle, buf, bufsize);
 }
 
 //! Set module state 
