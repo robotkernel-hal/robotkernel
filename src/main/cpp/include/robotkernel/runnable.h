@@ -26,6 +26,13 @@
 #define __RUNNABLE_H__
 
 #include <string>
+
+#if defined (HAVE_PTHREAD_SETNAME_NP_3) || defined (HAVE_PTHREAD_SETNAME_NP_2) || defined (HAVE_PTHREAD_SETNAME_NP_1)
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
+#endif
+
 #include <pthread.h>
 #include <stdio.h>
 #include <list>

@@ -28,7 +28,7 @@
 #include <taskLib.h>
 #endif
 
-void robotkernel::setPriority(int priority, int policy) {
+void robotkernel::set_priority(int priority, int policy) {
     if (!priority)
         return;
     struct sched_param param;
@@ -40,7 +40,7 @@ void robotkernel::setPriority(int priority, int policy) {
                 pthread_self(), policy, priority, strerror(errno));
 }
 
-void robotkernel::setAffinityMask(int affinity_mask) {
+void robotkernel::set_affinity_mask(int affinity_mask) {
     if (!affinity_mask)
         return;
 #ifdef __VXWORKS__
@@ -60,6 +60,22 @@ void robotkernel::setAffinityMask(int affinity_mask) {
     if (ret != 0)
         klog(warning, "setAffinityMask: pthread_setaffinity(%p, %#x): %d %s\n", 
                 (void *) pthread_self(), affinity_mask, ret, strerror(ret));
+#endif
+}
+
+void robotkernel::set_thread_name(pthread_t tid, const std::string& thread_name) {
+#if defined(HAVE_PTHREAD_SETNAME_NP_3)
+    pthread_setname_np(tid, thread_name.c_str(), (void *)0);
+#elif defined(HAVE_PTHREAD_SETNAME_NP_2)
+    pthread_setname_np(tid, thread_name.c_str());
+#endif
+}
+
+void robotkernel::set_thread_name(const std::string& thread_name) {
+#if defined(HAVE_PTHREAD_SETNAME_NP_3) || defined(HAVE_PTHREAD_SETNAME_NP_2)
+    set_thread_name(pthread_self(), thread_name);
+#elif defined(HAVE_PTHREAD_SETNAME_NP_1)
+    pthread_setname_np(thread_name.c_str());
 #endif
 }
 

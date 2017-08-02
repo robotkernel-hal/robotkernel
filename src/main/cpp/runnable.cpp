@@ -23,10 +23,13 @@
  */
 
 #if defined (HAVE_PTHREAD_SETNAME_NP_3) || defined (HAVE_PTHREAD_SETNAME_NP_2) || defined (HAVE_PTHREAD_SETNAME_NP_1)
-#define _GNU_SOURCE 
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
 #endif
 
 #include <pthread.h>
+
 #include <stdio.h>
 #include <signal.h>
 
@@ -88,16 +91,9 @@ runnable::runnable(const int prio, const int affinity_mask,
 void *runnable::run_wrapper(void *arg) { 
     runnable *r = static_cast<runnable *>(arg);
 
-#if defined(HAVE_PTHREAD_SETNAME_NP_3)
-    pthread_setname_np(pthread_self(), r->thread_name.c_str(), (void *)0);
-#elif defined(HAVE_PTHREAD_SETNAME_NP_2)
-    pthread_setname_np(pthread_self(), r->thread_name.c_str());
-#elif defined(HAVE_PTHREAD_SETNAME_NP_1)
-    pthread_setname_np(thread_name.c_str());
-#endif
-
-    setPriority(r->prio);
-    setAffinityMask(r->affinity_mask);
+    ::set_thread_name(r->thread_name);
+    ::set_priority(r->prio);
+    ::set_affinity_mask(r->affinity_mask);
     
     r->run(); 
     return NULL; 
@@ -133,7 +129,7 @@ void runnable::stop() {
 void runnable::set_prio(int prio) { 
     this->prio = prio;
     if (running())
-        setPriority(prio);
+        ::set_priority(prio);
 }
         
 //! set affinity mask
@@ -143,7 +139,7 @@ void runnable::set_prio(int prio) {
 void runnable::set_affinity_mask(int mask) {
     this->affinity_mask = mask;
     if (running())
-        setAffinityMask(mask);
+        ::set_affinity_mask(mask);
 }
         
 //! set thread name

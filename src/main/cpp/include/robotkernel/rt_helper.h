@@ -24,15 +24,26 @@
 #ifndef ROBOTKERNEL_RT_HELPER_H
 #define ROBOTKERNEL_RT_HELPER_H
 
+#if defined (HAVE_PTHREAD_SETNAME_NP_3) || defined (HAVE_PTHREAD_SETNAME_NP_2) || defined (HAVE_PTHREAD_SETNAME_NP_1)
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
+#endif
+
 #include <pthread.h>
+
+#include <string>
 
 namespace robotkernel {
 #ifdef EMACS
 }
 #endif
 
-void setPriority(int priority, int policy = SCHED_FIFO);
-void setAffinityMask(int affinity_mask);
+void set_priority(int priority, int policy = SCHED_FIFO);
+void set_affinity_mask(int affinity_mask);
+
+void set_thread_name(pthread_t tid, const std::string& thread_name);
+void set_thread_name(const std::string& thread_name);
 
 #ifdef EMACS
 {
