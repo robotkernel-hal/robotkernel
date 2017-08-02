@@ -39,7 +39,7 @@ AM_CONDITIONAL([HAVE_LTTNG_UST], [test -n "$LTTNG_UST_LIBS"])
 RK_CHECK_MODULES
 
 # Checks for header files.
-AC_CHECK_HEADERS([stdint.h stdlib.h string.h sys/ioctl.h unistd.h execinfo.h termios.h sys/syscall.h process.h])
+AC_CHECK_HEADERS([stdint.h stdlib.h string.h sys/ioctl.h unistd.h execinfo.h termios.h sys/syscall.h process.h libgen.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_INT16_T
@@ -52,9 +52,11 @@ AC_TYPE_UINT32_T
 AC_TYPE_UINT64_T
 AC_TYPE_UINT8_T
 
+AC_CHECK_PTHREAD_SETNAME_NP
+
 # Checks for library functions.
 #AC_FUNC_MALLOC
-AC_CHECK_FUNCS([clock_gettime memset sqrt strerror pthread_setname_np gettid])
+AC_CHECK_FUNCS([clock_gettime memset sqrt strerror gettid])
 
 # Checks for library functions.
 AC_CHECK_LIB(dl, dlopen)

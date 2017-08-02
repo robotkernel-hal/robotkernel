@@ -51,12 +51,15 @@ class runnable {
         runnable& operator=(const runnable&);  // prevent assignment
 
 
-        int policy;             //! thread scheduling policy
-        int prio;               //! thread priority
-        int affinity_mask;      //! thread cpu affinity mask
-protected:
-        pthread_t tid;          //! posix thread handle
-        bool run_flag;          //! running flag
+        int policy;                 //!< thread scheduling policy
+        int prio;                   //!< thread priority
+        int affinity_mask;          //!< thread cpu affinity mask
+
+    protected:
+        std::string thread_name;    //!< thread name used to set threads name with pthread_setname_np
+
+        pthread_t tid;              //!< posix thread handle
+        bool run_flag;              //!< running flag
 
     public:
         //! construction with yaml node
@@ -67,10 +70,13 @@ protected:
 
         //! construction with prio and affinity_mask
         /*!
-         * \param prio thread priority
-         * \param affinity_mask thread cpu affinity mask
+         * \param[in] prio          Runnable thread priority.
+         * \param[in] affinity_mask Runnable thread cpu affinity mask.
+         * \param[in] thread_name   Name of runnable thread if started. Only
+         *                          used if pthread_setname_np is present.
          */
-        runnable(const int prio=0, const int affinity_mask=0);
+        runnable(const int prio = 0, const int affinity_mask = 0, 
+                std::string thread_name = "runnable");
 
         //! destruction
         virtual ~runnable() {

@@ -1,8 +1,6 @@
 //! robotkernel so_file class
 /*!
- * author: Robert Burger
- *
- * $Id$
+ * author: Robert Burger <robert.burger@dlr.de>
  */
 
 /*
@@ -30,10 +28,17 @@
 
 #include <sys/stat.h>
 #include <sys/types.h>
+#ifdef HAVE_LIBGEN_H
 #include <libgen.h>
+#endif
 #include <dlfcn.h>
 #include <dirent.h>
 #include <fstream>
+
+#ifdef __VXWORKS__
+#include <vxWorks.h>
+#include <taskLib.h>
+#endif
 
 using namespace std;
 using namespace robotkernel;

@@ -88,7 +88,6 @@ namespace robotkernel {
 #endif
 
 class bridge_base : 
-    public device,
     public log_base 
 {
     private:
@@ -102,7 +101,7 @@ class bridge_base :
          */
         bridge_base(const std::string& instance_name, const std::string& name, 
                 const YAML::Node& node = YAML::Node()) :
-            device(instance_name, name, "bridge"), log_base(instance_name, name, node)
+            log_base(instance_name, name, node)
         {
         }
 

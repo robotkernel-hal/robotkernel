@@ -50,7 +50,7 @@ class stream :
             : device(owner, name, "stream") {}
 
         //! destruction
-        ~stream();
+        ~stream() {};
 
         //! Character stream based data read
         /*!

@@ -27,11 +27,14 @@
 #include "robotkernel/kernel_worker.h"
 #include "robotkernel/kernel.h"
 
+using namespace string_util;
 using namespace robotkernel;
 using namespace std;
 
-kernel_worker::kernel_worker(int prio, int affinity_mask) 
-    : runnable(prio, affinity_mask) {
+kernel_worker::kernel_worker(int prio, int affinity_mask) :
+    runnable(prio, affinity_mask, format_string("kernel_worker.prio_%d."
+                "affinity_mask_%d", prio, affinity_mask))
+{
     pthread_cond_init(&cond, NULL);
     pthread_mutex_init(&mutex, NULL);
 

@@ -53,7 +53,9 @@ int gettid() {
 /*!
  * \param size number of buffers in pool
  */
-log_thread::log_thread(int pool_size) : runnable(0, 0) {
+log_thread::log_thread(int pool_size) : 
+    runnable(0, 0, "log_thread") 
+{
     pthread_mutex_init(&mutex, NULL);
     pthread_cond_init(&cond, NULL);
 

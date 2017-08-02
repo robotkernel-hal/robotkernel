@@ -48,8 +48,11 @@ bool trigger_worker::worker_key::operator<(const worker_key& a) const {
     return (int) divisor < (int)a.divisor;
 }
 
-trigger_worker::trigger_worker(int prio, int affinity_mask, int divisor) 
-    : runnable(prio, affinity_mask), trigger_base(divisor) {
+trigger_worker::trigger_worker(int prio, int affinity_mask, int divisor) :
+    runnable(prio, affinity_mask, format_string("trigger_worker.prio_%d."
+                "affinity_mask_%d.divisor_%d", prio, affinity_mask, divisor)), 
+    trigger_base(divisor) 
+{
     pthread_cond_init(&cond, NULL);
     pthread_mutex_init(&mutex, NULL);
 

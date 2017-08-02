@@ -22,6 +22,11 @@
  * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#if defined (HAVE_PTHREAD_SETNAME_NP_3) || defined (HAVE_PTHREAD_SETNAME_NP_2) || defined (HAVE_PTHREAD_SETNAME_NP_1)
+#define _GNU_SOURCE 
+#endif
+
+#include <pthread.h>
 #include <stdio.h>
 #include <signal.h>
 
@@ -52,6 +57,7 @@ runnable::runnable(const YAML::Node& node) {
     prio           = get_as<int>(node, "prio", 0);
     policy         = SCHED_FIFO;
     affinity_mask  = 0;
+    thread_name    = get_as<string>(node, "thread_name", "runnable");
 
     if(node["affinity"]) {
         const YAML::Node& affinity = node["affinity"];
@@ -68,8 +74,10 @@ runnable::runnable(const YAML::Node& node) {
  * \param prio thread priority
  * \param affinity_mask thread cpu affinity mask
  */
-runnable::runnable(const int prio, const int affinity_mask)  
-    : policy(SCHED_FIFO), prio(prio), affinity_mask(affinity_mask), run_flag(false) {
+runnable::runnable(const int prio, const int affinity_mask,
+        std::string thread_name) :
+    policy(SCHED_FIFO), prio(prio), affinity_mask(affinity_mask), 
+    thread_name(thread_name), run_flag(false) {
 }
         
 //! run wrapper to create posix thread
@@ -79,8 +87,18 @@ runnable::runnable(const int prio, const int affinity_mask)
  */
 void *runnable::run_wrapper(void *arg) { 
     runnable *r = static_cast<runnable *>(arg);
+
+#if defined(HAVE_PTHREAD_SETNAME_NP_3)
+    pthread_setname_np(pthread_self(), r->thread_name.c_str(), (void *)0);
+#elif defined(HAVE_PTHREAD_SETNAME_NP_2)
+    pthread_setname_np(pthread_self(), r->thread_name.c_str());
+#elif defined(HAVE_PTHREAD_SETNAME_NP_1)
+    pthread_setname_np(thread_name.c_str());
+#endif
+
     setPriority(r->prio);
     setAffinityMask(r->affinity_mask);
+    
     r->run(); 
     return NULL; 
 };
