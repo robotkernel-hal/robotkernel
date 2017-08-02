@@ -64,10 +64,13 @@ void robotkernel::set_affinity_mask(int affinity_mask) {
 }
 
 void robotkernel::set_thread_name(pthread_t tid, const std::string& thread_name) {
+    char buffer[17];
+    snprintf(buffer, 17, "%s", thread_name.c_str());
+
 #if defined(HAVE_PTHREAD_SETNAME_NP_3)
-    pthread_setname_np(tid, thread_name.c_str(), (void *)0);
+    pthread_setname_np(tid, buffer, (void *)0);
 #elif defined(HAVE_PTHREAD_SETNAME_NP_2)
-    pthread_setname_np(tid, thread_name.c_str());
+    pthread_setname_np(tid, buffer);
 #endif
 }
 
@@ -75,7 +78,10 @@ void robotkernel::set_thread_name(const std::string& thread_name) {
 #if defined(HAVE_PTHREAD_SETNAME_NP_3) || defined(HAVE_PTHREAD_SETNAME_NP_2)
     set_thread_name(pthread_self(), thread_name);
 #elif defined(HAVE_PTHREAD_SETNAME_NP_1)
-    pthread_setname_np(thread_name.c_str());
+    char buffer[17];
+    snprintf(buffer, 17, "%s", thread_name.c_str());
+
+    pthread_setname_np(buffer);
 #endif
 }
 
