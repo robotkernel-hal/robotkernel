@@ -1,0 +1,1076 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="14.2">
+  <zoom_level>9</zoom_level>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1017</x>
+      <y>288</y>
+      <w>162</w>
+      <h>153</h>
+    </coordinates>
+    <panel_attributes>bg=orange
+/robotkernel::device/
+--
++owner: string
++name: string
++suffix: string
+--
++id():string
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>693</x>
+      <y>513</y>
+      <w>216</w>
+      <h>189</h>
+    </coordinates>
+    <panel_attributes>bg=orange
+robotkernel::trigger
+--
+-triggers: list&lt;trigger_base&gt;
+--
++add_trigger(trigger_base): void
++remove_trigger(trigger_base): void
++get_rate(): int
++set_rate(int rate): void
++trigger_modules(): void
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>792</x>
+      <y>432</y>
+      <w>297</w>
+      <h>99</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>10.0;90.0;10.0;50.0;310.0;50.0;310.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>918</x>
+      <y>513</y>
+      <w>216</w>
+      <h>189</h>
+    </coordinates>
+    <panel_attributes>bg=orange
+robotkernel::process_data
+--
+-data[2]: vector&lt;uint8&gt;
++length: size_t
++process_data_definition: string
+--
++get_read_buffer(): vector&lt;uint8&gt;&amp;
++get_write_buffer(): vector&lt;uint8&gt;&amp;
++swap_buffers(): void
++written_since_last_read: bool</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1089</x>
+      <y>432</y>
+      <w>27</w>
+      <h>99</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>10.0;90.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>702</x>
+      <y>99</y>
+      <w>153</w>
+      <h>153</h>
+    </coordinates>
+    <panel_attributes>bg=orange
+robotkernel::trigger_base
+--
++divisor: int
++cnt: int
+--
++trigger(): void
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>702</x>
+      <y>243</y>
+      <w>27</w>
+      <h>288</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>10.0;300.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1152</x>
+      <y>27</y>
+      <w>234</w>
+      <h>189</h>
+    </coordinates>
+    <panel_attributes>bg=yellow
+robotkernel::kernel
+--
+-device_map: map&lt;string, device&gt;
+-object_map: map&lt;string, so_file&gt;
+--
++add_device(device): void
++remove_device(device): void
++get_device(string): device
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1098</x>
+      <y>108</y>
+      <w>72</w>
+      <h>198</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>60.0;10.0;10.0;10.0;10.0;200.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1395</x>
+      <y>513</y>
+      <w>189</w>
+      <h>189</h>
+    </coordinates>
+    <panel_attributes>bg=green
+module
+--
++dependencies: list&lt;string&gt;
+--
++configure(): vool
++set_state(state): int
++get_state(): state
+
+
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1602</x>
+      <y>279</y>
+      <w>189</w>
+      <h>162</h>
+    </coordinates>
+    <panel_attributes>bg=green
+/so_file/
+--
+-so_handle: void*
++file_name: string
++config: string
+--
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1863</x>
+      <y>513</y>
+      <w>189</w>
+      <h>189</h>
+    </coordinates>
+    <panel_attributes>bg=green
+bridge
+--
+--
++iinit(): void
++add_service(service): void
++remove_service(service): void</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1602</x>
+      <y>513</y>
+      <w>243</w>
+      <h>189</h>
+    </coordinates>
+    <panel_attributes>bg=green
+service_provider
+--
++handler_map: map&lt;string, handler&gt;
+--
++add_slave(service_collector): void
++remove_slave(service_collector): void
++remove_module(string): void
++test_module(service_collector): bool</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1692</x>
+      <y>432</y>
+      <w>27</w>
+      <h>99</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;90.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1476</x>
+      <y>432</y>
+      <w>189</w>
+      <h>99</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>190.0;10.0;190.0;70.0;10.0;70.0;10.0;90.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1737</x>
+      <y>432</y>
+      <w>243</w>
+      <h>99</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;70.0;250.0;70.0;250.0;90.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1377</x>
+      <y>108</y>
+      <w>342</w>
+      <h>189</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;360.0;10.0;360.0;190.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1602</x>
+      <y>720</y>
+      <w>54</w>
+      <h>36</h>
+    </coordinates>
+    <panel_attributes>bg=green
+/handler/
+--
+--
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1629</x>
+      <y>693</y>
+      <w>27</w>
+      <h>45</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;30.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1143</x>
+      <y>513</y>
+      <w>225</w>
+      <h>189</h>
+    </coordinates>
+    <panel_attributes>bg=orange
+/service_interface/
+--
++owner: string
++service_prefix: string
+--
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1287</x>
+      <y>459</y>
+      <w>405</w>
+      <h>72</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>430.0;60.0;430.0;10.0;10.0;10.0;10.0;60.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLPackage</id>
+    <coordinates>
+      <x>450</x>
+      <y>0</y>
+      <w>1611</w>
+      <h>963</h>
+    </coordinates>
+    <panel_attributes>robotkernel
+--
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1071</x>
+      <y>1116</y>
+      <w>243</w>
+      <h>189</h>
+    </coordinates>
+    <panel_attributes>bg=blue
+master
+--
+--
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>756</x>
+      <y>1359</y>
+      <w>243</w>
+      <h>189</h>
+    </coordinates>
+    <panel_attributes>bg=blue
+slave
+--
++inputs: process_data
++outpus: process_data
+--
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>693</x>
+      <y>693</y>
+      <w>81</w>
+      <h>738</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>70.0;800.0;10.0;800.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>756</x>
+      <y>1116</y>
+      <w>243</w>
+      <h>189</h>
+    </coordinates>
+    <panel_attributes>bg=blue
+group
+--
++inputs: process_data
++outpus: process_data
+--
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>774</x>
+      <y>693</y>
+      <w>27</w>
+      <h>441</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>10.0;470.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>711</x>
+      <y>693</y>
+      <w>342</w>
+      <h>711</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>50.0;770.0;10.0;770.0;10.0;70.0;360.0;70.0;360.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>810</x>
+      <y>693</y>
+      <w>207</w>
+      <h>441</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>10.0;470.0;10.0;330.0;210.0;330.0;210.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1395</x>
+      <y>765</y>
+      <w>189</w>
+      <h>189</h>
+    </coordinates>
+    <panel_attributes>bg=green
+module_base
+--
+--
++configure(): vool
++set_state(state): int
++get_state(): state
+
+
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1179</x>
+      <y>945</y>
+      <w>333</w>
+      <h>189</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>10.0;190.0;10.0;130.0;350.0;130.0;350.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>990</x>
+      <y>1179</y>
+      <w>99</w>
+      <h>27</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>90.0;10.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>990</x>
+      <y>1206</y>
+      <w>99</w>
+      <h>252</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>90.0;10.0;50.0;10.0;50.0;260.0;10.0;260.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLPackage</id>
+    <coordinates>
+      <x>747</x>
+      <y>1089</y>
+      <w>576</w>
+      <h>702</h>
+    </coordinates>
+    <panel_attributes>module_ethercat
+--
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLPackage</id>
+    <coordinates>
+      <x>1422</x>
+      <y>1089</y>
+      <w>576</w>
+      <h>468</h>
+    </coordinates>
+    <panel_attributes>service_provider_canopen_protocol
+--
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1656</x>
+      <y>765</y>
+      <w>189</w>
+      <h>189</h>
+    </coordinates>
+    <panel_attributes>bg=green
+service_provider_base
+--
+--
+
+
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1602</x>
+      <y>1116</y>
+      <w>189</w>
+      <h>189</h>
+    </coordinates>
+    <panel_attributes>bg=magenta
+provider
+--
+--
+
+
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1800</x>
+      <y>1116</y>
+      <w>189</w>
+      <h>189</h>
+    </coordinates>
+    <panel_attributes>bg=magenta
+handler
+--
+--
+
+
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1746</x>
+      <y>945</y>
+      <w>27</w>
+      <h>189</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>10.0;190.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1431</x>
+      <y>1359</y>
+      <w>315</w>
+      <h>189</h>
+    </coordinates>
+    <panel_attributes>bg=magenta
+/base/
+--
+--
++get_object_dictionary_list(list&lt;int&gt;): void
++get_object_description(int, desription): void
++get_element_description(int, int, description): void
++read_element(int, int, value): void
++write_element(int, int, value): void
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>756</x>
+      <y>1593</y>
+      <w>243</w>
+      <h>189</h>
+    </coordinates>
+    <panel_attributes>bg=blue
+slave::canopen
+--
+--
++get_object_dictionary_list(list&lt;int&gt;): void
++get_object_description(int, desription): void
++get_element_description(int, int, description): void
++read_element(int, int, value): void
++write_element(int, int, value): void
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>864</x>
+      <y>1539</y>
+      <w>27</w>
+      <h>72</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>10.0;60.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>954</x>
+      <y>1449</y>
+      <w>495</w>
+      <h>162</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>10.0;160.0;10.0;120.0;430.0;120.0;430.0;10.0;530.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1422</x>
+      <y>729</y>
+      <w>27</w>
+      <h>54</h>
+    </coordinates>
+    <panel_attributes>lt=-()
+
+</panel_attributes>
+    <additional_attributes>10.0;40.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1413</x>
+      <y>693</y>
+      <w>45</w>
+      <h>54</h>
+    </coordinates>
+    <panel_attributes>lt=)-
+
+</panel_attributes>
+    <additional_attributes>20.0;30.0;20.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1710</x>
+      <y>729</y>
+      <w>27</w>
+      <h>54</h>
+    </coordinates>
+    <panel_attributes>lt=-()
+
+</panel_attributes>
+    <additional_attributes>10.0;40.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1701</x>
+      <y>693</y>
+      <w>45</w>
+      <h>54</h>
+    </coordinates>
+    <panel_attributes>lt=)-
+
+</panel_attributes>
+    <additional_attributes>20.0;30.0;20.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1377</x>
+      <y>81</y>
+      <w>828</w>
+      <h>1053</h>
+    </coordinates>
+    <panel_attributes>lt=-
+&lt; add services</panel_attributes>
+    <additional_attributes>10.0;10.0;810.0;10.0;810.0;1100.0;650.0;1100.0;650.0;1150.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>720</x>
+      <y>297</y>
+      <w>207</w>
+      <h>153</h>
+    </coordinates>
+    <panel_attributes>bg=orange
+robotkernel::trigger_worker
+--
++trigger_list: list&lt;trigger_base&gt;
+--
++add_trigger(trigger_base): void
++remove_trigger(trigger_base): void
++trigger(): void
++run(): void
++size(): size_t</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>783</x>
+      <y>243</y>
+      <w>27</w>
+      <h>72</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>10.0;60.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>756</x>
+      <y>441</y>
+      <w>27</w>
+      <h>90</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>10.0;80.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>819</x>
+      <y>243</y>
+      <w>603</w>
+      <h>288</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>650.0;300.0;650.0;30.0;10.0;30.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>900</x>
+      <y>27</y>
+      <w>153</w>
+      <h>153</h>
+    </coordinates>
+    <panel_attributes>bg=orange
+/robotkernel::runnable/
+--
+-policy: int
+-prio: int
+-affinity_mask: int
+#tid: pthread_t
+#run_flag: bool
+--
++start(): void
++stop(): void
++run(): void
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>837</x>
+      <y>171</y>
+      <w>117</w>
+      <h>144</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>10.0;140.0;10.0;120.0;110.0;120.0;110.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1125</x>
+      <y>432</y>
+      <w>135</w>
+      <h>99</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>130.0;90.0;130.0;50.0;10.0;50.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1863</x>
+      <y>765</y>
+      <w>189</w>
+      <h>189</h>
+    </coordinates>
+    <panel_attributes>bg=green
+bridge_base
+--
+--
++iinit(): void
++add_service(service): void
++remove_service(service): void</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1935</x>
+      <y>729</y>
+      <w>27</w>
+      <h>54</h>
+    </coordinates>
+    <panel_attributes>lt=-()
+
+</panel_attributes>
+    <additional_attributes>10.0;40.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1926</x>
+      <y>693</y>
+      <w>45</w>
+      <h>54</h>
+    </coordinates>
+    <panel_attributes>lt=)-
+
+</panel_attributes>
+    <additional_attributes>20.0;30.0;20.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1422</x>
+      <y>135</y>
+      <w>162</w>
+      <h>153</h>
+    </coordinates>
+    <panel_attributes>bg=orange
+robotkernel::log_base
+--
+--
++log(char* format, ...): void
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1368</x>
+      <y>234</y>
+      <w>72</w>
+      <h>612</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>30.0;660.0;10.0;660.0;10.0;10.0;60.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1512</x>
+      <y>279</y>
+      <w>162</w>
+      <h>567</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>160.0;610.0;90.0;610.0;90.0;180.0;10.0;180.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1575</x>
+      <y>216</y>
+      <w>333</w>
+      <h>567</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>350.0;610.0;350.0;570.0;310.0;570.0;310.0;10.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1341</x>
+      <y>693</y>
+      <w>144</w>
+      <h>684</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>140.0;740.0;140.0;700.0;20.0;700.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1044</x>
+      <y>1593</y>
+      <w>243</w>
+      <h>189</h>
+    </coordinates>
+    <panel_attributes>bg=blue
+slave::file
+--
+--
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1881</x>
+      <y>135</y>
+      <w>162</w>
+      <h>153</h>
+    </coordinates>
+    <panel_attributes>bg=orange
+robotkernel::service
+--
+--
+
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLPackage</id>
+    <coordinates>
+      <x>1818</x>
+      <y>1638</y>
+      <w>126</w>
+      <h>135</h>
+    </coordinates>
+    <panel_attributes>bridge_ln
+--
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1836</x>
+      <y>1674</y>
+      <w>90</w>
+      <h>81</h>
+    </coordinates>
+    <panel_attributes>bg=red
+ln_handler
+--
+--
+
+
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1917</x>
+      <y>945</y>
+      <w>162</w>
+      <h>747</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>10.0;810.0;10.0;730.0;160.0;730.0;160.0;110.0;100.0;110.0;100.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>468</x>
+      <y>513</y>
+      <w>216</w>
+      <h>189</h>
+    </coordinates>
+    <panel_attributes>bg=orange
+robotkernel::stream
+--
+--
++read(char*, size_t): size_t
++write(char*, size_t): size_t
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>567</x>
+      <y>432</y>
+      <w>495</w>
+      <h>99</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>10.0;90.0;10.0;40.0;530.0;40.0;530.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLPackage</id>
+    <coordinates>
+      <x>1674</x>
+      <y>1638</y>
+      <w>126</w>
+      <h>135</h>
+    </coordinates>
+    <panel_attributes>bridge_jsonrpc
+--
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLPackage</id>
+    <coordinates>
+      <x>1530</x>
+      <y>1638</y>
+      <w>126</w>
+      <h>135</h>
+    </coordinates>
+    <panel_attributes>bridge_cli
+--
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1692</x>
+      <y>1674</y>
+      <w>90</w>
+      <h>81</h>
+    </coordinates>
+    <panel_attributes>bg=red
+jsonrpc_handler
+--
+--
+
+
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1548</x>
+      <y>1674</y>
+      <w>90</w>
+      <h>81</h>
+    </coordinates>
+    <panel_attributes>bg=red
+cli_handler
+--
+--
+
+
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1764</x>
+      <y>1593</y>
+      <w>180</w>
+      <h>99</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>10.0;90.0;10.0;10.0;180.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1620</x>
+      <y>1593</y>
+      <w>171</w>
+      <h>99</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>10.0;90.0;10.0;10.0;170.0;10.0</additional_attributes>
+  </element>
+</diagram>
