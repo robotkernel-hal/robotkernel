@@ -306,7 +306,8 @@ bool module::reconfigure() {
         mod_handle = mod_configure(name.c_str(), config.c_str());
 
     if(!mod_handle)
-        throw str_exception("mod_handle of %s is NULL, can not proceed!\n(does module export mod_configure() function?)", file_name.c_str());
+        throw str_exception("mod_handle of %s is NULL, can not proceed!\n"
+                "(does module export mod_configure() function?)", file_name.c_str());
 
     return configured();
 }

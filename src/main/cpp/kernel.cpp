@@ -843,24 +843,18 @@ void kernel::remove_devices(const std::string& owner) {
 void kernel::load_module(const YAML::Node& config) {
     sp_module_t mdl = make_shared<module>(config);
 
-    pthread_rwlock_wrlock(&module_map_lock);
-
     if (module_map.find(mdl->get_name()) != module_map.end()) {
-        pthread_rwlock_unlock(&module_map_lock);
-
         string name = mdl->get_name();
         throw str_exception("[robotkernel] duplicate module name: %s\n", name.c_str());
     }
 
     if (!mdl->configured()) {
-        pthread_rwlock_unlock(&module_map_lock);
         string name = mdl->get_name();
         throw str_exception("[robotkernel] module %s not configured!\n", name.c_str());
     }
 
     // add to module map
     module_map[mdl->get_name()] = mdl;
-    pthread_rwlock_unlock(&module_map_lock);
 }
 
 //! get dump log

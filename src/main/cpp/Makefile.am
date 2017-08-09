@@ -65,7 +65,7 @@ robotkernel_CXXFLAGS = -Wno-unused-local-typedefs 					\
 					   -I$(srcdir)/include/ 						\
 					   @YAML_CPP_CFLAGS@ @LIBSTRING_UTIL_CFLAGS@ 
 
-#robotkernel_LDFLAGS = -Wl,-export-dynamic -Bdynamic 
+robotkernel_LDFLAGS = -Wl,-export-dynamic -Bdynamic 
 robotkernel_LDADD = @PTHREAD_LIBS@ @YAML_CPP_LIBS@ @LIBSTRING_UTIL_LIBS@
 
 
