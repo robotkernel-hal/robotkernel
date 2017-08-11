@@ -73,6 +73,7 @@ AC_SUBST(PTHREAD_LIBS)
 
 AC_CONFIG_FILES([Makefile src/main/cpp/Makefile robotkernel.pc])
 AC_CONFIG_FILES([share/ln/robotkernel.inc.lnc], [cp share/ln/robotkernel.inc.lnc ${ac_abs_top_srcdir}/share/ln/])
+AC_CONFIG_FILES([robotkernel.pt], [cp robotkernel.pt ${ac_abs_top_srcdir}/])
 
 AC_OUTPUT
 

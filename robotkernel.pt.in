@@ -11,7 +11,7 @@ C++_LIBS            =
 C_INCLUDE_PATHS     = ${PKGROOT}/include/, ${PKGROOT}/include/${ARCH}/
 C_LIB_PATHS         = ${PKGROOT}/lib/${ARCH}
 C_LIBS              = 
-ARCHS               = @ARCHS@
+ARCHS               = osl42-x86_64
 SUPPORTED_LANGUAGES = C++, C
 
 [install]

@@ -14,20 +14,20 @@ class config(object):
 
 cfg = config()
 cfg.rk_domain_base = "/volume/software/robotkernel/packages"
-cfg.rk_version = "latest"
+cfg.rk_version = "5"
 cfg.rk_config_fn = None
 cfg.with_gui = False
 cfg.with_rk = True
 cfg.with_undef = True
 cfg.with_realpath = True
 
-cfg.module_sercos_deps = "interface_sercos_protocol,interface_key_value,interface_process_data_inspection"
-cfg.module_soem_deps = "interface_canopen_protocol,interface_key_value,interface_process_data_inspection"
-cfg.module_xsens_deps = "interface_process_data_inspection"
-cfg.module_w83627_deps = "interface_key_value,interface_process_data_inspection"
-cfg.module_jitter_measurement_deps = "interface_process_data_inspection"
-cfg.module_sr_sim_deps = "interface_process_data_inspection,interface_key_value"
-cfg.module_data_generator_deps = "interface_process_data_inspection"
+#cfg.module_sercos_deps = "interface_sercos_protocol,interface_key_value,interface_process_data_inspection"
+#cfg.module_soem_deps = "interface_canopen_protocol,interface_key_value,interface_process_data_inspection"
+#cfg.module_xsens_deps = "interface_process_data_inspection"
+#cfg.module_w83627_deps = "interface_key_value,interface_process_data_inspection"
+#cfg.module_jitter_measurement_deps = "interface_process_data_inspection"
+#cfg.module_sr_sim_deps = "interface_process_data_inspection,interface_key_value"
+#cfg.module_data_generator_deps = "interface_process_data_inspection"
 
 skip = 0
 for i, arg in enumerate(sys.argv[1:]):
@@ -114,36 +114,45 @@ def process_module(mod_fn):
     if deps:
         deps = [dep.strip() for dep in deps.split(",")]
 
-    if os.path.isfile(pkg_base):
-        fp = file(pkg_base)
-        for line in fp:
-            line = line.strip()
-            if line.startswith("# rk_depends:"):
-                for dep in map(str.strip, line.split(":", 1)[1].strip().split(",")):
-                    if dep not in deps:
-                        deps.append(dep)
-        fp.close()
-    
-    for dep in deps:
-        process_module(dep)
+    #if os.path.isfile(pkg_base):
+    #    fp = file(pkg_base)
+    #    for line in fp:
+    #        line = line.strip()
+    #        if line.startswith("# rk_depends:"):
+    #            for dep in map(str.strip, line.split(":", 1)[1].strip().split(",")):
+    #                if dep not in deps:
+    #                    deps.append(dep)
+    #    fp.close()
+    #
+    #for dep in deps:
+    #    process_module(dep)
     
     if optional_include:
         print "optional_include %s" % pkg_base
     else:
         print "include %s" % pkg_base
         
+def get_so_file_base_name(node):
+    if "so_file" not in node:
+        print "so_file missing in node config: %r" % (repr(node))
+        return ""
 
-for module in rkconfig["modules"]:
-    mod_fn = module["module_file"]
-    if mod_fn[0] in ("/", "."):
+    so_fn = node["so_file"]
+    if so_fn[0] in ("/", "."):
         # either abs or rel
+        return
+    if not so_fn.startswith("lib"):
+        return
+    if not so_fn.endswith(".so"):
+        return
+
+    return so_fn[3:].rsplit(".", 1)[0]
+
+for t in ["service_providers", "bridges", "modules"]:
+    if t not in rkconfig:
         continue
-    if not mod_fn.startswith("lib"):
-        continue
-    if not mod_fn.endswith(".so"):
-        continue
-    mod_fn = mod_fn[3:].rsplit(".", 1)[0]
-    process_module(mod_fn)
+    for node in rkconfig[t]:
+        process_module(get_so_file_base_name(node))
 
 if cfg.with_rk:
     process_module("robotkernel")
