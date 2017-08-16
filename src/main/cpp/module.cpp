@@ -402,6 +402,7 @@ int module::set_state(module_state_t state) {
             if (state == module_state_init)
                 break;
         case init_2_boot:
+            set_state__check(module_state_boot);
             break;
         case boot_2_init:
         case boot_2_preop:
