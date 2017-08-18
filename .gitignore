@@ -1,5 +1,6 @@
 src/main/cpp/include/robotkernel/stamp-h1
 src/main/cpp/include/robotkernel/config.h
+share/ln/robotkernel.inc.lnc
 /**/Makefile
 config.log
 config.status
