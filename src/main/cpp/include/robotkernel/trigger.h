@@ -40,8 +40,8 @@ class trigger :
     public device
 {
     private:
-        trigger(const trigger&);             // prevent copy-construction
-        trigger& operator=(const trigger&);  // prevent assignment
+        trigger(const trigger&);                // prevent copy-construction
+        trigger& operator=(const trigger&);     // prevent assignment
 
         pthread_mutex_t list_lock;              //!< protection for trigger list
         trigger_list_t triggers;                //!< trigger callback list
