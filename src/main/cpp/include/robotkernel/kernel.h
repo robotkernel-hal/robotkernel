@@ -333,6 +333,39 @@ class kernel {
                 service_arglist_t &response);
 
         static const std::string service_definition_process_data_info;
+
+        //! trigger information
+        /*!
+         * \param request service request data
+         * \parma response service response data
+         * \return success
+         */
+        int service_trigger_info(const service_arglist_t &request,
+                service_arglist_t &response);
+
+        static const std::string service_definition_trigger_info;
+        
+        //! stream information
+        /*!
+         * \param request service request data
+         * \parma response service response data
+         * \return success
+         */
+        int service_stream_info(const service_arglist_t &request,
+                service_arglist_t &response);
+
+        static const std::string service_definition_stream_info;
+        
+        //! service_interface information
+        /*!
+         * \param request service request data
+         * \parma response service response data
+         * \return success
+         */
+        int service_service_interface_info(const service_arglist_t &request,
+                service_arglist_t &response);
+
+        static const std::string service_definition_service_interface_info;
 };
         
 // wrapper around \link get_device \endlink

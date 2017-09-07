@@ -358,6 +358,12 @@ kernel::kernel() {
             std::bind(&kernel::service_list_devices, this, _1, _2));
     add_service(_name, "process_data_info", service_definition_process_data_info,
             std::bind(&kernel::service_process_data_info, this, _1, _2));
+    add_service(_name, "trigger_info", service_definition_trigger_info,
+            std::bind(&kernel::service_trigger_info, this, _1, _2));
+    add_service(_name, "stream_info", service_definition_stream_info,
+            std::bind(&kernel::service_stream_info, this, _1, _2));
+    add_service(_name, "service_interface_info", service_definition_service_interface_info,
+            std::bind(&kernel::service_service_interface_info, this, _1, _2));
 }
 
 //! destruction
@@ -1244,4 +1250,144 @@ const std::string kernel::service_definition_process_data_info =
 "    string: definition\n"
 "    int32_t: length\n"
 "    string: error_message\n";
+
+//! trigger information
+/*!
+ * \param request service request data
+ * \parma response service response data
+ * \return success
+ */
+int kernel::service_trigger_info(const service_arglist_t &request,
+        service_arglist_t &response) {
+    // request data
+#define TRIGGER_INFO_REQ_NAME 0
+    string name = request[TRIGGER_INFO_REQ_NAME]; 
+
+    //response data
+    string owner = "";
+    double rate = 0.;
+    string error_message = "";
+
+    if (device_map.find(name) != device_map.end()) {
+        const auto& dev = std::dynamic_pointer_cast<trigger>(device_map[name]);
+
+        if (dev) {
+            owner     = dev->owner;
+            rate      = dev->get_rate();
+        } else 
+            error_message = 
+                format_string("device with name \"%s\" is not a trigger device!", name.c_str());
+    } else
+        error_message = 
+            format_string("device with name \"%s\" not found!", name.c_str());
+
+#define TRIGGER_INFO_RESP_OWNER            0
+#define TRIGGER_INFO_RESP_RATE             1
+#define TRIGGER_INFO_RESP_ERROR_MESSAGE    2
+    response.resize(3);
+    response[TRIGGER_INFO_RESP_OWNER]          = owner;
+    response[TRIGGER_INFO_RESP_RATE]           = rate;
+    response[TRIGGER_INFO_RESP_ERROR_MESSAGE]  = error_message;
+
+    return 0;
+}
+
+const std::string kernel::service_definition_trigger_info = 
+"request:\n"
+"    string: name\n"
+"response:\n"
+"    string: owner\n"
+"    double: rate\n"
+"    string: error_message\n";
+
+//! stream information
+/*!
+ * \param request service request data
+ * \parma response service response data
+ * \return success
+ */
+int kernel::service_stream_info(const service_arglist_t &request,
+        service_arglist_t &response) {
+    // request data
+#define stream_INFO_REQ_NAME 0
+    string name = request[stream_INFO_REQ_NAME]; 
+
+    //response data
+    string owner = "";
+    double rate = 0.;
+    string error_message = "";
+
+    if (device_map.find(name) != device_map.end()) {
+        const auto& dev = std::dynamic_pointer_cast<stream>(device_map[name]);
+
+        if (dev) {
+            owner     = dev->owner;
+        } else 
+            error_message = 
+                format_string("device with name \"%s\" is not a stream device!", name.c_str());
+    } else
+        error_message = 
+            format_string("device with name \"%s\" not found!", name.c_str());
+
+#define stream_INFO_RESP_OWNER            0
+#define stream_INFO_RESP_ERROR_MESSAGE    1
+    response.resize(2);
+    response[stream_INFO_RESP_OWNER]          = owner;
+    response[stream_INFO_RESP_ERROR_MESSAGE]  = error_message;
+
+    return 0;
+}
+
+const std::string kernel::service_definition_stream_info = 
+"request:\n"
+"    string: name\n"
+"response:\n"
+"    string: owner\n"
+"    string: error_message\n";
+
+//! service_interface information
+/*!
+ * \param request service request data
+ * \parma response service response data
+ * \return success
+ */
+int kernel::service_service_interface_info(const service_arglist_t &request,
+        service_arglist_t &response) {
+    // request data
+#define service_interface_INFO_REQ_NAME 0
+    string name = request[service_interface_INFO_REQ_NAME]; 
+
+    //response data
+    string owner = "";
+    double rate = 0.;
+    string error_message = "";
+
+    if (device_map.find(name) != device_map.end()) {
+        const auto& dev = std::dynamic_pointer_cast<service_interface>(device_map[name]);
+
+        if (dev) {
+            owner     = dev->owner;
+        } else 
+            error_message = 
+                format_string("device with name \"%s\" is not a service_interface device!", name.c_str());
+    } else
+        error_message = 
+            format_string("device with name \"%s\" not found!", name.c_str());
+
+#define service_interface_INFO_RESP_OWNER            0
+#define service_interface_INFO_RESP_ERROR_MESSAGE    1
+    response.resize(2);
+    response[service_interface_INFO_RESP_OWNER]          = owner;
+    response[service_interface_INFO_RESP_ERROR_MESSAGE]  = error_message;
+
+    return 0;
+}
+
+const std::string kernel::service_definition_service_interface_info = 
+"request:\n"
+"    string: name\n"
+"response:\n"
+"    string: owner\n"
+"    string: error_message\n";
+
 
