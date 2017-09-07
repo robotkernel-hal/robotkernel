@@ -49,6 +49,146 @@ class process_data :
     public device
 {
     private:
+        process_data();     //!< prevent default construction
+
+    public:
+        //! construction
+        /*!
+         * \param length byte length of process data
+         * \param owner name of owning module
+         * \param name process data name
+         * \param process_data_definition yaml-string representating the structure of the pd
+         */
+        process_data(size_t length, std::string owner, std::string name, 
+                std::string process_data_definition = "") :
+            device(owner, name, "pd"), pd_cookie(0), length(length),  
+            process_data_definition(process_data_definition)
+            { }
+
+        //! Get a pointer to the a data buffer which we can write next, has to be
+        //  completed with calling \link push \endlink
+        virtual uint8_t* next() = 0;
+
+        //! Get a pointer to the last written data without consuming it, 
+        //  which will be available on calling \link pop \endlink
+        virtual uint8_t* peek() = 0;
+
+        //! Get a pointer to the actual read data. This call
+        //  will consume the data.
+        virtual uint8_t* pop() = 0;
+
+        //! Pushes write data buffer to available on calling \link next \endlink.
+        virtual void push() {};
+
+        //! Write data to buffer.
+        /*!
+         * \param[in] offset    Process data offset from beginning of the buffer.
+         * \param[in] buf       Buffer with data to write to internal back buffer.
+         * \param[in] len       Length of data in buffer.
+         * \param[in] do_push   Push the buffer to set it to the actual one.
+         */
+        virtual void write(off_t offset, uint8_t *buf, size_t len, bool do_push = true) = 0;
+
+        //! Read data from buffer.
+        /*!
+         * \param[in] offset    Process data offset from beginning of the buffer.
+         * \param[in] buf       Buffer with data to write to from internal front buffer.
+         * \param[in] len       Length of data in buffer.
+         * \param[in] do_pop    Pop the buffer and consume it.
+         */
+        virtual void read(off_t offset, uint8_t *buf, size_t len, bool do_pop = true) = 0;
+
+    public:
+        uint64_t pd_cookie;
+        const size_t length;
+        const std::string process_data_definition;
+};
+
+//! process data management class with single buffering
+/*!
+ * This class describe managed process data by the robotkernel. It also uses
+ * a double buffer support to ensure data consistency.
+ */
+class single_buffer :
+    public process_data
+{
+    private:
+        std::vector<uint8_t> data;
+
+    private:
+        single_buffer();     //!< prevent default construction
+
+    public:
+        //! construction
+        /*!
+         * \param length byte length of process data
+         * \param owner name of owning module
+         * \param name process data name
+         * \param process_data_definition yaml-string representating the structure of the pd
+         */
+        single_buffer(size_t length, std::string owner, std::string name, 
+                std::string process_data_definition = "") :
+            process_data(length, owner, name, process_data_definition)
+            {
+                data.resize(length);
+            }
+        
+        //! Get a pointer to the a data buffer which we can write next, has to be
+        //  completed with calling \link push \endlink
+        uint8_t* next() {
+            return (uint8_t *)&data[0];
+        }
+
+        //! Get a pointer to the last written data without consuming it, 
+        //  which will be available on calling \link pop \endlink
+        uint8_t* peek() {
+            return (uint8_t *)&data[0];
+        }
+
+        //! Get a pointer to the actual read data. This call
+        //  will consume the data.
+        uint8_t* pop() {
+            return (uint8_t *)&data[0];
+        }
+
+        //! Write data to buffer.
+        /*!
+         * \param[in] offset    Process data offset from beginning of the buffer.
+         * \param[in] buf       Buffer with data to write to internal back buffer.
+         * \param[in] len       Length of data in buffer.
+         * \param[in] do_push   Push the buffer to set it to the actual one.
+         */
+        void write(off_t offset, uint8_t *buf, size_t len, bool do_push = true) {
+            if ((offset + len) > length)
+                throw std::exception();
+
+            std::memcpy(&data[offset], buf, len);
+        }
+
+        //! Read data from buffer.
+        /*!
+         * \param[in] offset    Process data offset from beginning of the buffer.
+         * \param[in] buf       Buffer with data to write to from internal front buffer.
+         * \param[in] len       Length of data in buffer.
+         * \param[in] do_pop    Pop the buffer and consume it.
+         */
+        void read(off_t offset, uint8_t *buf, size_t len, bool do_pop = true) {
+            if ((offset + len) > length)
+                throw std::exception();
+            
+            std::memcpy(buf, &data[offset], len);
+        }
+};
+
+//! process data management class with triple buffering
+/*!
+ * This class describe managed process data by the robotkernel. It also uses
+ * a double buffer support to ensure data consistency.
+ */
+class triple_buffer :
+    public process_data
+{
+    private:
         /*
          * front (read) buffer index    0x03
          * back (write) buffer index    0x0C
@@ -64,7 +204,7 @@ class process_data :
         static const uint8_t written_mask       = 0x80;
 
     private:
-        process_data();     //!< prevent default construction
+        triple_buffer();     //!< prevent default construction
 
     public:
         //! construction
@@ -74,10 +214,9 @@ class process_data :
          * \param name process data name
          * \param process_data_definition yaml-string representating the structure of the pd
          */
-        process_data(size_t length, std::string owner, std::string name, 
+        triple_buffer(size_t length, std::string owner, std::string name, 
                 std::string process_data_definition = "") :
-            device(owner, name, "pd"), length(length),  
-            process_data_definition(process_data_definition)
+            process_data(length, owner, name, process_data_definition)
             {
                 // initilize indices with front(0), back(1), flip(2)
                 indices.store((0x00) | (0x01 << 2) | (0x02 << 4));
@@ -86,13 +225,87 @@ class process_data :
                 data[1].resize(length);
                 data[2].resize(length);
             }
+        
+        //! Get a pointer to the a data buffer which we can write next, has to be
+        //  completed with calling \link push \endlink
+        uint8_t* next() {
+            auto& tmp_buf = back_buffer();
+            return (uint8_t *)&tmp_buf[0];
+        }
 
+        //! Get a pointer to the last written data without consuming it, 
+        //  which will be available on calling \link pop \endlink
+        uint8_t* peek() {
+            auto& tmp_buf = flip_buffer();
+            return (uint8_t *)&tmp_buf[0];
+        }
+
+        //! Get a pointer to the actual read data. This call
+        //  will consume the data.
+        uint8_t* pop() {
+            swap_front();
+
+            auto& tmp_buf = front_buffer();
+            return (uint8_t *)&tmp_buf[0];
+        }
+
+        //! Pushes write data buffer to available on calling \link next \endlink.
+        void push() {
+            swap_back();
+        }
+
+        //! Write data to buffer.
+        /*!
+         * \param[in] offset    Process data offset from beginning of the buffer.
+         * \param[in] buf       Buffer with data to write to internal back buffer.
+         * \param[in] len       Length of data in buffer.
+         * \param[in] do_push   Push the buffer to set it to the actual one.
+         */
+        void write(off_t offset, uint8_t *buf, size_t len, bool do_push = true) {
+            if ((offset + len) > length)
+                throw std::exception();
+
+            auto& tmp_buf = back_buffer();
+            std::memcpy(&tmp_buf[offset], buf, len);
+
+            if (do_push)
+                swap_back();
+        }
+
+        //! Read data from buffer.
+        /*!
+         * \param[in] offset    Process data offset from beginning of the buffer.
+         * \param[in] buf       Buffer with data to write to from internal front buffer.
+         * \param[in] len       Length of data in buffer.
+         * \param[in] do_pop    Pop the buffer and consume it.
+         */
+        void read(off_t offset, uint8_t *buf, size_t len, bool do_pop = true) {
+            if ((offset + len) > length)
+                throw std::exception();
+
+            if (do_pop) {
+                swap_front();
+
+                auto& tmp_buf = front_buffer();
+                std::memcpy(buf, &tmp_buf[offset], len);
+            } else {
+                auto& tmp_buf = flip_buffer();
+                std::memcpy(buf, &tmp_buf[offset], len);
+            }
+        }
+
+    private:
         //! return current read buffer
         const std::vector<uint8_t>& front_buffer() {
             int idx = indices.load(std::memory_order_consume) & front_buffer_mask;
             return data[idx];
         }
 
+        //! return current flip buffer
+        std::vector<uint8_t>& flip_buffer() {
+            int idx = (indices.load(std::memory_order_consume) & flip_buffer_mask) >> 4;
+            return data[idx];
+        }
         //! return current write buffer
         std::vector<uint8_t>& back_buffer() {
             int idx = (indices.load(std::memory_order_consume) & back_buffer_mask) >> 2;
@@ -128,43 +341,86 @@ class process_data :
             } while(!indices.compare_exchange_weak(old_indices, new_indices,
                         std::memory_order_release, std::memory_order_relaxed));
         }
-
-        //! Write data to back buffer.
-        /*!
-         * \param[in] buf   Buffer with data to write to internal back buffer.
-         * \param[in] len   Length of data in buffer.
-         */
-        void write(uint8_t *buf, size_t len) {
-            if (len > length)
-                throw std::exception();
-
-            auto& tmp_buf = back_buffer();
-            std::memcpy(&tmp_buf[0], buf, len);
-
-            swap_back();
-        }
-
-        //! Read data from front buffer.
-        /*!
-         * \param[in] buf   Buffer with data to write to from internal front buffer.
-         * \param[in] len   Length of data in buffer.
-         */
-        void read(uint8_t *buf, size_t len) {
-            if (len > length)
-                throw std::exception();
-
-            swap_front();
-
-            auto& tmp_buf = front_buffer();
-            std::memcpy(buf, &tmp_buf[0], len);
-        }
-
-    public:
-        const size_t length;
-        const std::string process_data_definition;
 };
 
+//! process data management class with pointer buffer
+/*!
+ * This class describe managed process data by the robotkernel. It also uses
+ * a double buffer support to ensure data consistency.
+ */
+class pointer_buffer :
+    public process_data
+{
+    private:
+        uint8_t *ptr;
+
+    private:
+        pointer_buffer();     //!< prevent default construction
+
+    public:
+        //! construction
+        /*!
+         * \param length byte length of process data
+         * \param owner name of owning module
+         * \param name process data name
+         * \param process_data_definition yaml-string representating the structure of the pd
+         */
+        pointer_buffer(size_t length, uint8_t *ptr, std::string owner, std::string name, 
+                std::string process_data_definition = "") :
+            process_data(length, owner, name, process_data_definition), ptr(ptr)
+            { }
+        
+        //! Get a pointer to the a data buffer which we can write next, has to be
+        //  completed with calling \link push \endlink
+        uint8_t* next() {
+            return ptr;
+        }
+
+        //! Get a pointer to the last written data without consuming it, 
+        //  which will be available on calling \link pop \endlink
+        uint8_t* peek() {
+            return ptr;
+        }
+
+        //! Get a pointer to the actual read data. This call
+        //  will consume the data.
+        uint8_t* pop() {
+            return ptr;
+        }
+
+        //! Write data to buffer.
+        /*!
+         * \param[in] offset    Process data offset from beginning of the buffer.
+         * \param[in] buf       Buffer with data to write to internal back buffer.
+         * \param[in] len       Length of data in buffer.
+         * \param[in] do_push   Push the buffer to set it to the actual one.
+         */
+        void write(off_t offset, uint8_t *buf, size_t len, bool do_push = true) {
+            if ((offset + len) > length)
+                throw std::exception();
+
+            std::memcpy(&ptr[offset], buf, len);
+        }
+
+        //! Read data from buffer.
+        /*!
+         * \param[in] offset    Process data offset from beginning of the buffer.
+         * \param[in] buf       Buffer with data to write to from internal front buffer.
+         * \param[in] len       Length of data in buffer.
+         * \param[in] do_pop    Pop the buffer and consume it.
+         */
+        void read(off_t offset, uint8_t *buf, size_t len, bool do_pop = true) {
+            if ((offset + len) > length)
+                throw std::exception();
+
+            std::memcpy(buf, &ptr[offset], len);
+        }
+};
+
+
 typedef std::shared_ptr<process_data> sp_process_data_t;
+typedef std::shared_ptr<single_buffer> sp_single_buffer_t;
+typedef std::shared_ptr<triple_buffer> sp_triple_buffer_t;
 typedef std::map<std::string, sp_process_data_t> process_data_map_t;
 
 #ifdef EMACS
