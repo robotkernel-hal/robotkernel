@@ -97,6 +97,12 @@ class trigger :
 
         //! trigger all modules in list
         void trigger_modules();
+
+        //! wait blocking for next trigger
+        /*!
+         * \param[in] timeout   Wait timeout in seconds.
+         */
+        void wait(double timeout);
 };
 
 typedef std::shared_ptr<trigger> sp_trigger_t;

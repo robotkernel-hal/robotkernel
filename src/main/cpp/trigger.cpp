@@ -102,6 +102,63 @@ void trigger::remove_trigger(sp_trigger_base_t trigger) {
     pthread_mutex_unlock(&list_lock);
 }
 
+//! trigger waiter class
+class trigger_waiter : 
+    public trigger_base 
+{
+    public:
+        pthread_cond_t cond;
+        pthread_mutex_t mutex;
+
+        trigger_waiter() {
+            pthread_cond_init(&cond, NULL);
+            pthread_mutex_init(&mutex, NULL);
+        }
+
+        ~trigger_waiter() {
+            pthread_cond_destroy(&cond);
+            pthread_mutex_destroy(&mutex);
+        }
+
+        void tick() {
+            pthread_cond_broadcast(&cond);
+        }
+
+        void wait(double timeout) {
+            struct timespec abstime;
+            clock_gettime(CLOCK_MONOTONIC, &abstime);
+            
+            uint64_t nsec = (uint64_t)(timeout * 1000000000) % 1000000000;
+            uint64_t sec  = timeout;
+
+            abstime.tv_nsec += nsec;
+            if (abstime.tv_nsec > 1000000000) {
+                abstime.tv_nsec -= 1000000000;
+                sec++;
+            }
+            abstime.tv_sec += sec;
+
+            int ret = pthread_cond_timedwait(&cond, &mutex, &abstime);
+            if (ret)
+                throw errno_exception("error occured waiting for trigger: ");
+        }
+};
+
+//! wait blocking for next trigger
+void trigger::wait(double timeout) {
+    std::shared_ptr<trigger_waiter> waiter = make_shared<trigger_waiter>();
+    add_trigger(waiter);
+    
+    try {
+        waiter->wait(timeout);
+    } catch (exception& e) {
+        remove_trigger(waiter);
+        throw e;
+    }
+    
+    remove_trigger(waiter);
+}
+
 //! set rate of trigger device
 /*!
  * set the rate of the current trigger
