@@ -1,7 +1,0 @@
-service
-request
-char* name
-
-response
-char* error_message
-uint64_t state

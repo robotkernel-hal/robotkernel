@@ -126,7 +126,7 @@ class trigger_waiter :
 
         void wait(double timeout) {
             struct timespec abstime;
-            clock_gettime(CLOCK_MONOTONIC, &abstime);
+            clock_gettime(CLOCK_REALTIME, &abstime);
             
             uint64_t nsec = (uint64_t)(timeout * 1000000000) % 1000000000;
             uint64_t sec  = timeout;
@@ -138,9 +138,12 @@ class trigger_waiter :
             }
             abstime.tv_sec += sec;
 
+            pthread_mutex_lock(&mutex);
             int ret = pthread_cond_timedwait(&cond, &mutex, &abstime);
+            pthread_mutex_unlock(&mutex);
+
             if (ret)
-                throw errno_exception("error occured waiting for trigger: ");
+                throw str_exception("error occured waiting for trigger: %s", strerror(ret));
         }
 };
 
@@ -151,7 +154,7 @@ void trigger::wait(double timeout) {
     
     try {
         waiter->wait(timeout);
-    } catch (exception& e) {
+    } catch (str_exception& e) {
         remove_trigger(waiter);
         throw e;
     }

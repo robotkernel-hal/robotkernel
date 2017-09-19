@@ -1,6 +1,0 @@
-service
-request
-char* mod_name
-char* state
-response
-char* error_message
