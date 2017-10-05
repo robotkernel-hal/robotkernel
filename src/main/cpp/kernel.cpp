@@ -190,6 +190,12 @@ void kernel::add_service(
         const std::string& service_definition, 
         service_callback_t callback) {
     
+    if (services.find(std::make_pair(owner, name)) != services.end()) {
+        log(warning, "SKIPPING service (already in) owner \"%s\", name \"%s\", service_definition:\n%s\n", 
+                owner.c_str(), name.c_str(), service_definition.c_str());
+        return;
+    }
+
     log(verbose, "adding service owner \"%s\", name \"%s\", service_definition:\n%s\n", 
             owner.c_str(), name.c_str(), service_definition.c_str());
 

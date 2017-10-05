@@ -150,6 +150,8 @@ class service_provider_base :
 template <class T, class S>
 inline void service_provider_base<T, S>::add_interface(sp_service_interface_t req) {
     T *handler;
+    if (handler_map.find(std::make_pair(req->owner, req->id())) != handler_map.end())
+        return; // already in our handler map ....
 
     try {
         handler = new T(req);
@@ -158,8 +160,11 @@ inline void service_provider_base<T, S>::add_interface(sp_service_interface_t re
         handler = NULL;
     }
 
-    if (handler)
+    if (handler) {
+        log(info, "got new service_interface: owner %s, id %s\n", 
+                req->owner.c_str(), req->id().c_str());
         handler_map[std::make_pair(req->owner, req->id())] = handler;
+    }
 };
 
 // remove registered slave

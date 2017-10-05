@@ -371,11 +371,11 @@ int module::set_state(module_state_t state) {
         case op_2_preop:
         case op_2_init:
         case op_2_boot:
-            set_state__check(module_state_safeop);
-
             // ====> stop sending commands
-            if (state == module_state_safeop)
+            if (state == module_state_safeop) {
+                set_state__check(module_state_safeop);
                 break;
+            }
         case safeop_2_preop:
         case safeop_2_init:
         case safeop_2_boot:
@@ -386,12 +386,12 @@ int module::set_state(module_state_t state) {
                 
                 auto t_dev = k.get_trigger(et->dev_name);
                 t_dev->remove_trigger(shared_from_this());
-            }
+            } 
             
-            set_state__check(module_state_preop);
-
-            if (state == module_state_preop)
+            if (state == module_state_preop) {
+                set_state__check(module_state_preop);
                 break;
+            }
         case preop_2_init:
         case preop_2_boot:
             // ====> deinit devices
