@@ -98,6 +98,9 @@ class process_data :
          */
         virtual void read(off_t offset, uint8_t *buf, size_t len, bool do_pop = true) = 0;
 
+        //! Returns true if new data has been written
+        virtual bool new_data() { return true; }
+
     public:
         uint64_t pd_cookie;
         const size_t length;
@@ -292,6 +295,16 @@ class triple_buffer :
                 auto& tmp_buf = flip_buffer();
                 std::memcpy(buf, &tmp_buf[offset], len);
             }
+        }
+
+        //! Returns true if new data has been written
+        bool new_data() {
+            uint8_t old_indices = indices.load(std::memory_order_consume);
+
+            if (!(old_indices & written_mask))
+                return false; // nothing new
+            
+            return true; 
         }
 
     private:
