@@ -340,12 +340,6 @@ kernel::kernel() {
 
     log(info, PACKAGE_STRING "\n");
 
-    int _major, _minor, _patch;
-    sscanf(PACKAGE_VERSION, "%d.%d.%d", &_major, &_minor, &_patch);
-    
-    log(verbose, "major %d, minor %d, patch %d\n",
-            _major, _minor, _patch);
-
 	pthread_rwlock_init(&module_map_lock, NULL);
 
     add_service(_name, "get_dump_log", service_definition_get_dump_log,
