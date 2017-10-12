@@ -371,15 +371,22 @@ kernel::~kernel() {
     log(info, "destructing...\n");
 
     log(info, "removing modules\n");
-    module_map_t::iterator it;
-    while ((it = module_map.begin()) != module_map.end()) {
-        sp_module_t mdl = it->second;
+
+    // first step: set all modules to init
+    for (const auto& kv : module_map) {
+        sp_module_t mdl = kv.second;
+    
         try {
             set_state(mdl->get_name(), module_state_init);
         } catch (const std::exception& e) {
             // ignore this on destruction
+            log(warning, "got exception from set_state: %s\n", e.what());
         }
+    }
 
+    // second step: erase module now, this will call module destructor
+    module_map_t::iterator it;
+    while ((it = module_map.begin()) != module_map.end()) {
         pthread_rwlock_wrlock(&module_map_lock);
         module_map.erase(it);
 	    pthread_rwlock_unlock(&module_map_lock);
