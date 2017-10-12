@@ -146,8 +146,9 @@ void runnable::set_affinity_mask(int mask) {
 void runnable::set_name(std::string name) {
 #ifdef HAVE_PTHREAD_SETNAME_NP
     klog(verbose, "[runnable] setting thread name to %s\n", name.c_str());
-    thread_name = name;
-    pthread_setname_np(tid, name.c_str());
+    this->thread_name = name;
+    if (running())
+        pthread_setname_np(tid, name.c_str());
 #endif
 }
 
