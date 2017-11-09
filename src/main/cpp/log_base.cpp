@@ -99,10 +99,10 @@ int log_base::service_configure_loglevel(const service_arglist_t& request,
 
 const std::string log_base::service_definition_configure_loglevel = 
 "request:\n"
-"    string: set_loglevel\n"
+"- string: set_loglevel\n"
 "response:\n"
-"    string: current_loglevel\n"
-"    string: error_message\n";
+"- string: current_loglevel\n"
+"- string: error_message\n";
 
 //! log to kernel logging facility
 void log_base::log(loglevel lvl, const char *format, ...) {

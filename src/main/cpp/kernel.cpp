@@ -886,8 +886,8 @@ int kernel::service_get_dump_log(const service_arglist_t& request,
 }
 
 const std::string kernel::service_definition_get_dump_log = 
-    "response:\n"
-    "    string: log\n";
+"response:\n"
+"- string: log\n";
 
 //! config dump log
 /*!
@@ -939,13 +939,13 @@ int kernel::service_config_dump_log(const service_arglist_t& request,
 }
 
 const std::string kernel::service_definition_config_dump_log = 
-    "request:\n"
-    "    uint32_t: max_len\n"
-    "    uint8_t: do_ust\n"
-    "    string: set_loglevel\n"
-    "response:\n"
-    "    string: current_loglevel\n"
-    "    string: error_message\n";
+"request:\n"
+"- uint32_t: max_len\n"
+"- uint8_t: do_ust\n"
+"- string: set_loglevel\n"
+"response:\n"
+"- string: current_loglevel\n"
+"- string: error_message\n";
 
 //! add module
 /*!
@@ -979,10 +979,10 @@ int kernel::service_add_module(const service_arglist_t& request,
 }
 
 const std::string kernel::service_definition_add_module = 
-    "request:\n"
-    "    string: config\n"
-    "response:\n"
-    "    string: error_message\n";
+"request:\n"
+"- string: config\n"
+"response:\n"
+"- string: error_message\n";
 
 //! remove module
 /*!
@@ -1025,10 +1025,10 @@ int kernel::service_remove_module(const service_arglist_t& request,
 }
 
 const std::string kernel::service_definition_remove_module = 
-    "request:\n"
-    "    string: mod_name\n"
-    "response:\n"
-    "    string: error_message\n";
+"request:\n"
+"- string: mod_name\n"
+"response:\n"
+"- string: error_message\n";
 
 //! module list
 /*!
@@ -1064,9 +1064,9 @@ int kernel::service_module_list(const service_arglist_t& request,
 }
 
 const std::string kernel::service_definition_module_list = 
-    "response:\n"
-    "    vector/string: modules\n"
-    "    string: error_message\n";
+"response:\n"
+"- vector/string: modules\n"
+"- string: error_message\n";
 
 //! reconfigure module
 /*!
@@ -1113,11 +1113,11 @@ int kernel::service_reconfigure_module(const service_arglist_t& request,
 }
 
 const std::string kernel::service_definition_reconfigure_module = 
-    "request:\n"
-    "    string: mod_name\n"
-    "response:\n"
-    "    uint64_t: state\n"
-    "    string: error_message\n";
+"request:\n"
+"- string: mod_name\n"
+"response:\n"
+"- uint64_t: state\n"
+"- string: error_message\n";
 
 std::string kernel::ll_to_string(loglevel ll) {
     if (ll == error)    return "ERR ";
@@ -1201,8 +1201,8 @@ int kernel::service_list_devices(const service_arglist_t &request,
 
 const std::string kernel::service_definition_list_devices = 
 "response:\n"
-"    vector/string: devices\n"
-"    string: error_message\n";
+"- vector/string: devices\n"
+"- string: error_message\n";
 
 //! process data information
 /*!
@@ -1251,12 +1251,12 @@ int kernel::service_process_data_info(const service_arglist_t &request,
 
 const std::string kernel::service_definition_process_data_info = 
 "request:\n"
-"    string: name\n"
+"- string: name\n"
 "response:\n"
-"    string: owner\n"
-"    string: definition\n"
-"    int32_t: length\n"
-"    string: error_message\n";
+"- string: owner\n"
+"- string: definition\n"
+"- int32_t: length\n"
+"- string: error_message\n";
 
 //! trigger information
 /*!
@@ -1301,11 +1301,11 @@ int kernel::service_trigger_info(const service_arglist_t &request,
 
 const std::string kernel::service_definition_trigger_info = 
 "request:\n"
-"    string: name\n"
+"- string: name\n"
 "response:\n"
-"    string: owner\n"
-"    double: rate\n"
-"    string: error_message\n";
+"- string: owner\n"
+"- double: rate\n"
+"- string: error_message\n";
 
 //! stream information
 /*!
@@ -1347,10 +1347,10 @@ int kernel::service_stream_info(const service_arglist_t &request,
 
 const std::string kernel::service_definition_stream_info = 
 "request:\n"
-"    string: name\n"
+"- string: name\n"
 "response:\n"
-"    string: owner\n"
-"    string: error_message\n";
+"- string: owner\n"
+"- string: error_message\n";
 
 //! service_interface information
 /*!
@@ -1392,9 +1392,8 @@ int kernel::service_service_interface_info(const service_arglist_t &request,
 
 const std::string kernel::service_definition_service_interface_info = 
 "request:\n"
-"    string: name\n"
+"- string: name\n"
 "response:\n"
-"    string: owner\n"
-"    string: error_message\n";
-
+"- string: owner\n"
+"- string: error_message\n";
 

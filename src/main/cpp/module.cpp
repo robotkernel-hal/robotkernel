@@ -516,10 +516,10 @@ int module::service_set_state(const service_arglist_t& request,
 }
 
 const std::string module::service_definition_set_state = 
-    "request:\n"
-    "    string: state\n"
-    "response:\n"
-    "    string: error_message\n";
+"request:\n"
+"- string: state\n"
+"response:\n"
+"- string: error_message\n";
 
 //! get module state
 /*!
@@ -552,9 +552,9 @@ int module::service_get_state(const service_arglist_t& request,
 }
 
 const std::string module::service_definition_get_state = 
-    "response:\n"
-    "    string: state\n"
-    "    string: error_message\n";
+"response:\n"
+"- string: state\n"
+"- string: error_message\n";
 
 //! get module config
 /*!
@@ -575,6 +575,6 @@ int module::service_get_config(const service_arglist_t& request,
 }
 
 const std::string module::service_definition_get_config =
-    "response:\n"
-    "    string: config\n";
+"response:\n"
+"- string: config\n";
 
