@@ -7,6 +7,8 @@ components is a challenging task. With
 has to write a bunch of simple and small configuration in
 [YAML](wp:YAML "wikilink").
 
+![Image of robotkernel-5 overview](https://rmc-github.robotic.dlr.de/robotkernel/robotkernel/blob/robotkernel-5/doc/images/rk_overview.png?style=centerme)
+
 # Components
 
 Robotkernel-5 is a program which dynamically loads other objects called 
