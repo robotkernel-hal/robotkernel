@@ -23,7 +23,7 @@ with a specific peace of hardware needs to be included here.
 
 Each robotkernel-5 module has to implement the robotkernel-5 state machine.
 
-INIT -> PREOP -> SAFEOP -> OP
+![Image of robotkernel-5 state machine](https://rmc-github.robotic.dlr.de/robotkernel/robotkernel/blob/robotkernel-5/doc/images/rk_state_machine.svg)
 
 ### Exported C-Api interface
 
