@@ -1,16 +1,49 @@
-[![BuildBot Status](http://rmc-chimaere:8010/badge.png?builder=robotkernel/robotkernel&branch=master)](http://rmc-chimaere:8010/builders/robotkernel%2Frobotkernel)
-
 # README.md for robotkernel
 
+**robotkernel-5** is an easily configurable hardware abstraction
+framework. In most robotic system assembly of robotic hardware
+components is a challenging task. With
+[robotkernel-5](robotkernel-5 "wikilink") the control engineer just 
+has to write a bunch of simple and small configuration in
+[YAML](wp:YAML "wikilink").
 
-## devices
+# Components
 
-robotkernel::device base class 
+There are different structure in the robotkernel-5 framework called
+components.
 
-all devices share a unique device_name and an owner string
+## Bridges
 
-* trigger_device
-* process_data_device
-* bridge_device
-* service_provider_device
+act as inter-process communication bridge. usefull to provide
+communication with other applications e.g. links-and-nodes.
 
+## Service Providers
+
+provide a set of common services to the user ot gain the same expiriance
+for different attached hardware.
+
+## Modules
+
+usually the implementation of a hardware component/device driver. will
+provide process data, services, ....
+
+# devices 
+
+Each **component** may use robotkernel-5 internal devices to provide data to 
+other components or to make inter-process-communication.
+
+## process data
+
+A process data device is used to provide cyclic-realtime data to other **components**.
+
+## streams
+
+Streams are usually used to supply a byte stream to other **components**
+
+## triggers
+
+A trigger is very useful, if the synchonization of different **components** is needed.
+
+# services
+
+For some kind of Remote-Procedure-Calls there are the acyclic services.
