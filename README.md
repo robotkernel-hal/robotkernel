@@ -7,6 +7,8 @@ components is a challenging task. With
 has to write a bunch of simple and small configuration in
 [YAML](wp:YAML "wikilink").
 
+![Image of robotkernel-5 overview](https://rmc-github.robotic.dlr.de/robotkernel/robotkernel/blob/robotkernel-5/doc/images/rk_overview.png?style=centerme)
+
 # Components
 
 Robotkernel-5 is a program which dynamically loads other objects called 
@@ -23,7 +25,7 @@ with a specific peace of hardware needs to be included here.
 
 Each robotkernel-5 module has to implement the robotkernel-5 state machine.
 
-![Image of robotkernel-5 state machine](https://rmc-github.robotic.dlr.de/robotkernel/robotkernel/blob/robotkernel-5/doc/images/rk_state_machine.svg)
+![Image of robotkernel-5 state machine](https://rmc-github.robotic.dlr.de/robotkernel/robotkernel/blob/robotkernel-5/doc/images/rk_state_machine.png?style=centerme)
 
 ### Exported C-Api interface
 
