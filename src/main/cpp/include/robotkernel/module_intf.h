@@ -1,6 +1,6 @@
 //! robotkernel module interface definition
 /*!
- * author: Robert Burger
+ * author: Robert Burger <robert.burger@dlr.de>
  *
  * $Id$
  */
@@ -75,77 +75,6 @@ DEFINE_STATE(op, op);
 
 typedef uint32_t transition_t;
 
-#define __MOD_REQUEST(m, r, s)          (((s) << 24) | ((m) << 16) | (r))
-#define __MOD_REQUEST_TYPE(s)           (sizeof(s))
-
-#define MOD_REQUEST_MAGIC               0x14
-#define MOD_REQUEST(x, s)               \
-    __MOD_REQUEST((MOD_REQUEST_MAGIC), (x), __MOD_REQUEST_TYPE(s))
-
-#define MOD_REQUEST_REGISTER_SERVICES   MOD_REQUEST(0x000B, void*)
-#define MOD_REQUEST_SLAVE_ID2ADDRESS    MOD_REQUEST(0x000C, int)
-
-// -----------------------------------------------------------------------------
-// get process data pointers
-//
-typedef struct process_data {
-    uint32_t slave_id; //! [in]     device slave_id
-    void *pd;          //! [in/out] process data pointer
-    size_t len;        //! [in/out] process data length
-} process_data_t;
-
-#define MOD_REQUEST_GET_PDIN            MOD_REQUEST(0x0001, process_data_t)
-#define MOD_REQUEST_GET_PDOUT           MOD_REQUEST(0x0002, process_data_t)
-#define MOD_REQUEST_GET_PD_COOKIE       MOD_REQUEST(0x000A, uint64_t *)
-#define MOD_REQUEST_GET_CMD_DELAY       MOD_REQUEST(0x0110, int32_t)
-
-// -----------------------------------------------------------------------------
-// set pd, used for double/multiple buffering of pd values
-
-//! set pd
-typedef struct set_pd {
-    uint64_t pd_cookie; //! [in]     process data cookie
-    uint32_t cnt;       //! [in]     number of indices
-    process_data_t *pd; //! [in/out] field with indices
-} set_pd_t;
-
-#define MOD_REQUEST_SET_PDIN            MOD_REQUEST(0x0003, set_pd_t)
-#define MOD_REQUEST_SET_PDOUT           MOD_REQUEST(0x0004, set_pd_t)
-
-// ----------------------------------------------------------------------------
-// trigger callbacks
-#if old
-typedef struct set_trigger_cb {
-    void (*cb)(MODULE_HANDLE hdl);
-    MODULE_HANDLE hdl;
-    int divisor;    //! rate divisor
-    int cnt;        //! rate counter
-} set_trigger_cb_t;
-typedef std::list<set_trigger_cb_t> cb_list_t;
-
-#define MOD_REQUEST_SET_TRIGGER_CB      MOD_REQUEST(0x0007, set_trigger_cb_t)
-#define MOD_REQUEST_UNSET_TRIGGER_CB    MOD_REQUEST(0x0008, set_trigger_cb_t)
-#define MOD_REQUEST_GET_CLOCKSRC_CNT    MOD_REQUEST(0x0009, int)
-#define MOD_REQUEST_GET_TRIGGER_INTERVAL  MOD_REQUEST(0x000D, double)
-#define MOD_REQUEST_SET_TRIGGER_INTERVAL  MOD_REQUEST(0x000E, double)
-#define MOD_REQUEST_TRIGGERED_BY          MOD_REQUEST(0x000F, char*)
-#define MOD_REQUEST_SHIFT_NEXT_TRIGGER    MOD_REQUEST(0x0010, double)
-#endif
-// -----------------------------------------------------------------------------------
-// module features
-// -----------------------------------------------------------------------------------
-
-static const int MODULE_FEAT_PD         = 0x00000001;
-static const int MODULE_FEAT_READ       = 0x00000004;
-static const int MODULE_FEAT_WRITE      = 0x00000008;
-static const int MODULE_FEAT_TRIGGER    = 0x00000010;
-static const int MODULE_FEAT_CANOPEN    = 0x00001000;
-static const int MODULE_FEAT_ETHERCAT   = 0x00002000;
-static const int MODULE_FEAT_SERCOS     = 0x00004000;
-
-#define MOD_REQUEST_GET_MODULE_FEAT                 MOD_REQUEST(0x2000, int)
-#define MOD_REQUEST_GET_CFG_PATH                    MOD_REQUEST(0x2001, char*)
-
 // -----------------------------------------------------------------------------------
 // module symbols
 // -----------------------------------------------------------------------------------
@@ -182,15 +111,6 @@ typedef int (*mod_set_state_t)(MODULE_HANDLE hdl, module_state_t state);
   \return current state
  */
 typedef module_state_t (*mod_get_state_t)(MODULE_HANDLE hdl);
-
-//! send a request to module
-/*!
-  \param hdl module handle
-  \param reqcode request code
-  \param ptr pointer to request structure
-  \return success or failure
- */
-typedef int (*mod_request_t)(MODULE_HANDLE hdl, int reqcode, void* ptr);
 
 //! module tick callback
 /*!
