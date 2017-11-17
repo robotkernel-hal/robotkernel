@@ -201,7 +201,6 @@ class module :
         mod_unconfigure_t       mod_unconfigure;
         mod_set_state_t         mod_set_state;
         mod_get_state_t         mod_get_state;
-        mod_request_t           mod_request;
         mod_tick_t              mod_tick;
 };
         
