@@ -87,7 +87,7 @@ def process_module(mod_fn):
         return
     seen.add(mod_fn)
     
-    local_part = os.path.join("share", "ln", mod_fn + ".inc.lnc")
+    local_part = os.path.join("${DLRRM_HOST_PLATFORM}", "share", "ln", mod_fn + ".inc.lnc")
     
     ver_or_file = cfg.__dict__.get(mod_fn, cfg.rk_version)
     if ver_or_file.startswith("optional "):
@@ -130,7 +130,7 @@ def process_module(mod_fn):
     if optional_include:
         print "optional_include %s" % pkg_base
     else:
-        print "include %s" % pkg_base
+        print "include %s" % os.path.expandvars(pkg_base)
         
 def get_so_file_base_name(node):
     if "so_file" not in node:

@@ -16,6 +16,9 @@ AC_CONFIG_HEADERS([src/main/cpp/include/robotkernel/config.h])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign silent-rules])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
+DX_INIT_DOXYGEN([robotkernel-5], [doxyfile], [doc])
+DX_HTML_FEATURE(ON)
+
 #
 # Checks for programs.
 #

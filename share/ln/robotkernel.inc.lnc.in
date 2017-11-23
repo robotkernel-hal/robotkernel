@@ -40,13 +40,11 @@ requires_version 0.2.43
 
 defines
 rk_base: %(ifndef "rk_base", "%(dirname %(dirname %(CURDIR)))")
-rk_base_type: %(ifexists "%(rk_base)/bin/robotkernel", "local_install", "rmpm_release")
 rk_this_debug: %(ifndef "rk_debug", "false")
 rk_binary_bn: %(ifeq "%(rk_this_debug)", "true", "robotkernel_debug", "robotkernel")
-rk_binary: %(ifeq "%(rk_base_type)", "local_install", "%(rk_base)/bin/%(rk_binary_bn)", "%(rk_base)/bin/$(ARCH)/%(rk_binary_bn)")
-rk_libdir: %(ifeq "%(rk_base_type)", "local_install", "%(rk_base)/lib:/volume/software/common/packages/links_and_nodes/@LN_VERSION@/lib/$(ARCH)", "%(rk_base)/lib/$(ARCH):/volume/software/common/packages/links_and_nodes/@LN_VERSION@/lib/$(ARCH)")
+rk_binary: "%(rk_base)/bin/%(rk_binary_bn)"
+rk_libdir: "%(rk_base)/lib"
 rk_term_timeout: %(ifndef "rk_term_timeout", "4")
-add_message_definition_dir: %(rk_base)/share/ln/message_definitions
 
 process %(ifndef "rk_name", "robotkernel")
 command: %(ifndef "rk_bin", "%(rk_binary)") %(ifndef "rk_arguments", "")
@@ -71,3 +69,4 @@ ifdef rk_use_template: use_template: %(rk_use_template)
 add line_highlight_regexes: " ERR "
 add line_highlight_regexes: " WARN "
 ifndef rk_no_warnings: warning_regex: " ERR "
+
