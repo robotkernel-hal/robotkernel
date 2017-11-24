@@ -1,4 +1,4 @@
-#                                               -*- Autoconf -*-
+#												-*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 #
 AC_PREREQ([2.63])
@@ -33,9 +33,9 @@ m4_ifdef([PKG_PROG_PKG_CONFIG], [PKG_PROG_PKG_CONFIG])
 m4_ifdef([PKG_INSTALLDIR], [PKG_INSTALLDIR], [pkgconfigdir='${libdir}/pkgconfig' AC_SUBST([pkgconfigdir])])
 
 AS_IF([test -e src/dump_log_tp.tp], 
-   PKG_CHECK_MODULES([LTTNG_UST], [lttng-ust], 
-  				  [AC_DEFINE([HAVE_LTTNG_UST], [1], [use lttng user space tracing])], 
-			          [AC_DEFINE([HAVE_LTTNG_UST], [0], [use lttng user space tracing])])
+	PKG_CHECK_MODULES([LTTNG_UST], [lttng-ust], 
+		[AC_DEFINE([HAVE_LTTNG_UST], [1], [use lttng user space tracing])], 
+		[AC_DEFINE([HAVE_LTTNG_UST], [0], [use lttng user space tracing])])
 )
 AM_CONDITIONAL([HAVE_LTTNG_UST], [test -n "$LTTNG_UST_LIBS"])
 
@@ -74,9 +74,7 @@ AC_CHECK_TYPES([cpu_set_t], [], [], [[#include <pthread.h>]])
 AC_CHECK_LIB(pthread, pthread_create, PTHREAD_LIBS="-lpthread")
 AC_SUBST(PTHREAD_LIBS)
 
-AC_CONFIG_FILES([Makefile src/main/cpp/Makefile robotkernel.pc])
-AC_CONFIG_FILES([share/ln/robotkernel.inc.lnc], [cp share/ln/robotkernel.inc.lnc ${ac_abs_top_srcdir}/share/ln/])
-AC_CONFIG_FILES([robotkernel.pt], [cp robotkernel.pt ${ac_abs_top_srcdir}/])
+AC_CONFIG_FILES([Makefile src/main/cpp/Makefile share/ln/robotkernel.inc.lnc robotkernel.pc])
 
 AC_OUTPUT
 
