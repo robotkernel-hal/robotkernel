@@ -35,7 +35,7 @@
 #include <robotkernel/trigger_base.h>
 
 #include <yaml-cpp/yaml.h>
-        
+
 namespace robotkernel { class module; };
 YAML::Emitter& operator<<(YAML::Emitter& out, const robotkernel::module& mdl);
 
@@ -50,10 +50,10 @@ class kernel_worker;
 /*!
   This class opens a shared module and loads all needed symbols
  */
-class module : 
-    public std::enable_shared_from_this<module>, 
-    public robotkernel::so_file, 
-    public robotkernel::trigger_base 
+class module :
+    public std::enable_shared_from_this<module>,
+    public robotkernel::so_file,
+    public robotkernel::trigger_base
 {
     private:
         module();
@@ -66,9 +66,9 @@ class module :
             private:
                 external_trigger();
                 //! prevent copy-construction
-                external_trigger(const external_trigger&);             
+                external_trigger(const external_trigger&);
                 //! prevent assignment
-                external_trigger& operator=(const external_trigger&);  
+                external_trigger& operator=(const external_trigger&);
 
             public:
                 std::string dev_name;  //! name of trigger device
@@ -140,50 +140,50 @@ class module :
         const module_state_t get_power_up();    //!< return power up state
         void add_depends(std::string other_module); //!< add new dependency
         void remove_depends(std::string other_module); //!< remove dependency
-            
+
         //! set module state
         /*!
          * \param request service request data
          * \parma response service response data
          * \return success
          */
-        int service_set_state(const service_arglist_t& request, 
+        int service_set_state(const service_arglist_t& request,
                 service_arglist_t& response);
         static const std::string service_definition_set_state;
-        
+
         //! get module state
         /*!
          * \param request service request data
          * \parma response service response data
          * \return success
          */
-        int service_get_state(const service_arglist_t& request, 
+        int service_get_state(const service_arglist_t& request,
                 service_arglist_t& response);
         static const std::string service_definition_get_state;
-        
+
         //! get module config
         /*!
          * \param request service request data
          * \parma response service response data
          * \return success
          */
-        int service_get_config(const service_arglist_t& request, 
+        int service_get_config(const service_arglist_t& request,
                 service_arglist_t& response);
         static const std::string service_definition_get_config;
-        
+
         //! get module feat
         /*!
          * \param request service request data
          * \parma response service response data
          * \return success
          */
-        int service_get_feat(const service_arglist_t& request, 
+        int service_get_feat(const service_arglist_t& request,
                 service_arglist_t& response);
         static const std::string service_definition_get_feat;
 
-        friend YAML::Emitter& (::operator<<)(YAML::Emitter& out, 
+        friend YAML::Emitter& (::operator<<)(YAML::Emitter& out,
                 const robotkernel::module& mdl);
-        
+
         depend_list_t depends;          //! module dependecy list
         trigger_list_t triggers;        //! module trigger list
 
@@ -203,12 +203,12 @@ class module :
         mod_get_state_t         mod_get_state;
         mod_tick_t              mod_tick;
 };
-        
+
 //! return module name
 inline std::string module::get_name() {
     return name;
 }
-        
+
 //! return dependency list
 inline const module::depend_list_t& module::get_depends() {
     return depends;
@@ -219,15 +219,17 @@ inline void module::add_depends(std::string other_module) {
 }
 
 inline void module::remove_depends(std::string other_module) {
-    for(depend_list_t::iterator i = depends.begin(); 
-			i != depends.end(); ) {
-		if(*i == other_module) {
-			depends.erase(i);
-			i = depends.begin();
-			continue;
-		}
-		++i;
-	}
+    for(depend_list_t::iterator i = depends.begin();
+            i != depends.end(); ) {
+
+        if(*i == other_module) {
+            depends.erase(i);
+            i = depends.begin();
+            continue;
+        }
+
+        ++i;
+    }
 }
 
 typedef std::shared_ptr<module> sp_module_t;
