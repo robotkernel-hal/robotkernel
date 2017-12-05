@@ -1,9 +1,10 @@
 //! robotkernel loglevel
 /*!
- * author: Robert Burger
- *
- * $Id$
+ * (C) Robert Burger <robert.burger@dlr.de>
  */
+
+// vim: set expandtab softtabstop=4 shiftwidth=4
+// -*- mode: c++; tab-width: 4; c-basic-offset: 4; indent-tabs-mode: nil; -*- 
 
 /*
  * This file is part of robotkernel.
@@ -22,10 +23,13 @@
  * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __LOGLEVEL_H__
-#define __LOGLEVEL_H__
+#ifndef ROBOTKERNEL__LOGLEVEL_H
+#define ROBOTKERNEL__LOGLEVEL_H
 
 namespace robotkernel {
+#ifdef EMACS
+}
+#endif
 
 enum level { 
     error   = 1,
@@ -75,7 +79,10 @@ class loglevel {
         }
 };
 
+#ifdef EMACS
+{
+#endif
 }; // namespace robotkernel
 
-#endif // __LOGLEVEL_H__
+#endif // ROBOTKERNEL__LOGLEVEL_H
 

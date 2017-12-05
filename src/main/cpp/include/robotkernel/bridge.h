@@ -1,7 +1,10 @@
 //! robotkernel bridge class
 /*!
- * author: Robert Burger
+ * (C) Robert Burger <robert.burger@dlr.de>
  */
+
+// vim: set expandtab softtabstop=4 shiftwidth=4
+// -*- mode: c++; tab-width: 4; c-basic-offset: 4; indent-tabs-mode: nil; -*- 
 
 /*
  * This file is part of robotkernel.
@@ -20,8 +23,8 @@
  * along with robotkernel.	If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __ROBOTKERNEL_BRIDGE_H__
-#define __ROBOTKERNEL_BRIDGE_H__
+#ifndef ROBOTKERNEL_BRIDGE_H
+#define ROBOTKERNEL_BRIDGE_H
 
 #include <string>
 #include <stdio.h>
@@ -42,20 +45,20 @@ namespace robotkernel {
 class bridge : public so_file {
     private:
         bridge();
-        bridge(const bridge&);			   // prevent copy-construction
-        bridge& operator=(const bridge&);  // prevent assignment
+        bridge(const bridge&);              // prevent copy-construction
+        bridge& operator=(const bridge&);   // prevent assignment
 
     public:
         //! bridge construction
         /*!
-          \param node configuration node
-          */
+         * \param[in] node  YAML node with bridge configuration.
+         */
         bridge(const YAML::Node& node);
 
         //! bridge destruction
         /*!
-          destroys bridge
-          */
+         * destroys bridge
+         */
         ~bridge();
         
         //! create and register ln service
@@ -70,14 +73,14 @@ class bridge : public so_file {
          */
         void remove_service(const robotkernel::service_t &svc);
 
-        std::string name;							//!< bridge name
+        std::string name;                                   //!< bridge name
 
     private:
-        BRIDGE_HANDLE bridge_handle;				//!< bridge handle
+        BRIDGE_HANDLE bridge_handle;                        //!< bridge handle
 
         //! bridge symbols
-        bridge_configure_t bridge_configure;		        //!< configure bridge
-        bridge_unconfigure_t bridge_unconfigure;	        //!< unconfigure bridge
+        bridge_configure_t bridge_configure;                //!< configure bridge
+        bridge_unconfigure_t bridge_unconfigure;            //!< unconfigure bridge
         bridge_add_service_t bridge_add_service;            //!< add service to bridge
         bridge_remove_service_t bridge_remove_service;      //!< remove service to bridge
 };
@@ -90,5 +93,5 @@ typedef std::map<std::string, sp_bridge_t> bridge_map_t;
 #endif
 } // namespace robotkernel
 
-#endif // __ROBOTKERNEL_BRIDGE_H__
+#endif // ROBOTKERNEL_BRIDGE_H
 

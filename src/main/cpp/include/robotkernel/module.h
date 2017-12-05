@@ -1,10 +1,10 @@
-/* -*- mode: c++; tab-width: 4; c-basic-offset: 4; indent-tabs-mode: nil; -*- */
 //! robotkernel module class
 /*!
- * author: Robert Burger
- *
- * $Id$
+ * (C) Robert Burger <robert.burger@dlr.de>
  */
+
+// vim: set expandtab softtabstop=4 shiftwidth=4
+// -*- mode: c++; tab-width: 4; c-basic-offset: 4; indent-tabs-mode: nil; -*- 
 
 /*
  * This file is part of robotkernel.
@@ -23,8 +23,8 @@
  * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __MODULE_H__
-#define __MODULE_H__
+#ifndef ROBOTKERNEL__MODULE_H
+#define ROBOTKERNEL__MODULE_H
 
 #include <string>
 #include <stdio.h>
@@ -135,11 +135,11 @@ class module :
         */
         void tick();
 
-        std::string get_name();                 //!< return module name
-        const depend_list_t& get_depends();     //!< return dependency list
-        const module_state_t get_power_up();    //!< return power up state
-        void add_depends(std::string other_module); //!< add new dependency
-        void remove_depends(std::string other_module); //!< remove dependency
+        std::string get_name();                         //!< return module name
+        const depend_list_t& get_depends();             //!< return dependency list
+        const module_state_t get_power_up();            //!< return power up state
+        void add_depends(std::string other_module);     //!< add new dependency
+        void remove_depends(std::string other_module);  //!< remove dependency
 
         //! set module state
         /*!
@@ -245,5 +245,5 @@ inline const module_state_t module::get_power_up() {
 #endif
 } // namespace robotkernel
 
-#endif // __MODULE_H__
+#endif // ROBOTKERNEL__MODULE_H
 

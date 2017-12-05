@@ -1,9 +1,10 @@
 //! robotkernel log thread
 /*!
- * author: Robert Burger
- *
- * $Id$
+ * (C) Robert Burger <robert.burger@dlr.de>
  */
+
+// vim: set expandtab softtabstop=4 shiftwidth=4
+// -*- mode: c++; tab-width: 4; c-basic-offset: 4; indent-tabs-mode: nil; -*- 
 
 /*
  * This file is part of robotkernel.
@@ -22,8 +23,8 @@
  * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __LOG_THREAD_H__
-#define __LOG_THREAD_H__
+#ifndef ROBOTKERNEL__LOG_THREAD_H
+#define ROBOTKERNEL__LOG_THREAD_H
 
 #include <string>
 #include "robotkernel/runnable.h"
@@ -33,6 +34,9 @@
 #endif
 
 namespace robotkernel {
+#ifdef EMACS
+}
+#endif
 
 //! logging thread with pool
 class log_thread : public runnable {
@@ -81,7 +85,10 @@ class log_thread : public runnable {
         std::list<struct log_pool_object *> full_pool;
 };
 
+#ifdef EMACS
+{
+#endif
 } // namespace robotkernel
 
-#endif // __LOG_THREAD_H__
+#endif // ROBOTKERNEL__LOG_THREAD_H
 

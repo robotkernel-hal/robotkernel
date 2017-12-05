@@ -1,9 +1,10 @@
 //! robotkernel module bridge definition
 /*!
- * author: Robert Burger
- *
- * $Id$
+ * (C) Robert Burger <robert.burger@dlr.de>
  */
+
+// vim: set expandtab softtabstop=4 shiftwidth=4
+// -*- mode: c++; tab-width: 4; c-basic-offset: 4; indent-tabs-mode: nil; -*- 
 
 /*
  * This file is part of robotkernel.
@@ -22,8 +23,8 @@
  * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __BRIDGE_INTF_H__
-#define __BRIDGE_INTF_H__
+#ifndef BRIDGE_INTF_H
+#define BRIDGE_INTF_H
 
 #include <unistd.h>
 #include <stdint.h>

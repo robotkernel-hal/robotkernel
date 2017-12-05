@@ -1,9 +1,10 @@
 //! robotkernel Exceptions class
 /*!
- * author: Robert Burger
- *
- * $Id$
+ * (C) Robert Burger <robert.burger@dlr.de>
  */
+
+// vim: set expandtab softtabstop=4 shiftwidth=4
+// -*- mode: c++; tab-width: 4; c-basic-offset: 4; indent-tabs-mode: nil; -*- 
 
 /*
  * This file is part of robotkernel.
@@ -22,8 +23,8 @@
  * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __EXCEPTIONS_H__
-#define __EXCEPTIONS_H__
+#ifndef ROBOTKERNEL__EXCEPTIONS_H
+#define ROBOTKERNEL__EXCEPTIONS_H
 
 #include "robotkernel/config.h"
 #include "robotkernel/module_intf.h"
@@ -42,7 +43,6 @@
 #include "string_util/string_util.h" // str_exception
 
 namespace robotkernel {
-
 
 //! exception_tracer class
 /*!
@@ -127,5 +127,5 @@ class floating_point_exception : public exception_tracer, public std::exception 
 
 }; // namespace robotkernel
 
-#endif // __EXCEPTIONS_H__
+#endif // ROBOTKERNEL__EXCEPTIONS_H
 

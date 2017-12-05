@@ -1,9 +1,10 @@
 //! robotkernel module interface definition
 /*!
- * author: Robert Burger <robert.burger@dlr.de>
- *
- * $Id$
+ * (C) Robert Burger <robert.burger@dlr.de>
  */
+
+// vim: set expandtab softtabstop=4 shiftwidth=4
+// -*- mode: c++; tab-width: 4; c-basic-offset: 4; indent-tabs-mode: nil; -*- 
 
 /*
  * This file is part of robotkernel.
@@ -22,8 +23,8 @@
  * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __MODULE_INTF_H__
-#define __MODULE_INTF_H__
+#ifndef ROBOTKERNEL__MODULE_INTF_H
+#define ROBOTKERNEL__MODULE_INTF_H
 
 #include <unistd.h>
 #include <stdint.h>
@@ -118,5 +119,5 @@ typedef module_state_t (*mod_get_state_t)(MODULE_HANDLE hdl);
  */
 typedef void (*mod_tick_t)(MODULE_HANDLE hdl);
 
-#endif // __MODULE_INTF_H__
+#endif // ROBOTKERNEL__MODULE_INTF_H
 

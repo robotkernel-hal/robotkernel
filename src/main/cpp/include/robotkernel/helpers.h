@@ -1,9 +1,10 @@
 //! robotkernel helper functions
 /*!
- * author: Robert Burger
- *
- * $Id$
+ * (C) Robert Burger <robert.burger@dlr.de>
  */
+
+// vim: set expandtab softtabstop=4 shiftwidth=4
+// -*- mode: c++; tab-width: 4; c-basic-offset: 4; indent-tabs-mode: nil; -*- 
 
 /*
  * This file is part of robotkernel.
@@ -22,8 +23,8 @@
  * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __HELPERS_H__
-#define __HELPERS_H__
+#ifndef ROBOTKERNEL__HELPERS_H
+#define ROBOTKERNEL__HELPERS_H
 
 #include <time.h>
 #include <yaml-cpp/yaml.h>
@@ -75,5 +76,5 @@ type get_as(const YAML::Node& node, const std::string key, type dflt) {
     }
 }
 
-#endif // __MODULE_H__
+#endif // ROBOTKERNEL__MODULE_H
 

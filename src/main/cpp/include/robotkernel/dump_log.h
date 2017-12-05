@@ -1,9 +1,10 @@
 //! robotkernel dump log functions
 /*!
- * author: Robert Burger
- *
- * $Id$
+ * (C) Robert Burger <robert.burger@dlr.de>
  */
+
+// vim: set expandtab softtabstop=4 shiftwidth=4
+// -*- mode: c++; tab-width: 4; c-basic-offset: 4; indent-tabs-mode: nil; -*- 
 
 /*
  * This file is part of robotkernel.
@@ -35,3 +36,4 @@ void vdump_log(const char* format, va_list nap);
 std::string dump_log_dump(bool keep=false);
 
 #endif // DUMP_LOG_H
+

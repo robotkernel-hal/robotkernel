@@ -1,7 +1,10 @@
 //! robotkernel kernel
 /*!
- * author: Robert Burger <robert.burger@dlr.de>
+ * (C) Robert Burger <robert.burger@dlr.de>
  */
+
+// vim: set expandtab softtabstop=4 shiftwidth=4
+// -*- mode: c++; tab-width: 4; c-basic-offset: 4; indent-tabs-mode: nil; -*- 
 
 /*
  * This file is part of robotkernel.
@@ -20,8 +23,8 @@
  * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __KERNEL_H__
-#define __KERNEL_H__
+#ifndef ROBOTKERNEL__KERNEL_H
+#define ROBOTKERNEL__KERNEL_H
 
 #include <string>
 #include <functional>
@@ -402,5 +405,5 @@ inline std::shared_ptr<T> kernel::get_device(const std::string& dev_name) {
 #endif
 } // namespace robotkernel
 
-#endif // __KERNEL_H__
+#endif // ROBOTKERNEL__KERNEL_H
 

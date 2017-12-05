@@ -10,10 +10,10 @@ using namespace std;
 using namespace string_util;
 
 namespace robotkernel {
-    ReferenceMap rk_type::__refs;
+    reference_map_t rk_type::__refs;
     pthread_mutex_t rk_type::__refsLock = PTHREAD_MUTEX_INITIALIZER;
 
-    std::string rk_type::toString(){
+    std::string rk_type::to_string(){
         if(__type == typeid(int8_t)){
             return format_string("%d", (int8_t) *this);
         } else if(__type == typeid(int16_t)){
@@ -45,7 +45,7 @@ namespace robotkernel {
                 if(i>0){
                     response << ", ";
                 }
-                response << v[i].toString();
+                response << v[i].to_string();
             }
             response << '}';
             return response.str();

@@ -1,7 +1,10 @@
 //! robotkernel process_data
 /*!
- * author: Robert Burger <robert.burger@dlr.de>
+ * (C) Robert Burger <robert.burger@dlr.de>
  */
+
+// vim: set expandtab softtabstop=4 shiftwidth=4
+// -*- mode: c++; tab-width: 4; c-basic-offset: 4; indent-tabs-mode: nil; -*- 
 
 /*
  * This file is part of robotkernel.
@@ -20,8 +23,8 @@
  * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __ROBOTKERNEL__PROCESS_DATA_H__
-#define __ROBOTKERNEL__PROCESS_DATA_H__
+#ifndef ROBOTKERNEL__PROCESS_DATA_H
+#define ROBOTKERNEL__PROCESS_DATA_H
 
 #include <vector>
 #include <string>
@@ -441,5 +444,5 @@ typedef std::map<std::string, sp_process_data_t> process_data_map_t;
 #endif
 } // namespace robotkernel
 
-#endif // __ROBOTKERNEL__PROCESS_DATA_H__
+#endif // ROBOTKERNEL__PROCESS_DATA_H
 

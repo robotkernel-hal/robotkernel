@@ -1,7 +1,10 @@
 //! robotkernel device base class
 /*!
- * author: Robert Burger <robert.burger@dlr.de>
+ * (C) Robert Burger <robert.burger@dlr.de>
  */
+
+// vim: set expandtab softtabstop=4 shiftwidth=4
+// -*- mode: c++; tab-width: 4; c-basic-offset: 4; indent-tabs-mode: nil; -*- 
 
 /*
  * This file is part of robotkernel.
@@ -20,8 +23,8 @@
  * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __ROBOTKERNEL__DEVICE_H__
-#define __ROBOTKERNEL__DEVICE_H__
+#ifndef ROBOTKERNEL__DEVICE_H
+#define ROBOTKERNEL__DEVICE_H
 
 namespace robotkernel {
 #ifdef EMACS
@@ -55,5 +58,5 @@ typedef std::map<std::string, sp_device_t> device_map_t;
 #endif
 } // namespace robotkernel
 
-#endif // __ROBOTKERNEL__DEVICE_H__
+#endif // ROBOTKERNEL__DEVICE_H
 

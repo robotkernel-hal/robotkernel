@@ -10,7 +10,6 @@ include_HEADERS = $(headerdir)/bridge_base.h	\
 				  $(headerdir)/bridge.h \
 				  $(headerdir)/bridge_intf.h \
 				  $(headerdir)/char_ringbuffer.h \
-				  $(headerdir)/cmd_delay.h \
 				  $(headerdir)/config.h.in \
 				  $(headerdir)/device.h \
 				  $(headerdir)/dump_log.h \
@@ -18,7 +17,6 @@ include_HEADERS = $(headerdir)/bridge_base.h	\
 				  $(headerdir)/helpers.h \
 				  $(headerdir)/interface_intf.h \
 				  $(headerdir)/kernel.h \
-				  $(headerdir)/kernel_queue.h \
 				  $(headerdir)/kernel_worker.h \
 				  $(headerdir)/log_base.h \
 				  $(headerdir)/loglevel.h \

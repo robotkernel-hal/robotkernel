@@ -1,9 +1,10 @@
 //! robotkernel module base
 /*!
- * author: Robert Burger
- *
- * $Id$
+ * (C) Robert Burger <robert.burger@dlr.de>
  */
+
+// vim: set expandtab softtabstop=4 shiftwidth=4
+// -*- mode: c++; tab-width: 4; c-basic-offset: 4; indent-tabs-mode: nil; -*- 
 
 /*
  * This file is part of robotkernel.
@@ -22,8 +23,8 @@
  * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __ROBOTKERNEL_MODULE_BASE_H__
-#define __ROBOTKERNEL_MODULE_BASE_H__
+#ifndef ROBOTKERNEL_MODULE_BASE_H
+#define ROBOTKERNEL_MODULE_BASE_H
 
 #include "robotkernel/module_intf.h"
 #include "robotkernel/kernel.h"
@@ -168,5 +169,5 @@ class module_base :
 #endif
 };
 
-#endif // __ROBOTKERNEL_MODULE_BASE_H__
+#endif // ROBOTKERNEL_MODULE_BASE_H
 
