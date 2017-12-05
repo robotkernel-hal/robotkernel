@@ -1,9 +1,10 @@
 //! robotkernel interface definition
 /*!
- * author: Robert Burger
- *
- * $Id$
+ * (C) Robert Burger <robert.burger@dlr.de>
  */
+
+// vim: set expandtab softtabstop=4 shiftwidth=4
+// -*- mode: c++; tab-width: 4; c-basic-offset: 4; indent-tabs-mode: nil; -*- 
 
 /*
  * This file is part of robotkernel.
@@ -28,44 +29,44 @@
 using namespace string_util;
 
 flolock::flolock(bool locked) {
-	this->locked = false;
-	int ret = pthread_mutex_init(&rwlock, NULL);
-	if(ret)
-		throw retval_exception_tb(ret, "pthread_mutex_init");
-	if(locked)
-		(*this)();
+    this->locked = false;
+    int ret = pthread_mutex_init(&rwlock, NULL);
+    if(ret)
+        throw retval_exception_tb(ret, "pthread_mutex_init");
+    if(locked)
+        (*this)();
 }
 
 flolock::~flolock() {
-	if(this->locked)
-		unlock();
-	pthread_mutex_destroy(&rwlock);
+    if(this->locked)
+        unlock();
+    pthread_mutex_destroy(&rwlock);
 }
 
 void flolock::operator()() {
-	int ret = pthread_mutex_lock(&rwlock);
-	if(ret)
-		throw retval_exception_tb(ret, "pthread_mutex_lock");
-	this->locked = true;
+    int ret = pthread_mutex_lock(&rwlock);
+    if(ret)
+        throw retval_exception_tb(ret, "pthread_mutex_lock");
+    this->locked = true;
 }
 
 bool flolock::trylock() {
-	if(pthread_mutex_trylock(&rwlock) == 0) {
-		this->locked = true;
-		return true;
-	}
-	return false;
-		
+    if(pthread_mutex_trylock(&rwlock) == 0) {
+        this->locked = true;
+        return true;
+    }
+    return false;
+        
 }
 
 void flolock::unlock() {
- 	this->locked = false;
-	int ret = pthread_mutex_unlock(&rwlock);
-	if(ret)
-		throw retval_exception_tb(ret, "pthread_mutex_unlock");
+    this->locked = false;
+    int ret = pthread_mutex_unlock(&rwlock);
+    if(ret)
+        throw retval_exception_tb(ret, "pthread_mutex_unlock");
 }
 
 void cleanup_unlock_mutex(void* mutex) {
-	flolock* l = (flolock*)mutex;
-	l->unlock();
+    flolock* l = (flolock*)mutex;
+    l->unlock();
 }

@@ -1,9 +1,10 @@
 //! robotkernel log thread
 /*!
- * author: Robert Burger
- *
- * $Id$
+ * (C) Robert Burger <robert.burger@dlr.de>
  */
+
+// vim: set expandtab softtabstop=4 shiftwidth=4
+// -*- mode: c++; tab-width: 4; c-basic-offset: 4; indent-tabs-mode: nil; -*- 
 
 /*
  * This file is part of robotkernel.
@@ -39,12 +40,12 @@ using namespace robotkernel;
 
 int gettid() {
 #ifdef HAVE_GETTID
-	return ::gettid();
+    return ::gettid();
 #else
 #ifdef __NR_gettid
-	return syscall( __NR_gettid );
+    return syscall( __NR_gettid );
 #else
-	return 0;
+    return 0;
 #endif
 #endif
 }
@@ -56,9 +57,6 @@ int gettid() {
 log_thread::log_thread(int pool_size) : 
     runnable(0, 0, "log_thread") 
 {
-    pthread_mutex_init(&mutex, NULL);
-    pthread_cond_init(&cond, NULL);
-
     sync_logging = false;
 
     int i;
@@ -75,7 +73,7 @@ log_thread::log_thread(int pool_size) :
 log_thread::~log_thread() {
     // stop thread
     run_flag = false; // give thread chance to exit voluntarily, without timeout
-    pthread_cond_signal(&cond);
+    cond.notify_all();
     pthread_join(tid, NULL);
 
     // clean up pools
@@ -90,10 +88,6 @@ log_thread::~log_thread() {
         empty_pool.pop_front();
         delete obj;
     }
-    
-    // destroy sync objects
-    pthread_cond_destroy(&cond);
-    pthread_mutex_destroy(&mutex);
 }
 
 //! get empty object from log pool
@@ -101,17 +95,13 @@ log_thread::~log_thread() {
  * \return empty pool object
  */
 struct log_thread::log_pool_object *log_thread::get_pool_object() {
-    log_thread::log_pool_object *obj = NULL;
-
-    pthread_mutex_lock(&mutex);
+    std::unique_lock<std::mutex> lock(mtx);
+    
     if (empty_pool.empty())
-        goto func_exit;
+        return NULL;
 
-    obj = empty_pool.front();
+    log_thread::log_pool_object *obj = empty_pool.front();
     empty_pool.pop_front();
-
-func_exit:
-    pthread_mutex_unlock(&mutex);
 
     return obj;
 }
@@ -121,37 +111,31 @@ func_exit:
  * \param obj object to print and to be returned to pool
  */
 void log_thread::log(struct log_pool_object *obj) {
-    pthread_mutex_lock(&mutex);
+    std::unique_lock<std::mutex> lock(mtx);
+    
     if(sync_logging) {
         printf("%s", obj->buf);
         empty_pool.push_back(obj);
     } else {
         full_pool.push_back(obj);
-        pthread_cond_signal(&cond);
+        cond.notify_all();
     }
-    pthread_mutex_unlock(&mutex);
 }
 
 //! handler function called if thread is running
 void log_thread::run() {
-	set_name("rk:log_thread");
+    set_name("rk:log_thread");
     klog(verbose, "log_thread started at tid %d\n", gettid());
+
+    std::unique_lock<std::mutex> lock(mtx);
     
     while (running()) {
-        struct timespec ts;
-        clock_gettime(CLOCK_REALTIME, &ts);
-        ts.tv_sec += 1;
-
-        pthread_mutex_lock(&mutex);
         // wait for trigger, this will unlock mutex
         // other threads can now safely add/remove something from _modules
-        int ret = pthread_cond_timedwait(&cond, &mutex, &ts);
-        pthread_mutex_unlock(&mutex);
-        if (ret != 0)
+        if (cond.wait_for(lock, std::chrono::seconds(1)) == std::cv_status::timeout)
             continue;
 
         while (!full_pool.empty()) {
-            pthread_mutex_lock(&mutex);
             struct log_pool_object *obj = full_pool.front();
             full_pool.pop_front();
 
@@ -189,7 +173,6 @@ void log_thread::run() {
             }
 
             empty_pool.push_back(obj);
-            pthread_mutex_unlock(&mutex);
         }
     }
 

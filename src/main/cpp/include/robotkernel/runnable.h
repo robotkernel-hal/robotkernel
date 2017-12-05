@@ -1,9 +1,10 @@
 //! robotkernel runnable
 /*!
- * author: Robert Burger
- *
- * $Id$
+ * (C) Robert Burger <robert.burger@dlr.de>
  */
+
+// vim: set expandtab softtabstop=4 shiftwidth=4
+// -*- mode: c++; tab-width: 4; c-basic-offset: 4; indent-tabs-mode: nil; -*- 
 
 /*
  * This file is part of robotkernel.
@@ -22,8 +23,8 @@
  * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __RUNNABLE_H__
-#define __RUNNABLE_H__
+#ifndef ROBOTKERNEL__RUNNABLE_H
+#define ROBOTKERNEL__RUNNABLE_H
 
 #include <string>
 
@@ -40,6 +41,9 @@
 #include <yaml-cpp/yaml.h>
 
 namespace robotkernel {
+#ifdef EMACS
+}
+#endif
 
 //! runnable base class
 /*!
@@ -110,11 +114,11 @@ class runnable {
 inline bool runnable::running() {
     return this->run_flag;
 }
-        
+
 inline const int& runnable::get_policy() const {
     return policy;
 }
-        
+
 inline const int& runnable::get_affinity_mask() const { 
     return affinity_mask; 
 };
@@ -122,12 +126,15 @@ inline const int& runnable::get_affinity_mask() const {
 inline const int& runnable::get_prio() const {
     return prio; 
 };
-        
+
 inline void runnable::set_policy(int policy) {
     this->policy = policy;
 };
 
+#ifdef EMACS
+{
+#endif
 } // namespace robotkernel
 
-#endif // __RUNNABLE_H__
+#endif // ROBOTKERNEL__RUNNABLE_H
 

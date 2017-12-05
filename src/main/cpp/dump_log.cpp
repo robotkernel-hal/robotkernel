@@ -1,9 +1,10 @@
 //! robotkernel interface definition
 /*!
- * author: Robert Burger
- *
- * $Id$
+ * (C) Robert Burger <robert.burger@dlr.de>
  */
+
+// vim: set expandtab softtabstop=4 shiftwidth=4
+// -*- mode: c++; tab-width: 4; c-basic-offset: 4; indent-tabs-mode: nil; -*- 
 
 /*
  * This file is part of robotkernel.
@@ -48,23 +49,23 @@ static unsigned int _dump_log_len = 0;
 static unsigned int _do_ust = 0;
 
 static double ts2double(struct timespec* ts) {
-	return (double)ts->tv_sec + (ts->tv_nsec / 1e9);
+    return (double)ts->tv_sec + (ts->tv_nsec / 1e9);
 }
 static double get_time() {
-	struct timespec ts;
-	clock_gettime(CLOCK_REALTIME, &ts);
-	return ts2double(&ts);
+    struct timespec ts;
+    clock_gettime(CLOCK_REALTIME, &ts);
+    return ts2double(&ts);
 }
 
 void format_time(char* ts_buffer, int ts_buffer_len) {
-	double timestamp = get_time();
-	time_t seconds = (time_t)timestamp;
-	double mseconds = (timestamp - (double)seconds) * 1e6;
-	struct tm btime;
-	localtime_r(&seconds, &btime);
-	strftime(ts_buffer, ts_buffer_len, "%Y-%m-%d %H:%M:%S", &btime);
-	int sl = strlen(ts_buffer);
-	snprintf(ts_buffer + sl, ts_buffer_len - sl, ".%06.0f", mseconds);
+    double timestamp = get_time();
+    time_t seconds = (time_t)timestamp;
+    double mseconds = (timestamp - (double)seconds) * 1e6;
+    struct tm btime;
+    localtime_r(&seconds, &btime);
+    strftime(ts_buffer, ts_buffer_len, "%Y-%m-%d %H:%M:%S", &btime);
+    int sl = strlen(ts_buffer);
+    snprintf(ts_buffer + sl, ts_buffer_len - sl, ".%06.0f", mseconds);
 }
 
 void dump_log_free() {
@@ -73,8 +74,8 @@ void dump_log_free() {
 }
 
 void dump_log_set_len(unsigned int len, unsigned int do_ust) {
-	_dump_log_len = len;
-	_do_ust = do_ust;
+    _dump_log_len = len;
+    _do_ust = do_ust;
 
         if(_dump_log_len > 0) {
             if(!_dump_log_buffer) {
@@ -86,36 +87,36 @@ void dump_log_set_len(unsigned int len, unsigned int do_ust) {
 }
 
 void dump_log(const char* format, ...) {
-	if(!_dump_log_len)
-		return;
-	va_list ap;
-	va_start(ap, format);
-	vdump_log(format, ap);
-	va_end(ap);
+    if(!_dump_log_len)
+        return;
+    va_list ap;
+    va_start(ap, format);
+    vdump_log(format, ap);
+    va_end(ap);
 }
 void vdump_log(const char* format, va_list nap) {
-	if(!_dump_log_len && !_do_ust)
-		return;
+    if(!_dump_log_len && !_do_ust)
+        return;
 
-	char msg[1024];
-	va_list ap;
-	va_copy(ap, nap);
-	vsnprintf(msg, 1024, format, ap);
-	va_end(ap);
-	
+    char msg[1024];
+    va_list ap;
+    va_copy(ap, nap);
+    vsnprintf(msg, 1024, format, ap);
+    va_end(ap);
+    
 #if (HAVE_LTTNG_UST == 1)
-	if(_do_ust) {
-		tracepoint(rk_trace, dump_log, msg);
-	}
+    if(_do_ust) {
+        tracepoint(rk_trace, dump_log, msg);
+    }
 #endif
-	
-	if(_dump_log_len && _dump_log_buffer) {
-		char ts_buffer[64];
-		// only need to have menaingful timestamp: pthread_mutex_lock(&_dump_log_mutex);
-		format_time(ts_buffer, 64);
+    
+    if(_dump_log_len && _dump_log_buffer) {
+        char ts_buffer[64];
+        // only need to have menaingful timestamp: pthread_mutex_lock(&_dump_log_mutex);
+        format_time(ts_buffer, 64);
                 _dump_log_buffer->write(string(ts_buffer) + " " + string(msg));
-		// pthread_mutex_unlock(&_dump_log_mutex);
-	}
+        // pthread_mutex_unlock(&_dump_log_mutex);
+    }
 }
 
 std::string dump_log_dump(bool keep) {

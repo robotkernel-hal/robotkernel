@@ -1,9 +1,10 @@
 //! robotkernel interface base
 /*!
- * author: Robert Burger
- *
- * $Id$
+ * (C) Robert Burger <robert.burger@dlr.de>
  */
+
+// vim: set expandtab softtabstop=4 shiftwidth=4
+// -*- mode: c++; tab-width: 4; c-basic-offset: 4; indent-tabs-mode: nil; -*- 
 
 /*
  * This file is part of robotkernel.
@@ -22,8 +23,8 @@
  * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __ROBOTKERNEL_INTERFACE_BASE_H__
-#define __ROBOTKERNEL_INTERFACE_BASE_H__
+#ifndef ROBOTKERNEL_INTERFACE_BASE_H
+#define ROBOTKERNEL_INTERFACE_BASE_H
 
 #include "robotkernel/interface_intf.h"
 #include "robotkernel/kernel.h"
@@ -47,51 +48,51 @@
 #define EXPORT_C
 #endif
 
-#define HDL_2_SERVICE_PROVIDERCLASS(hdl, spname, spclass)                                 \
-	spclass *dev = reinterpret_cast<spclass *>(hdl);                                      \
-	if (!dev)                                                                             \
-		throw string_util::str_exception("["#spname"] invalid sp "                        \
-			"handle to <"#spclass" *>\n"); 
+#define HDL_2_SERVICE_PROVIDERCLASS(hdl, spname, spclass)              \
+    spclass *dev = reinterpret_cast<spclass *>(hdl);                   \
+    if (!dev)                                                          \
+        throw string_util::str_exception("["#spname"] invalid sp "     \
+            "handle to <"#spclass" *>\n"); 
 
-#define SERVICE_PROVIDER_DEF(spname, spclass)                                             \
-EXPORT_C SERVICE_PROVIDER_HANDLE sp_register() {                                          \
-	spclass *dev = new spclass();                                                         \
-	if (!dev)                                                                             \
-		throw string_util::str_exception("error allocating memory\n");                    \
-																					      \
-	return (SERVICE_PROVIDER_HANDLE)dev;                                                  \
-}                                                                                         \
-                                                                                          \
-EXPORT_C int sp_unregister(SERVICE_PROVIDER_HANDLE hdl) {                                 \
-	HDL_2_SERVICE_PROVIDERCLASS(hdl, spname, spclass)                                     \
-	delete dev;                                                                           \
-	return 0;                                                                             \
-}                                                                                         \
-																					      \
-EXPORT_C void sp_add_interface(SERVICE_PROVIDER_HANDLE hdl,                               \
-		robotkernel::sp_service_interface_t req) {                                 \
-	HDL_2_SERVICE_PROVIDERCLASS(hdl, spname, spclass)                                     \
-	dev->add_interface(req);                                                              \
-}                                                                                         \
-                                                                                          \
-EXPORT_C void sp_remove_interface(SERVICE_PROVIDER_HANDLE hdl,                            \
-		robotkernel::sp_service_interface_t req) {                                 \
-	HDL_2_SERVICE_PROVIDERCLASS(hdl, spname, spclass)                                     \
-	dev->remove_interface(req);                                                           \
-}                                                                                         \
-                                                                                          \
-EXPORT_C void sp_remove_module(SERVICE_PROVIDER_HANDLE hdl,                               \
-		const char *mod_name) {                                                           \
-	HDL_2_SERVICE_PROVIDERCLASS(hdl, spname, spclass)                                     \
-	dev->remove_module(mod_name);                                                         \
-}                                                                                         \
-                                                                                          \
-EXPORT_C bool sp_test_interface(SERVICE_PROVIDER_HANDLE hdl,                              \
-		robotkernel::sp_service_interface_t req) {                                 \
-	HDL_2_SERVICE_PROVIDERCLASS(hdl, spname, spclass)                                     \
-	return dev->test_interface(req);                                                      \
-}                                                                                         \
-                                                                                    
+#define SERVICE_PROVIDER_DEF(spname, spclass)                          \
+EXPORT_C SERVICE_PROVIDER_HANDLE sp_register() {                       \
+    spclass *dev = new spclass();                                      \
+    if (!dev)                                                          \
+        throw string_util::str_exception("error allocating memory\n"); \
+                                                                       \
+    return (SERVICE_PROVIDER_HANDLE)dev;                               \
+}                                                                      \
+                                                                       \
+EXPORT_C int sp_unregister(SERVICE_PROVIDER_HANDLE hdl) {              \
+    HDL_2_SERVICE_PROVIDERCLASS(hdl, spname, spclass)                  \
+    delete dev;                                                        \
+    return 0;                                                          \
+}                                                                      \
+                                                                       \
+EXPORT_C void sp_add_interface(SERVICE_PROVIDER_HANDLE hdl,            \
+        robotkernel::sp_service_interface_t req) {                     \
+    HDL_2_SERVICE_PROVIDERCLASS(hdl, spname, spclass)                  \
+    dev->add_interface(req);                                           \
+}                                                                      \
+                                                                       \
+EXPORT_C void sp_remove_interface(SERVICE_PROVIDER_HANDLE hdl,         \
+        robotkernel::sp_service_interface_t req) {                     \
+    HDL_2_SERVICE_PROVIDERCLASS(hdl, spname, spclass)                  \
+    dev->remove_interface(req);                                        \
+}                                                                      \
+                                                                       \
+EXPORT_C void sp_remove_module(SERVICE_PROVIDER_HANDLE hdl,            \
+        const char *mod_name) {                                        \
+    HDL_2_SERVICE_PROVIDERCLASS(hdl, spname, spclass)                  \
+    dev->remove_module(mod_name);                                      \
+}                                                                      \
+                                                                       \
+EXPORT_C bool sp_test_interface(SERVICE_PROVIDER_HANDLE hdl,           \
+        robotkernel::sp_service_interface_t req) {                     \
+    HDL_2_SERVICE_PROVIDERCLASS(hdl, spname, spclass)                  \
+    return dev->test_interface(req);                                   \
+}                                                                      \
+
 namespace robotkernel {
 #ifdef EMACS
 }
@@ -210,5 +211,5 @@ inline bool service_provider_base<T, S>::test_interface(sp_service_interface_t r
 #endif
 }; // namespace robotkernel
 
-#endif // __ROBOTKERNEL_INTERFACE_BASE_H__
+#endif // ROBOTKERNEL_INTERFACE_BASE_H
 

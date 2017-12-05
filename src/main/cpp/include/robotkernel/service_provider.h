@@ -1,8 +1,11 @@
 //! robotkernel service_provider class
 /*!
- * author: Jan Cremer, Robert Burger
- *
+ * (C) Robert Burger <robert.burger@dlr.de>
+ * (C) Jan Cremer <jan.cremer@dlr.de>
  */
+
+// vim: set expandtab softtabstop=4 shiftwidth=4
+// -*- mode: c++; tab-width: 4; c-basic-offset: 4; indent-tabs-mode: nil; -*- 
 
 /*
  * This file is part of robotkernel.
@@ -21,8 +24,8 @@
  * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef PROJECT_SERVICE_PROVIDER_H
-#define PROJECT_SERVICE_PROVIDER_H
+#ifndef ROBOTKERNEL__SERVICE_PROVIDER_H
+#define ROBOTKERNEL__SERVICE_PROVIDER_H
 
 #include <string>
 #include "yaml-cpp/yaml.h"
@@ -61,13 +64,13 @@ class service_provider : public so_file {
 
         //! add slave
         /*!
-         * \param req slave inteface specialization         
+         * \param req slave inteface specialization
          */
         void add_interface(sp_service_interface_t req);
 
         //! remove registered slave
         /*!
-         * \param req slave inteface specialization         
+         * \param req slave inteface specialization
          */
         void remove_interface(sp_service_interface_t req);
 
@@ -105,4 +108,5 @@ typedef std::map<std::string, sp_service_provider_t> service_provider_map_t;
 #endif
 }
 
-#endif //PROJECT_SERVICE_PROVIDER_H
+#endif // ROBOTKERNEL__SERVICE_PROVIDER_H
+

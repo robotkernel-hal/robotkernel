@@ -1,9 +1,10 @@
 //! robotkernel so_file class
 /*!
- * author: Robert Burger
- *
- * $Id$
+ * (C) Robert Burger <robert.burger@dlr.de>
  */
+
+// vim: set expandtab softtabstop=4 shiftwidth=4
+// -*- mode: c++; tab-width: 4; c-basic-offset: 4; indent-tabs-mode: nil; -*- 
 
 /*
  * This file is part of robotkernel.
@@ -19,49 +20,55 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with robotkernel.	If not, see <http://www.gnu.org/licenses/>.
+ * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __ROBOTKERNEL_SO_FILE_H__
-#define __ROBOTKERNEL_SO_FILE_H__
+#ifndef ROBOTKERNEL_SO_FILE_H
+#define ROBOTKERNEL_SO_FILE_H
 
 #include <string>
 #include <stdio.h>
 #include "yaml-cpp/yaml.h"
 
 namespace robotkernel {
+#ifdef EMACS
+}
+#endif
 
-	//! so_file class
-	/*!
-	 * This class opens a shared so_file and loads all needed symbols
-	 */
-	class so_file {
-		private:
-			so_file();
-			so_file(const so_file&);				// prevent copy-construction
-			so_file& operator=(const so_file&);		// prevent assignment
+//! so_file class
+/*!
+ * This class opens a shared so_file and loads all needed symbols
+ */
+class so_file {
+    private:
+        so_file();
+        so_file(const so_file&);                // prevent copy-construction
+        so_file& operator=(const so_file&);     // prevent assignment
 
-		public:
-			//! so_file construction
-			/*!
-			 * \param node configuration node
-			 */
-			so_file(const YAML::Node& node);
+    public:
+        //! so_file construction
+        /*!
+         * \param node configuration node
+         */
+        so_file(const YAML::Node& node);
 
-			//! so_file destruction
-			/*!
-			 * destroys so_file
-			 */
-			~so_file();
+        //! so_file destruction
+        /*!
+         * destroys so_file
+         */
+        ~so_file();
 
-			std::string file_name;			//!< so_file shared object file name
-			std::string config;				//!< config passed to so_file init
+        std::string file_name;          //!< so_file shared object file name
+        std::string config;             //!< config passed to so_file init
 
-		protected:
-			void* so_handle;				//!< dlopen handle
-	};
+    protected:
+        void* so_handle;                //!< dlopen handle
+};
 
+#ifdef EMACS
+{
+#endif
 } // namespace robotkernel
 
-#endif // __ROBOTKERNEL_SO_FILE_H__
+#endif // ROBOTKERNEL_SO_FILE_H
 

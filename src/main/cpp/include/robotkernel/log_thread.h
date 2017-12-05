@@ -27,6 +27,8 @@
 #define ROBOTKERNEL__LOG_THREAD_H
 
 #include <string>
+#include <mutex>
+#include <condition_variable>
 #include "robotkernel/runnable.h"
 
 #ifdef __VXWORKS__
@@ -77,8 +79,8 @@ class log_thread : public runnable {
 
     private:
         // sync objects
-        pthread_cond_t cond;
-        pthread_mutex_t mutex;
+        std::condition_variable cond;
+        std::mutex              mtx;
 
         // log pools
         std::list<struct log_pool_object *> empty_pool;

@@ -214,15 +214,15 @@ void kernel::add_service(
  * \param[in] name      Name of service.
  */
 void kernel::remove_service(const std::string& owner, const std::string& name) {
-	service_map_t::iterator it;
-	if ((it = services.find(std::make_pair(owner, name))) == services.end())
-		return;	// service not found
+    service_map_t::iterator it;
+    if ((it = services.find(std::make_pair(owner, name))) == services.end())
+        return; // service not found
     
     for (const auto& kv : bridge_map)
         kv.second->remove_service(*(it->second));
 
-	delete it->second;
-	services.erase(it);
+    delete it->second;
+    services.erase(it);
 }
 
 //! remove all services from owner
@@ -230,11 +230,11 @@ void kernel::remove_service(const std::string& owner, const std::string& name) {
  * \param owner service owner
  */
 void kernel::remove_services(const std::string& owner) {
-	// remove all slaves from service providers
+    // remove all slaves from service providers
     for (service_provider_map_t::iterator it = service_provider_map.begin();
-			it != service_provider_map.end(); ++it) {
-		it->second->remove_module(owner);
-	}
+            it != service_provider_map.end(); ++it) {
+        it->second->remove_module(owner);
+    }
 
     for (service_map_t::iterator it = services.begin(); 
             it != services.end(); ) {
@@ -256,78 +256,6 @@ void kernel::remove_services(const std::string& owner) {
     }
 }
 
-//TODO
-#if 0
-//! add service requester
-/*!
- * \param req slave inteface specialization         
- */
-void kernel::add_service_requester(sp_service_requester_t req) {
-	for (service_requester_list_t::iterator it = service_requester_list.begin();
-		it != service_requester_list.end(); ++it) {
-		if ((*it) == req)
-			return; // already registered that slave for magic
-	}
-
-	log(verbose, "adding service requester %s:%s\n", 
-            req->owner.c_str(), req->service_prefix.c_str());
-
-    service_requester_list.push_back(req);
-
-	for (service_provider_map_t::iterator it = service_provider_map.begin();
-			it != service_provider_map.end(); ++it) {
-		it->second->add_slave(req);
-	}
-}
-
-//! remove service requester
-/*!
- * \param req slave inteface specialization         
- */
-void kernel::remove_service_requester(sp_service_requester_t req) {
-	for (service_requester_list_t::iterator it = service_requester_list.begin();
-		it != service_requester_list.end(); ++it) {
-		if ((*it) == req) {
-			// remove this one
-			sp_service_requester_t req = (*it);
-			
-			for (service_provider_map_t::iterator it2 = service_provider_map.begin();
-					it2 != service_provider_map.end(); ++it2) {
-				it2->second->remove_slave(req);
-			}
-
-			service_requester_list.erase(it);
-			return;
-		}
-	}
-}
-
-//! remove all service requester for given owner
-/*!
- * \param owner service requester owner		 
- */
-void kernel::remove_service_requester(const std::string &owner) {
-	for (service_requester_list_t::iterator it = service_requester_list.begin();
-		it != service_requester_list.end(); ) {
-
-		if ((*it)->owner != owner) {
-			it++;
-			continue;
-		}
-
-		// remove this one
-		sp_service_requester_t req = (*it);
-
-		for (service_provider_map_t::iterator it2 = service_provider_map.begin();
-				it2 != service_provider_map.end(); ++it2) {
-			it2->second->remove_module(req->owner);
-		}
-
-		it = service_requester_list.erase(it);
-	}
-}
-#endif        
-
 //! construction
 /*!
  * \param configfile config file name
@@ -338,7 +266,7 @@ kernel::kernel() {
 
     log(info, PACKAGE_STRING "\n");
 
-	pthread_rwlock_init(&module_map_lock, NULL);
+    pthread_rwlock_init(&module_map_lock, NULL);
 
     add_service(_name, "get_dump_log", service_definition_get_dump_log,
             std::bind(&kernel::service_get_dump_log, this, _1, _2));
@@ -387,7 +315,7 @@ kernel::~kernel() {
     while ((it = module_map.begin()) != module_map.end()) {
         pthread_rwlock_wrlock(&module_map_lock);
         module_map.erase(it);
-	    pthread_rwlock_unlock(&module_map_lock);
+        pthread_rwlock_unlock(&module_map_lock);
     }
     
     log(info, "removing bridges\n");
@@ -462,8 +390,8 @@ void kernel::destroy_instance() {
  * \param configfile config file name
  */
 void kernel::config(std::string config_file, int argc, char *argv[]) {
-	main_argc = argc; 
-	main_argv = argv;
+    main_argc = argc; 
+    main_argv = argv;
 
     char *real_exec_file = realpath("/proc/self/exe", NULL);
     string file;
@@ -573,21 +501,21 @@ void kernel::config(std::string config_file, int argc, char *argv[]) {
             throw str_exception("[robotkernel] module %s not configured!\n", name.c_str());
         }
 
-		pthread_rwlock_rdlock(&module_map_lock);
+        pthread_rwlock_rdlock(&module_map_lock);
 
         if (module_map.find(mdl->get_name()) != module_map.end()) {
             string name = mdl->get_name();
             throw str_exception("[robotkernel] duplicate module name: %s\n", name.c_str());
         }
-	
-		pthread_rwlock_unlock(&module_map_lock);
+    
+        pthread_rwlock_unlock(&module_map_lock);
 
         // add to module map
         klog(info, "adding [%s]\n", mdl->get_name().c_str());
         module_map[mdl->get_name()] = mdl;
     }
 
-	const YAML::Node& bridges = doc["bridges"];
+    const YAML::Node& bridges = doc["bridges"];
     for (YAML::const_iterator it = bridges.begin(); it != bridges.end(); ++it) {
         sp_bridge_t brdg;
         try {
@@ -601,7 +529,7 @@ void kernel::config(std::string config_file, int argc, char *argv[]) {
 
         if (bridge_map.find(brdg->name) != bridge_map.end()) {
             throw str_exception("[robotkernel] duplicate module name: %s\n", 
-					brdg->name.c_str());
+                    brdg->name.c_str());
         }
 
         // add to module map
@@ -611,8 +539,8 @@ void kernel::config(std::string config_file, int argc, char *argv[]) {
         for (const auto& kv : services)
             brdg->add_service(*(kv.second));
     }
-	
-	const YAML::Node& service_providers = doc["service_providers"];
+    
+    const YAML::Node& service_providers = doc["service_providers"];
     for (YAML::const_iterator it = service_providers.begin(); it != service_providers.end(); ++it) {
         sp_service_provider_t sp;
         try {
@@ -626,13 +554,13 @@ void kernel::config(std::string config_file, int argc, char *argv[]) {
 
         if (service_provider_map.find(sp->name) != service_provider_map.end()) {
             throw str_exception("[robotkernel] duplicate module name: %s\n", 
-					sp->name.c_str());
+                    sp->name.c_str());
         }
 
         // add to module map
         klog(info, "adding [%s]\n", sp->name.c_str());
         service_provider_map[sp->name] = sp;
-	
+    
         for (const auto& kv : device_map) {
             const auto& coll = std::dynamic_pointer_cast<service_interface>(kv.second);
             if (coll)
@@ -645,7 +573,7 @@ void kernel::config(std::string config_file, int argc, char *argv[]) {
 bool kernel::power_up() {
     std::list<string> failed_modules;
 
-	pthread_rwlock_rdlock(&module_map_lock);
+    pthread_rwlock_rdlock(&module_map_lock);
 
     // powering up modules to operational
     for (module_map_t::iterator it = module_map.begin();
@@ -674,8 +602,8 @@ bool kernel::power_up() {
             failed_modules.push_back(mdl->get_name());
         }
     }
-		
-	pthread_rwlock_unlock(&module_map_lock);
+        
+    pthread_rwlock_unlock(&module_map_lock);
 
     if (!failed_modules.empty()) {
         string msg = "modules failed to switch to OP: ";
@@ -695,9 +623,9 @@ bool kernel::power_up() {
 
 //! powering down modules
 void kernel::power_down() {
-	pthread_rwlock_rdlock(&module_map_lock);
+    pthread_rwlock_rdlock(&module_map_lock);
     
-	// powering up modules to operational
+    // powering up modules to operational
     for (module_map_t::iterator it = module_map.begin();
             it != module_map.end(); ++it) {
         sp_module_t mdl = it->second;
@@ -708,8 +636,8 @@ void kernel::power_down() {
             log(error, "caught exception: %s\n", e.what());
         }
     }
-	
-	pthread_rwlock_unlock(&module_map_lock);
+    
+    pthread_rwlock_unlock(&module_map_lock);
 }
 
 //! checks if all modules are at requested state
@@ -720,23 +648,23 @@ void kernel::power_down() {
  * \return true if we are in right  state
  */
 bool kernel::state_check(std::string mod_name, module_state_t state) {
-	pthread_rwlock_rdlock(&module_map_lock);
+    pthread_rwlock_rdlock(&module_map_lock);
 
     module_map_t::const_iterator it = module_map.find(mod_name);
     if (it == module_map.end()) {
-		pthread_rwlock_unlock(&module_map_lock);
+        pthread_rwlock_unlock(&module_map_lock);
         throw str_exception("[robotkernel] state_check: module %s not found!\n", mod_name.c_str());
-	}
+    }
 
     sp_module_t mdl = it->second;
-		
-	pthread_rwlock_unlock(&module_map_lock);
+        
+    pthread_rwlock_unlock(&module_map_lock);
 
     return (mdl->get_state() == state);
 }
 
 bool kernel::state_check() {
-	pthread_rwlock_rdlock(&module_map_lock);
+    pthread_rwlock_rdlock(&module_map_lock);
 
     for (auto& kv : module_map) {
         module_state_t state = kv.second->get_state();
@@ -747,7 +675,7 @@ bool kernel::state_check() {
         }
     }
 
-	pthread_rwlock_unlock(&module_map_lock);
+    pthread_rwlock_unlock(&module_map_lock);
 
     return true;
 }
@@ -758,17 +686,17 @@ bool kernel::state_check() {
  * \return shared pointer to module
  */
 sp_module_t kernel::get_module(const std::string& mod_name) {
-	pthread_rwlock_rdlock(&module_map_lock);
+    pthread_rwlock_rdlock(&module_map_lock);
 
     module_map_t::const_iterator it = module_map.find(mod_name);
     if (it == module_map.end()) {
-		pthread_rwlock_unlock(&module_map_lock);
+        pthread_rwlock_unlock(&module_map_lock);
         throw str_exception("[robotkernel] get_module: module %s not found!\n", 
                 mod_name.c_str());
-	}
+    }
 
-	sp_module_t mdl = it->second;
-	pthread_rwlock_unlock(&module_map_lock);
+    sp_module_t mdl = it->second;
+    pthread_rwlock_unlock(&module_map_lock);
 
     return mdl;
 }
@@ -998,19 +926,19 @@ int kernel::service_remove_module(const service_arglist_t& request,
     string error_message = "";
 
     try {
-		pthread_rwlock_wrlock(&module_map_lock);
+        pthread_rwlock_wrlock(&module_map_lock);
         module_map_t::iterator it = module_map.find(mod_name);
         if (it == module_map.end()) {
-			pthread_rwlock_unlock(&module_map_lock);
+            pthread_rwlock_unlock(&module_map_lock);
             throw str_exception("[robotkernel] module %s not found!\n", 
                     mod_name.c_str());
-		}
+        }
 
         sp_module_t mdl = it->second;
         set_state(mdl->get_name(), module_state_init);
 
         module_map.erase(it);
-		pthread_rwlock_unlock(&module_map_lock);
+        pthread_rwlock_unlock(&module_map_lock);
     } catch (exception& e) {
         error_message = e.what();
     }
@@ -1042,12 +970,12 @@ int kernel::service_module_list(const service_arglist_t& request,
 
     try {        
         int i = 0;
-		pthread_rwlock_rdlock(&module_map_lock);
+        pthread_rwlock_rdlock(&module_map_lock);
 
         for (const auto& kv : module_map) 
             modules.push_back(kv.first);
 
-		pthread_rwlock_unlock(&module_map_lock);
+        pthread_rwlock_unlock(&module_map_lock);
     } catch(exception& e) {
         error_message = e.what();
     }
@@ -1083,16 +1011,16 @@ int kernel::service_reconfigure_module(const service_arglist_t& request,
     string error_message = "";
 
     try {
-		pthread_rwlock_rdlock(&module_map_lock);
+        pthread_rwlock_rdlock(&module_map_lock);
         module_map_t::iterator it = module_map.find(mod_name);
         if (it == module_map.end()) {
-			pthread_rwlock_unlock(&module_map_lock);
+            pthread_rwlock_unlock(&module_map_lock);
             throw str_exception("[robotkernel] module %s not found!\n", 
                     mod_name.c_str());
-		}
+        }
 
         sp_module_t mdl = it->second;
-		pthread_rwlock_unlock(&module_map_lock);
+        pthread_rwlock_unlock(&module_map_lock);
         if (get_state(mod_name) != module_state_init)
             set_state(mdl->get_name(), module_state_init);
 

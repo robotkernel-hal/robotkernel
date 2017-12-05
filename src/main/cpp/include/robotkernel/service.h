@@ -1,9 +1,10 @@
 //! robotkernel service
 /*!
- * author: Robert Burger
- *
- * $Id$
+ * (C) Robert Burger <robert.burger@dlr.de>
  */
+
+// vim: set expandtab softtabstop=4 shiftwidth=4
+// -*- mode: c++; tab-width: 4; c-basic-offset: 4; indent-tabs-mode: nil; -*- 
 
 /*
  * This file is part of robotkernel.
@@ -22,8 +23,8 @@
  * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __SERVICE_H__
-#define __SERVICE_H__
+#ifndef ROBOTKERNEL__SERVICE_H
+#define ROBOTKERNEL__SERVICE_H
 
 #include <vector>
 #include <string>
@@ -34,20 +35,26 @@
 #include "robotkernel/rk_type.h"
 
 namespace robotkernel {
+#ifdef EMACS
+}
+#endif
 
-	typedef std::vector<rk_type> service_arglist_t;
-	typedef std::function<int(const service_arglist_t&, service_arglist_t&)> service_callback_t;
+typedef std::vector<rk_type> service_arglist_t;
+typedef std::function<int(const service_arglist_t&, service_arglist_t&)> service_callback_t;
 
-	typedef struct service {
-		std::string owner;
-		std::string name;
-		std::string service_definition;
-		service_callback_t callback;
-	} service_t;
+typedef struct service {
+    std::string owner;
+    std::string name;
+    std::string service_definition;
+    service_callback_t callback;
+} service_t;
 
-	typedef std::map<std::pair<std::string, std::string>, service_t *> service_map_t;
+typedef std::map<std::pair<std::string, std::string>, service_t *> service_map_t;
 
+#ifdef EMACS
+{
+#endif
 } // namespace robotkernel
 
-#endif // __SERVICE_H__
+#endif // ROBOTKERNEL__SERVICE_H
 

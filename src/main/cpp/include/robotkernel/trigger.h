@@ -1,7 +1,10 @@
 //! robotkernel trigger class
 /*!
- * author: Robert Burger <robert.burger@dlr.de>
+ * (C) Robert Burger <robert.burger@dlr.de>
  */
+
+// vim: set expandtab softtabstop=4 shiftwidth=4
+// -*- mode: c++; tab-width: 4; c-basic-offset: 4; indent-tabs-mode: nil; -*- 
 
 /*
  * This file is part of robotkernel.
@@ -20,8 +23,8 @@
  * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __ROBOTKERNEL__TRIGGER_H__
-#define __ROBOTKERNEL__TRIGGER_H__
+#ifndef ROBOTKERNEL__TRIGGER_H
+#define ROBOTKERNEL__TRIGGER_H
 
 #include <pthread.h>
 #include <string>
@@ -113,5 +116,5 @@ typedef std::map<std::string, sp_trigger_t> trigger_map_t;
 #endif
 } // namespace robotkernel
 
-#endif // __ROBOTKERNEL__TRIGGER_H__
+#endif // ROBOTKERNEL__TRIGGER_H
 

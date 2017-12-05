@@ -1,7 +1,11 @@
 //! robotkernel rt helpers
 /*!
- * author: Jan Cremer <jan.cremer@dlr.de>
+ * (C) Robert Burger <robert.burger@dlr.de>
+ * (C) Jan Cremer <jan.cremer@dlr.de>
  */
+
+// vim: set expandtab softtabstop=4 shiftwidth=4
+// -*- mode: c++; tab-width: 4; c-basic-offset: 4; indent-tabs-mode: nil; -*- 
 
 /*
  * This file is part of robotkernel.
@@ -50,5 +54,5 @@ void set_thread_name(const std::string& thread_name);
 #endif
 }
 
-#endif //PROJECT_RT_HELPER_H
+#endif // ROBOTKERNEL_RT_HELPER_H
 

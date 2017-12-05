@@ -1,8 +1,10 @@
 //! robotkernel service_interface class
 /*!
- * author: Robert Burger <robert.burger@dlr.de>
- *
+ * (C) Robert Burger <robert.burger@dlr.de>
  */
+
+// vim: set expandtab softtabstop=4 shiftwidth=4
+// -*- mode: c++; tab-width: 4; c-basic-offset: 4; indent-tabs-mode: nil; -*- 
 
 /*
  * This file is part of robotkernel.
@@ -21,8 +23,8 @@
  * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __ROBOTKERNEL_SERVICE_INTERFACE_H__
-#define __ROBOTKERNEL_SERVICE_INTERFACE_H__
+#ifndef ROBOTKERNEL_SERVICE_INTERFACE_H
+#define ROBOTKERNEL_SERVICE_INTERFACE_H
 
 #include <string>
 
@@ -61,5 +63,5 @@ typedef std::list<sp_service_interface_t> service_interface_list_t;
 #endif
 }
 
-#endif // __ROBOTKERNEL_SERVICE_INTERFACE_H__
+#endif // ROBOTKERNEL_SERVICE_INTERFACE_H
 

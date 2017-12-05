@@ -1,7 +1,10 @@
 //! robotkernel stream class
 /*!
- * author: Robert Burger <robert.burger@dlr.de>
+ * (C) Robert Burger <robert.burger@dlr.de>
  */
+
+// vim: set expandtab softtabstop=4 shiftwidth=4
+// -*- mode: c++; tab-width: 4; c-basic-offset: 4; indent-tabs-mode: nil; -*- 
 
 /*
  * This file is part of robotkernel.
@@ -20,8 +23,8 @@
  * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _ROBOTKERNEL__STREAM_H_
-#define _ROBOTKERNEL__STREAM_H_
+#ifndef ROBOTKERNEL__STREAM_H
+#define ROBOTKERNEL__STREAM_H
 
 #include <string>
 #include "robotkernel/device.h"
@@ -79,5 +82,5 @@ typedef std::map<std::string, sp_stream_t> stream_map_t;
 #endif
 } // namespace robotkernel
 
-#endif // _ROBOTKERNEL__STREAM_H_
+#endif // ROBOTKERNEL__STREAM_H
 
