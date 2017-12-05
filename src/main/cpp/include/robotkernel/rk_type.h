@@ -1,6 +1,7 @@
 //! robotkernel rk_type
 /*!
  * (C) Robert Burger <robert.burger@dlr.de>
+ * (C) Jan Cremer <jan.cremer@dlr.de>
  */
 
 // vim: set expandtab softtabstop=4 shiftwidth=4

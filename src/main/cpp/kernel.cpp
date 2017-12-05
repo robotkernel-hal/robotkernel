@@ -1,9 +1,10 @@
 //! robotkernel interface definition
 /*!
- * author: Robert Burger
- *
- * $Id$
+ * (C) Robert Burger <robert.burger@dlr.de>
  */
+
+// vim: set expandtab softtabstop=4 shiftwidth=4
+// -*- mode: c++; tab-width: 4; c-basic-offset: 4; indent-tabs-mode: nil; -*- 
 
 /*
  * This file is part of robotkernel.
@@ -31,7 +32,6 @@
 #include "robotkernel/helpers.h"
 #include "robotkernel/exceptions.h"
 #include "robotkernel/module_base.h"
-#include "robotkernel/cmd_delay.h"
 #include "robotkernel/bridge_base.h"
 #include "yaml-cpp/yaml.h"
 
@@ -39,8 +39,6 @@ using namespace std;
 using namespace std::placeholders;
 using namespace robotkernel;
 using namespace string_util;
-
-extern module* currently_loading_module; // in module.cpp
 
 YAML::Node tmp = YAML::Clone(YAML::Node("dieses clone steht hier damit es vom "
             "linker beim statischen linken mit eingepackt wird"));
