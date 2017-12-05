@@ -28,6 +28,8 @@
 
 #include <pthread.h>
 #include <string>
+#include <mutex>
+#include <condition_variable>
 #include "robotkernel/module_intf.h"
 #include "robotkernel/runnable.h"
 #include "robotkernel/trigger_base.h"
@@ -86,8 +88,8 @@ class trigger_worker :
     private:
         trigger_list_t triggers;
 
-        pthread_mutex_t mutex;  //!< ipc lock
-        pthread_cond_t cond;    //!< ipc condition
+        std::condition_variable cond;
+        std::mutex              mtx;
 };
         
 typedef std::shared_ptr<trigger_worker> sp_trigger_worker_t;

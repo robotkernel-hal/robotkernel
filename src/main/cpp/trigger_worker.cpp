@@ -56,12 +56,8 @@ trigger_worker::trigger_worker(int prio, int affinity_mask, int divisor) :
                 "affinity_mask_%d.divisor_%d", prio, affinity_mask, divisor)), 
     trigger_base(divisor) 
 {
-    pthread_cond_init(&cond, NULL);
-    pthread_mutex_init(&mutex, NULL);
-
     // start worker thread
     start();
-
     klog(info, "[trigger_worker] created with prio %d\n", prio);
 };
         
@@ -69,7 +65,6 @@ trigger_worker::trigger_worker(int prio, int affinity_mask, int divisor) :
 trigger_worker::~trigger_worker() {
     // stop worker thread
     stop();
-
     klog(info, "[trigger_worker] destructed\n");
 }
 
@@ -84,9 +79,8 @@ void trigger_worker::add_trigger(sp_trigger_base_t trigger) {
             throw str_exception("there was a try to register a trigger twice!");
     }
 
-    pthread_mutex_lock(&mutex);
+    std::unique_lock<std::mutex> lock(mtx);
     triggers.push_back(trigger);
-    pthread_mutex_unlock(&mutex);
 }
 
 //! remove trigger from worker
@@ -95,41 +89,33 @@ void trigger_worker::add_trigger(sp_trigger_base_t trigger) {
  */
 void trigger_worker::remove_trigger(sp_trigger_base_t trigger) {
     // remove from module list
-    pthread_mutex_lock(&mutex);
+    std::unique_lock<std::mutex> lock(mtx);
     triggers.remove(trigger);
-    pthread_mutex_unlock(&mutex);
 }
 
 //! handler function called if thread is running
 void trigger_worker::run() {
     klog(info, "[trigger_worker] running worker thread\n");
-
-    // lock mutex cause we access _modules
-    pthread_mutex_lock(&mutex);
     
-    while (running()) {
-        struct timespec ts;
-        clock_gettime(CLOCK_REALTIME, &ts);
-        ts.tv_sec++;
+    // lock mutex cause we access _modules
+    std::unique_lock<std::mutex> lock(mtx);
 
+    while (running()) {
         // wait for trigger, this will unlock mutex
         // other threads can now safely add/remove something from triggers
-        int ret = pthread_cond_timedwait(&cond, &mutex, &ts);
+        if (cond.wait_for(lock, std::chrono::seconds(1)) == std::cv_status::timeout)
+            continue;
 
         for (const auto& t : triggers)
             t->tick();
     }
         
-    // unlock mutex cause we have accessed _modules
-    pthread_mutex_unlock(&mutex);
-
     klog(info, "[trigger_worker] finished worker thread\n");
 }
 
 //! trigger worker
 void trigger_worker::tick() {
-    pthread_mutex_lock(&mutex);
-    pthread_cond_signal(&cond);
-    pthread_mutex_unlock(&mutex);
+    std::unique_lock<std::mutex> lock(mtx);
+    cond.notify_all();
 }
 
