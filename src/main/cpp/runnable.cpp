@@ -23,14 +23,6 @@
  * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#if defined (HAVE_PTHREAD_SETNAME_NP_3) || defined (HAVE_PTHREAD_SETNAME_NP_2) || defined (HAVE_PTHREAD_SETNAME_NP_1)
-#ifndef _GNU_SOURCE
-#define _GNU_SOURCE
-#endif
-#endif
-
-#include <pthread.h>
-
 #include <stdio.h>
 #include <signal.h>
 
@@ -125,6 +117,8 @@ void runnable::stop() {
  * \param prio new max prio
  */
 void runnable::set_prio(int prio) { 
+    klog(verbose, "[runnable] setting thread priority to %d\n", prio);
+
     this->prio = prio;
     if (running())
         ::set_priority(prio);
@@ -135,6 +129,7 @@ void runnable::set_prio(int prio) {
  * \param mask new cup affinity mask 
  */
 void runnable::set_affinity_mask(int mask) {
+    klog(verbose, "[runnable] setting cpu affinity mask %Xh\n", mask); 
     this->affinity_mask = mask;
     if (running())
         ::set_affinity_mask(mask);
@@ -142,11 +137,10 @@ void runnable::set_affinity_mask(int mask) {
         
 //! set thread name
 void runnable::set_name(std::string name) {
-#ifdef HAVE_PTHREAD_SETNAME_NP
     klog(verbose, "[runnable] setting thread name to %s\n", name.c_str());
+
     this->thread_name = name;
     if (running())
-        pthread_setname_np(tid, name.c_str());
-#endif
+        ::set_thread_name(tid, name);
 }
 

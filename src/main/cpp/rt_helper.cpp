@@ -67,6 +67,10 @@ void robotkernel::set_affinity_mask(int affinity_mask) {
 #endif
 }
 
+void robotkernel::set_thread_name(std::thread& tid, const std::string& thread_name) {
+    set_thread_name(tid.native_handle(), thread_name);
+}
+
 void robotkernel::set_thread_name(pthread_t tid, const std::string& thread_name) {
     char buffer[17];
     snprintf(buffer, 16, "%s", thread_name.c_str());

@@ -37,6 +37,7 @@
 #include <pthread.h>
 
 #include <string>
+#include <thread>
 
 namespace robotkernel {
 #ifdef EMACS
@@ -46,6 +47,7 @@ namespace robotkernel {
 void set_priority(int priority, int policy = SCHED_FIFO);
 void set_affinity_mask(int affinity_mask);
 
+void set_thread_name(std::thread& tid, const std::string& thread_name);
 void set_thread_name(pthread_t tid, const std::string& thread_name);
 void set_thread_name(const std::string& thread_name);
 

@@ -175,7 +175,5 @@ void log_thread::run() {
             empty_pool.push_back(obj);
         }
     }
-
-    klog(verbose, "[log_thread] stopped\n");
 }
 
