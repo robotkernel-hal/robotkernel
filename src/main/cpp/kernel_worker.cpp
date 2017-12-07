@@ -36,12 +36,8 @@ kernel_worker::kernel_worker(int prio, int affinity_mask) :
     runnable(prio, affinity_mask, format_string("kernel_worker.prio_%d."
                 "affinity_mask_%d", prio, affinity_mask))
 {
-    pthread_cond_init(&cond, NULL);
-    pthread_mutex_init(&mutex, NULL);
-
     // start worker thread
     start();
-
     klog(info, "[kernel_worker] created with prio %d\n", prio);
 };
         
@@ -49,7 +45,6 @@ kernel_worker::kernel_worker(int prio, int affinity_mask) :
 kernel_worker::~kernel_worker() {
     // stop worker thread
     stop();
-
     klog(info, "[kernel_worker] destructed\n");
 }
 
@@ -58,10 +53,10 @@ kernel_worker::~kernel_worker() {
  * \param mdl module to add
  */
 void kernel_worker::add_module(module *mdl) {
+    std::unique_lock<std::mutex> lock(mtx);
+
     // push to module list
-    pthread_mutex_lock(&mutex);
     modules.push_back(mdl);
-    pthread_mutex_unlock(&mutex);
 
     klog(info, "[kernel_worker] added module %s\n", mdl->get_name().c_str());
 }
@@ -72,10 +67,10 @@ void kernel_worker::add_module(module *mdl) {
  * \return true if worker module list is empty
  */
 bool kernel_worker::remove_module(module *mdl) {
+    std::unique_lock<std::mutex> lock(mtx);
+    
     // remove from module list
-    pthread_mutex_lock(&mutex);
     modules.remove(mdl);
-    pthread_mutex_unlock(&mutex);
     
     klog(info, "[kernel_worker] removed module %s\n", mdl->get_name().c_str());
 
@@ -87,7 +82,7 @@ void kernel_worker::run() {
     klog(info, "[kernel_worker] running worker thread\n");
 
     // lock mutex cause we access _modules
-    pthread_mutex_lock(&mutex);
+    std::unique_lock<std::mutex> lock(mtx);
     
     stringstream name;
     name << "rk:kernel_worker ";
@@ -97,26 +92,16 @@ void kernel_worker::run() {
     set_name(name.str());
 
     while (running()) {
-        struct timespec ts;
-        clock_gettime(CLOCK_REALTIME, &ts);
-        ts.tv_nsec += (long int)1E7;
-        if (ts.tv_nsec > 1E9) {
-            ts.tv_nsec = ts.tv_nsec % (long int)1E9;
-            ts.tv_sec++;
-        }
-
         // wait for trigger, this will unlock mutex
         // other threads can now safely add/remove something from _modules
-        int ret = pthread_cond_timedwait(&cond, &mutex, &ts);
+        if (cond.wait_for(lock, std::chrono::seconds(1)) == std::cv_status::timeout)
+            continue;
 
         for (module_list_t::iterator it = modules.begin();
                 it != modules.end(); ++it) {
             (*it)->tick();
         }
     }
-        
-    // unlock mutex cause we have accessed _modules
-    pthread_mutex_unlock(&mutex);
 
     klog(info, "[kernel_worker] finished worker thread\n");
 }

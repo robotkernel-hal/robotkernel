@@ -26,7 +26,6 @@
 #ifndef ROBOTKERNEL__TRIGGER_BASE_H
 #define ROBOTKERNEL__TRIGGER_BASE_H
 
-#include <pthread.h>
 #include <string>
 #include "robotkernel/module_intf.h"
 #include "robotkernel/runnable.h"

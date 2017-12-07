@@ -27,7 +27,8 @@
 #define ROBOTKERNEL__KERNEL_WORKER_H
 
 #include <string>
-#include <pthread.h>
+#include <condition_variable>
+#include <mutex>
 #include <stdio.h>
 #include <list>
 #include "robotkernel/module.h"
@@ -82,8 +83,9 @@ class kernel_worker : public runnable {
         typedef std::list<module *> module_list_t;
 
         module_list_t modules;  //!< list of module triggered by worker
-        pthread_mutex_t mutex;  //!< ipc lock
-        pthread_cond_t cond;    //!< ipc condition
+
+        std::mutex              mtx;  //!< ipc lock
+        std::condition_variable cond; //!< ipc condition
 };
 
 //! trigger callback
@@ -92,7 +94,7 @@ class kernel_worker : public runnable {
  */
 inline void kernel_worker::tick() {
     // trigger worker thread
-    pthread_cond_signal(&cond);
+    cond.notify_one();
 }
 
 #ifdef EMACS

@@ -89,15 +89,12 @@ runnable::runnable(const int prio, const int affinity_mask,
  * \param arg thread argument
  * \return NULL
  */
-void *runnable::run_wrapper(void *arg) { 
-    runnable *r = static_cast<runnable *>(arg);
-
-    ::set_thread_name(r->thread_name);
-    ::set_priority(r->prio);
-    ::set_affinity_mask(r->affinity_mask);
+void runnable::run_wrapper() { 
+    ::set_thread_name(thread_name);
+    ::set_priority(prio);
+    ::set_affinity_mask(affinity_mask);
     
-    r->run(); 
-    return NULL; 
+    run(); 
 };
         
 //! handler function called if thread is running
@@ -111,7 +108,7 @@ void runnable::start() {
         return;
     
     run_flag = true;
-    pthread_create(&tid, NULL, run_wrapper, this);
+    tid = std::thread(&runnable::run_wrapper, this);
 }
 
 //! stop thread
@@ -120,7 +117,7 @@ void runnable::stop() {
         return;
 
     run_flag = false;
-    pthread_join(tid, NULL);
+    tid.join();
 }
 
 //! set priority

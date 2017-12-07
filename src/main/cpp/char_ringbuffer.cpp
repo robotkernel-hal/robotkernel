@@ -26,47 +26,122 @@
 
 #include "robotkernel/char_ringbuffer.h"
 
-using namespace string_util;
+using namespace std;
+using namespace robotkernel;
 
-flolock::flolock(bool locked) {
-    this->locked = false;
-    int ret = pthread_mutex_init(&rwlock, NULL);
-    if(ret)
-        throw retval_exception_tb(ret, "pthread_mutex_init");
-    if(locked)
-        (*this)();
+char_ringbuffer::char_ringbuffer(unsigned int size) {
+    data = (char*) malloc(size);
+    if(!data)
+        throw errno_exception_tb("could not get char_ringbuffer of size %d bytes\n", size);
+    memset(data, 0, size);
+    this->size = size;
+    write_start = 0;
+    read_start = 0;
+    buffer_full = false;
 }
 
-flolock::~flolock() {
-    if(this->locked)
-        unlock();
-    pthread_mutex_destroy(&rwlock);
+char_ringbuffer::~char_ringbuffer() {
+    if(data)
+        free(data);
+    data = NULL;
 }
 
-void flolock::operator()() {
-    int ret = pthread_mutex_lock(&rwlock);
-    if(ret)
-        throw retval_exception_tb(ret, "pthread_mutex_lock");
-    this->locked = true;
+unsigned int char_ringbuffer::get_size() {
+    return size;
 }
 
-bool flolock::trylock() {
-    if(pthread_mutex_trylock(&rwlock) == 0) {
-        this->locked = true;
-        return true;
+void char_ringbuffer::set_size(unsigned int new_size) {
+    std::unique_lock<std::mutex> lock(mtx);
+
+    void* new_mem = realloc(data, new_size);
+    if(new_mem) {
+        data = (char*)new_mem;
+        size = new_size;
+        memset(data, 0, size);
+        write_start = 0;
+        read_start = 0;
+        buffer_full = false;
     }
-    return false;
-        
 }
 
-void flolock::unlock() {
-    this->locked = false;
-    int ret = pthread_mutex_unlock(&rwlock);
-    if(ret)
-        throw retval_exception_tb(ret, "pthread_mutex_unlock");
+void char_ringbuffer::write(string data) {
+    const char* new_data = data.c_str();
+    int n = data.size();
+
+    std::unique_lock<std::mutex> lock(mtx);
+
+    while((write_start + n) >= size) {
+        buffer_full = true;
+
+        unsigned int first_write = size - write_start;
+        // printf("write at first only %d bytes: '%*.*s'\n", first_write, first_write, first_write, new_data);
+        memcpy(this->data + write_start, new_data, first_write);
+        new_data += first_write;
+        n -= first_write;
+        if(read_start > write_start) {
+            // printf("set read_start to 0\n");
+            read_start = 0;
+        }
+        write_start = 0;
+    }
+    if(n) {
+        //printf("write at last %d bytes: '%*.*s'\n", n, n, n, new_data);
+        memcpy(this->data + write_start, new_data, n);
+        if(buffer_full && write_start == read_start) {
+            //printf("increment read_start by %d\n", n);
+            read_start += n;
+        } else if(read_start > write_start && write_start + n > read_start) {
+            //printf("set read start to new write_start!\n");
+            read_start = write_start + n;
+        }
+        write_start += n;
+    }
 }
 
-void cleanup_unlock_mutex(void* mutex) {
-    flolock* l = (flolock*)mutex;
-    l->unlock();
+#ifdef DEBUG
+void char_ringbuffer::debug() {
+    printf("write_start: %d\nread_start: %d\nbuffer_full: %d\n", write_start, read_start, buffer_full);
+    printf("contents:\n");
+    for(unsigned int i = 0; i < size; i++) {
+        printf("%c", isprint(data[i]) ? data[i] : '.');
+    }
+    printf("\n");
+    printf("get: %s\n\n", repr(get(true)).c_str());
 }
+#endif
+
+string char_ringbuffer::get(bool keep) {
+    stringstream ss;
+    unsigned int this_read_start;
+
+    std::unique_lock<std::mutex> lock(mtx);
+
+    this_read_start = read_start;
+
+    if(buffer_full) {
+        ss << string(data + read_start, size - this_read_start);
+        this_read_start = 0;
+    }
+    ss << string(data + this_read_start, write_start - this_read_start);
+    if(!keep) {
+        read_start = write_start;
+        buffer_full = false;
+    }
+
+    return ss.str();
+}
+
+bool char_ringbuffer::has_data() {
+    return read_start != write_start || buffer_full;
+}
+unsigned int char_ringbuffer::get_data_len() {
+    unsigned int s = 0;
+    unsigned int rs = read_start;
+    if(buffer_full) {
+        s = size - read_start;
+        rs = 0;
+    }
+    s += write_start - rs;
+    return s;
+}
+

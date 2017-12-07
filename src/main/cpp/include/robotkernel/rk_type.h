@@ -30,7 +30,8 @@
 #include <functional>
 #include <typeindex>
 #include <map>
-#include <pthread.h>
+#include <mutex>
+
 #include "string_util/string_util.h"
 
 namespace robotkernel {
@@ -46,7 +47,7 @@ class rk_type {
             friend T rk_type_cast(rk_type &);
 
         static reference_map_t __refs;
-        static pthread_mutex_t __refsLock;
+        static std::mutex      __refsLock;
 
         std::type_index __type;     //!< data type for type conversions
         uint8_t *__value;           //!< data storage pointer
@@ -55,28 +56,30 @@ class rk_type {
             if (!ref) {
                 return;
             }
-            pthread_mutex_lock(&__refsLock);
+
+            std::unique_lock<std::mutex> lock(__refsLock);
+
             if (__refs[ref] <= 1) {
                 __refs.erase(ref);
                 delete ref;
             } else {
                 __refs[ref] = __refs[ref] - 1;
             }
-            pthread_mutex_unlock(&__refsLock);
         }
 
         void increase_reference(uint8_t *ref) {
             if (!ref) {
                 return;
             }
-            pthread_mutex_lock(&__refsLock);
+            
+            std::unique_lock<std::mutex> lock(__refsLock);
+
             reference_map_t::iterator r = __refs.find(ref);
             if (r == __refs.end()) {
                 __refs[ref] = 1;
             } else {
                 r->second++;
             }
-            pthread_mutex_unlock(&__refsLock);
         }
 
         void set_value(uint8_t *value) {

@@ -33,7 +33,6 @@ using namespace string_util;
 
 namespace robotkernel {
     reference_map_t rk_type::__refs;
-    pthread_mutex_t rk_type::__refsLock = PTHREAD_MUTEX_INITIALIZER;
 
     std::string rk_type::to_string(){
         if(__type == typeid(int8_t)){

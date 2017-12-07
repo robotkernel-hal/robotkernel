@@ -26,8 +26,8 @@
 #ifndef ROBOTKERNEL__TRIGGER_H
 #define ROBOTKERNEL__TRIGGER_H
 
-#include <pthread.h>
 #include <string>
+#include <mutex>
 #include "robotkernel/module_intf.h"
 #include "robotkernel/runnable.h"
 #include "robotkernel/device.h"
@@ -46,7 +46,7 @@ class trigger :
         trigger(const trigger&);                // prevent copy-construction
         trigger& operator=(const trigger&);     // prevent assignment
 
-        pthread_mutex_t list_lock;              //!< protection for trigger list
+        std::mutex list_mtx;                    //!< protection for trigger list
         trigger_list_t triggers;                //!< trigger callback list
         trigger_workers_t workers;              //!< workers
 

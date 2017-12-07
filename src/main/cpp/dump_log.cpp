@@ -29,7 +29,6 @@
 #include <string.h>
 #include <time.h>
 #include <sstream>
-#include <pthread.h>
 
 #include <list>
 
@@ -42,8 +41,8 @@
 #include "robotkernel/char_ringbuffer.h"
 
 using namespace std;
+using namespace robotkernel;
 
-//static pthread_mutex_t _dump_log_mutex = PTHREAD_MUTEX_INITIALIZER;
 static char_ringbuffer* _dump_log_buffer = NULL;
 static unsigned int _dump_log_len = 0;
 static unsigned int _do_ust = 0;
@@ -112,10 +111,8 @@ void vdump_log(const char* format, va_list nap) {
     
     if(_dump_log_len && _dump_log_buffer) {
         char ts_buffer[64];
-        // only need to have menaingful timestamp: pthread_mutex_lock(&_dump_log_mutex);
         format_time(ts_buffer, 64);
                 _dump_log_buffer->write(string(ts_buffer) + " " + string(msg));
-        // pthread_mutex_unlock(&_dump_log_mutex);
     }
 }
 

@@ -37,6 +37,7 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <list>
+#include <thread>
 
 #include <yaml-cpp/yaml.h>
 
@@ -51,12 +52,10 @@ namespace robotkernel {
  */
 class runnable {
     private:
-        //! run wrapper to create posix thread
+        //! run wrapper to create thread
         /*!
-         * \param arg thread argument
-         * \return NULL
          */
-        static void *run_wrapper(void *arg);
+        void run_wrapper();
 
         runnable(const runnable&);             // prevent copy-construction
         runnable& operator=(const runnable&);  // prevent assignment
@@ -69,7 +68,7 @@ class runnable {
     protected:
         std::string thread_name;    //!< thread name used to set threads name with pthread_setname_np
 
-        pthread_t tid;              //!< posix thread handle
+        std::thread tid;            //!< thread handle
         bool run_flag;              //!< running flag
 
     public:

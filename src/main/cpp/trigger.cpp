@@ -29,6 +29,8 @@
 
 #include "string_util/string_util.h"
 
+#include <condition_variable>
+
 using namespace std;
 using namespace robotkernel;
 using namespace string_util;
@@ -37,16 +39,14 @@ using namespace string_util;
 trigger::trigger(const std::string& owner, const std::string& name, double rate) 
     : device(owner, name, "trigger"), rate(rate)
 {
-    pthread_mutex_init(&list_lock, NULL);
 }
 
 //! destruction
 trigger::~trigger() {
-    pthread_mutex_destroy(&list_lock);
-
-    pthread_mutex_lock(&list_lock);
-    triggers.clear();
-    pthread_mutex_unlock(&list_lock);
+    {
+        std::unique_lock<std::mutex> lock(list_mtx);
+        triggers.clear();
+    }
 
     for (auto& kv : workers) {
         kv.second.reset();
@@ -63,11 +63,11 @@ void trigger::add_trigger(sp_trigger_base_t trigger,
         bool direct_mode, int worker_prio, int worker_affinity) {
     trigger_worker::worker_key k = { worker_prio, worker_affinity, trigger->divisor };
 
-    pthread_mutex_lock(&list_lock);
+    std::unique_lock<std::mutex> lock(list_mtx);
 
     if (direct_mode) {
         triggers.push_back(trigger);
-        goto func_exit;
+        return;
     }
 
     if (workers.find(k) == workers.end()) {
@@ -77,9 +77,6 @@ void trigger::add_trigger(sp_trigger_base_t trigger,
     }
 
     workers[k]->add_trigger(trigger);
-    
-func_exit:
-    pthread_mutex_unlock(&list_lock);
 }
 
 //! remove a trigger callback function
@@ -87,7 +84,7 @@ func_exit:
  * \param obj trigger object to trigger callback
  */
 void trigger::remove_trigger(sp_trigger_base_t trigger) {
-    pthread_mutex_lock(&list_lock);
+    std::unique_lock<std::mutex> lock(list_mtx);
 
     triggers.remove(trigger);
 
@@ -101,8 +98,6 @@ void trigger::remove_trigger(sp_trigger_base_t trigger) {
             workers.erase(act_it);
         }
     }
-
-    pthread_mutex_unlock(&list_lock);
 }
 
 //! trigger waiter class
@@ -110,43 +105,23 @@ class trigger_waiter :
     public trigger_base 
 {
     public:
-        pthread_cond_t cond;
-        pthread_mutex_t mutex;
+        std::condition_variable cond;
+        std::mutex              mtx;
 
-        trigger_waiter() {
-            pthread_cond_init(&cond, NULL);
-            pthread_mutex_init(&mutex, NULL);
-        }
+        trigger_waiter() { }
 
-        ~trigger_waiter() {
-            pthread_cond_destroy(&cond);
-            pthread_mutex_destroy(&mutex);
-        }
+        ~trigger_waiter() { }
 
         void tick() {
-            pthread_cond_broadcast(&cond);
+            cond.notify_all();
         }
 
         void wait(double timeout) {
-            struct timespec abstime;
-            clock_gettime(CLOCK_REALTIME, &abstime);
-            
-            uint64_t nsec = (uint64_t)(timeout * 1000000000) % 1000000000;
-            uint64_t sec  = timeout;
+            std::unique_lock<std::mutex> lock(mtx);
 
-            abstime.tv_nsec += nsec;
-            if (abstime.tv_nsec > 1000000000) {
-                abstime.tv_nsec -= 1000000000;
-                sec++;
-            }
-            abstime.tv_sec += sec;
-
-            pthread_mutex_lock(&mutex);
-            int ret = pthread_cond_timedwait(&cond, &mutex, &abstime);
-            pthread_mutex_unlock(&mutex);
-
-            if (ret)
-                throw str_exception("error occured waiting for trigger: %s", strerror(ret));
+            if (cond.wait_for(lock, std::chrono::nanoseconds(
+                            (uint64_t)(timeout * 1000000000))) == std::cv_status::timeout)
+                throw str_exception("timeout waiting for trigger");
         }
 };
 
@@ -178,7 +153,8 @@ void trigger::set_rate(double new_rate) {
 
 //! trigger all modules in list
 void trigger::trigger_modules() {
-    pthread_mutex_lock(&list_lock);
+    std::unique_lock<std::mutex> lock(list_mtx);
+
     for (auto& t : triggers) {
         if (((++t->cnt) % t->divisor) == 0) {
             t->cnt = 0;
@@ -186,7 +162,5 @@ void trigger::trigger_modules() {
             t->tick();
         }
     }
-
-    pthread_mutex_unlock(&list_lock);
 }
 

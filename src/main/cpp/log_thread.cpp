@@ -74,7 +74,7 @@ log_thread::~log_thread() {
     // stop thread
     run_flag = false; // give thread chance to exit voluntarily, without timeout
     cond.notify_all();
-    pthread_join(tid, NULL);
+    tid.join();
 
     // clean up pools
     while (!full_pool.empty()) {

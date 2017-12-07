@@ -26,7 +26,6 @@
 #ifndef ROBOTKERNEL__TRIGGER_WORKER_H
 #define ROBOTKERNEL__TRIGGER_WORKER_H
 
-#include <pthread.h>
 #include <string>
 #include <mutex>
 #include <condition_variable>
