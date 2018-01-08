@@ -334,7 +334,7 @@ module::~module() {
         mod_handle = NULL;
     }
 
-	kernel::get_instance()->remove_devices(name);
+    kernel::get_instance()->remove_devices(name);
     kernel::get_instance()->remove_services(name);
 }
 

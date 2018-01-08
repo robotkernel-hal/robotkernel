@@ -20,7 +20,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with robotkernel.	If not, see <http://www.gnu.org/licenses/>.
+ * along with robotkernel. If not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifndef ROBOTKERNEL_BRIDGE_H
