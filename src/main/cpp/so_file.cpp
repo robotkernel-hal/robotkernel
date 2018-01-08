@@ -26,6 +26,7 @@
 #include "robotkernel/kernel.h"
 #include "robotkernel/so_file.h"
 #include "robotkernel/helpers.h"
+#include "robotkernel/config.h"
 
 #include "string_util/string_util.h"
 

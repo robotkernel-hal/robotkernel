@@ -24,9 +24,32 @@
  */
 
 #include "robotkernel/exceptions.h"
+#include "robotkernel/config.h"
+
+#ifdef HAVE_EXECINFO_H
+#include <execinfo.h>
+#endif
 
 using namespace std;
 using namespace robotkernel;
+
+exception_tracer::exception_tracer() {
+#ifdef HAVE_EXECINFO_H 
+    std::stringstream buffer;
+
+    void * array[25];
+    int nSize = backtrace(array, 25);
+    char ** symbols = backtrace_symbols(array, nSize);
+
+    for (int i = 0; i < nSize; i++)
+        buffer << symbols[i] << std::endl;
+
+    free(symbols);
+    _backtrace = buffer.str();
+#else
+    _backtrace = "backtrace is not supported";
+#endif
+}
 
 //signal_translator<segmentation_fault_exception> g_obj_segmentation_fault_exception_translator;
 //signal_translator<floating_point_exception>     g_obj_floating_point_exception_translator;

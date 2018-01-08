@@ -26,14 +26,10 @@
 #ifndef ROBOTKERNEL__EXCEPTIONS_H
 #define ROBOTKERNEL__EXCEPTIONS_H
 
-#include "robotkernel/config.h"
 #include "robotkernel/module_intf.h"
 #include <exception>
 #include <iostream>
 #include <sstream>
-#ifdef HAVE_EXECINFO_H
-#include <execinfo.h>
-#endif
 #include <signal.h>
 #include <stdlib.h>
 #include <string.h>
@@ -50,23 +46,7 @@ namespace robotkernel {
  */
 class exception_tracer {
     public:
-        exception_tracer() {
-#ifdef HAVE_EXECINFO_H 
-            std::stringstream buffer;
-
-            void * array[25];
-            int nSize = backtrace(array, 25);
-            char ** symbols = backtrace_symbols(array, nSize);
-
-            for (int i = 0; i < nSize; i++)
-                buffer << symbols[i] << std::endl;
-
-            free(symbols);
-            _backtrace = buffer.str();
-#else
-            _backtrace = "backtrace is not supported";
-#endif
-        }
+        exception_tracer();
 
         std::string _backtrace;
 };

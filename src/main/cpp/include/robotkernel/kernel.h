@@ -65,7 +65,7 @@ class kernel {
         bridge_map_t                bridge_map;                 //!< bridges map
         service_provider_map_t      service_provider_map;       //!< service_providers map
         module_map_t                module_map;                 //!< modules map
-        std::mutex                  module_map_mtx;             //!< module map lock
+        std::recursive_mutex        module_map_mtx;             //!< module map lock
         service_map_t               services;                   //!< service list
 
         device_map_t device_map;

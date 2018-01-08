@@ -33,6 +33,7 @@
 #include "robotkernel/exceptions.h"
 #include "robotkernel/module_base.h"
 #include "robotkernel/bridge_base.h"
+#include "robotkernel/config.h"
 #include "yaml-cpp/yaml.h"
 
 using namespace std;
@@ -311,7 +312,7 @@ kernel::~kernel() {
     // second step: erase module now, this will call module destructor
     module_map_t::iterator it;
     while ((it = module_map.begin()) != module_map.end()) {
-        std::unique_lock<std::mutex> lock(module_map_mtx);
+        std::unique_lock<std::recursive_mutex> lock(module_map_mtx);
         module_map.erase(it);
     }
     
@@ -497,7 +498,7 @@ void kernel::config(std::string config_file, int argc, char *argv[]) {
         }
 
         {
-            std::unique_lock<std::mutex> lock(module_map_mtx);
+            std::unique_lock<std::recursive_mutex> lock(module_map_mtx);
 
             if (module_map.find(mdl->get_name()) != module_map.end()) {
                 string name = mdl->get_name();
@@ -566,7 +567,7 @@ void kernel::config(std::string config_file, int argc, char *argv[]) {
 
 //! powering up modules
 bool kernel::power_up() {
-    std::unique_lock<std::mutex> lock(module_map_mtx);
+    std::unique_lock<std::recursive_mutex> lock(module_map_mtx);
     std::list<string> failed_modules;
 
     // powering up modules to operational
@@ -615,7 +616,7 @@ bool kernel::power_up() {
 
 //! powering down modules
 void kernel::power_down() {
-    std::unique_lock<std::mutex> lock(module_map_mtx);
+    std::unique_lock<std::recursive_mutex> lock(module_map_mtx);
     
     // powering up modules to operational
     for (module_map_t::iterator it = module_map.begin();
@@ -638,7 +639,7 @@ void kernel::power_down() {
  * \return true if we are in right  state
  */
 bool kernel::state_check(std::string mod_name, module_state_t state) {
-    std::unique_lock<std::mutex> lock(module_map_mtx);
+    std::unique_lock<std::recursive_mutex> lock(module_map_mtx);
 
     module_map_t::const_iterator it = module_map.find(mod_name);
     if (it == module_map.end())
@@ -649,7 +650,7 @@ bool kernel::state_check(std::string mod_name, module_state_t state) {
 }
 
 bool kernel::state_check() {
-    std::unique_lock<std::mutex> lock(module_map_mtx);
+    std::unique_lock<std::recursive_mutex> lock(module_map_mtx);
 
     for (auto& kv : module_map) {
         module_state_t state = kv.second->get_state();
@@ -669,7 +670,7 @@ bool kernel::state_check() {
  * \return shared pointer to module
  */
 sp_module_t kernel::get_module(const std::string& mod_name) {
-    std::unique_lock<std::mutex> lock(module_map_mtx);
+    std::unique_lock<std::recursive_mutex> lock(module_map_mtx);
 
     module_map_t::const_iterator it = module_map.find(mod_name);
     if (it == module_map.end())
@@ -904,7 +905,7 @@ int kernel::service_remove_module(const service_arglist_t& request,
     string error_message = "";
 
     try {
-        std::unique_lock<std::mutex> lock(module_map_mtx);
+        std::unique_lock<std::recursive_mutex> lock(module_map_mtx);
         module_map_t::iterator it = module_map.find(mod_name);
         if (it == module_map.end())
             throw str_exception("[robotkernel] module %s not found!\n", 
@@ -944,7 +945,7 @@ int kernel::service_module_list(const service_arglist_t& request,
     string error_message = "";
 
     try {        
-        std::unique_lock<std::mutex> lock(module_map_mtx);
+        std::unique_lock<std::recursive_mutex> lock(module_map_mtx);
 
         for (const auto& kv : module_map) 
             modules.push_back(kv.first);
