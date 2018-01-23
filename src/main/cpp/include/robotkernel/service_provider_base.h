@@ -114,12 +114,15 @@ namespace robotkernel {
 template <class T, class S>
 class service_provider_base : 
     public log_base, 
-    public device_listener
+    public device_listener,
+    public std::enable_shared_from_this<service_provider_base<T, S> >
 {
     private:
         service_provider_base();                  //!< prevent default construction
 
     public:
+        using std::enable_shared_from_this<service_provider_base<T, S> >::shared_from_this;
+
         typedef std::map<std::pair<std::string, std::string>, T *> handler_map_t;
 
         //! construction
@@ -132,9 +135,13 @@ class service_provider_base :
             device_listener(instance_name, "listener")
         {};
         
-        void init() {};
+        void init() {
+            robotkernel::kernel::get_instance()->add_device_listener(shared_from_this());
+        };
         
-        virtual ~service_provider_base() {};
+        virtual ~service_provider_base() {
+            robotkernel::kernel::get_instance()->remove_device_listener(shared_from_this());
+        };
 
         //! Add a interface to our provided services
         /*!
