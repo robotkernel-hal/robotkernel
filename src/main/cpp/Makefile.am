@@ -12,6 +12,7 @@ include_HEADERS = $(headerdir)/bridge_base.h	\
 				  $(headerdir)/char_ringbuffer.h \
 				  $(headerdir)/config.h.in \
 				  $(headerdir)/device.h \
+				  $(headerdir)/device_listener.h \
 				  $(headerdir)/dump_log.h \
 				  $(headerdir)/exceptions.h \
 				  $(headerdir)/helpers.h \

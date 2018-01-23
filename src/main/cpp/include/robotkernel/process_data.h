@@ -62,9 +62,9 @@ class process_data :
          * \param name process data name
          * \param process_data_definition yaml-string representating the structure of the pd
          */
-        process_data(size_t length, std::string owner, std::string name, 
-                std::string process_data_definition = "") :
-            device(owner, name, "pd"), pd_cookie(0), length(length),  
+        process_data(size_t length, const std::string& owner, const std::string& name, 
+                const std::string& process_data_definition = "", const std::string& clk_device = "") :
+            device(owner, name, "pd"), pd_cookie(0), length(length), clk_device(clk_device),
             process_data_definition(process_data_definition)
             { }
 
@@ -107,6 +107,7 @@ class process_data :
     public:
         uint64_t pd_cookie;
         const size_t length;
+        const std::string clk_device;
         const std::string process_data_definition;
 };
 
@@ -132,9 +133,9 @@ class single_buffer :
          * \param name process data name
          * \param process_data_definition yaml-string representating the structure of the pd
          */
-        single_buffer(size_t length, std::string owner, std::string name, 
-                std::string process_data_definition = "") :
-            process_data(length, owner, name, process_data_definition)
+        single_buffer(size_t length, const std::string& owner, const std::string& name, 
+                const std::string& process_data_definition = "", const std::string& clk_device = "") :
+            process_data(length, owner, name, process_data_definition, clk_device)
             {
                 data.resize(length);
             }
@@ -220,9 +221,9 @@ class triple_buffer :
          * \param name process data name
          * \param process_data_definition yaml-string representating the structure of the pd
          */
-        triple_buffer(size_t length, std::string owner, std::string name, 
-                std::string process_data_definition = "") :
-            process_data(length, owner, name, process_data_definition)
+        triple_buffer(size_t length, const std::string& owner, const std::string& name, 
+                const std::string& process_data_definition = "", const std::string& clk_device = "") :
+            process_data(length, owner, name, process_data_definition, clk_device)
             {
                 // initilize indices with front(0), back(1), flip(2)
                 indices.store((0x00) | (0x01 << 2) | (0x02 << 4));
@@ -381,9 +382,9 @@ class pointer_buffer :
          * \param name process data name
          * \param process_data_definition yaml-string representating the structure of the pd
          */
-        pointer_buffer(size_t length, uint8_t *ptr, std::string owner, std::string name, 
-                std::string process_data_definition = "") :
-            process_data(length, owner, name, process_data_definition), ptr(ptr)
+        pointer_buffer(size_t length, uint8_t *ptr, const std::string& owner, const std::string& name, 
+                const std::string& process_data_definition = "", const std::string& clk_device = "") :
+            process_data(length, owner, name, process_data_definition, clk_device), ptr(ptr)
             { }
         
         //! Get a pointer to the a data buffer which we can write next, has to be

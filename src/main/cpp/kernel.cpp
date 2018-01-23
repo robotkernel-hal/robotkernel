@@ -556,12 +556,6 @@ void kernel::config(std::string config_file, int argc, char *argv[]) {
         // add to module map
         klog(info, "adding [%s]\n", sp->name.c_str());
         service_provider_map[sp->name] = sp;
-    
-        for (const auto& kv : device_map) {
-            const auto& coll = std::dynamic_pointer_cast<service_interface>(kv.second);
-            if (coll)
-                sp->add_interface(coll);
-        }
     }
 }
 
@@ -707,17 +701,46 @@ int kernel::state_change(const char *mod_name, module_state_t new_state) {
     return ret;
 }
         
+// adds a device listener
+void kernel::add_device_listener(sp_device_listener_t dl) {
+    auto key = std::make_pair(dl->owner, dl->name);
+    if (dl_map.find(key) != dl_map.end()) {
+        log(warning, "duplicate device listener! owner %s, name %s\n", 
+                dl->owner.c_str(), dl->name.c_str());
+        return;
+    }
+
+    dl_map[key] = dl;
+   
+    for (const auto& kv : device_map)
+        dl->notify_add_device(kv.second);
+}
+
+// remove a device listener
+void kernel::remove_device_listener(sp_device_listener_t dl) {
+    auto key = std::make_pair(dl->owner, dl->name);
+    auto it = dl_map.find(key);
+    if (it == dl_map.end()) {
+        log(warning, "cannot remove device listener (does not exists)! owner %s, name %s\n", 
+                dl->owner.c_str(), dl->name.c_str());
+        return;
+    }
+
+    for (const auto& kv : device_map)
+        dl_map[key]->notify_remove_device(kv.second);
+
+    dl_map[key] = nullptr;
+    dl_map.erase(it);
+}
+
 // add a named device
 void kernel::add_device(sp_device_t req) {
     auto map_index = req->id();
     if (device_map.find(map_index) != device_map.end())
         return; // already in
 
-    const auto& interface = std::dynamic_pointer_cast<service_interface>(req);
-    if (interface) {
-        for (const auto& kv : service_provider_map) 
-            kv.second->add_interface(interface);
-    }
+    for (const auto& kv : dl_map) 
+        kv.second->notify_add_device(req);
 
     log(verbose, "registered device \"%s\"\n", map_index.c_str());
     device_map[map_index] = req;
@@ -729,11 +752,8 @@ void kernel::remove_device(sp_device_t req) {
 
     klog(verbose, "removing device %s\n", map_index.c_str());
 
-    const auto& interface = std::dynamic_pointer_cast<service_interface>(req);
-    if (interface) {
-        for (const auto& kv : service_provider_map) 
-            kv.second->remove_interface(interface);
-    }
+    for (const auto& kv : dl_map) 
+        kv.second->notify_remove_device(req);
 
     auto it = device_map.find(map_index);
     if (it == device_map.end())

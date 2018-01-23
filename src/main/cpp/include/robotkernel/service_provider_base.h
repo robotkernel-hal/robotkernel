@@ -26,13 +26,15 @@
 #ifndef ROBOTKERNEL_INTERFACE_BASE_H
 #define ROBOTKERNEL_INTERFACE_BASE_H
 
-#include "robotkernel/interface_intf.h"
-#include "robotkernel/kernel.h"
+
+#include "robotkernel/device_listener.h"
 #include "robotkernel/exceptions.h"
 #include "robotkernel/helpers.h"
-#include "robotkernel/service_provider_intf.h"
-#include "robotkernel/service_provider.h"
+#include "robotkernel/interface_intf.h"
+#include "robotkernel/kernel.h"
 #include "robotkernel/log_base.h"
+#include "robotkernel/service_provider.h"
+#include "robotkernel/service_provider_intf.h"
 
 #include "yaml-cpp/yaml.h"
 
@@ -49,23 +51,34 @@
 #endif
 
 #define HDL_2_SERVICE_PROVIDERCLASS(hdl, spname, spclass)              \
-    spclass *dev = reinterpret_cast<spclass *>(hdl);                   \
+    struct spname ## _wrapper *wr =                                    \
+        reinterpret_cast<struct spname ## _wrapper *>(hdl);            \
+    std::shared_ptr<spclass> dev = wr->sp;                             \
     if (!dev)                                                          \
         throw string_util::str_exception("["#spname"] invalid sp "     \
-            "handle to <"#spclass" *>\n"); 
+                "handle to <"#spclass" *>\n"); 
 
 #define SERVICE_PROVIDER_DEF(spname, spclass)                          \
-EXPORT_C SERVICE_PROVIDER_HANDLE sp_register() {                       \
-    spclass *dev = new spclass();                                      \
-    if (!dev)                                                          \
-        throw string_util::str_exception("error allocating memory\n"); \
+struct spname ## _wrapper {                                            \
+    std::shared_ptr<spclass> sp;                                       \
+};                                                                     \
                                                                        \
-    return (SERVICE_PROVIDER_HANDLE)dev;                               \
+EXPORT_C SERVICE_PROVIDER_HANDLE sp_register() {                       \
+    struct spname ## _wrapper *wr;                                     \
+    wr = new struct spname ## _wrapper();                              \
+    if (!wr)                                                           \
+        throw string_util::str_exception(                              \
+                "["#spname"] error allocating memory\n");              \
+    wr->sp = std::make_shared<spclass>();                              \
+    wr->sp->init();                                                    \
+                                                                       \
+    return (MODULE_HANDLE)wr;                                          \
 }                                                                      \
                                                                        \
 EXPORT_C int sp_unregister(SERVICE_PROVIDER_HANDLE hdl) {              \
     HDL_2_SERVICE_PROVIDERCLASS(hdl, spname, spclass)                  \
-    delete dev;                                                        \
+    wr->sp = nullptr;                                                  \
+    delete wr;                                                         \
     return 0;                                                          \
 }                                                                      \
                                                                        \
@@ -100,7 +113,8 @@ namespace robotkernel {
 
 template <class T, class S>
 class service_provider_base : 
-    public log_base 
+    public log_base, 
+    public device_listener
 {
     private:
         service_provider_base();                  //!< prevent default construction
@@ -113,9 +127,13 @@ class service_provider_base :
          * \param instance_name service_provider name
          * \param name instance name
          */
-        service_provider_base(const std::string& instance_name)
-            : log_base("service_provider", instance_name) {};
-
+        service_provider_base(const std::string& instance_name) : 
+            log_base("service_provider", instance_name),
+            device_listener(instance_name, "listener")
+        {};
+        
+        void init() {};
+        
         virtual ~service_provider_base() {};
 
         //! Add a interface to our provided services
@@ -129,6 +147,22 @@ class service_provider_base :
          * \param[in] req   Shared pointer to a interface which should be removed.
          */
         void remove_interface(sp_service_interface_t req);
+
+        // add a named device
+        void notify_add_device(sp_device_t req) {
+            const auto& interface = std::dynamic_pointer_cast<service_interface>(req);
+            if (interface) {
+                add_interface(interface);
+            }
+        };
+
+        // remove a named device
+        void notify_remove_device(sp_device_t req) {
+            const auto& interface = std::dynamic_pointer_cast<service_interface>(req);
+            if (interface) {
+                remove_interface(interface);
+            }
+        };
 
         //! Remove all interfaces from one module.
         /*!

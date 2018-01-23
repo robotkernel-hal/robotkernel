@@ -30,20 +30,20 @@
 #include <mutex>
 #include <functional>
 
-#include <robotkernel/rk_type.h>
-#include <robotkernel/loglevel.h>
-#include <robotkernel/log_thread.h>
+#include <robotkernel/bridge.h>
+#include <robotkernel/device_listener.h>
 #include <robotkernel/dump_log.h>
 #include <robotkernel/exceptions.h>
+#include <robotkernel/log_thread.h>
+#include <robotkernel/loglevel.h>
 #include <robotkernel/module.h>
-#include <robotkernel/bridge.h>
-#include <robotkernel/service.h>
-#include <robotkernel/service_provider.h>
-
 #include <robotkernel/process_data.h>
-#include <robotkernel/trigger.h>
-#include <robotkernel/stream.h>
+#include <robotkernel/rk_type.h>
+#include <robotkernel/service.h>
 #include <robotkernel/service_interface.h>
+#include <robotkernel/service_provider.h>
+#include <robotkernel/stream.h>
+#include <robotkernel/trigger.h>
 
 
 #define klog(...) robotkernel::kernel::get_instance()->log(__VA_ARGS__)
@@ -67,6 +67,7 @@ class kernel {
         module_map_t                module_map;                 //!< modules map
         std::recursive_mutex        module_map_mtx;             //!< module map lock
         service_map_t               services;                   //!< service list
+        device_listener_map_t       dl_map;                     //!< device listeners
 
         device_map_t device_map;
 
@@ -112,6 +113,20 @@ class kernel {
          */
         void remove_services(const std::string &owner);
         
+        //! adds a device listener
+        /*
+         * \param[in] dl    device listener to add. this device listener
+         *                  will be notified whenever a new device is added.
+         */
+        void add_device_listener(sp_device_listener_t dl);
+        
+        //! remove a device listener
+        /*
+         * \param[in] dl    device listener to reomve. this device listener
+         *                  will no longer be notified when a new device is added.
+         */
+        void remove_device_listener(sp_device_listener_t dl);
+
         //! add a named device
         /*
          * \param req device to add
