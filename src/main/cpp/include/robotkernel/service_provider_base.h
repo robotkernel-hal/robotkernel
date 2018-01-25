@@ -77,6 +77,7 @@ EXPORT_C SERVICE_PROVIDER_HANDLE sp_register() {                       \
                                                                        \
 EXPORT_C int sp_unregister(SERVICE_PROVIDER_HANDLE hdl) {              \
     HDL_2_SERVICE_PROVIDERCLASS(hdl, spname, spclass)                  \
+    wr->sp->deinit();                                                  \
     wr->sp = nullptr;                                                  \
     delete wr;                                                         \
     return 0;                                                          \
@@ -139,7 +140,9 @@ class service_provider_base :
             robotkernel::kernel::get_instance()->add_device_listener(shared_from_this());
         };
         
-        virtual ~service_provider_base() {
+        virtual ~service_provider_base() {};
+        
+        void deinit() {
             robotkernel::kernel::get_instance()->remove_device_listener(shared_from_this());
         };
 

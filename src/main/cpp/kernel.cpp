@@ -324,6 +324,15 @@ kernel::~kernel() {
 
         log(verbose, "    bridge %s\n", bridge->name.c_str());
     }
+    
+    log(info, "removing service providers\n");
+    service_provider_map_t::iterator sit;
+    while ((sit = service_provider_map.begin()) != service_provider_map.end()) {
+        sp_service_provider_t sp = sit->second;
+        service_provider_map.erase(sit);
+
+        log(verbose, "    service_provider %s\n", sp->name.c_str());
+    }
 
     // remove services
     log(verbose, "removing services\n");
