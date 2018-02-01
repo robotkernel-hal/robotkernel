@@ -58,14 +58,14 @@ log_base::log_base(const std::string& impl,
         } 
     }
 
-    k.add_service(name, "configure_loglevel", log_base::service_definition_configure_loglevel,
+    k.add_service(impl, name + ".configure_loglevel", log_base::service_definition_configure_loglevel,
             std::bind(&log_base::service_configure_loglevel, this, _1, _2));
 }
 
 //! destruction
 log_base::~log_base() {
     kernel& k = *kernel::get_instance();
-    k.remove_service(name, "configure_loglevel");
+    k.remove_service(impl, name + ".configure_loglevel");
 }
 
 //! service to configure loglevels loglevel
