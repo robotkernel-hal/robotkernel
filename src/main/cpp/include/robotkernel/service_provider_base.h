@@ -195,6 +195,10 @@ class service_provider_base :
 template <class T, class S>
 inline void service_provider_base<T, S>::add_interface(sp_service_interface_t req) {
     T *handler;
+   
+    if (!test_interface(req))
+        return;
+
     if (handler_map.find(std::make_pair(req->owner, req->id())) != handler_map.end())
         return; // already in our handler map ....
 
