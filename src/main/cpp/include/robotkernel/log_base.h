@@ -38,15 +38,16 @@ namespace robotkernel {
 
         public:
             loglevel ll;                //!< loglevel loglevel
-            std::string impl;           //!< name of module
-            std::string name;           //!< name of module instance
+            std::string name;           //!< name of module
+            std::string impl;           //!< name of implementation
+            std::string service_prefix; //!< name of service
 
             //! construction
             /*!
              * \param node config node
              */
-            log_base(const std::string& impl, const std::string& name, 
-                    const YAML::Node& node = YAML::Node());
+            log_base(const std::string& name, const std::string& impl, 
+                    const std::string& service_prefix, const YAML::Node& node = YAML::Node());
 
             //! virtual destruction
             virtual ~log_base();

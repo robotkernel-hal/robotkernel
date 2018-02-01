@@ -34,9 +34,9 @@ using namespace string_util;
 /*!
  * \param node config node
  */
-log_base::log_base(const std::string& impl, 
-        const std::string& name, const YAML::Node& node) :
-    impl(impl), name(name) 
+log_base::log_base(const std::string& name, const std::string& impl, 
+        const std::string& service_prefix, const YAML::Node& node) :
+    name(name), impl(impl), service_prefix(service_prefix)
 {
     kernel& k = *kernel::get_instance();
     ll = k.get_loglevel();
@@ -58,14 +58,22 @@ log_base::log_base(const std::string& impl,
         } 
     }
 
-    k.add_service(impl, name + ".configure_loglevel", log_base::service_definition_configure_loglevel,
+    std::string service_name = "configure_loglevel";
+    if (service_prefix != "") 
+        service_name = service_prefix + "." + service_name;
+
+    k.add_service(name, service_name, log_base::service_definition_configure_loglevel,
             std::bind(&log_base::service_configure_loglevel, this, _1, _2));
 }
 
 //! destruction
 log_base::~log_base() {
+    std::string service_name = "configure_loglevel";
+    if (service_prefix != "") 
+        service_name = service_prefix + "." + service_name;
+
     kernel& k = *kernel::get_instance();
-    k.remove_service(impl, name + ".configure_loglevel");
+    k.remove_service(name, service_name);
 }
 
 //! service to configure loglevels loglevel

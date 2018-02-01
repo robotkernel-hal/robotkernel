@@ -63,13 +63,13 @@ struct spname ## _wrapper {                                            \
     std::shared_ptr<spclass> sp;                                       \
 };                                                                     \
                                                                        \
-EXPORT_C SERVICE_PROVIDER_HANDLE sp_register() {                       \
+EXPORT_C SERVICE_PROVIDER_HANDLE sp_register(const char* name) {       \
     struct spname ## _wrapper *wr;                                     \
     wr = new struct spname ## _wrapper();                              \
     if (!wr)                                                           \
         throw string_util::str_exception(                              \
                 "["#spname"] error allocating memory\n");              \
-    wr->sp = std::make_shared<spclass>();                              \
+    wr->sp = std::make_shared<spclass>(name);                          \
     wr->sp->init();                                                    \
                                                                        \
     return (MODULE_HANDLE)wr;                                          \
@@ -131,9 +131,9 @@ class service_provider_base :
          * \param instance_name service_provider name
          * \param name instance name
          */
-        service_provider_base(const std::string& instance_name) : 
-            log_base("service_provider", instance_name),
-            device_listener(instance_name, "listener")
+        service_provider_base(const std::string& name, const std::string& impl) : 
+            log_base(name, impl, ""),
+            device_listener(name, "listener")
         {};
         
         void init() {

@@ -69,7 +69,7 @@ service_provider::service_provider(const YAML::Node& node) : so_file(node) {
 
     // try to configure
     if (sp_register) {
-        sp_handle = sp_register();
+        sp_handle = sp_register(name.c_str());
     }
 }
 

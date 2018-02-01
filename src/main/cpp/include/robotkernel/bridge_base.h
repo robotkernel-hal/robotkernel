@@ -100,9 +100,9 @@ class bridge_base :
          * \param instance_name bridge name
          * \param name instance name
          */
-        bridge_base(const std::string& instance_name, const std::string& name, 
+        bridge_base(const std::string& name, const std::string& impl, 
                 const YAML::Node& node = YAML::Node()) :
-            log_base(instance_name, name, node)
+            log_base(name, impl, "", node)
         {
         }
 

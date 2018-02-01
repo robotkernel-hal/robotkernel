@@ -40,7 +40,7 @@
  * \param mod_name module name to register
  * \return service_provider handle
  */
-typedef SERVICE_PROVIDER_HANDLE(*sp_register_t)();
+typedef SERVICE_PROVIDER_HANDLE(*sp_register_t)(const char* name);
 
 //! service_provider unregister
 /*!

@@ -101,6 +101,7 @@ class module_base :
         module_base();                  //!< prevent default construction
 
     public:
+        const std::string name;         //!< module instance name
         module_state_t state;           //!< actual module state
         
         //! Module construction
@@ -110,7 +111,7 @@ class module_base :
          */
         module_base(const std::string& impl, const std::string& name, 
                 const YAML::Node& node = YAML::Node()) : 
-            log_base(impl, name, node), state(module_state_init)
+            log_base(name, impl, "", node), name(name), state(module_state_init)
         { }
 
         //! Module destruction
