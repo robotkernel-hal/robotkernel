@@ -292,13 +292,10 @@ class triple_buffer :
 
             if (do_pop) {
                 swap_front();
-
-                auto& tmp_buf = front_buffer();
-                std::memcpy(buf, &tmp_buf[offset], len);
-            } else {
-                auto& tmp_buf = flip_buffer();
-                std::memcpy(buf, &tmp_buf[offset], len);
             }
+
+            auto& tmp_buf = front_buffer();
+            std::memcpy(buf, &tmp_buf[offset], len);
         }
 
         //! Returns true if new data has been written
