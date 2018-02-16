@@ -38,6 +38,8 @@
 #include "robotkernel/device.h"
 #include "robotkernel/rk_type.h"
 
+#include "string_util/string_util.h"
+
 namespace robotkernel {
 #ifdef EMACS
 }
@@ -70,7 +72,13 @@ class process_data :
 
         //! Get a pointer to the a data buffer which we can write next, has to be
         //  completed with calling \link push \endlink
-        virtual uint8_t* next() = 0;
+        virtual uint8_t* next() {
+            if (    (provider_id != std::thread::id()) &&
+                    (provider_id != std::this_thread::get_id()))
+                throw string_util::str_exception("permission denied to write to %s", id().c_str());
+
+            return nullptr;
+        }
 
         //! Get a pointer to the last written data without consuming it, 
         //  which will be available on calling \link pop \endlink
@@ -78,10 +86,21 @@ class process_data :
 
         //! Get a pointer to the actual read data. This call
         //  will consume the data.
-        virtual uint8_t* pop() = 0;
+        virtual uint8_t* pop() {
+            if (    (consumer_id != std::thread::id()) &&
+                    (consumer_id != std::this_thread::get_id()))
+                throw string_util::str_exception("permission denied to pop %s, "
+                        "already consumed by %s!", id().c_str(), consumer_name.c_str());
+
+            return nullptr;
+        }
 
         //! Pushes write data buffer to available on calling \link next \endlink.
-        virtual void push() {};
+        virtual void push() {
+            if (    (provider_id != std::thread::id()) &&
+                    (provider_id != std::this_thread::get_id()))
+                throw string_util::str_exception("permission denied to push %s", id().c_str());
+        }
 
         //! Write data to buffer.
         /*!
@@ -90,7 +109,11 @@ class process_data :
          * \param[in] len       Length of data in buffer.
          * \param[in] do_push   Push the buffer to set it to the actual one.
          */
-        virtual void write(off_t offset, uint8_t *buf, size_t len, bool do_push = true) = 0;
+        virtual void write(off_t offset, uint8_t *buf, size_t len, bool do_push = true) {
+            if (    (provider_id != std::thread::id()) &&
+                    (provider_id != std::this_thread::get_id()))
+                throw string_util::str_exception("permission denied to write to %s", id().c_str());
+        }
 
         //! Read data from buffer.
         /*!
@@ -99,16 +122,69 @@ class process_data :
          * \param[in] len       Length of data in buffer.
          * \param[in] do_pop    Pop the buffer and consume it.
          */
-        virtual void read(off_t offset, uint8_t *buf, size_t len, bool do_pop = true) = 0;
+        virtual void read(off_t offset, uint8_t *buf, size_t len, bool do_pop = true) {
+            if (    do_pop &&
+                    (consumer_id != std::thread::id()) &&
+                    (consumer_id != std::this_thread::get_id()))
+                throw string_util::str_exception("permission denied to pop %s", id().c_str());
+        }
 
         //! Returns true if new data has been written
         virtual bool new_data() { return true; }
+
+        //! set data provider thread, only thread allowed to write and push
+        void set_provider(const std::string& name) {
+            if (    (provider_name != "" ) &&
+                    (provider_name != name) &&
+                    (provider_id != std::thread::id()) && 
+                    (provider_id != std::this_thread::get_id()))
+                throw string_util::str_exception("cannot set provider: already provided by %s!", 
+                        provider_name.c_str());
+
+            provider_name = name;
+            provider_id = std::this_thread::get_id();
+        }
+
+        //! reset data provider thread
+        void reset_provider(const std::string& name) {
+            if (provider_name != name)
+                throw string_util::str_exception("cannot reset provider: you are not the provider!");
+
+            provider_id = std::thread::id();
+        }
+
+        //!< set main consumer thread, only thread allowed to pop
+        void set_consumer(const std::string& name) {
+            if (    (consumer_name != "" ) &&
+                    (consumer_name != name) &&
+                    (consumer_id != std::thread::id()) && 
+                    (consumer_id != std::this_thread::get_id()))
+                throw string_util::str_exception("cannot set consumer: already consumed by %s!",
+                        consumer_name.c_str());
+
+            consumer_name = name;
+            consumer_id = std::this_thread::get_id();
+        }
+        
+        //! reset main consumer thread
+        void reset_consumer(const std::string& name) {
+            if (consumer_name != name)
+                throw string_util::str_exception("cannot reset consumer: you are not the consumer!");
+
+            consumer_name = "";
+            consumer_id = std::thread::id();
+        }
 
     public:
         uint64_t pd_cookie;
         const size_t length;
         const std::string clk_device;
         const std::string process_data_definition;
+
+        std::string provider_name;
+        std::thread::id provider_id;
+        std::string consumer_name;
+        std::thread::id consumer_id;
 };
 
 //! process data management class with single buffering
@@ -143,6 +219,8 @@ class single_buffer :
         //! Get a pointer to the a data buffer which we can write next, has to be
         //  completed with calling \link push \endlink
         uint8_t* next() {
+            process_data::next();
+            
             return (uint8_t *)&data[0];
         }
 
@@ -166,6 +244,8 @@ class single_buffer :
          * \param[in] do_push   Push the buffer to set it to the actual one.
          */
         void write(off_t offset, uint8_t *buf, size_t len, bool do_push = true) {
+            process_data::write(offset, buf, len, do_push);
+
             if ((offset + len) > length)
                 throw std::exception();
 
@@ -236,6 +316,8 @@ class triple_buffer :
         //! Get a pointer to the a data buffer which we can write next, has to be
         //  completed with calling \link push \endlink
         uint8_t* next() {
+            process_data::next();
+
             auto& tmp_buf = back_buffer();
             return (uint8_t *)&tmp_buf[0];
         }
@@ -250,6 +332,8 @@ class triple_buffer :
         //! Get a pointer to the actual read data. This call
         //  will consume the data.
         uint8_t* pop() {
+            process_data::pop();
+
             swap_front();
 
             auto& tmp_buf = front_buffer();
@@ -258,6 +342,8 @@ class triple_buffer :
 
         //! Pushes write data buffer to available on calling \link next \endlink.
         void push() {
+            process_data::push();
+
             swap_back();
         }
 
@@ -269,6 +355,8 @@ class triple_buffer :
          * \param[in] do_push   Push the buffer to set it to the actual one.
          */
         void write(off_t offset, uint8_t *buf, size_t len, bool do_push = true) {
+            process_data::write(offset, buf, len, do_push);
+
             if ((offset + len) > length)
                 throw std::exception();
 
@@ -287,6 +375,8 @@ class triple_buffer :
          * \param[in] do_pop    Pop the buffer and consume it.
          */
         void read(off_t offset, uint8_t *buf, size_t len, bool do_pop = true) {
+            process_data::read(offset, buf, len, do_pop);
+
             if ((offset + len) > length)
                 throw std::exception();
 
@@ -387,6 +477,8 @@ class pointer_buffer :
         //! Get a pointer to the a data buffer which we can write next, has to be
         //  completed with calling \link push \endlink
         uint8_t* next() {
+            process_data::next();
+
             return ptr;
         }
 
@@ -410,6 +502,8 @@ class pointer_buffer :
          * \param[in] do_push   Push the buffer to set it to the actual one.
          */
         void write(off_t offset, uint8_t *buf, size_t len, bool do_push = true) {
+            process_data::write(offset, buf, len, do_push);
+
             if ((offset + len) > length)
                 throw std::exception();
 
