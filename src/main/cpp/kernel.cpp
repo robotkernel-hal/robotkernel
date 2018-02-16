@@ -1150,6 +1150,8 @@ int kernel::service_process_data_info(const service_arglist_t &request,
     //response data
     string owner = "";
     string definiton = "";
+    string provider = "";
+    string consumer = "";
     int32_t length = 0;
     string error_message = "";
 
@@ -1159,6 +1161,10 @@ int kernel::service_process_data_info(const service_arglist_t &request,
         if (pd) {
             owner     = pd->owner;
             definiton = pd->process_data_definition;
+            if (pd->provider)
+                provider  = pd->provider->name;
+            if (pd->consumer)
+                consumer  = pd->consumer->name;
             length    = pd->length;
         } else 
             error_message = 
@@ -1170,11 +1176,15 @@ int kernel::service_process_data_info(const service_arglist_t &request,
 #define DEVICES_INFO_RESP_OWNER            0
 #define DEVICES_INFO_RESP_DEFINITION       1
 #define DEVICES_INFO_RESP_LENGTH           2
-#define DEVICES_INFO_RESP_ERROR_MESSAGE    3
-    response.resize(4);
+#define DEVICES_INFO_RESP_PROVIDER         3
+#define DEVICES_INFO_RESP_CONSUMER         4
+#define DEVICES_INFO_RESP_ERROR_MESSAGE    5
+    response.resize(6);
     response[DEVICES_INFO_RESP_OWNER]          = owner;
     response[DEVICES_INFO_RESP_DEFINITION]     = definiton;
     response[DEVICES_INFO_RESP_LENGTH]         = length;
+    response[DEVICES_INFO_RESP_PROVIDER]       = provider;
+    response[DEVICES_INFO_RESP_CONSUMER]       = consumer;
     response[DEVICES_INFO_RESP_ERROR_MESSAGE]  = error_message;
 
     return 0;
@@ -1187,6 +1197,8 @@ const std::string kernel::service_definition_process_data_info =
 "- string: owner\n"
 "- string: definition\n"
 "- int32_t: length\n"
+"- string: provider\n"
+"- string: consumer\n"
 "- string: error_message\n";
 
 //! trigger information

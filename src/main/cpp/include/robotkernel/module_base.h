@@ -133,10 +133,7 @@ class module_base :
         /*!
          * \returns Shared pointer to our robotkernel module class.
          */
-        robotkernel::sp_module_t get_module() {
-            kernel& k = *kernel::get_instance();
-            return k.get_module(name);
-        }
+        robotkernel::sp_module_t get_module();
 
         //! Module trigger implementation.
         virtual void tick() {

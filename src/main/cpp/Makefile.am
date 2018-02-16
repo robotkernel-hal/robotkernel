@@ -46,6 +46,7 @@ robotkernel_SOURCES = bridge.cpp				\
 					  dump_log.cpp 				\
 					  exceptions.cpp 			\
 					  kernel.cpp 				\
+					  module_base.cpp 				\
 					  kernel_worker.cpp       	\
 					  log_base.cpp 				\
 					  log_thread.cpp 			\

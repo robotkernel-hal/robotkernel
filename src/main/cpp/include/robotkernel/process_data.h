@@ -45,6 +45,8 @@ namespace robotkernel {
 }
 #endif
 
+class module_base;
+
 //! process data management class 
 /*!
  * This class describe managed process data by the robotkernel. It also uses
@@ -72,10 +74,12 @@ class process_data :
 
         //! Get a pointer to the a data buffer which we can write next, has to be
         //  completed with calling \link push \endlink
-        virtual uint8_t* next() {
-            if (    (provider_id != std::thread::id()) &&
-                    (provider_id != std::this_thread::get_id()))
-                throw string_util::str_exception("permission denied to write to %s", id().c_str());
+        /*
+         * \param[in] hash      hash value, get it with set_provider!
+         */
+        virtual uint8_t* next(const std::size_t& hash) {
+            if (    (provider_hash != hash))
+                throw str_exception_tb("permission denied to write to %s", id().c_str());
 
             return nullptr;
         }
@@ -86,93 +90,99 @@ class process_data :
 
         //! Get a pointer to the actual read data. This call
         //  will consume the data.
-        virtual uint8_t* pop() {
-            if (    (consumer_id != std::thread::id()) &&
-                    (consumer_id != std::this_thread::get_id()))
-                throw string_util::str_exception("permission denied to pop %s, "
-                        "already consumed by %s!", id().c_str(), consumer_name.c_str());
+        /*
+         * \param[in] hash      hash value, get it with set_consumer!
+         */
+        virtual uint8_t* pop(const std::size_t& hash) {
+            if (consumer_hash != hash)
+                throw str_exception_tb("permission denied to pop %s", id().c_str());
 
             return nullptr;
         }
 
         //! Pushes write data buffer to available on calling \link next \endlink.
-        virtual void push() {
-            if (    (provider_id != std::thread::id()) &&
-                    (provider_id != std::this_thread::get_id()))
-                throw string_util::str_exception("permission denied to push %s", id().c_str());
+        /*
+         * \param[in] hash      hash value, get it with set_provider!
+         */
+        virtual void push(const std::size_t& hash) {
+            if (provider_hash != hash)
+                throw str_exception_tb("permission denied to push %s", id().c_str());
         }
 
         //! Write data to buffer.
         /*!
+         * \param[in] hash      hash value, get it with set_provider!
          * \param[in] offset    Process data offset from beginning of the buffer.
          * \param[in] buf       Buffer with data to write to internal back buffer.
          * \param[in] len       Length of data in buffer.
          * \param[in] do_push   Push the buffer to set it to the actual one.
          */
-        virtual void write(off_t offset, uint8_t *buf, size_t len, bool do_push = true) {
-            if (    (provider_id != std::thread::id()) &&
-                    (provider_id != std::this_thread::get_id()))
-                throw string_util::str_exception("permission denied to write to %s", id().c_str());
+        virtual void write(const std::size_t& hash, off_t offset, uint8_t *buf, 
+            size_t len, bool do_push = true) 
+        {
+            if (provider_hash != hash)
+                throw str_exception_tb("permission denied to write to %s", id().c_str());
         }
 
         //! Read data from buffer.
         /*!
+         * \param[in] hash      hash value, get it with set_consumer!
          * \param[in] offset    Process data offset from beginning of the buffer.
          * \param[in] buf       Buffer with data to write to from internal front buffer.
          * \param[in] len       Length of data in buffer.
          * \param[in] do_pop    Pop the buffer and consume it.
          */
-        virtual void read(off_t offset, uint8_t *buf, size_t len, bool do_pop = true) {
+        virtual void read(const std::size_t& hash, off_t offset, uint8_t *buf, 
+                size_t len, bool do_pop = true) 
+        {
             if (    do_pop &&
-                    (consumer_id != std::thread::id()) &&
-                    (consumer_id != std::this_thread::get_id()))
-                throw string_util::str_exception("permission denied to pop %s", id().c_str());
+                    (consumer_hash != hash))
+                throw str_exception_tb("permission denied to pop %s", id().c_str());
         }
 
         //! Returns true if new data has been written
         virtual bool new_data() { return true; }
 
         //! set data provider thread, only thread allowed to write and push
-        void set_provider(const std::string& name) {
-            if (    (provider_name != "" ) &&
-                    (provider_name != name) &&
-                    (provider_id != std::thread::id()) && 
-                    (provider_id != std::this_thread::get_id()))
-                throw string_util::str_exception("cannot set provider: already provided by %s!", 
-                        provider_name.c_str());
+        std::size_t set_provider(std::shared_ptr<robotkernel::module_base> mod) {
+            if (    (provider != nullptr) && 
+                    (provider != mod))
+                throw str_exception_tb("cannot set provider, already have one!");
 
-            provider_name = name;
-            provider_id = std::this_thread::get_id();
+            provider = mod;
+            provider_hash = std::hash<std::shared_ptr<robotkernel::module_base> >{}(mod);
+
+            return provider_hash;
         }
 
         //! reset data provider thread
-        void reset_provider(const std::string& name) {
-            if (provider_name != name)
-                throw string_util::str_exception("cannot reset provider: you are not the provider!");
+        void reset_provider(const std::size_t& hash) {
+            if (provider_hash != hash)
+                throw str_exception_tb("cannot reset provider: you are not the provider!");
 
-            provider_id = std::thread::id();
+            provider_hash = 0;
+            provider = nullptr;
         }
 
         //!< set main consumer thread, only thread allowed to pop
-        void set_consumer(const std::string& name) {
-            if (    (consumer_name != "" ) &&
-                    (consumer_name != name) &&
-                    (consumer_id != std::thread::id()) && 
-                    (consumer_id != std::this_thread::get_id()))
-                throw string_util::str_exception("cannot set consumer: already consumed by %s!",
-                        consumer_name.c_str());
+        std::size_t set_consumer(std::shared_ptr<robotkernel::module_base> mod) {
+            if (    (consumer != nullptr) &&
+                    (consumer != mod))
+                throw str_exception_tb("cannot set consumer: already have one!");
 
-            consumer_name = name;
-            consumer_id = std::this_thread::get_id();
+            consumer = mod;
+            consumer_hash = std::hash<std::shared_ptr<robotkernel::module_base> >{}(mod);
+
+            return consumer_hash;
         }
         
         //! reset main consumer thread
-        void reset_consumer(const std::string& name) {
-            if (consumer_name != name)
-                throw string_util::str_exception("cannot reset consumer: you are not the consumer!");
+        void reset_consumer(const std::size_t& hash) {
+            if (consumer_hash != hash)
+                throw str_exception_tb("cannot reset consumer: you are not the consumer!");
 
-            consumer_name = "";
-            consumer_id = std::thread::id();
+            consumer_hash = 0;
+            consumer = nullptr;
         }
 
     public:
@@ -181,10 +191,10 @@ class process_data :
         const std::string clk_device;
         const std::string process_data_definition;
 
-        std::string provider_name;
-        std::thread::id provider_id;
-        std::string consumer_name;
-        std::thread::id consumer_id;
+        std::shared_ptr<robotkernel::module_base> provider;
+        std::size_t provider_hash;
+        std::shared_ptr<robotkernel::module_base> consumer;
+        std::size_t consumer_hash;
 };
 
 //! process data management class with single buffering
@@ -218,8 +228,11 @@ class single_buffer :
         
         //! Get a pointer to the a data buffer which we can write next, has to be
         //  completed with calling \link push \endlink
-        uint8_t* next() {
-            process_data::next();
+        /*
+         * \param[in] hash      hash value, get it with set_provider!
+         */
+        uint8_t* next(const std::size_t& hash) {
+            process_data::next(hash);
             
             return (uint8_t *)&data[0];
         }
@@ -232,19 +245,25 @@ class single_buffer :
 
         //! Get a pointer to the actual read data. This call
         //  will consume the data.
-        uint8_t* pop() {
+        /*
+         * \param[in] hash      hash value, get it with set_consumer!
+         */
+        uint8_t* pop(const std::size_t& hash) {
             return (uint8_t *)&data[0];
         }
 
         //! Write data to buffer.
         /*!
+         * \param[in] hash      hash value, get it with set_provider!
          * \param[in] offset    Process data offset from beginning of the buffer.
          * \param[in] buf       Buffer with data to write to internal back buffer.
          * \param[in] len       Length of data in buffer.
          * \param[in] do_push   Push the buffer to set it to the actual one.
          */
-        void write(off_t offset, uint8_t *buf, size_t len, bool do_push = true) {
-            process_data::write(offset, buf, len, do_push);
+        void write(const std::size_t& hash, off_t offset, uint8_t *buf, 
+                size_t len, bool do_push = true) 
+        {
+            process_data::write(hash, offset, buf, len, do_push);
 
             if ((offset + len) > length)
                 throw std::exception();
@@ -254,12 +273,15 @@ class single_buffer :
 
         //! Read data from buffer.
         /*!
+         * \param[in] hash      hash value, get it with set_consumer!
          * \param[in] offset    Process data offset from beginning of the buffer.
          * \param[in] buf       Buffer with data to write to from internal front buffer.
          * \param[in] len       Length of data in buffer.
          * \param[in] do_pop    Pop the buffer and consume it.
          */
-        void read(off_t offset, uint8_t *buf, size_t len, bool do_pop = true) {
+        void read(const std::size_t& hash, off_t offset, uint8_t *buf, 
+                size_t len, bool do_pop = true) 
+        {
             if ((offset + len) > length)
                 throw std::exception();
             
@@ -315,8 +337,11 @@ class triple_buffer :
         
         //! Get a pointer to the a data buffer which we can write next, has to be
         //  completed with calling \link push \endlink
-        uint8_t* next() {
-            process_data::next();
+        /*
+         * \param[in] hash      hash value, get it with set_provider!
+         */
+        uint8_t* next(const std::size_t& hash) {
+            process_data::next(hash);
 
             auto& tmp_buf = back_buffer();
             return (uint8_t *)&tmp_buf[0];
@@ -331,8 +356,11 @@ class triple_buffer :
 
         //! Get a pointer to the actual read data. This call
         //  will consume the data.
-        uint8_t* pop() {
-            process_data::pop();
+        /* 
+         * \param[in] hash      hash value, get it with set_consumer!
+         */
+        uint8_t* pop(const std::size_t& hash) {
+            process_data::pop(hash);
 
             swap_front();
 
@@ -341,21 +369,27 @@ class triple_buffer :
         }
 
         //! Pushes write data buffer to available on calling \link next \endlink.
-        void push() {
-            process_data::push();
+        /*
+         * \param[in] hash      hash value, get it with set_provider!
+         */
+        void push(const std::size_t& hash) {
+            process_data::push(hash);
 
             swap_back();
         }
 
         //! Write data to buffer.
         /*!
+         * \param[in] hash      hash value, get it with set_provider!
          * \param[in] offset    Process data offset from beginning of the buffer.
          * \param[in] buf       Buffer with data to write to internal back buffer.
          * \param[in] len       Length of data in buffer.
          * \param[in] do_push   Push the buffer to set it to the actual one.
          */
-        void write(off_t offset, uint8_t *buf, size_t len, bool do_push = true) {
-            process_data::write(offset, buf, len, do_push);
+        void write(const std::size_t& hash, off_t offset, uint8_t *buf, 
+                size_t len, bool do_push = true) 
+        {
+            process_data::write(hash, offset, buf, len, do_push);
 
             if ((offset + len) > length)
                 throw std::exception();
@@ -369,13 +403,15 @@ class triple_buffer :
 
         //! Read data from buffer.
         /*!
+         * \param[in] hash      hash value, get it with set_consumer!
          * \param[in] offset    Process data offset from beginning of the buffer.
          * \param[in] buf       Buffer with data to write to from internal front buffer.
          * \param[in] len       Length of data in buffer.
          * \param[in] do_pop    Pop the buffer and consume it.
          */
-        void read(off_t offset, uint8_t *buf, size_t len, bool do_pop = true) {
-            process_data::read(offset, buf, len, do_pop);
+        void read(const std::size_t& hash, off_t offset, uint8_t *buf, 
+                size_t len, bool do_pop = true) {
+            process_data::read(hash, offset, buf, len, do_pop);
 
             if ((offset + len) > length)
                 throw std::exception();
@@ -476,8 +512,11 @@ class pointer_buffer :
         
         //! Get a pointer to the a data buffer which we can write next, has to be
         //  completed with calling \link push \endlink
-        uint8_t* next() {
-            process_data::next();
+        /*
+         * \param[in] hash      hash value, get it with set_provider!
+         */
+        uint8_t* next(const std::size_t& hash) {
+            process_data::next(hash);
 
             return ptr;
         }
@@ -490,19 +529,25 @@ class pointer_buffer :
 
         //! Get a pointer to the actual read data. This call
         //  will consume the data.
-        uint8_t* pop() {
+        /*
+         * \param[in] hash      hash value, get it with set_consumer!
+         */
+        uint8_t* pop(const std::size_t& hash) {
             return ptr;
         }
 
         //! Write data to buffer.
         /*!
+         * \param[in] hash      hash value, get it with set_provider!
          * \param[in] offset    Process data offset from beginning of the buffer.
          * \param[in] buf       Buffer with data to write to internal back buffer.
          * \param[in] len       Length of data in buffer.
          * \param[in] do_push   Push the buffer to set it to the actual one.
          */
-        void write(off_t offset, uint8_t *buf, size_t len, bool do_push = true) {
-            process_data::write(offset, buf, len, do_push);
+        void write(const std::size_t& hash, off_t offset, uint8_t *buf, 
+                size_t len, bool do_push = true) 
+        {
+            process_data::write(hash, offset, buf, len, do_push);
 
             if ((offset + len) > length)
                 throw std::exception();
@@ -512,12 +557,15 @@ class pointer_buffer :
 
         //! Read data from buffer.
         /*!
+         * \param[in] hash      hash value, get it with set_consumer!
          * \param[in] offset    Process data offset from beginning of the buffer.
          * \param[in] buf       Buffer with data to write to from internal front buffer.
          * \param[in] len       Length of data in buffer.
          * \param[in] do_pop    Pop the buffer and consume it.
          */
-        void read(off_t offset, uint8_t *buf, size_t len, bool do_pop = true) {
+        void read(const std::size_t& hash, off_t offset, uint8_t *buf, 
+                size_t len, bool do_pop = true) 
+        {
             if ((offset + len) > length)
                 throw std::exception();
 
