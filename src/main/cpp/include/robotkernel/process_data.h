@@ -45,7 +45,31 @@ namespace robotkernel {
 }
 #endif
 
-class module_base;
+//! process data provider class
+/*!
+ * derive from this class, if you want to register yourself as
+ * process data provider
+ */
+class pd_provider {
+    public:
+        std::string provider_name;
+
+        pd_provider(const std::string& provider_name) : 
+            provider_name(provider_name) {}
+};
+
+//! process data consumer class
+/*!
+ * derive from this class, if you want to register yourself as
+ * process data consumer
+ */
+class pd_consumer {
+    public:
+        std::string consumer_name;
+
+        pd_consumer(const std::string& consumer_name) : 
+            consumer_name(consumer_name) {}
+};
 
 //! process data management class 
 /*!
@@ -144,13 +168,13 @@ class process_data :
         virtual bool new_data() { return true; }
 
         //! set data provider thread, only thread allowed to write and push
-        std::size_t set_provider(std::shared_ptr<robotkernel::module_base> mod) {
+        std::size_t set_provider(std::shared_ptr<robotkernel::pd_provider> mod) {
             if (    (provider != nullptr) && 
                     (provider != mod))
                 throw str_exception_tb("cannot set provider, already have one!");
 
             provider = mod;
-            provider_hash = std::hash<std::shared_ptr<robotkernel::module_base> >{}(mod);
+            provider_hash = std::hash<std::shared_ptr<robotkernel::pd_provider> >{}(mod);
 
             return provider_hash;
         }
@@ -165,13 +189,13 @@ class process_data :
         }
 
         //!< set main consumer thread, only thread allowed to pop
-        std::size_t set_consumer(std::shared_ptr<robotkernel::module_base> mod) {
+        std::size_t set_consumer(std::shared_ptr<robotkernel::pd_consumer> mod) {
             if (    (consumer != nullptr) &&
                     (consumer != mod))
                 throw str_exception_tb("cannot set consumer: already have one!");
 
             consumer = mod;
-            consumer_hash = std::hash<std::shared_ptr<robotkernel::module_base> >{}(mod);
+            consumer_hash = std::hash<std::shared_ptr<robotkernel::pd_consumer> >{}(mod);
 
             return consumer_hash;
         }
@@ -191,9 +215,9 @@ class process_data :
         const std::string clk_device;
         const std::string process_data_definition;
 
-        std::shared_ptr<robotkernel::module_base> provider;
+        std::shared_ptr<robotkernel::pd_provider> provider;
         std::size_t provider_hash;
-        std::shared_ptr<robotkernel::module_base> consumer;
+        std::shared_ptr<robotkernel::pd_consumer> consumer;
         std::size_t consumer_hash;
 };
 

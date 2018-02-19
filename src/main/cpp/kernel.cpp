@@ -1162,9 +1162,9 @@ int kernel::service_process_data_info(const service_arglist_t &request,
             owner     = pd->owner;
             definiton = pd->process_data_definition;
             if (pd->provider)
-                provider  = pd->provider->name;
+                provider  = pd->provider->provider_name;
             if (pd->consumer)
-                consumer  = pd->consumer->name;
+                consumer  = pd->consumer->consumer_name;
             length    = pd->length;
         } else 
             error_message = 
