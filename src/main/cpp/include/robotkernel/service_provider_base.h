@@ -195,15 +195,16 @@ class service_provider_base :
 template <class T, class S>
 inline void service_provider_base<T, S>::add_interface(sp_service_interface_t req) {
     T *handler;
-   
-    if (!test_interface(req))
+    auto local_req = std::dynamic_pointer_cast<S>(req);
+
+    if (!test_interface(local_req))
         return;
 
-    if (handler_map.find(std::make_pair(req->owner, req->id())) != handler_map.end())
+    if (handler_map.find(std::make_pair(local_req->owner, local_req->id())) != handler_map.end())
         return; // already in our handler map ....
 
     try {
-        handler = new T(req);
+        handler = new T(local_req);
     } catch (std::exception& e) {
         // if exception is thrown, req does not belong to us
         handler = NULL;
@@ -211,8 +212,8 @@ inline void service_provider_base<T, S>::add_interface(sp_service_interface_t re
 
     if (handler) {
         log(info, "got new service_interface: owner %s, id %s\n", 
-                req->owner.c_str(), req->id().c_str());
-        handler_map[std::make_pair(req->owner, req->id())] = handler;
+                local_req->owner.c_str(), local_req->id().c_str());
+        handler_map[std::make_pair(local_req->owner, local_req->id())] = handler;
     }
 };
 

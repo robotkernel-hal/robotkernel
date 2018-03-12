@@ -1212,7 +1212,7 @@ int kernel::service_trigger_info(const service_arglist_t &request,
     // request data
 #define TRIGGER_INFO_REQ_NAME 0
     string name = request[TRIGGER_INFO_REQ_NAME]; 
-
+    
     //response data
     string owner = "";
     double rate = 0.;
