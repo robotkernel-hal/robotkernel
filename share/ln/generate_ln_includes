@@ -14,7 +14,7 @@ class config(object):
 
 cfg = config()
 cfg.rk_domain_base = "/volume/software/robotkernel/packages"
-cfg.rk_version = "5"
+cfg.rk_version = "5.0"
 cfg.rk_config_fn = None
 cfg.with_gui = False
 cfg.with_rk = True
