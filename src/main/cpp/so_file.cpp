@@ -52,7 +52,7 @@ using namespace string_util;
 /*!
   \param node configuration node
   */
-so_file::so_file(const YAML::Node& node) {
+so_file::so_file(const YAML::Node& node) : config("") {
     struct stat buf;
     file_name = get_as<string>(node, "so_file");
     kernel& k = *kernel::get_instance();
@@ -122,7 +122,7 @@ so_file::so_file(const YAML::Node& node) {
     so_handle = dlopen(file_name.c_str(), RTLD_GLOBAL |
             RTLD_NOW);
 #else
-    if ((so_handle = dlopen(file_name.c_str(), RTLD_GLOBAL | RTLD_NOW |
+    if ((so_handle = dlopen(file_name.c_str(), RTLD_LOCAL | RTLD_NOW |
                     RTLD_NOLOAD)) == NULL) {
         klog(info, "loading so_file %s\n", file_name.c_str());
 
@@ -144,7 +144,7 @@ so_file::so_file(const YAML::Node& node) {
             closedir(dirp);
         }
 
-        so_handle = dlopen(file_name.c_str(), RTLD_GLOBAL |
+        so_handle = dlopen(file_name.c_str(), RTLD_LOCAL |
                 RTLD_NOW);
     }
 #endif

@@ -159,9 +159,11 @@ YAML::Emitter& operator<<(YAML::Emitter& out, const robotkernel::module& mdl) {
     out << YAML::Key << "name" << YAML::Value << mdl.name;
     out << YAML::Key << "so_file" << YAML::Value << mdl.file_name;
 
-    YAML::Node node = YAML::Load(mdl.config);
-    out << YAML::Key << "config";
-    out << YAML::Value << node;
+    if (mdl.config != "") {
+        YAML::Node node = YAML::Load(mdl.config);
+        out << YAML::Key << "config";
+        out << YAML::Value << node;
+    }
 
     if (!mdl.triggers.empty()) {
         out << YAML::Key << "trigger";
