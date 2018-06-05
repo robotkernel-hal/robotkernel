@@ -673,8 +673,6 @@ bool kernel::state_check() {
  * \return shared pointer to module
  */
 sp_module_t kernel::get_module(const std::string& mod_name) {
-    std::unique_lock<std::recursive_mutex> lock(module_map_mtx);
-
     module_map_t::const_iterator it = module_map.find(mod_name);
     if (it == module_map.end())
         throw str_exception("[robotkernel] get_module: module %s not found!\n", 
@@ -1150,6 +1148,7 @@ int kernel::service_process_data_info(const service_arglist_t &request,
     //response data
     string owner = "";
     string definiton = "";
+    string clk_device = "";
     string provider = "";
     string consumer = "";
     int32_t length = 0;
@@ -1161,6 +1160,7 @@ int kernel::service_process_data_info(const service_arglist_t &request,
         if (pd) {
             owner     = pd->owner;
             definiton = pd->process_data_definition;
+            clk_device = pd->clk_device;
             if (pd->provider)
                 provider  = pd->provider->provider_name;
             if (pd->consumer)
@@ -1175,13 +1175,15 @@ int kernel::service_process_data_info(const service_arglist_t &request,
 
 #define DEVICES_INFO_RESP_OWNER            0
 #define DEVICES_INFO_RESP_DEFINITION       1
-#define DEVICES_INFO_RESP_LENGTH           2
-#define DEVICES_INFO_RESP_PROVIDER         3
-#define DEVICES_INFO_RESP_CONSUMER         4
-#define DEVICES_INFO_RESP_ERROR_MESSAGE    5
-    response.resize(6);
+#define DEVICES_INFO_RESP_CLK_DEVICE       2
+#define DEVICES_INFO_RESP_LENGTH           3
+#define DEVICES_INFO_RESP_PROVIDER         4
+#define DEVICES_INFO_RESP_CONSUMER         5
+#define DEVICES_INFO_RESP_ERROR_MESSAGE    6
+    response.resize(7);
     response[DEVICES_INFO_RESP_OWNER]          = owner;
     response[DEVICES_INFO_RESP_DEFINITION]     = definiton;
+    response[DEVICES_INFO_RESP_CLK_DEVICE]     = clk_device;
     response[DEVICES_INFO_RESP_LENGTH]         = length;
     response[DEVICES_INFO_RESP_PROVIDER]       = provider;
     response[DEVICES_INFO_RESP_CONSUMER]       = consumer;
@@ -1196,6 +1198,7 @@ const std::string kernel::service_definition_process_data_info =
 "response:\n"
 "- string: owner\n"
 "- string: definition\n"
+"- string: clk_device\n"
 "- int32_t: length\n"
 "- string: provider\n"
 "- string: consumer\n"
