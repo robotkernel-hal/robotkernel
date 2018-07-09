@@ -211,7 +211,7 @@ inline void service_provider_base<T, S>::add_interface(sp_service_interface_t re
     }
 
     if (handler) {
-        log(info, "got new service_interface: owner %s, id %s\n", 
+        log(verbose, "got new service_interface: owner %s, id %s\n", 
                 local_req->owner.c_str(), local_req->id().c_str());
         handler_map[std::make_pair(local_req->owner, local_req->id())] = handler;
     }

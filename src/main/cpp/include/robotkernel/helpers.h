@@ -76,5 +76,8 @@ type get_as(const YAML::Node& node, const std::string key, type dflt) {
     }
 }
 
+#define get_config(member, dflt) \
+    (member) = get_as<typeof(member)>(config, # member, (typeof(member))dflt)
+
 #endif // ROBOTKERNEL__MODULE_H
 

@@ -65,7 +65,7 @@ so_file::so_file(const YAML::Node& node) : config("") {
             config_file_name = k.config_file_path + "/" + config_file_name;
         }
 
-        klog(info, "so_file %s config file \"%s\"\n", 
+        klog(verbose, "so_file %s config file \"%s\"\n", 
                 file_name.c_str(), config_file_name.c_str());
 
         ifstream t(config_file_name.c_str());
@@ -124,7 +124,7 @@ so_file::so_file(const YAML::Node& node) : config("") {
 #else
     if ((so_handle = dlopen(file_name.c_str(), RTLD_LOCAL | RTLD_NOW |
                     RTLD_NOLOAD)) == NULL) {
-        klog(info, "loading so_file %s\n", file_name.c_str());
+        klog(verbose, "loading so_file %s\n", file_name.c_str());
 
         if (access(file_name.c_str(), R_OK) != 0) {
             throw str_exception("%s so_file file name not given as absolute filename, either set\n"

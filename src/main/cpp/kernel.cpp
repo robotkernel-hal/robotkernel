@@ -516,7 +516,7 @@ void kernel::config(std::string config_file, int argc, char *argv[]) {
         }
 
         // add to module map
-        klog(info, "adding [%s]\n", mdl->get_name().c_str());
+        klog(verbose, "adding [%s]\n", mdl->get_name().c_str());
         module_map[mdl->get_name()] = mdl;
     }
 
@@ -538,7 +538,7 @@ void kernel::config(std::string config_file, int argc, char *argv[]) {
         }
 
         // add to module map
-        klog(info, "adding [%s]\n", brdg->name.c_str());
+        klog(verbose, "adding [%s]\n", brdg->name.c_str());
         bridge_map[brdg->name] = brdg;
 
         for (const auto& kv : services)
@@ -563,7 +563,7 @@ void kernel::config(std::string config_file, int argc, char *argv[]) {
         }
 
         // add to module map
-        klog(info, "adding [%s]\n", sp->name.c_str());
+        klog(verbose, "adding [%s]\n", sp->name.c_str());
         service_provider_map[sp->name] = sp;
     }
 }

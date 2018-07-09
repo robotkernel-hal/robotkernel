@@ -49,9 +49,6 @@ using namespace string_util;
 bridge::bridge(const YAML::Node& node) : so_file(node) {
     name = get_as<string>(node, "name");
 
-    klog(info, "bridge constructing %s -> %s\n", 
-            name.c_str(), file_name.c_str());
-
     bridge_configure      = (bridge_configure_t)     dlsym(so_handle, "bridge_configure");
     bridge_unconfigure    = (bridge_unconfigure_t)   dlsym(so_handle, "bridge_unconfigure");
     bridge_add_service    = (bridge_add_service_t)   dlsym(so_handle, "bridge_add_service");
