@@ -51,7 +51,7 @@ void robotkernel::set_affinity_mask(int affinity_mask) {
     taskCpuAffinitySet(taskIdSelf(), (cpuset_t) affinity_mask);
 #elif defined __QNX__
     ThreadCtl(_NTO_TCTL_RUNMASK, (void *) affinity_mask);
-#elif defined HAVE_CPU_SET_T
+#else
     cpu_set_t cpuset;
     CPU_ZERO(&cpuset);
     for (unsigned i = 0; i < (sizeof(affinity_mask) * 8); ++i)
