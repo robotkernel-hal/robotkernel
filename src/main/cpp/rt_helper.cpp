@@ -24,6 +24,7 @@
  * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "robotkernel/config.h"
 #include "robotkernel/rt_helper.h"
 #include "robotkernel/kernel.h"
 
