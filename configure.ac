@@ -6,7 +6,7 @@ AC_PREREQ([2.63])
 #
 # Robotkernel Version and Maintainer are extracted from project.properties file, change
 # them there if needed
-# 
+#
 AC_INIT([robotkernel],
 	m4_esyscmd_s([cat project.properties | grep VERSION    | cut -d'=' -f2 | xargs printf "%s"]),
 	m4_esyscmd_s([cat project.properties | grep MAINTAINER | cut -d'=' -f2 | xargs printf "%s"]))
@@ -32,14 +32,15 @@ AC_PROG_INSTALL
 m4_ifdef([PKG_PROG_PKG_CONFIG], [PKG_PROG_PKG_CONFIG])
 m4_ifdef([PKG_INSTALLDIR], [PKG_INSTALLDIR], [pkgconfigdir='${libdir}/pkgconfig' AC_SUBST([pkgconfigdir])])
 
-AS_IF([test -e src/dump_log_tp.tp], 
-	PKG_CHECK_MODULES([LTTNG_UST], [lttng-ust], 
-		[AC_DEFINE([HAVE_LTTNG_UST], [1], [use lttng user space tracing])], 
+AS_IF([test -e src/dump_log_tp.tp],
+	PKG_CHECK_MODULES([LTTNG_UST], [lttng-ust],
+		[AC_DEFINE([HAVE_LTTNG_UST], [1], [use lttng user space tracing])],
 		[AC_DEFINE([HAVE_LTTNG_UST], [0], [use lttng user space tracing])])
 )
 AM_CONDITIONAL([HAVE_LTTNG_UST], [test -n "$LTTNG_UST_LIBS"])
 
-RK_CHECK_MODULES
+PKG_CHECK_MODULES([LIBSTRING_UTIL], [libstring_util], [], [AC_MSG_ERROR([libstring_util not found])])
+PKG_CHECK_MODULES([YAML_CPP], [yaml-cpp], [], [AC_MSG_ERROR([yaml-cpp not found])])
 
 # Checks for header files.
 AC_CHECK_HEADERS([stdint.h stdlib.h string.h sys/ioctl.h unistd.h execinfo.h termios.h sys/syscall.h process.h libgen.h])
@@ -70,11 +71,10 @@ AX_CHECK_LINK_FLAG(-non-static, [LDFLAGS+=" -non-static"])
 
 AC_CHECK_TYPES([cpu_set_t], [], [], [[#include <pthread.h>]])
 
-# pthread support 
+# pthread support
 AC_CHECK_LIB(pthread, pthread_create, PTHREAD_LIBS="-lpthread")
 AC_SUBST(PTHREAD_LIBS)
 
 AC_CONFIG_FILES([Makefile src/main/cpp/Makefile share/ln/robotkernel.inc.lnc robotkernel.pc])
 
 AC_OUTPUT
-
