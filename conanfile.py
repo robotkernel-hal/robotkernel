@@ -15,7 +15,7 @@ class MainProject(ConanFile):
     }
 
     generators = "pkg_config"
-    requires = "libstring_util/[~=1.1]@crem_ja/snapshot", "yaml-cpp/0.6.2@jbeder/stable"
+    requires = "libstring_util/[~=1.1]@common/unstable", "yaml-cpp/0.6.2@jbeder/stable"
 
     def build(self):
         self.run("autoreconf -if")
