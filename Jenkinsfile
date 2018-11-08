@@ -13,5 +13,9 @@ parallelCtx.stage('create') { vars ->
 }
 
 parallelCtx.stage('upload') { vars ->
-    conan.pkgUpload(vars.ctx)
+    if(vars.ctx.repoContext.isTagFromBranch('master') || vars.ctx.repoContext.isReleaseBranch()){
+        conan.pkgUpload(vars.ctx)
+    } else {
+        println 'Skipping upload of Snapshot'
+    }
 }
