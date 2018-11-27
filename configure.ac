@@ -39,8 +39,8 @@ AS_IF([test -e src/dump_log_tp.tp],
 )
 AM_CONDITIONAL([HAVE_LTTNG_UST], [test -n "$LTTNG_UST_LIBS"])
 
-PKG_CHECK_MODULES([LIBSTRING_UTIL], [libstring_util], [], [AC_MSG_ERROR([libstring_util not found])])
-PKG_CHECK_MODULES([YAML_CPP], [yaml-cpp], [], [AC_MSG_ERROR([yaml-cpp not found])])
+PKG_CHECK_MODULES([LIBSTRING_UTIL], [libstring_util])
+PKG_CHECK_MODULES([YAML_CPP], [yaml-cpp])
 
 # Checks for header files.
 AC_CHECK_HEADERS([stdint.h stdlib.h string.h sys/ioctl.h unistd.h execinfo.h termios.h sys/syscall.h process.h libgen.h])

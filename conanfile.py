@@ -4,9 +4,11 @@ from conans import ConanFile, AutoToolsBuildEnvironment
 class MainProject(ConanFile):
     name = "robotkernel"
     license = "GPLv3"
-    url = "https://rmc-github.robotic.dlr.de/robotkernel/robotkernel"
+    url = f"https://rmc-github.robotic.dlr.de/robotkernel/{name}"
     description = "robotkernel-5 is a modular, easy configurable hardware abstraction framework"
     settings = "os", "compiler", "build_type", "arch"
+    options = {"debug": [True, False]}
+    default_options = {"debug": False}
     scm = {
         "type": "git",
         "url": "auto",
@@ -20,7 +22,14 @@ class MainProject(ConanFile):
     def build(self):
         self.run("autoreconf -if")
         autotools = AutoToolsBuildEnvironment(self)
-        autotools.configure(configure_dir=".", host=self.settings.arch )
+        autotools.libs=[]
+        autotools.include_paths=[]
+        autotools.library_paths=[]
+        if self.options.debug:
+            autotools.flags = ["-O0", "-g"]
+        else:
+            autotools.flags = ["-O3"]
+        autotools.configure(configure_dir=".")
         autotools.make()
 
     def package(self):
