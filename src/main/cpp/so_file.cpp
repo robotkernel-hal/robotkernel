@@ -48,12 +48,27 @@ using namespace std;
 using namespace robotkernel;
 using namespace string_util;
 
+string searchFile(string file_name, vector<const char*> &locations){
+    for(auto libpathes : locations){
+        if(!libpathes)
+            continue;
+        vector<string> split = split_string(libpathes, ":");
+        for (auto & el : split) {
+            el.append("/").append(file_name);
+            if (access(el.c_str(), R_OK) != -1) {
+                return el;
+            }
+        }
+    }
+    return file_name;
+}
+
 //! so_file construction
 /*!
   \param node configuration node
   */
 so_file::so_file(const YAML::Node& node) : config("") {
-    struct stat buf;
+    
     file_name = get_as<string>(node, "so_file");
     kernel& k = *kernel::get_instance();
     
@@ -81,78 +96,23 @@ so_file::so_file(const YAML::Node& node) : config("") {
         config = string(t.c_str());
     }
 
-    if ((file_name.c_str()[0] != '/') || (stat(file_name.c_str(), &buf) != 0)) {
-        // try path relative to config file first
-        string tmp_fn = k.config_file_path + "/" + file_name;
-        if (stat(tmp_fn.c_str(), &buf) != 0) {
-            bool found = false;
-
-            // no in relative path, try enviroment search path
-            char *libpathes = getenv("ROBOTKERNEL_LIBRARY_PATH");
-            if (libpathes) {
-                char *pch, *str = strdup(libpathes);
-                pch = strtok(str, ":");
-                while (pch != NULL) {
-                    tmp_fn = string(pch) + "/" + file_name;
-                    if (stat(tmp_fn.c_str(), &buf) == 0) {
-                        file_name = tmp_fn;
-                        found = true;
-                        break;
-                    }
-                    pch = strtok(NULL, ":");
-                }
-
-                free(str);
-            }
-
-            if (!found) {
-                // try path from robotkernel release
-                string tmp_fn = kernel::get_instance()->_internal_modpath + "/" + file_name;
-                if (stat(tmp_fn.c_str(), &buf) == 0) {
-                    file_name = tmp_fn;
-                    found = true;
-                }
-            }
-        } else
-            file_name = tmp_fn;
+    if (file_name.c_str()[0] != '/') {
+        vector<const char*> locations{
+                ".",                                // local dir
+                k.config_file_path.c_str(),         // relative to config file
+                getenv("ROBOTKERNEL_LIBRARY_PATH"), // search environment
+                getenv("LD_LIBRARY_PATH"),          // dlopen respects this, but we want to ensure a load order
+                k._internal_modpath.c_str(),
+        };
+        file_name = searchFile(file_name, locations);
     }
 
-#ifdef __VXWORKS__
-    klog(info, "loading so_file %s\n", file_name.c_str());
-    so_handle = dlopen(file_name.c_str(), RTLD_GLOBAL |
-            RTLD_NOW);
-#else
-    if ((so_handle = dlopen(file_name.c_str(), RTLD_LOCAL | RTLD_NOW |
-                    RTLD_NOLOAD)) == NULL) {
-        klog(verbose, "loading so_file %s\n", file_name.c_str());
-
-        if (access(file_name.c_str(), R_OK) != 0) {
-            throw str_exception("%s so_file file name not given as absolute filename, either set\n"
-                    "         ROBOTKERNEL_LIBRARY_PATH environment variable or specify absolut path!\n",
-                    file_name.c_str());
-        }
-
-        char dirname_buffer[1024];
-        strcpy(dirname_buffer, file_name.c_str());
-        char* dir = dirname(dirname_buffer);
-        DIR* dirp = opendir(dir);
-        if(dirp) {
-            struct dirent* de;
-            while((de = readdir(dirp))) {
-                // klog(error, "[%s] dir entry: %s\n", name.c_str(), de->d_name);
-            }
-            closedir(dirp);
-        }
-
-        so_handle = dlopen(file_name.c_str(), RTLD_LOCAL |
-                RTLD_NOW);
-    }
+#ifndef __VXWORKS__
+    if((so_handle = dlopen(file_name.c_str(), RTLD_LOCAL | RTLD_NOW | RTLD_NOLOAD)))
+        return; //already loaded
 #endif
-
-    if (!so_handle) {
-        throw str_exception("%s dlopen signaled error opening so_file: %s\n", 
-                file_name.c_str(), dlerror());
-    }
+    if (!(so_handle = dlopen(file_name.c_str(), RTLD_GLOBAL | RTLD_NOW)))
+        throw str_exception("%s dlopen signaled error opening so_file: %s\nCheck if file path is in ROBOTKERNEL_MODULE_PATH or LD_LIBRARY_PATH\n", file_name.c_str(), dlerror());
 }
 
 //! so_file destruction
