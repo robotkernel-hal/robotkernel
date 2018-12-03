@@ -68,7 +68,6 @@ string searchFile(string file_name, vector<const char*> &locations){
   \param node configuration node
   */
 so_file::so_file(const YAML::Node& node) : config("") {
-    
     file_name = get_as<string>(node, "so_file");
     kernel& k = *kernel::get_instance();
     
