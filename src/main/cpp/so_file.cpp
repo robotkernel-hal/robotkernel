@@ -63,6 +63,7 @@ string searchFile(string file_name, vector<const char*> &locations){
     return file_name;
 }
 
+
 //! so_file construction
 /*!
   \param node configuration node
