@@ -18,15 +18,13 @@ parallelCtx.stage('upload') { vars ->
     }
 }
 
-
-
 @Library('rmc-jenkins-libraries@refactor/build_configurations') _
 import de.dlr.rm.jenkins.ConanBuildConfiguration
 
 def buildConfigurations = ConanBuildConfiguration.permute(
-    ['osl42-x86_64', 'sled11-x86_64-gcc4.8', 'sled11-x86-gcc4.8', 'ubuntu14.04-armhf-gcc4.x', 'ubuntu12.04-armhf-gcc4.x'],
+    ['osl42-x86_64-gcc4.8', 'sled11-x86_64-gcc4.8', 'sled11-x86-gcc4.8', 'ubuntu14.04-armhf-gcc4.9'],
     [[build_type: 'Release'], [build_type: 'Debug']],
-    [['shared': 'True'], ['shared': 'False']]
+    [[:]]
 )
 
 def parallel = rmcBuild.parallelContext()
