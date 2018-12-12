@@ -17,3 +17,28 @@ parallelCtx.stage('upload') { vars ->
         println 'Skipping upload of Snapshot'
     }
 }
+
+
+
+@Library('rmc-jenkins-libraries@refactor/build_configurations') _
+import de.dlr.rm.jenkins.ConanBuildConfiguration
+
+def buildConfigurations = ConanBuildConfiguration.permute(
+    ['osl42-x86_64', 'sled11-x86_64-gcc4.8', 'sled11-x86-gcc4.8', 'ubuntu14.04-armhf-gcc4.x', 'ubuntu12.04-armhf-gcc4.x'],
+    [[build_type: 'Release'], [build_type: 'Debug']],
+    [['shared': 'True'], ['shared': 'False']]
+)
+
+def parallel = rmcBuild.parallelContext()
+parallel.addConfiguration(buildConfigurations)
+parallel.stage('build') { config ->
+    def ctx = conan.init()
+
+    stage('create') {
+        ctx.pkgCreate(config)
+    }
+
+    stage('upload') {
+        ctx.pkgUpload()
+    }
+}

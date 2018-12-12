@@ -7,8 +7,6 @@ class MainProject(ConanFile):
     url = f"https://rmc-github.robotic.dlr.de/robotkernel/{name}"
     description = "robotkernel-5 is a modular, easy configurable hardware abstraction framework"
     settings = "os", "compiler", "build_type", "arch"
-    options = {"debug": [True, False]}
-    default_options = {"debug": False}
     scm = {
         "type": "git",
         "url": "auto",
@@ -17,7 +15,7 @@ class MainProject(ConanFile):
     }
 
     generators = "pkg_config"
-    requires = "libstring_util/[~=1.1]@common/unstable", "yaml-cpp/0.6.1@jbeder/stable"
+    requires = "libstring_util/[~=1.1]@crem_ja/test", "yaml-cpp/0.6.1@jbeder/stable"
 
     def build(self):
         self.run("autoreconf -if")
@@ -25,7 +23,7 @@ class MainProject(ConanFile):
         autotools.libs=[]
         autotools.include_paths=[]
         autotools.library_paths=[]
-        if self.options.debug:
+        if self.settings.build_type == "Debug":
             autotools.flags = ["-O0", "-g"]
         else:
             autotools.flags = ["-O3"]
