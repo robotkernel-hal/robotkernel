@@ -1,4 +1,4 @@
-@Library('rmc-jenkins-libraries@refactor/build_configurations') _
+@Library('rmc-jenkins-libraries@master') _
 import de.dlr.rm.jenkins.ConanBuildConfiguration
 
 def buildConfigurations = ConanBuildConfiguration.permute(
