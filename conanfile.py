@@ -1,5 +1,5 @@
 from conans import ConanFile, AutoToolsBuildEnvironment
-
+import re
 
 class MainProject(ConanFile):
     name = "robotkernel"
@@ -15,7 +15,15 @@ class MainProject(ConanFile):
     }
 
     generators = "pkg_config"
-    requires = "libstring_util/[~=1.1]@crem_ja/test", "yaml-cpp/0.6.1@jbeder/stable"
+    requires = "libstring_util/[~=1.1]@common/unstable", "yaml-cpp/0.6.1@jbeder/stable"
+
+    def source(self):
+        filedata = None
+        filename = "project.properties"
+        with open(filename, 'r') as f:
+            filedata = f.read()
+        with open(filename, 'w') as f:
+            f.write(re.sub("VERSION *=.*[^\n]", f"VERSION = {self.version}", filedata))
 
     def build(self):
         self.run("autoreconf -if")
