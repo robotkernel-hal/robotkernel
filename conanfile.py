@@ -15,7 +15,7 @@ class MainProject(ConanFile):
     }
 
     generators = "pkg_config"
-    requires = "libstring_util/[~=1.1]@common/unstable", "yaml-cpp/0.6.1@jbeder/stable"
+    requires = "libstring_util/1.1.7-rc@common/unstable", "yaml-cpp/0.6.1@jbeder/stable"
 
     def source(self):
         filedata = None
