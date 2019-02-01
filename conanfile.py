@@ -1,10 +1,10 @@
 from conans import ConanFile, AutoToolsBuildEnvironment
-
+import re
 
 class MainProject(ConanFile):
     name = "robotkernel"
     license = "GPLv3"
-    url = "https://rmc-github.robotic.dlr.de/robotkernel/robotkernel"
+    url = f"https://rmc-github.robotic.dlr.de/robotkernel/%s" % (name)
     description = "robotkernel-5 is a modular, easy configurable hardware abstraction framework"
     settings = "os", "compiler", "build_type", "arch"
     scm = {
@@ -15,12 +15,27 @@ class MainProject(ConanFile):
     }
 
     generators = "pkg_config"
-    requires = "libstring_util/[~=1.1]@common/unstable", "yaml-cpp/0.6.2@jbeder/stable"
+    requires = "libstring_util/[~=1.1]@common/unstable", "yaml-cpp/0.6.1@jbeder/stable"
+
+    def source(self):
+        filedata = None
+        filename = "project.properties"
+        with open(filename, 'r') as f:
+            filedata = f.read()
+        with open(filename, 'w') as f:
+            f.write(re.sub("VERSION *=.*[^\n]", f"VERSION = %s" % (self.version), filedata))
 
     def build(self):
         self.run("autoreconf -if")
         autotools = AutoToolsBuildEnvironment(self)
-        autotools.configure(configure_dir=".", host=self.settings.arch )
+        autotools.libs=[]
+        autotools.include_paths=[]
+        autotools.library_paths=[]
+        if self.settings.build_type == "Debug":
+            autotools.flags = ["-O0", "-g"]
+        else:
+            autotools.flags = ["-O3"]
+        autotools.configure(configure_dir=".")
         autotools.make()
 
     def package(self):
