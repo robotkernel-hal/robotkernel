@@ -4,7 +4,7 @@ import re
 class MainProject(ConanFile):
     name = "robotkernel"
     license = "GPLv3"
-    url = f"https://rmc-github.robotic.dlr.de/robotkernel/%s" % (name)
+    url = f"https://rmc-github.robotic.dlr.de/robotkernel/{name}"
     description = "robotkernel-5 is a modular, easy configurable hardware abstraction framework"
     settings = "os", "compiler", "build_type", "arch"
     scm = {
@@ -15,7 +15,7 @@ class MainProject(ConanFile):
     }
 
     generators = "pkg_config"
-    requires = "libstring_util/[~=1.1]@common/unstable", "yaml-cpp/0.6.1@jbeder/stable"
+    requires = "libstring_util/1.1.7@common/unstable", "yaml-cpp/0.6.1@jbeder/stable"
 
     def source(self):
         filedata = None
@@ -23,7 +23,7 @@ class MainProject(ConanFile):
         with open(filename, 'r') as f:
             filedata = f.read()
         with open(filename, 'w') as f:
-            f.write(re.sub("VERSION *=.*[^\n]", f"VERSION = %s" % (self.version), filedata))
+            f.write(re.sub("VERSION *=.*[^\n]", f"VERSION = {self.version}", filedata))
 
     def build(self):
         self.run("autoreconf -if")
