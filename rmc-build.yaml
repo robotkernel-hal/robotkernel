@@ -6,5 +6,4 @@ configurations:
     build_type: [Release, Debug]
 - sled11-x86-gcc4.8
 - sled11-x86_64-gcc4.8
-- ubuntu12.04-armhf-gcc4.7
 - ubuntu14.04-armhf-gcc4.9
