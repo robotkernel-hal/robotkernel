@@ -7,3 +7,9 @@ configurations:
 - sled11-x86-gcc4.8
 - sled11-x86_64-gcc4.8
 - ubuntu14.04-armhf-gcc4.9
+- winxp-x86-mingw32:
+- winxp-x86_64-mingw32:
+- vxworks7.0.0-x86_64-gcc4.8:
+- android17-armhf-gcc4.9:
+- android17-x86-gcc4.9:
+- android21-aarch64-gcc4.9:
