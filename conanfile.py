@@ -15,8 +15,16 @@ class MainProject(ConanFile):
     }
 
     generators = "pkg_config"
-    requires = "libstring_util/1.1.7@common/unstable", "yaml-cpp/0.6.1@jbeder/stable"
+    
+    def requirements(self):
+        self.requires("libstring_util/1.1.7@common/unstable")
+        self.requires("yaml-cpp/0.6.1@jbeder/stable")
 
+
+    def config_options(self):
+        self.options["libstring_util"].shared = True
+        
+    
     def source(self):
         filedata = None
         filename = "project.properties"
