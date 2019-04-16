@@ -746,11 +746,11 @@ void kernel::add_device(sp_device_t req) {
     if (device_map.find(map_index) != device_map.end())
         return; // already in
 
-    for (const auto& kv : dl_map) 
-        kv.second->notify_add_device(req);
-
     log(verbose, "registered device \"%s\"\n", map_index.c_str());
     device_map[map_index] = req;
+
+    for (const auto& kv : dl_map) 
+        kv.second->notify_add_device(req);
 };
         
 // remove a named device
