@@ -48,21 +48,20 @@ using namespace string_util;
  */
 bridge::bridge(const YAML::Node& node) : so_file(node) {
     name = get_as<string>(node, "name");
+    
+#define get_symbol(name) {                                                      \
+    name = (name ## _t)dlsym(so_handle, #name);                                 \
+    if (!name)                                                                  \
+        throw str_exception("missing " #name " in %s\n", file_name.c_str());    \
+}
 
-    bridge_configure      = (bridge_configure_t)     dlsym(so_handle, "bridge_configure");
-    bridge_unconfigure    = (bridge_unconfigure_t)   dlsym(so_handle, "bridge_unconfigure");
-    bridge_add_service    = (bridge_add_service_t)   dlsym(so_handle, "bridge_add_service");
-    bridge_remove_service = (bridge_remove_service_t)dlsym(so_handle, "bridge_remove_service");
-
-    if (!bridge_configure)
-        klog(warning, "missing bridge_configure in %s\n", file_name.c_str());;
-    if (!bridge_unconfigure)
-        klog(warning, "missing bridge_unconfigure in %s\n", file_name.c_str());
+    get_symbol(bridge_configure);
+    get_symbol(bridge_unconfigure);
+    get_symbol(bridge_add_service);
+    get_symbol(bridge_remove_service);
 
     // try to configure
-    if (bridge_configure) {
-        bridge_handle = bridge_configure(name.c_str(), config.c_str());
-    }
+    bridge_handle = bridge_configure(name.c_str(), config.c_str());
 }
 
 //! bridge destruction
@@ -73,35 +72,17 @@ bridge::~bridge() {
     klog(info, "bridge destructing %s\n", file_name.c_str());
 
     // unconfigure bridge first
-    if (bridge_handle && bridge_unconfigure) {
-        bridge_unconfigure(bridge_handle);
-        bridge_handle = NULL;
-    }
+    bridge_unconfigure(bridge_handle);
+    bridge_handle = NULL;
 }
 
 // create and register ln service
 void bridge::add_service(const robotkernel::service_t &svc) {
-    if (!bridge_handle)
-        throw str_exception("%s not configured!\n", name.c_str());
-
-    if (!bridge_add_service) {
-        klog(error, "%s error: no bridge_add_service function\n", name.c_str());
-        return;
-    }
-
     bridge_add_service(bridge_handle, svc);
 }
 
 // unregister and remove ln service 
 void bridge::remove_service(const robotkernel::service_t &svc) {
-    if (!bridge_handle)
-        throw str_exception("%s not configured!\n", name.c_str());
-
-    if (!bridge_remove_service) {
-        klog(error, "%s error: no bridge_remove_service function\n", name.c_str());
-        return;
-    }
-
     bridge_remove_service(bridge_handle, svc);
 }
 
