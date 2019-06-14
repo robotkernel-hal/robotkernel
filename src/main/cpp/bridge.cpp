@@ -25,15 +25,11 @@
 
 #include "robotkernel/kernel.h"
 #include "robotkernel/bridge.h"
-#include "robotkernel/kernel_worker.h"
 #include "robotkernel/exceptions.h"
 #include "robotkernel/helpers.h"
-#include <sys/stat.h>
 #include <dlfcn.h>
-#include <iostream>
 #include <stdlib.h>
 #include <string.h>
-#include <fstream>
 
 #include <string_util/string_util.h>
 
