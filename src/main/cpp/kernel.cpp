@@ -818,6 +818,7 @@ int kernel::service_get_dump_log(const service_arglist_t& request,
 }
 
 const std::string kernel::service_definition_get_dump_log = 
+"name: get_dump_log\n"
 "response:\n"
 "- string: log\n";
 
@@ -871,6 +872,7 @@ int kernel::service_config_dump_log(const service_arglist_t& request,
 }
 
 const std::string kernel::service_definition_config_dump_log = 
+"name: config_dump_log\n"
 "request:\n"
 "- uint32_t: max_len\n"
 "- uint8_t: do_ust\n"
@@ -911,6 +913,7 @@ int kernel::service_add_module(const service_arglist_t& request,
 }
 
 const std::string kernel::service_definition_add_module = 
+"name: add_module\n"
 "request:\n"
 "- string: config\n"
 "response:\n"
@@ -954,6 +957,7 @@ int kernel::service_remove_module(const service_arglist_t& request,
 }
 
 const std::string kernel::service_definition_remove_module = 
+"name: remove_module\n"
 "request:\n"
 "- string: mod_name\n"
 "response:\n"
@@ -990,6 +994,7 @@ int kernel::service_module_list(const service_arglist_t& request,
 }
 
 const std::string kernel::service_definition_module_list = 
+"name: module_list\n"
 "response:\n"
 "- vector/string: modules\n"
 "- string: error_message\n";
@@ -1042,6 +1047,7 @@ int kernel::service_reconfigure_module(const service_arglist_t& request,
 }
 
 const std::string kernel::service_definition_reconfigure_module = 
+"name: reconfigure_module\n"
 "request:\n"
 "- string: mod_name\n"
 "response:\n"
@@ -1129,6 +1135,7 @@ int kernel::service_list_devices(const service_arglist_t &request,
 }
 
 const std::string kernel::service_definition_list_devices = 
+"name: list_devices\n"
 "response:\n"
 "- vector/string: devices\n"
 "- string: error_message\n";
@@ -1193,6 +1200,7 @@ int kernel::service_process_data_info(const service_arglist_t &request,
 }
 
 const std::string kernel::service_definition_process_data_info = 
+"name: process_data_info\n"
 "request:\n"
 "- string: name\n"
 "response:\n"
@@ -1246,6 +1254,7 @@ int kernel::service_trigger_info(const service_arglist_t &request,
 }
 
 const std::string kernel::service_definition_trigger_info = 
+"name: trigger_info\n"
 "request:\n"
 "- string: name\n"
 "response:\n"
@@ -1292,6 +1301,7 @@ int kernel::service_stream_info(const service_arglist_t &request,
 }
 
 const std::string kernel::service_definition_stream_info = 
+"name: stream_info\n"
 "request:\n"
 "- string: name\n"
 "response:\n"
@@ -1337,6 +1347,7 @@ int kernel::service_service_interface_info(const service_arglist_t &request,
 }
 
 const std::string kernel::service_definition_service_interface_info = 
+"name: service_interface_info\n"
 "request:\n"
 "- string: name\n"
 "response:\n"

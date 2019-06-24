@@ -15,7 +15,7 @@ class MainProject(ConanFile):
     }
 
     generators = "pkg_config"
-    
+
     def requirements(self):
         self.requires("libstring_util/1.1.7@common/unstable")
         self.requires("yaml-cpp/0.6.1@jbeder/stable")
@@ -23,8 +23,8 @@ class MainProject(ConanFile):
 
     def config_options(self):
         self.options["libstring_util"].shared = True
-        
-    
+
+
     def source(self):
         filedata = None
         filename = "project.properties"
@@ -40,7 +40,7 @@ class MainProject(ConanFile):
         autotools.include_paths=[]
         autotools.library_paths=[]
         if self.settings.build_type == "Debug":
-            autotools.flags = ["-O0", "-g"]
+            autotools.flags = ["-O0", "-g", "-fno-builtin-strlen"]
         else:
             autotools.flags = ["-O3"]
         autotools.configure(configure_dir=".")
