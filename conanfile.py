@@ -7,23 +7,15 @@ class MainProject(ConanFile):
     url = f"https://rmc-github.robotic.dlr.de/robotkernel/{name}"
     description = "robotkernel-5 is a modular, easy configurable hardware abstraction framework"
     settings = "os", "compiler", "build_type", "arch"
-    scm = {
-        "type": "git",
-        "url": "auto",
-        "revision": "auto",
-        "submodule": "recursive",
-    }
-
+    exports_sources = "src/*", "README.wiki", "project.properties", "robotkernel.pc.in", "Makefile.am", "m4/*", "configure.ac", "LICENSE"
     generators = "pkg_config"
 
     def requirements(self):
         self.requires("libstring_util/1.1.7@common/unstable")
         self.requires("yaml-cpp/0.6.1@jbeder/stable")
 
-
     def config_options(self):
         self.options["libstring_util"].shared = True
-
 
     def source(self):
         filedata = None
