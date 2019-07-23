@@ -39,6 +39,41 @@ namespace robotkernel {
 }
 #endif
 
+//! trigger waiter class
+class trigger_waiter : 
+    public trigger_base 
+{
+    public:
+        std::condition_variable cond;
+        std::mutex              mtx;
+
+        trigger_waiter() { }
+
+        ~trigger_waiter() { }
+
+        void tick() {
+            cond.notify_all();
+        }
+
+        void wait(double timeout) {
+            std::unique_lock<std::mutex> lock(mtx);
+
+            if (cond.wait_for(lock, std::chrono::nanoseconds(
+                            (uint64_t)(timeout * 1000000000))) == std::cv_status::timeout)
+                throw str_exception("timeout waiting for trigger");
+        }
+
+        void wait(double timeout, bool (*pred)(void)) {
+            std::unique_lock<std::mutex> lock(mtx);
+
+            if (cond.wait_for(lock, std::chrono::nanoseconds(
+                            (uint64_t)(timeout * 1000000000))) == std::cv_status::timeout, pred)
+                throw str_exception("timeout waiting for trigger");
+        }
+};
+
+typedef std::shared_ptr<trigger_waiter> sp_trigger_waiter_t;
+
 class trigger :
     public device
 {
