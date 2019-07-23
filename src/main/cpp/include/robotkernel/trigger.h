@@ -59,7 +59,7 @@ class trigger_waiter :
         void wait(double timeout, bool to_lock = true) {
             std::unique_lock<std::mutex> lock;
             if (to_lock)
-                lock = std:unique_lock<std::mutex>(mtx);
+                lock = std::unique_lock<std::mutex>(mtx);
 
             if (cond.wait_for(lock, std::chrono::nanoseconds(
                             (uint64_t)(timeout * 1000000000))) == std::cv_status::timeout)
