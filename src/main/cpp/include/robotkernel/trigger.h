@@ -52,22 +52,17 @@ class trigger_waiter :
         ~trigger_waiter() { }
 
         void tick() {
+            std::unique_lock<std::mutex> lock(mtx);
             cond.notify_all();
         }
 
-        void wait(double timeout) {
-            std::unique_lock<std::mutex> lock(mtx);
+        void wait(double timeout, bool to_lock = true) {
+            std::unique_lock<std::mutex> lock;
+            if (to_lock)
+                lock = std:unique_lock<std::mutex>(mtx);
 
             if (cond.wait_for(lock, std::chrono::nanoseconds(
                             (uint64_t)(timeout * 1000000000))) == std::cv_status::timeout)
-                throw str_exception("timeout waiting for trigger");
-        }
-
-        void wait(double timeout, bool (*pred)(void)) {
-            std::unique_lock<std::mutex> lock(mtx);
-
-            if (cond.wait_for(lock, std::chrono::nanoseconds(
-                            (uint64_t)(timeout * 1000000000))) == std::cv_status::timeout, pred)
                 throw str_exception("timeout waiting for trigger");
         }
 };
