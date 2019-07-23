@@ -34,6 +34,8 @@
 #include "robotkernel/trigger_base.h"
 #include "robotkernel/trigger_worker.h"
 
+#include <string_util/string_util.h>
+
 namespace robotkernel {
 #ifdef EMACS
 }
