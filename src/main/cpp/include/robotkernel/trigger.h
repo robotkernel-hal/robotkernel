@@ -63,7 +63,7 @@ class trigger_waiter :
 
             if (cond.wait_for(lock, std::chrono::nanoseconds(
                             (uint64_t)(timeout * 1000000000))) == std::cv_status::timeout)
-                throw str_exception("timeout waiting for trigger");
+                throw string_util::str_exception("timeout waiting for trigger");
         }
 };
 
