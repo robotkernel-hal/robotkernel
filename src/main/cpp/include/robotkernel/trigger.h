@@ -58,11 +58,12 @@ class trigger_waiter :
             cond.notify_all();
         }
 
-        void wait(double timeout, bool to_lock = true) {
-            std::unique_lock<std::mutex> lock;
-            if (to_lock)
-                lock = std::unique_lock<std::mutex>(mtx);
-
+        void wait(double timeout) {
+            std::unique_lock<std::mutex> lock(mtx);
+            wait(timeout, lock);
+        }
+        
+        void wait(double timeout, std::unique_lock<std::mutex>& lock) {
             if (cond.wait_for(lock, std::chrono::nanoseconds(
                             (uint64_t)(timeout * 1000000000))) == std::cv_status::timeout)
                 throw string_util::str_exception("timeout waiting for trigger");
