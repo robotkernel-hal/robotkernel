@@ -210,7 +210,7 @@ class process_data :
         }
 
     public:
-        uint64_t pd_cookie;
+        volatile uint64_t pd_cookie;
         const size_t length;
         const std::string clk_device;
         const std::string process_data_definition;
