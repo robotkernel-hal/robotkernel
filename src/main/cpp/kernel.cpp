@@ -35,6 +35,9 @@
 #include "robotkernel/bridge_base.h"
 #include "robotkernel/config.h"
 #include "yaml-cpp/yaml.h"
+#include "sys/stat.h"
+#include "fcntl.h"
+
 
 using namespace std;
 using namespace std::placeholders;
@@ -75,6 +78,22 @@ loglevel& loglevel::operator=(const std::string& ll_string) {
 }
 
 const static string ROBOT_KERNEL = "[robotkernel] ";
+
+//! log object to trace fd
+void kernel::trace_write(const char *fmt, ...) {
+    va_list ap;
+    char buf[256];
+    int n;
+
+    if (trace_fd < 0)
+        return;
+
+    va_start(ap, fmt);
+    n = vsnprintf(buf, 256, fmt, ap);
+    va_end(ap);
+
+    write(trace_fd, buf, n);
+}
 
 //! kernel singleton instance
 kernel *kernel::instance = NULL;
@@ -472,6 +491,14 @@ void kernel::config(std::string config_file, int argc, char *argv[]) {
 
     // search for loglevel
     ll = get_as<string>(doc, "loglevel", "info");
+
+    log_to_trace_fd = get_as<bool>(doc, "log_to_trace_fd", false);
+    if (do_log_to_trace_fd()) {
+        trace_fd = open("/sys/kernel/debug/tracing/trace_marker", O_WRONLY);
+        if (trace_fd == -1) 
+            throw errno_exception_tb("cannot open trace_marker\n");
+    }
+
 
     rk_log.fix_modname_length = 
         get_as<unsigned int>(doc, "log_fix_modname_length", 20);

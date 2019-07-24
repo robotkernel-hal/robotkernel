@@ -156,6 +156,10 @@ void log_base::log(loglevel lvl, const char *format, ...) {
     }
 
 log_exit:
+    if (k.do_log_to_trace_fd()) {
+        k.trace_write(buf);
+    }
+
     dump_log(buf);
 }
 

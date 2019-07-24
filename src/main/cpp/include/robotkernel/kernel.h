@@ -71,6 +71,9 @@ class kernel {
 
         device_map_t device_map;
 
+        int trace_fd;
+        bool log_to_trace_fd;
+
     protected:
         //! construction
         /*!
@@ -86,6 +89,11 @@ class kernel {
 
         //! holds all registered process data
         process_data_map_t process_data_map;
+
+        bool do_log_to_trace_fd() { return log_to_trace_fd; }
+
+        //! log object to trace fd
+        void trace_write(const char *fmt, ...);
 
         //! add service to kernel
         /*!
