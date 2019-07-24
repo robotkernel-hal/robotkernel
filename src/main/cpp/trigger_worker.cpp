@@ -115,7 +115,7 @@ void trigger_worker::run() {
 
 //! trigger worker
 void trigger_worker::tick() {
-    std::unique_lock<std::mutex> lock(mtx);
+    // there's no need to lock 'mtx' here, it's only used to protect trigger list
     cond.notify_all();
 }
 
