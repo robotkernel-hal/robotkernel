@@ -290,7 +290,8 @@ class single_buffer :
             process_data::write(hash, offset, buf, len, do_push);
 
             if ((offset + len) > length)
-                throw std::exception();
+                throw str_exception_tb("wanted to write to many bytes: %d > length %d\n",
+                        (offset + len), length);
 
             std::memcpy(&data[offset], buf, len);
         }
@@ -307,7 +308,8 @@ class single_buffer :
                 size_t len, bool do_pop = true) 
         {
             if ((offset + len) > length)
-                throw std::exception();
+                throw str_exception_tb("wanted to read to many bytes: %d > length %d\n",
+                        (offset + len), length);
             
             std::memcpy(buf, &data[offset], len);
         }
@@ -416,7 +418,8 @@ class triple_buffer :
             process_data::write(hash, offset, buf, len, do_push);
 
             if ((offset + len) > length)
-                throw std::exception();
+                throw str_exception_tb("wanted to write to many bytes: %d > length %d\n",
+                        (offset + len), length);
 
             auto& tmp_buf = back_buffer();
             std::memcpy(&tmp_buf[offset], buf, len);
@@ -438,7 +441,9 @@ class triple_buffer :
             process_data::read(hash, offset, buf, len, do_pop);
 
             if ((offset + len) > length)
-                throw std::exception();
+                throw str_exception_tb("wanted to read to many bytes: %d > length %d\n",
+                        (offset + len), length);
+            
 
             if (do_pop) {
                 swap_front();
@@ -574,7 +579,8 @@ class pointer_buffer :
             process_data::write(hash, offset, buf, len, do_push);
 
             if ((offset + len) > length)
-                throw std::exception();
+                throw str_exception_tb("wanted to write to many bytes: %d > length %d\n",
+                        (offset + len), length);
 
             std::memcpy(&ptr[offset], buf, len);
         }
@@ -591,7 +597,9 @@ class pointer_buffer :
                 size_t len, bool do_pop = true) 
         {
             if ((offset + len) > length)
-                throw std::exception();
+                throw str_exception_tb("wanted to read to many bytes: %d > length %d\n",
+                        (offset + len), length);
+            
 
             std::memcpy(buf, &ptr[offset], len);
         }
