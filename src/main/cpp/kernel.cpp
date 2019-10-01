@@ -195,6 +195,46 @@ module_state_t kernel::get_state(std::string mod_name) {
     return mdl->get_state();
 }
 
+//! call a robotkernel service
+/*!
+ * \param[in]  name          Name of service to call.
+ * \param[in]  req           Service request parameters.
+ * \param[out] resp          Service response parameters.
+ */
+void kernel::call_service(const std::string& name, 
+        const service_arglist_t& req, service_arglist_t& resp) {
+    for (auto& kv : services) {
+        string svc_name = kv.first.first + "." + kv.first.second;
+
+        if (svc_name != name) 
+            continue;
+    
+        service_t *svc = kv.second;
+        svc->callback(req, resp);
+    }
+}
+
+//! call a robotkernel service
+/*!
+ * \param[in]  owner         Owner of service to call.
+ * \param[in]  name          Name of service to call.
+ * \param[in]  req           Service request parameters.
+ * \param[out] resp          Service response parameters.
+ */
+void kernel::call_service(const std::string& owner, const std::string& name, 
+        const service_arglist_t& req, service_arglist_t& resp) {
+    
+    service_map_t::iterator it;
+    if ((it = services.find(std::make_pair(owner, name))) == services.end())
+        return; // service not found
+    
+    for (const auto& kv : bridge_map)
+        kv.second->remove_service(*(it->second));
+
+    service_t *svc = it->second;
+    svc->callback(req, resp);
+}
+
 //! add service to kernel
 /*!
  * \param owner service owner

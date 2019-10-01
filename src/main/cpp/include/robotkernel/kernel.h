@@ -95,6 +95,25 @@ class kernel {
         //! log object to trace fd
         void trace_write(const char *fmt, ...);
 
+        //! call a robotkernel service
+        /*!
+         * \param[in]  name          Name of service to call.
+         * \param[in]  req           Service request parameters.
+         * \param[out] resp          Service response parameters.
+         */
+        void call_service(const std::string& name, 
+                const service_arglist_t& req, service_arglist_t& resp);
+
+        //! call a robotkernel service
+        /*!
+         * \param[in]  owner         Owner of service to call.
+         * \param[in]  name          Name of service to call.
+         * \param[in]  req           Service request parameters.
+         * \param[out] resp          Service response parameters.
+         */
+        void call_service(const std::string& owner, const std::string& name, 
+                const service_arglist_t& req, service_arglist_t& resp);
+
         //! add service to kernel
         /*!
          * \param owner service owner
