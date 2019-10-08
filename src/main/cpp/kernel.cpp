@@ -214,7 +214,7 @@ void kernel::call_service(const std::string& name,
         return;
     }
         
-    throw str_exception("service \"%s\" not found!", name.c_str());
+    throw str_exception("service \"%s\" not found!\n", name.c_str());
 }
 
 //! call a robotkernel service
@@ -229,7 +229,7 @@ void kernel::call_service(const std::string& owner, const std::string& name,
     
     service_map_t::iterator it;
     if ((it = services.find(std::make_pair(owner, name))) == services.end()) {
-        throw str_exception("service \"%s.%s\" not found!", owner.c_str(), name.c_str());
+        throw str_exception("service \"%s.%s\" not found!\n", owner.c_str(), name.c_str());
     }
     
     for (const auto& kv : bridge_map)
