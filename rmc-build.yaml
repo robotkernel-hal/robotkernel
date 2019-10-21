@@ -11,6 +11,5 @@ configurations:
 - ubuntu14.04-armhf-gcc4.9
 - osl15-x86_64-gcc7
 - osl15-x86_64-gcc8
-- osl42-x86_64-clang4.0
 - osl42-x86_64-gcc5
 - osl42-x86_64-gcc8
