@@ -1,4 +1,4 @@
-from conans import ConanFile, AutoToolsBuildEnvironment
+from conans import ConanFile, AutoToolsBuildEnvironment, tools
 import re
 
 class MainProject(ConanFile):
@@ -8,9 +8,15 @@ class MainProject(ConanFile):
     description = "robotkernel-5 is a modular, easy configurable hardware abstraction framework"
     settings = "os", "compiler", "build_type", "arch"
     exports_sources = ["*", "!.gitignore"] + ["!%s" % x for x in tools.Git().excluded_files()]
-
     generators = "pkg_config"
-    requires = "libstring_util/1.1.7-rc@common/unstable", "yaml-cpp/0.6.1@jbeder/stable"
+
+    def requirements(self):
+        self.requires("libstring_util/1.1.7@common/unstable")
+        self.requires("yaml-cpp/0.6.1@jbeder/stable")
+
+
+    def config_options(self):
+        self.options["libstring_util"].shared = True
 
     def source(self):
         filedata = None
