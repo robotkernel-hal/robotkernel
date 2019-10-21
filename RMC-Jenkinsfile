@@ -1,2 +1,2 @@
-@Library('rmc-jenkins-libraries-v2') _
-node { rmcBuild.auto() }
+@Library('rmc-jenkins-libraries-v2-no-changelog') _
+rmcBuild.auto()
