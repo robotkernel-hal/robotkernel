@@ -11,7 +11,7 @@ class MainProject(ConanFile):
     generators = "pkg_config"
 
     def requirements(self):
-        self.requires("libstring_util/1.1.7@common/unstable")
+        self.requires("libstring_util/1.1.7@common/stable")
         self.requires("yaml-cpp/0.6.2@3rdparty/stable")
 
 
