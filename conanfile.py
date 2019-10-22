@@ -12,7 +12,7 @@ class MainProject(ConanFile):
 
     def requirements(self):
         self.requires("libstring_util/1.1.7@common/unstable")
-        self.requires("yaml-cpp/0.6.1@jbeder/stable")
+        self.requires("yaml-cpp/0.6.2@3rdparty/stable")
 
 
     def config_options(self):
