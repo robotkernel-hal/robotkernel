@@ -100,31 +100,6 @@ void trigger::remove_trigger(sp_trigger_base_t trigger) {
     }
 }
 
-//! trigger waiter class
-class trigger_waiter : 
-    public trigger_base 
-{
-    public:
-        std::condition_variable cond;
-        std::mutex              mtx;
-
-        trigger_waiter() { }
-
-        ~trigger_waiter() { }
-
-        void tick() {
-            cond.notify_all();
-        }
-
-        void wait(double timeout) {
-            std::unique_lock<std::mutex> lock(mtx);
-
-            if (cond.wait_for(lock, std::chrono::nanoseconds(
-                            (uint64_t)(timeout * 1000000000))) == std::cv_status::timeout)
-                throw str_exception("timeout waiting for trigger");
-        }
-};
-
 //! wait blocking for next trigger
 void trigger::wait(double timeout) {
     std::shared_ptr<trigger_waiter> waiter = make_shared<trigger_waiter>();

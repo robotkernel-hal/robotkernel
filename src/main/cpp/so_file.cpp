@@ -108,10 +108,10 @@ so_file::so_file(const YAML::Node& node) : config("") {
     }
 
 #ifndef __VXWORKS__
-    if((so_handle = dlopen(file_name.c_str(), RTLD_LOCAL | RTLD_NOW | RTLD_NOLOAD)))
+    if((so_handle = dlopen(file_name.c_str(), RTLD_LOCAL | RTLD_NOW | RTLD_DEEPBIND | RTLD_NOLOAD)))
         return; //already loaded
 #endif
-    if (!(so_handle = dlopen(file_name.c_str(), RTLD_GLOBAL | RTLD_NOW)))
+    if (!(so_handle = dlopen(file_name.c_str(), RTLD_LOCAL | RTLD_NOW | RTLD_DEEPBIND | RTLD_NODELETE)))
         throw str_exception("%s dlopen signaled error opening so_file: %s\nCheck if file path is in ROBOTKERNEL_MODULE_PATH or LD_LIBRARY_PATH\n", file_name.c_str(), dlerror());
 }
 

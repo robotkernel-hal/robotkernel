@@ -109,6 +109,7 @@ int log_base::service_configure_loglevel(const service_arglist_t& request,
 }
 
 const std::string log_base::service_definition_configure_loglevel = 
+"name: configure_loglevel\n"
 "request:\n"
 "- string: set_loglevel\n"
 "response:\n"
@@ -155,6 +156,10 @@ void log_base::log(loglevel lvl, const char *format, ...) {
     }
 
 log_exit:
+    if (k.do_log_to_trace_fd()) {
+        k.trace_write(buf);
+    }
+
     dump_log(buf);
 }
 

@@ -34,10 +34,43 @@
 #include "robotkernel/trigger_base.h"
 #include "robotkernel/trigger_worker.h"
 
+#include <string_util/string_util.h>
+
 namespace robotkernel {
 #ifdef EMACS
 }
 #endif
+
+//! trigger waiter class
+class trigger_waiter : 
+    public trigger_base 
+{
+    public:
+        std::condition_variable cond;
+        std::mutex              mtx;
+
+        trigger_waiter() { }
+
+        ~trigger_waiter() { }
+
+        void tick() {
+            std::unique_lock<std::mutex> lock(mtx);
+            cond.notify_all();
+        }
+
+        void wait(double timeout) {
+            std::unique_lock<std::mutex> lock(mtx);
+            wait(timeout, lock);
+        }
+        
+        void wait(double timeout, std::unique_lock<std::mutex>& lock) {
+            if (cond.wait_for(lock, std::chrono::nanoseconds(
+                            (uint64_t)(timeout * 1000000000))) == std::cv_status::timeout)
+                throw string_util::str_exception("timeout waiting for trigger");
+        }
+};
+
+typedef std::shared_ptr<trigger_waiter> sp_trigger_waiter_t;
 
 class trigger :
     public device

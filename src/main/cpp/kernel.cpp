@@ -35,6 +35,9 @@
 #include "robotkernel/bridge_base.h"
 #include "robotkernel/config.h"
 #include "yaml-cpp/yaml.h"
+#include "sys/stat.h"
+#include "fcntl.h"
+
 
 using namespace std;
 using namespace std::placeholders;
@@ -75,6 +78,22 @@ loglevel& loglevel::operator=(const std::string& ll_string) {
 }
 
 const static string ROBOT_KERNEL = "[robotkernel] ";
+
+//! log object to trace fd
+void kernel::trace_write(const char *fmt, ...) {
+    va_list ap;
+    char buf[256];
+    int n;
+
+    if (trace_fd < 0)
+        return;
+
+    va_start(ap, fmt);
+    n = vsnprintf(buf, 256, fmt, ap);
+    va_end(ap);
+
+    write(trace_fd, buf, n);
+}
 
 //! kernel singleton instance
 kernel *kernel::instance = NULL;
@@ -174,6 +193,50 @@ module_state_t kernel::get_state(std::string mod_name) {
 
     sp_module_t mdl = it->second;
     return mdl->get_state();
+}
+
+//! call a robotkernel service
+/*!
+ * \param[in]  name          Name of service to call.
+ * \param[in]  req           Service request parameters.
+ * \param[out] resp          Service response parameters.
+ */
+void kernel::call_service(const std::string& name, 
+        const service_arglist_t& req, service_arglist_t& resp) {
+    for (auto& kv : services) {
+        string svc_name = kv.first.first + "." + kv.first.second;
+
+        if (svc_name != name) 
+            continue;
+    
+        service_t *svc = kv.second;
+        svc->callback(req, resp);
+        return;
+    }
+        
+    throw str_exception("service \"%s\" not found!\n", name.c_str());
+}
+
+//! call a robotkernel service
+/*!
+ * \param[in]  owner         Owner of service to call.
+ * \param[in]  name          Name of service to call.
+ * \param[in]  req           Service request parameters.
+ * \param[out] resp          Service response parameters.
+ */
+void kernel::call_service(const std::string& owner, const std::string& name, 
+        const service_arglist_t& req, service_arglist_t& resp) {
+    
+    service_map_t::iterator it;
+    if ((it = services.find(std::make_pair(owner, name))) == services.end()) {
+        throw str_exception("service \"%s.%s\" not found!\n", owner.c_str(), name.c_str());
+    }
+    
+    for (const auto& kv : bridge_map)
+        kv.second->remove_service(*(it->second));
+
+    service_t *svc = it->second;
+    svc->callback(req, resp);
 }
 
 //! add service to kernel
@@ -473,6 +536,14 @@ void kernel::config(std::string config_file, int argc, char *argv[]) {
     // search for loglevel
     ll = get_as<string>(doc, "loglevel", "info");
 
+    log_to_trace_fd = get_as<bool>(doc, "log_to_trace_fd", false);
+    if (do_log_to_trace_fd()) {
+        trace_fd = open("/sys/kernel/debug/tracing/trace_marker", O_WRONLY);
+        if (trace_fd == -1) 
+            throw errno_exception_tb("cannot open trace_marker\n");
+    }
+
+
     rk_log.fix_modname_length = 
         get_as<unsigned int>(doc, "log_fix_modname_length", 20);
 
@@ -746,11 +817,11 @@ void kernel::add_device(sp_device_t req) {
     if (device_map.find(map_index) != device_map.end())
         return; // already in
 
-    for (const auto& kv : dl_map) 
-        kv.second->notify_add_device(req);
-
     log(verbose, "registered device \"%s\"\n", map_index.c_str());
     device_map[map_index] = req;
+
+    for (const auto& kv : dl_map) 
+        kv.second->notify_add_device(req);
 };
         
 // remove a named device
@@ -818,6 +889,7 @@ int kernel::service_get_dump_log(const service_arglist_t& request,
 }
 
 const std::string kernel::service_definition_get_dump_log = 
+"name: get_dump_log\n"
 "response:\n"
 "- string: log\n";
 
@@ -871,6 +943,7 @@ int kernel::service_config_dump_log(const service_arglist_t& request,
 }
 
 const std::string kernel::service_definition_config_dump_log = 
+"name: config_dump_log\n"
 "request:\n"
 "- uint32_t: max_len\n"
 "- uint8_t: do_ust\n"
@@ -911,6 +984,7 @@ int kernel::service_add_module(const service_arglist_t& request,
 }
 
 const std::string kernel::service_definition_add_module = 
+"name: add_module\n"
 "request:\n"
 "- string: config\n"
 "response:\n"
@@ -954,6 +1028,7 @@ int kernel::service_remove_module(const service_arglist_t& request,
 }
 
 const std::string kernel::service_definition_remove_module = 
+"name: remove_module\n"
 "request:\n"
 "- string: mod_name\n"
 "response:\n"
@@ -990,6 +1065,7 @@ int kernel::service_module_list(const service_arglist_t& request,
 }
 
 const std::string kernel::service_definition_module_list = 
+"name: module_list\n"
 "response:\n"
 "- vector/string: modules\n"
 "- string: error_message\n";
@@ -1042,6 +1118,7 @@ int kernel::service_reconfigure_module(const service_arglist_t& request,
 }
 
 const std::string kernel::service_definition_reconfigure_module = 
+"name: reconfigure_module\n"
 "request:\n"
 "- string: mod_name\n"
 "response:\n"
@@ -1129,6 +1206,7 @@ int kernel::service_list_devices(const service_arglist_t &request,
 }
 
 const std::string kernel::service_definition_list_devices = 
+"name: list_devices\n"
 "response:\n"
 "- vector/string: devices\n"
 "- string: error_message\n";
@@ -1193,6 +1271,7 @@ int kernel::service_process_data_info(const service_arglist_t &request,
 }
 
 const std::string kernel::service_definition_process_data_info = 
+"name: process_data_info\n"
 "request:\n"
 "- string: name\n"
 "response:\n"
@@ -1246,6 +1325,7 @@ int kernel::service_trigger_info(const service_arglist_t &request,
 }
 
 const std::string kernel::service_definition_trigger_info = 
+"name: trigger_info\n"
 "request:\n"
 "- string: name\n"
 "response:\n"
@@ -1292,6 +1372,7 @@ int kernel::service_stream_info(const service_arglist_t &request,
 }
 
 const std::string kernel::service_definition_stream_info = 
+"name: stream_info\n"
 "request:\n"
 "- string: name\n"
 "response:\n"
@@ -1337,6 +1418,7 @@ int kernel::service_service_interface_info(const service_arglist_t &request,
 }
 
 const std::string kernel::service_definition_service_interface_info = 
+"name: service_interface_info\n"
 "request:\n"
 "- string: name\n"
 "response:\n"

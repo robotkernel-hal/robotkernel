@@ -171,7 +171,7 @@ class process_data :
         std::size_t set_provider(std::shared_ptr<robotkernel::pd_provider> mod) {
             if (    (provider != nullptr) && 
                     (provider != mod))
-                throw str_exception_tb("cannot set provider, already have one!");
+                throw str_exception_tb("cannot set provider for %s, already have one!", id().c_str());
 
             provider = mod;
             provider_hash = std::hash<std::shared_ptr<robotkernel::pd_provider> >{}(mod);
@@ -182,7 +182,7 @@ class process_data :
         //! reset data provider thread
         void reset_provider(const std::size_t& hash) {
             if (provider_hash != hash)
-                throw str_exception_tb("cannot reset provider: you are not the provider!");
+                throw str_exception_tb("cannot reset provider for %s: you are not the provider!", id().c_str());
 
             provider_hash = 0;
             provider = nullptr;
@@ -192,7 +192,7 @@ class process_data :
         std::size_t set_consumer(std::shared_ptr<robotkernel::pd_consumer> mod) {
             if (    (consumer != nullptr) &&
                     (consumer != mod))
-                throw str_exception_tb("cannot set consumer: already have one!");
+                throw str_exception_tb("cannot set consumer for %s: already have one!", id().c_str());
 
             consumer = mod;
             consumer_hash = std::hash<std::shared_ptr<robotkernel::pd_consumer> >{}(mod);
@@ -203,14 +203,14 @@ class process_data :
         //! reset main consumer thread
         void reset_consumer(const std::size_t& hash) {
             if (consumer_hash != hash)
-                throw str_exception_tb("cannot reset consumer: you are not the consumer!");
+                throw str_exception_tb("cannot reset consumer for %s: you are not the consumer!", id().c_str());
 
             consumer_hash = 0;
             consumer = nullptr;
         }
 
     public:
-        uint64_t pd_cookie;
+        volatile uint64_t pd_cookie;
         const size_t length;
         const std::string clk_device;
         const std::string process_data_definition;
@@ -290,7 +290,8 @@ class single_buffer :
             process_data::write(hash, offset, buf, len, do_push);
 
             if ((offset + len) > length)
-                throw std::exception();
+                throw str_exception_tb("wanted to write to many bytes: %d > length %d\n",
+                        (offset + len), length);
 
             std::memcpy(&data[offset], buf, len);
         }
@@ -307,7 +308,8 @@ class single_buffer :
                 size_t len, bool do_pop = true) 
         {
             if ((offset + len) > length)
-                throw std::exception();
+                throw str_exception_tb("wanted to read to many bytes: %d > length %d\n",
+                        (offset + len), length);
             
             std::memcpy(buf, &data[offset], len);
         }
@@ -416,7 +418,8 @@ class triple_buffer :
             process_data::write(hash, offset, buf, len, do_push);
 
             if ((offset + len) > length)
-                throw std::exception();
+                throw str_exception_tb("wanted to write to many bytes: %d > length %d\n",
+                        (offset + len), length);
 
             auto& tmp_buf = back_buffer();
             std::memcpy(&tmp_buf[offset], buf, len);
@@ -438,7 +441,9 @@ class triple_buffer :
             process_data::read(hash, offset, buf, len, do_pop);
 
             if ((offset + len) > length)
-                throw std::exception();
+                throw str_exception_tb("wanted to read to many bytes: %d > length %d\n",
+                        (offset + len), length);
+            
 
             if (do_pop) {
                 swap_front();
@@ -574,7 +579,8 @@ class pointer_buffer :
             process_data::write(hash, offset, buf, len, do_push);
 
             if ((offset + len) > length)
-                throw std::exception();
+                throw str_exception_tb("wanted to write to many bytes: %d > length %d\n",
+                        (offset + len), length);
 
             std::memcpy(&ptr[offset], buf, len);
         }
@@ -591,7 +597,9 @@ class pointer_buffer :
                 size_t len, bool do_pop = true) 
         {
             if ((offset + len) > length)
-                throw std::exception();
+                throw str_exception_tb("wanted to read to many bytes: %d > length %d\n",
+                        (offset + len), length);
+            
 
             std::memcpy(buf, &ptr[offset], len);
         }

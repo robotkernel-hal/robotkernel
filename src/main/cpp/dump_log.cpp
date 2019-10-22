@@ -50,6 +50,7 @@ static unsigned int _do_ust = 0;
 static double ts2double(struct timespec* ts) {
     return (double)ts->tv_sec + (ts->tv_nsec / 1e9);
 }
+
 static double get_time() {
     struct timespec ts;
     clock_gettime(CLOCK_REALTIME, &ts);
@@ -76,23 +77,25 @@ void dump_log_set_len(unsigned int len, unsigned int do_ust) {
     _dump_log_len = len;
     _do_ust = do_ust;
 
-        if(_dump_log_len > 0) {
-            if(!_dump_log_buffer) {
-                printf("allocating %d bytes\n", _dump_log_len);
-                _dump_log_buffer = new char_ringbuffer(_dump_log_len);
-            } else
-                _dump_log_buffer->set_size(_dump_log_len);
-        }
+    if(_dump_log_len > 0) {
+        if(!_dump_log_buffer) {
+            printf("allocating %d bytes\n", _dump_log_len);
+            _dump_log_buffer = new char_ringbuffer(_dump_log_len);
+        } else
+            _dump_log_buffer->set_size(_dump_log_len);
+    }
 }
 
 void dump_log(const char* format, ...) {
     if(!_dump_log_len)
         return;
+
     va_list ap;
     va_start(ap, format);
     vdump_log(format, ap);
     va_end(ap);
 }
+
 void vdump_log(const char* format, va_list nap) {
     if(!_dump_log_len && !_do_ust)
         return;
@@ -117,8 +120,9 @@ void vdump_log(const char* format, va_list nap) {
 }
 
 std::string dump_log_dump(bool keep) {
-        if(!_dump_log_buffer)
-            return string();
-        return _dump_log_buffer->get(keep);
+    if(!_dump_log_buffer)
+        return string();
+
+    return _dump_log_buffer->get(keep);
 }
 

@@ -75,6 +75,6 @@ AC_CHECK_TYPES([cpu_set_t], [], [], [[#include <pthread.h>]])
 AC_CHECK_LIB(pthread, pthread_create, PTHREAD_LIBS="-lpthread")
 AC_SUBST(PTHREAD_LIBS)
 
-AC_CONFIG_FILES([Makefile src/main/cpp/Makefile share/ln/robotkernel.inc.lnc robotkernel.pc])
+AC_CONFIG_FILES([Makefile src/main/cpp/Makefile robotkernel.pc])
 
 AC_OUTPUT

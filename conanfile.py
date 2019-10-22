@@ -8,17 +8,14 @@ class MainProject(ConanFile):
     description = "robotkernel-5 is a modular, easy configurable hardware abstraction framework"
     settings = "os", "compiler", "build_type", "arch"
     exports_sources = ["*", "!.gitignore"] + ["!%s" % x for x in tools.Git().excluded_files()]
-
     generators = "pkg_config"
 
     def requirements(self):
         self.requires("libstring_util/1.1.7@common/unstable")
         self.requires("yaml-cpp/0.6.1@jbeder/stable")
 
-
     def config_options(self):
         self.options["libstring_util"].shared = True
-
 
     def source(self):
         filedata = None
@@ -35,7 +32,7 @@ class MainProject(ConanFile):
         autotools.include_paths=[]
         autotools.library_paths=[]
         if self.settings.build_type == "Debug":
-            autotools.flags = ["-O0", "-g"]
+            autotools.flags = ["-O0", "-g", "-fno-builtin-strlen"]
         else:
             autotools.flags = ["-O3"]
         autotools.configure(configure_dir=".")

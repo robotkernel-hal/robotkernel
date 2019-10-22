@@ -31,8 +31,10 @@ using namespace robotkernel;
 
 char_ringbuffer::char_ringbuffer(unsigned int size) {
     data = (char*) malloc(size);
+
     if(!data)
         throw errno_exception_tb("could not get char_ringbuffer of size %d bytes\n", size);
+
     memset(data, 0, size);
     this->size = size;
     write_start = 0;
@@ -134,6 +136,7 @@ string char_ringbuffer::get(bool keep) {
 bool char_ringbuffer::has_data() {
     return read_start != write_start || buffer_full;
 }
+
 unsigned int char_ringbuffer::get_data_len() {
     unsigned int s = 0;
     unsigned int rs = read_start;
