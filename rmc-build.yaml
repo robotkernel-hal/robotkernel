@@ -1,6 +1,6 @@
 context: conan
 configurations:
 - any:
-    build_type: {Release}
-- osl15-x86_64-gcc8
-- osl42-x86_64-gcc8
+    build_type: {Release, Debug}
+- osl15-x86_64
+- osl42-x86_64
