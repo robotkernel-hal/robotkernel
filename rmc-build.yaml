@@ -2,5 +2,5 @@ context: conan
 configurations:
 - any:
     build_type: {Release, Debug}
-- osl42-x86_64
+- osl15-x86_64
 - osl42-x86_64
