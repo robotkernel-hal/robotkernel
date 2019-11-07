@@ -53,7 +53,7 @@ class stream :
             : device(owner, name, "stream") {}
 
         //! destruction
-        ~stream() {};
+        virtual ~stream() {};
 
         //! Character stream based data read
         /*!
@@ -72,6 +72,36 @@ class stream :
          * \return Size of written bytes.
          */
         virtual size_t write(void* buf, size_t bufsize) = 0;
+};
+
+class serial_stream : 
+    public stream
+{
+    public:
+        //! serial_stream construction
+        /*!
+         * \param[in] owner     Name of owning module/bridge/service_provider...
+         * \param[in] name      Name of stream.
+         */
+        serial_stream(
+                const std::string& owner, 
+                const std::string& name)
+            : stream(owner, name) {}
+
+        //! destruction
+        virtual ~serial_stream() {};
+
+        //! Set stream device baudrate
+        /*!
+         * \param[in] baudrate  New baudrate to set.
+         */
+        virtual void set_baudrate(int baudrate);
+        
+        //! Get stream device baudrate
+        /*!
+         * \return Actual baudrate.
+         */
+        virtual int get_baudrate();
 };
 
 typedef std::shared_ptr<stream> sp_stream_t;

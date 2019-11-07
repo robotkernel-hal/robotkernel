@@ -57,6 +57,7 @@ robotkernel_SOURCES = bridge.cpp				\
 					  runnable.cpp 				\
 					  service_provider.cpp 		\
 					  so_file.cpp 				\
+					  stream.cpp                \
 					  trigger.cpp               \
 					  trigger_worker.cpp
 
