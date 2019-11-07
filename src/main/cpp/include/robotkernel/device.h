@@ -26,6 +26,9 @@
 #ifndef ROBOTKERNEL__DEVICE_H
 #define ROBOTKERNEL__DEVICE_H
 
+#include <memory>
+#include <map>
+
 namespace robotkernel {
 #ifdef EMACS
 }
