@@ -44,7 +44,29 @@ void serial_stream::set_baudrate(int baudrate) {
 /*!
  * \return Actual baudrate.
  */
-int serial_stream::get_baudrate() {
+int serial_stream::get_baudrate() const {
     throw string_util::str_exception("getting baudrate not supported!");
+}
+        
+//! Set serial port settings
+/*!
+ * \param[in] char_size     Character bit size.
+ * \param[in] par           Parity setting.
+ * \param[in] stopbits      Number of Stopbits.
+ */
+void serial_stream::set_port_settings(const character_size_t& char_size, 
+        const parity_t& par, const stopbits_t& stopbits) {
+    throw string_util::str_exception("set port settings not supported!");
+}
+
+//! Get serial port settings
+/*!
+ * \param[out] char_size     Character bit size.
+ * \param[out] par           Parity setting.
+ * \param[out] stopbits      Number of Stopbits.
+ */
+void serial_stream::get_port_settings(character_size_t& char_size, 
+        parity_t& par, stopbits_t& stopbits) const {
+    throw string_util::str_exception("get port settings not supported!");
 }
 

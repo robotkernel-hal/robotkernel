@@ -78,6 +78,25 @@ class serial_stream :
     public stream
 {
     public:
+        typedef enum character_size {
+            char_size_5 = 5,
+            char_size_6 = 6,
+            char_size_7 = 7,
+            char_size_8 = 8
+        } character_size_t;
+
+        typedef enum parity {
+            parity_off = 0,
+            parity_even,
+            parity_odd
+        } parity_t;
+
+        typedef enum stopbits {
+            stopbits_1  = 1,
+            stopbits_2
+        } stopbits_t;
+
+    public:
         //! serial_stream construction
         /*!
          * \param[in] owner     Name of owning module/bridge/service_provider...
@@ -101,7 +120,25 @@ class serial_stream :
         /*!
          * \return Actual baudrate.
          */
-        virtual int get_baudrate();
+        virtual int get_baudrate() const;
+
+        //! Set serial port settings
+        /*!
+         * \param[in] char_size     Character bit size.
+         * \param[in] par           Parity setting.
+         * \param[in] stopbits      Number of Stopbits.
+         */
+        virtual void set_port_settings(const character_size_t& char_size, 
+                const parity_t& par, const stopbits_t& stopbits);
+
+        //! Get serial port settings
+        /*!
+         * \param[out] char_size     Character bit size.
+         * \param[out] par           Parity setting.
+         * \param[out] stopbits      Number of Stopbits.
+         */
+        virtual void get_port_settings(character_size_t& char_size, 
+                parity_t& par, stopbits_t& stopbits) const;
 };
 
 typedef std::shared_ptr<stream> sp_stream_t;
