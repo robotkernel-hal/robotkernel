@@ -66,6 +66,7 @@ int usage(int argc, char** argv) {
     klog(info, "  --quiet, -q                 run in quiet mode\n");
     klog(info, "  --verbose, -v               be more verbose\n");
     klog(info, "  --help, -h                  this help page\n");
+    klog(info, "  --test-run, -t              doing test run, load modules and quit\n");
     return 0;
 }
 
@@ -103,6 +104,7 @@ int ln_datatype_size(const std::string& ln_datatype) {
 
 int main(int argc, char* argv[]) {
     bool power_up_state = false;
+    bool test_run = false;
 
     sigset_t set;
     if (sigemptyset (&set) == -1)
@@ -150,6 +152,8 @@ int main(int argc, char* argv[]) {
             k.set_loglevel(verbose);
         else if ((strcmp(argv[i], "--help") == 0) || (strcmp(argv[i], "-h") == 0))
             return usage(argc, argv);
+        else if ((strcmp(argv[i], "--test-run") == 0) || (strcmp(argv[i], "-t") == 0))
+            test_run = true;
     }
 
     if (config_file == "") {
@@ -177,6 +181,9 @@ int main(int argc, char* argv[]) {
     sigaction (SIGINT, &action, NULL);
     sigaction (SIGTERM, &action, NULL);
     sigaction (SIGABRT, &action, NULL);
+
+    if (test_run)
+        goto Exit;
 
     try {
         while (!sig_shutdown) {
