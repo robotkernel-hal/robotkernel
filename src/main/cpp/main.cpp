@@ -103,6 +103,7 @@ int ln_datatype_size(const std::string& ln_datatype) {
 }
 
 int main(int argc, char* argv[]) {
+    int ret = 0;
     bool power_up_state = false;
     bool test_run = false;
 
@@ -123,9 +124,9 @@ int main(int argc, char* argv[]) {
 
 #ifdef __linux__
     struct rlimit rlim;
-    int ret = getrlimit(RLIMIT_RTPRIO, &rlim);
+    int ret2 = getrlimit(RLIMIT_RTPRIO, &rlim);
 
-    if (ret == 0) {
+    if (ret2 == 0) {
         rlim.rlim_cur = rlim.rlim_max;
         setrlimit(RLIMIT_RTPRIO, &rlim);
     }
@@ -166,6 +167,7 @@ int main(int argc, char* argv[]) {
         power_up_state = k.power_up();
     } catch (exception& e) {
         klog(error, "config exception: %s\n", e.what());
+        ret = -1;
         goto Exit;
     }
 
@@ -194,6 +196,7 @@ int main(int argc, char* argv[]) {
         }
     } catch (exception& e) {
         printf("exception: %s\n", e.what());
+        ret = -1;
     }
 
 Exit:
@@ -209,9 +212,10 @@ Exit:
         kernel::destroy_instance();
     } catch (exception& e) {
         printf("exception: %s\n", e.what());
+        ret = -1;
     }
 
     printf("done ... returning now from main\n");
-    return 0;
+    return ret;
 }
 
