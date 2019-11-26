@@ -135,9 +135,11 @@ void log_thread::run() {
         if (cond.wait_for(lock, std::chrono::seconds(1)) == std::cv_status::timeout)
             continue;
 
+
         while (!full_pool.empty()) {
             struct log_pool_object *obj = full_pool.front();
             full_pool.pop_front();
+            lock.unlock();
 
             if(fix_modname_length == 0)
                 printf("%s", obj->buf);
@@ -172,6 +174,7 @@ void log_thread::run() {
                     printf("%s", obj->buf);
             }
 
+            lock.lock();
             empty_pool.push_back(obj);
         }
     }
