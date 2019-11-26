@@ -65,7 +65,7 @@ bridge::bridge(const YAML::Node& node) : so_file(node) {
  * destroys bridge
  */
 bridge::~bridge() {
-    klog(info, "bridge destructing %s\n", file_name.c_str());
+    klog(verbose, "bridge destructing %s\n", file_name.c_str());
 
     // unconfigure bridge first
     bridge_unconfigure(bridge_handle);

@@ -320,7 +320,7 @@ bool module::reconfigure() {
   destroys module
   */
 module::~module() {
-    klog(info, "%s destructing %s\n", name.c_str(), file_name.c_str());
+    klog(verbose, "%s destructing %s\n", name.c_str(), file_name.c_str());
 
     while (!triggers.empty()) {
         external_trigger *trigger = triggers.front();
