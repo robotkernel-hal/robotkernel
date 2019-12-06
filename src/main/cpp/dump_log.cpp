@@ -35,7 +35,10 @@
 #include "robotkernel/config.h"
 
 #if (HAVE_LTTNG_UST == 1)
-#include "dump_log_tp.h"
+#define TRACEPOINT_CREATE_PROBES
+#define TRACEPOINT_DEFINE
+
+#include "robotkernel/lttng_tp.h"
 #endif
 
 #include "robotkernel/char_ringbuffer.h"
@@ -108,7 +111,7 @@ void vdump_log(const char* format, va_list nap) {
     
 #if (HAVE_LTTNG_UST == 1)
     if(_do_ust) {
-        tracepoint(rk_trace, dump_log, msg);
+        tracepoint(robotkernel, dump_log, msg);
     }
 #endif
     

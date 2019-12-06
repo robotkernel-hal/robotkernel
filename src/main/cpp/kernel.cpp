@@ -542,7 +542,8 @@ void kernel::config(std::string config_file, int argc, char *argv[]) {
         if (trace_fd == -1) 
             throw errno_exception_tb("cannot open trace_marker\n");
     }
-
+    
+    log_to_lttng_ust = get_as<bool>(doc, "log_to_lttng_ust", false);
 
     rk_log.fix_modname_length = 
         get_as<unsigned int>(doc, "log_fix_modname_length", 20);

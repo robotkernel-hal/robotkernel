@@ -25,6 +25,13 @@
 
 #include "robotkernel/log_base.h"
 
+#if (HAVE_LTTNG_UST == 1)
+#define TRACEPOINT_CREATE_PROBES
+#define TRACEPOINT_DEFINE
+
+#include "robotkernel/lttng_tp.h"
+#endif
+
 using namespace std;
 using namespace std::placeholders;
 using namespace robotkernel;
@@ -159,6 +166,12 @@ log_exit:
     if (k.do_log_to_trace_fd()) {
         k.trace_write(buf);
     }
+
+#if (HAVE_LTTNG_UST == 1)
+    if (k.log_to_lttng_ust) {
+        tracepoint(robotkernel, lttng_log, buf);
+    }
+#endif
 
     dump_log(buf);
 }

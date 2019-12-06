@@ -286,6 +286,7 @@ class kernel {
         std::string _internal_intfpath;
 
         log_thread rk_log;
+        bool log_to_lttng_ust;
 
         static std::string ll_to_string(loglevel ll);
 

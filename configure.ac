@@ -39,6 +39,7 @@ AS_IF([test -e src/dump_log_tp.tp],
 )
 AM_CONDITIONAL([HAVE_LTTNG_UST], [test -n "$LTTNG_UST_LIBS"])
 
+PKG_CHECK_MODULES([LTTNG_UST], [lttng-ust], [AC_DEFINE([HAVE_LTTNG_UST], [1], [Use lttng-ust logging])])
 PKG_CHECK_MODULES([LIBSTRING_UTIL], [libstring_util])
 PKG_CHECK_MODULES([YAML_CPP], [yaml-cpp], [], [AC_MSG_ERROR([yaml-cpp not found])])
 

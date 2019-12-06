@@ -67,19 +67,11 @@ robotkernel_CXXFLAGS = -Wno-unused-local-typedefs 					\
 					   @YAML_CPP_CFLAGS@ @LIBSTRING_UTIL_CFLAGS@ 
 
 robotkernel_LDFLAGS = -Wl,-export-dynamic -Bdynamic 
-robotkernel_LDADD = @PTHREAD_LIBS@ @YAML_CPP_LIBS@ @LIBSTRING_UTIL_LIBS@
+robotkernel_LDADD = @PTHREAD_LIBS@ @YAML_CPP_LIBS@ @LIBSTRING_UTIL_LIBS@ -llttng-ust
 
 
 if HAVE_LTTNG_UST
 robotkernel_CXXFLAGS += @LTTNG_UST_CFLAGS@
 robotkernel_LDADD += @LTTNG_UST_LIBS@
-robotkernel_SOURCES += dump_log_tp.c
-
-BUILT_SOURCES += dump_log_tp.h dump_log_tp.c
 endif
-
-dump_log_tp.c dump_log_tp.h: dump_log_tp.tp
-	@echo creating $@ from $^
-	lttng-gen-tp -o $@ $^
-
 
