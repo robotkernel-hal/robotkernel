@@ -35,9 +35,6 @@
 #include "robotkernel/config.h"
 
 #if (HAVE_LTTNG_UST == 1)
-#define TRACEPOINT_CREATE_PROBES
-#define TRACEPOINT_DEFINE
-
 #include "robotkernel/lttng_tp.h"
 #endif
 

@@ -24,6 +24,7 @@
  */
 
 #include "robotkernel/log_base.h"
+#include "robotkernel/config.h"
 
 #if (HAVE_LTTNG_UST == 1)
 #define TRACEPOINT_CREATE_PROBES
