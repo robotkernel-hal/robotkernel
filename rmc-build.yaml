@@ -2,4 +2,3 @@ context: conan
 configurations:
 - imports:
   - linux_defaults
-  - legacy_defaults
