@@ -98,6 +98,8 @@ void trigger::remove_trigger(sp_trigger_base_t trigger) {
             workers.erase(act_it);
         }
     }
+
+    klog(verbose, "trigger %s removed\n", id().c_str());
 }
 
 //! wait blocking for next trigger
