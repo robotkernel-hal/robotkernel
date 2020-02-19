@@ -590,6 +590,8 @@ void kernel::config(std::string config_file, int argc, char *argv[]) {
         // add to module map
         klog(verbose, "adding [%s]\n", mdl->get_name().c_str());
         module_map[mdl->get_name()] = mdl;
+        
+        mdl->set_state(module_state_init);
     }
 
     const YAML::Node& bridges = doc["bridges"];
@@ -872,6 +874,8 @@ void kernel::load_module(const YAML::Node& config) {
 
     // add to module map
     module_map[mdl->get_name()] = mdl;
+        
+    mdl->set_state(module_state_init);
 }
 
 //! get dump log
