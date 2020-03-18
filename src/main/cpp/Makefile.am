@@ -67,7 +67,7 @@ robotkernel_CXXFLAGS = -Wno-unused-local-typedefs 					\
 					   @YAML_CPP_CFLAGS@ @LIBSTRING_UTIL_CFLAGS@ 
 
 robotkernel_LDFLAGS = -Wl,-export-dynamic -Bdynamic 
-robotkernel_LDADD = @PTHREAD_LIBS@ @YAML_CPP_LIBS@ @LIBSTRING_UTIL_LIBS@ -llttng-ust
+robotkernel_LDADD = @PTHREAD_LIBS@ @YAML_CPP_LIBS@ @LIBSTRING_UTIL_LIBS@
 
 
 if HAVE_LTTNG_UST
