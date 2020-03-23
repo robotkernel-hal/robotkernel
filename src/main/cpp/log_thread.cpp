@@ -38,7 +38,7 @@
 
 using namespace robotkernel;
 
-int gettid() {
+int _gettid() {
 #ifdef HAVE_GETTID
     return ::gettid();
 #else
@@ -125,7 +125,7 @@ void log_thread::log(struct log_pool_object *obj) {
 //! handler function called if thread is running
 void log_thread::run() {
     set_name("rk:log_thread");
-    klog(verbose, "log_thread started at tid %d\n", gettid());
+    klog(verbose, "log_thread started at tid %d\n", _gettid());
 
     std::unique_lock<std::mutex> lock(mtx);
     
