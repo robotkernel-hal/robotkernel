@@ -45,6 +45,17 @@ namespace robotkernel {
 }
 #endif
 
+enum pd_data_types {
+    PD_DT_FLOAT = 1,
+    PD_DT_DOUBLE,
+    PD_DT_UINT8,
+    PD_DT_UINT16,
+    PD_DT_UINT32,
+    PD_DT_INT8,
+    PD_DT_INT16,
+    PD_DT_INT32
+};
+
 //! process data provider class
 /*!
  * derive from this class, if you want to register yourself as
@@ -208,6 +219,16 @@ class process_data :
             consumer_hash = 0;
             consumer = nullptr;
         }
+
+        //! Find offset and type of given process data member.
+        /*!
+         * \param[in]   field_name      Name of member to find.
+         * \param[out]  type_str        Type as string.
+         * \param[out]  type            Type as enum.
+         * \param[out]  offset          Byte offset of member.
+         */
+        void find_pd_offset_and_type(const std::string& field_name, 
+                std::string& type_str, pd_data_types& type, off_t offset);
 
     public:
         volatile uint64_t pd_cookie;

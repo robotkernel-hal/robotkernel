@@ -1430,3 +1430,66 @@ const std::string kernel::service_definition_service_interface_info =
 "- string: owner\n"
 "- string: error_message\n";
 
+std::map<std::string, size_t> dt_to_len = {
+    { "float",    4 },
+    { "double",   8 },
+    { "uint8_t",  1 },
+    { "uint16_t", 2 },
+    { "uint32_t", 4 },
+    { "int8_t",   1 },
+    { "int16_t",  2 },
+    { "int32_t",  4 },
+};
+
+std::map<std::string, pd_data_types> pd_dt_map = {
+    { "float",    PD_DT_FLOAT  },
+    { "double",   PD_DT_DOUBLE },
+    { "uint8_t",  PD_DT_UINT8  },
+    { "uint16_t", PD_DT_UINT16 },
+    { "uint32_t", PD_DT_UINT32 },
+    { "int8_t",   PD_DT_INT8   },
+    { "int16_t",  PD_DT_INT16  },
+    { "int32_t",  PD_DT_INT32  },
+};
+
+//! Find offset and type of given process data member.
+/*!
+ * \param[in]   field_name      Name of member to find.
+ * \param[out]  type_str        Type as string.
+ * \param[out]  type            Type as enum.
+ * \param[out]  offset          Byte offset of member.
+ */
+void process_data::find_pd_offset_and_type(const std::string& field_name, 
+        std::string& type_str, pd_data_types& type, off_t offset) {
+    // need to find offset and type
+    if (process_data_definition == "")
+        throw str_exception("process data \"%s\" has no description, "
+                "cannot determine pos offset!\n", id().c_str());
+
+    YAML::Node pdd_node = YAML::Load(process_data_definition);
+
+    offset = 0;
+
+    for (const auto& list_el : pdd_node) {
+        for (const auto& kv : list_el) {
+            string act_dt = kv.first.as<string>();
+            string act_name = kv.second.as<string>();
+
+            if (act_name == field_name) {
+                type_str = act_dt;
+                type = pd_dt_map[act_dt];
+
+                return;
+            }
+
+            if (dt_to_len.find(act_dt) == dt_to_len.end())
+                throw str_exception("unsupported data type in pd description: %s\n", act_dt.c_str());
+
+            offset += dt_to_len[act_dt];
+        }
+    }
+
+    throw str_exception("member \"%s\" not found in measurement process data description:\n%s\n",
+            field_name.c_str(), process_data_definition.c_str());
+}
+
