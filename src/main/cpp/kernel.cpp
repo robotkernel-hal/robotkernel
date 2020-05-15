@@ -1460,7 +1460,7 @@ std::map<std::string, pd_data_types> pd_dt_map = {
  * \param[out]  offset          Byte offset of member.
  */
 void process_data::find_pd_offset_and_type(const std::string& field_name, 
-        std::string& type_str, pd_data_types& type, off_t offset) {
+        std::string& type_str, pd_data_types& type, off_t& offset) {
     // need to find offset and type
     if (process_data_definition == "")
         throw str_exception("process data \"%s\" has no description, "

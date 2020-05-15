@@ -228,7 +228,7 @@ class process_data :
          * \param[out]  offset          Byte offset of member.
          */
         void find_pd_offset_and_type(const std::string& field_name, 
-                std::string& type_str, pd_data_types& type, off_t offset);
+                std::string& type_str, pd_data_types& type, off_t& offset);
 
     public:
         volatile uint64_t pd_cookie;
