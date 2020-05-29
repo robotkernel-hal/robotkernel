@@ -46,6 +46,7 @@ namespace robotkernel {
 #endif
 
 enum pd_data_types {
+    PD_DT_NONE = -1,
     PD_DT_FLOAT = 1,
     PD_DT_DOUBLE,
     PD_DT_UINT8,
@@ -92,6 +93,19 @@ class process_data :
 {
     private:
         process_data();     //!< prevent default construction
+
+    public:
+        typedef struct entry {
+            // input fields
+            std::string field_name;
+            std::string value;
+
+            // user fields
+            off_t offset;
+
+            std::string type_str;
+            pd_data_types type;
+        } entry_t;
 
     public:
         //! construction
@@ -229,6 +243,15 @@ class process_data :
          */
         void find_pd_offset_and_type(const std::string& field_name, 
                 std::string& type_str, pd_data_types& type, off_t& offset);
+
+        //! Find offset and type of given process data member.
+        /*!
+         * \param[in,out] entry      Structure to fill.
+         */
+        void find_pd_offset_and_type(entry_t& e);
+
+        //! overwrite value 
+        void overwrite_value(value_entry_t& e);
 
     public:
         volatile uint64_t pd_cookie;

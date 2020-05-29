@@ -94,3 +94,11 @@ void process_data::find_pd_offset_and_type(const std::string& field_name,
             field_name.c_str(), process_data_definition.c_str());
 }
 
+//! Find offset and type of given process data member.
+/*!
+ * \param[in,out] entry      Structure to fill.
+ */
+void process_data::find_pd_offset_and_type(entry_t& e) {
+    find_pd_offset_and_type(e.field_name, e.type_str, e.type, e.offset);
+}
+
