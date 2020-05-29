@@ -352,6 +352,8 @@ kernel::kernel() {
             std::bind(&kernel::service_stream_info, this, _1, _2));
     add_service(_name, "service_interface_info", service_definition_service_interface_info,
             std::bind(&kernel::service_service_interface_info, this, _1, _2));
+    add_service(_name, "add_pd_injection", service_definition_add_pd_injection,
+            std::bind(&kernel::service_add_pd_injection, this, _1, _2));
 }
 
 //! destruction
@@ -1430,3 +1432,50 @@ const std::string kernel::service_definition_service_interface_info =
 "- string: owner\n"
 "- string: error_message\n";
 
+//! add pd injection service
+/*!
+ * \param request service request data
+ * \parma response service response data
+ * \return success
+ */
+int kernel::service_add_pd_injection(const service_arglist_t &request,
+        service_arglist_t &response) {
+    // request data
+#define SERVICE_ADD_PD_INJECTION_REQ_PD_DEV             0
+#define SERVICE_ADD_PD_INJECTION_REQ_FIELD_NAME         1
+#define SERVICE_ADD_PD_INJECTION_REQ_VALUE              2
+#define SERVICE_ADD_PD_INJECTION_REQ_BITMASK            3
+    process_data::entry_t e;
+    std::string pd_dev           = request[SERVICE_ADD_PD_INJECTION_REQ_PD_DEV];
+    std::string field_name                 = request[SERVICE_ADD_PD_INJECTION_REQ_FIELD_NAME];
+    e.field_name                 = field_name; //request[SERVICE_ADD_PD_INJECTION_REQ_FIELD_NAME];
+    e.value_string               = request[SERVICE_ADD_PD_INJECTION_REQ_VALUE];
+    e.bitmask_string             = request[SERVICE_ADD_PD_INJECTION_REQ_BITMASK];
+
+    // response data
+    std::string error_message = "";
+
+    try {
+        auto pd = get_process_data(pd_dev);
+        pd->find_pd_offset_and_type(e);
+    } catch (std::exception& e) {
+        error_message = e.what();
+    }
+
+    // reponse
+#define SERVICE_ADD_PD_INJECTION_RESP_ERROR_MESSAGE     0
+    response.resize(1);
+    response[SERVICE_ADD_PD_INJECTION_RESP_ERROR_MESSAGE] = error_message;
+
+    return 0;
+}
+
+const std::string kernel::service_definition_add_pd_injection = 
+"name: add_pd_injection\n"
+"request:\n"
+"- string: pd_dev\n"
+"- string: field_name\n"
+"- string: value\n"
+"- string: bitmask\n"
+"response:\n"
+"- string: error_message\n";

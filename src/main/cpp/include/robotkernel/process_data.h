@@ -98,9 +98,13 @@ class process_data :
         typedef struct entry {
             // input fields
             std::string field_name;
-            std::string value;
+            std::string value_string;
+            std::string bitmask_string;
 
             // user fields
+            std::vector<uint8_t> value;
+            std::vector<uint8_t> bitmask;
+
             off_t offset;
 
             std::string type_str;
@@ -250,8 +254,8 @@ class process_data :
          */
         void find_pd_offset_and_type(entry_t& e);
 
-        //! overwrite value 
-        void overwrite_value(value_entry_t& e);
+        //! overwrite value
+        //void overwrite_value(value_entry_t& e);
 
     public:
         volatile uint64_t pd_cookie;

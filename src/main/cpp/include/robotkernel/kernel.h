@@ -413,6 +413,17 @@ class kernel {
                 service_arglist_t &response);
 
         static const std::string service_definition_service_interface_info;
+
+        //! add pd injection service
+        /*!
+         * \param request service request data
+         * \parma response service response data
+         * \return success
+         */
+        int service_add_pd_injection(const service_arglist_t &request,
+                service_arglist_t &response);
+
+        static const std::string service_definition_add_pd_injection;
 };
         
 // wrapper around \link get_device \endlink
