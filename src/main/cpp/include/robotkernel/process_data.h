@@ -109,6 +109,15 @@ class process_data :
 
             std::string type_str;
             pd_data_types type;
+            
+
+            std::size_t hash() {
+                std::size_t fn_hash = std::hash<std::string>{}(field_name);
+                std::size_t vs_hash = std::hash<std::string>{}(value_string);
+                std::size_t bm_hash = std::hash<std::string>{}(bitmask_string);
+        
+                return (fn_hash ^ (vs_hash << 1)) ^ (bm_hash << 2);
+            }
         } entry_t;
 
     public:
@@ -160,6 +169,10 @@ class process_data :
         virtual void push(const std::size_t& hash) {
             if (provider_hash != hash)
                 throw str_exception_tb("permission denied to push %s", id().c_str());
+
+            for (const auto& kv : pd_injections) {
+                inject_val(kv.second, hash);
+            }
         }
 
         //! Write data to buffer.
@@ -175,6 +188,10 @@ class process_data :
         {
             if (provider_hash != hash)
                 throw str_exception_tb("permission denied to write to %s", id().c_str());
+
+            for (const auto& kv : pd_injections) {
+                inject_val(kv.second, buf, len);
+            }
         }
 
         //! Read data from buffer.
@@ -254,8 +271,43 @@ class process_data :
          */
         void find_pd_offset_and_type(entry_t& e);
 
-        //! overwrite value
-        //void overwrite_value(value_entry_t& e);
+        //! inject value to process data
+        /*!
+         * \param[in]       e       Entry to inject.
+         * \param[in,out]   buf     Buffer to inject.
+         * \param[in]       len     Length of buffer.
+         */
+        void inject_val(const process_data::entry_t& e, uint8_t* buf, size_t len);
+
+        //! inject value to process data
+        /*!
+         * \param[in]   e       Entry to inject.
+         * \param[in]   hash    Process data provider hash.
+         */
+        void inject_val(const process_data::entry_t& e, const size_t& hash);
+
+        //! add injection value
+        /*!
+         * \param[in]   e       Entry to inject.
+         */
+        void add_injection(process_data::entry_t& e) {
+            if (pd_injections.find(e.hash()) != pd_injections.end())
+                return;
+
+            find_pd_offset_and_type(e);
+            pd_injections[e.hash()] = e;
+        }
+        
+        //! del injection value
+        /*!
+         * \param[in]   hash    Entry to inject.
+         */
+        void del_injection(std::size_t& hash) {
+            if (pd_injections.find(hash) != pd_injections.end())
+                return;
+
+            pd_injections.erase(hash);
+        }
 
     public:
         volatile uint64_t pd_cookie;
@@ -267,6 +319,8 @@ class process_data :
         std::size_t provider_hash;
         std::shared_ptr<robotkernel::pd_consumer> consumer;
         std::size_t consumer_hash;
+
+        std::map<size_t, entry_t> pd_injections;
 };
 
 //! process data management class with single buffering

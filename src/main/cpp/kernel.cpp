@@ -354,6 +354,8 @@ kernel::kernel() {
             std::bind(&kernel::service_service_interface_info, this, _1, _2));
     add_service(_name, "add_pd_injection", service_definition_add_pd_injection,
             std::bind(&kernel::service_add_pd_injection, this, _1, _2));
+    add_service(_name, "del_pd_injection", service_definition_del_pd_injection,
+            std::bind(&kernel::service_del_pd_injection, this, _1, _2));
 }
 
 //! destruction
@@ -1445,26 +1447,31 @@ int kernel::service_add_pd_injection(const service_arglist_t &request,
 #define SERVICE_ADD_PD_INJECTION_REQ_FIELD_NAME         1
 #define SERVICE_ADD_PD_INJECTION_REQ_VALUE              2
 #define SERVICE_ADD_PD_INJECTION_REQ_BITMASK            3
-    process_data::entry_t e;
-    std::string pd_dev           = request[SERVICE_ADD_PD_INJECTION_REQ_PD_DEV];
-    std::string field_name                 = request[SERVICE_ADD_PD_INJECTION_REQ_FIELD_NAME];
-    e.field_name                 = field_name; //request[SERVICE_ADD_PD_INJECTION_REQ_FIELD_NAME];
-    e.value_string               = request[SERVICE_ADD_PD_INJECTION_REQ_VALUE];
-    e.bitmask_string             = request[SERVICE_ADD_PD_INJECTION_REQ_BITMASK];
+    std::string pd_dev           = request[SERVICE_ADD_PD_INJECTION_REQ_PD_DEV], 
+                field_name       = request[SERVICE_ADD_PD_INJECTION_REQ_FIELD_NAME],
+                value_string     = request[SERVICE_ADD_PD_INJECTION_REQ_VALUE], 
+                bitmask_string   = request[SERVICE_ADD_PD_INJECTION_REQ_BITMASK];
 
+    process_data::entry_t e;
+    e.field_name = field_name;
+    e.value_string = value_string;
+    e.bitmask_string = bitmask_string;
+    
     // response data
     std::string error_message = "";
 
     try {
         auto pd = get_process_data(pd_dev);
-        pd->find_pd_offset_and_type(e);
-    } catch (std::exception& e) {
-        error_message = e.what();
+        pd->add_injection(e);
+    } catch (std::exception& exc) {
+        error_message = exc.what();
     }
 
     // reponse
-#define SERVICE_ADD_PD_INJECTION_RESP_ERROR_MESSAGE     0
-    response.resize(1);
+#define SERVICE_ADD_PD_INJECTION_RESP_INJECTION_HASH    0
+#define SERVICE_ADD_PD_INJECTION_RESP_ERROR_MESSAGE     1
+    response.resize(2);
+    response[SERVICE_ADD_PD_INJECTION_RESP_INJECTION_HASH] = e.hash();
     response[SERVICE_ADD_PD_INJECTION_RESP_ERROR_MESSAGE] = error_message;
 
     return 0;
@@ -1477,5 +1484,46 @@ const std::string kernel::service_definition_add_pd_injection =
 "- string: field_name\n"
 "- string: value\n"
 "- string: bitmask\n"
+"response:\n"
+"- uint64_t: injection_hash\n"
+"- string: error_message\n";
+
+//! delete pd injection service
+/*!
+ * \param request service request data
+ * \parma response service response data
+ * \return success
+ */
+int kernel::service_del_pd_injection(const service_arglist_t &request,
+        service_arglist_t &response) {
+    // request data
+#define SERVICE_DEL_PD_INJECTION_REQ_PD_DEV             0
+#define SERVICE_DEL_PD_INJECTION_REQ_INJECTION_HASH     1
+    std::string pd_dev  = request[SERVICE_DEL_PD_INJECTION_REQ_PD_DEV];
+    size_t hash         = request[SERVICE_DEL_PD_INJECTION_REQ_INJECTION_HASH];          
+
+    // response data
+    std::string error_message = "";
+
+    try {
+        auto pd = get_process_data(pd_dev);
+        pd->del_injection(hash);
+    } catch (std::exception& exc) {
+        error_message = exc.what();
+    }
+
+    // reponse
+#define SERVICE_DEL_PD_INJECTION_RESP_ERROR_MESSAGE     0
+    response.resize(1);
+    response[SERVICE_DEL_PD_INJECTION_RESP_ERROR_MESSAGE] = error_message;
+
+    return 0;
+}
+
+const std::string kernel::service_definition_del_pd_injection = 
+"name: del_pd_injection\n"
+"request:\n"
+"- string: pd_dev\n"
+"- uint64_t: injection_hash\n"
 "response:\n"
 "- string: error_message\n";
