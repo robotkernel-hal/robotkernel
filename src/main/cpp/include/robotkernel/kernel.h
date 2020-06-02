@@ -435,6 +435,17 @@ class kernel {
                 service_arglist_t &response);
         
         static const std::string service_definition_del_pd_injection;
+        
+        //! list pd injections service
+        /*!
+         * \param request service request data
+         * \parma response service response data
+         * \return success
+         */
+        int service_list_pd_injections(const service_arglist_t &request,
+                service_arglist_t &response);
+        
+        static const std::string service_definition_list_pd_injections;
 };
         
 // wrapper around \link get_device \endlink

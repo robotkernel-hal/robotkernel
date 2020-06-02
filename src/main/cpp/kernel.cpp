@@ -1527,3 +1527,54 @@ const std::string kernel::service_definition_del_pd_injection =
 "- uint64_t: injection_hash\n"
 "response:\n"
 "- string: error_message\n";
+        
+//! list pd injections service
+/*!
+ * \param request service request data
+ * \parma response service response data
+ * \return success
+ */
+int kernel::service_list_pd_injections(const service_arglist_t &request,
+        service_arglist_t &response) {
+
+    std::string error_message = "";
+    std::vector<rk_type> pd_dev, field_name, value, bitmask;
+
+    for (const auto& kv : device_map) {
+        std::shared_ptr<process_data> retval = 
+            std::dynamic_pointer_cast<process_data>(kv.second);
+
+        if (retval) {
+            for (const auto& kv_inj : retval->pd_injections) {
+                pd_dev.push_back(retval->id());
+                field_name.push_back(kv_inj.second.field_name);
+                value.push_back(kv_inj.second.value_string);
+                bitmask.push_back(kv_inj.second.bitmask_string);
+            }
+        }
+    }
+
+#define SERVICE_LIST_PD_INJECTIONS_RESP_PD_DEV          0
+#define SERVICE_LIST_PD_INJECTIONS_RESP_FIELD_NAME      1
+#define SERVICE_LIST_PD_INJECTIONS_RESP_VALUE_STRING    2
+#define SERVICE_LIST_PD_INJECTIONS_RESP_BITMASK_STRING  3
+#define SERVICE_LIST_PD_INJECTIONS_RESP_ERROR_MESSAGE   4
+    response.resize(1); 
+    response[SERVICE_LIST_PD_INJECTIONS_RESP_PD_DEV]            = pd_dev;
+    response[SERVICE_LIST_PD_INJECTIONS_RESP_FIELD_NAME]        = field_name;
+    response[SERVICE_LIST_PD_INJECTIONS_RESP_VALUE_STRING]      = value;
+    response[SERVICE_LIST_PD_INJECTIONS_RESP_BITMASK_STRING]    = bitmask;
+    response[SERVICE_LIST_PD_INJECTIONS_RESP_ERROR_MESSAGE]     = error_message;
+
+    return 0;
+}
+
+const std::string kernel::service_definition_list_pd_injections = 
+"name: list_pd_injections\n"
+"response:\n"
+"- vector/string: pd_dev\n"
+"- vector/string: field_name\n"
+"- vector/string: value\n"
+"- vector/string: bitmask\n"
+"- string: error_message\n";
+
