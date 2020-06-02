@@ -1470,6 +1470,8 @@ int kernel::service_add_pd_injection(const service_arglist_t &request,
 
         if (retval) {
             retval->add_injection(e);
+        } else {
+            error_message = format_string("pd device %s does not support injection!", pd_dev.c_str());
         }
     } catch (std::exception& exc) {
         error_message = exc.what();
