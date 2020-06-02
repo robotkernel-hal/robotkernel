@@ -356,8 +356,8 @@ kernel::kernel() {
             std::bind(&kernel::service_add_pd_injection, this, _1, _2));
     add_service(_name, "del_pd_injection", service_definition_del_pd_injection,
             std::bind(&kernel::service_del_pd_injection, this, _1, _2));
-    add_service(_name, "list_pd_injection", service_definition_list_pd_injection,
-            std::bind(&kernel::service_list_pd_injection, this, _1, _2));
+    add_service(_name, "list_pd_injections", service_definition_list_pd_injections,
+            std::bind(&kernel::service_list_pd_injections, this, _1, _2));
 }
 
 //! destruction
