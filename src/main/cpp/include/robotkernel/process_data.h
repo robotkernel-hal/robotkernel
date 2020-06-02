@@ -82,6 +82,86 @@ class pd_consumer {
         pd_consumer(const std::string& consumer_name) : 
             consumer_name(consumer_name) {}
 };
+        
+typedef struct pd_entry {
+    // input fields
+    std::string field_name;
+    std::string value_string;
+    std::string bitmask_string;
+
+    // user fields
+    std::vector<uint8_t> value;
+    std::vector<uint8_t> bitmask;
+
+    off_t offset;
+
+    std::string type_str;
+    pd_data_types type;
+
+
+    std::size_t hash() {
+        std::size_t fn_hash = std::hash<std::string>{}(field_name);
+        std::size_t vs_hash = std::hash<std::string>{}(value_string);
+        std::size_t bm_hash = std::hash<std::string>{}(bitmask_string);
+
+        return (fn_hash ^ (vs_hash << 1)) ^ (bm_hash << 2);
+    }
+} pd_entry_t;
+
+//! process data injection class
+class pd_injection_base
+{
+    public:
+        //! construction
+        /*!
+         * \param length byte length of process data
+         * \param owner name of owning module
+         * \param name process data name
+         * \param process_data_definition yaml-string representating the structure of the pd
+         */
+        pd_injection_base() {}
+
+        //! inject value to process data
+        /*!
+         * \param[in]       e       Entry to inject.
+         * \param[in,out]   buf     Buffer to inject.
+         * \param[in]       len     Length of buffer.
+         */
+        void inject_val(const pd_entry_t& e, uint8_t* buf, size_t len);
+
+//        //! inject value to process data
+//        /*!
+//         * \param[in]   e       Entry to inject.
+//         * \param[in]   hash    Process data provider hash.
+//         */
+//        void inject_val(const pd_entry_t& e, const size_t& hash);
+
+        //! add injection value
+        /*!
+         * \param[in]   e       Entry to inject.
+         */
+        void add_injection(pd_entry_t& e) {
+            if (pd_injections.find(e.hash()) != pd_injections.end())
+                return;
+
+            pd_injections[e.hash()] = e;
+        }
+        
+        //! del injection value
+        /*!
+         * \param[in]   hash    Entry to inject.
+         */
+        void del_injection(std::size_t& hash) {
+            if (pd_injections.find(hash) != pd_injections.end())
+                return;
+
+            pd_injections.erase(hash);
+        }
+
+    public:
+        std::map<size_t, pd_entry_t> pd_injections;
+};
+
 
 //! process data management class 
 /*!
@@ -93,32 +173,6 @@ class process_data :
 {
     private:
         process_data();     //!< prevent default construction
-
-    public:
-        typedef struct entry {
-            // input fields
-            std::string field_name;
-            std::string value_string;
-            std::string bitmask_string;
-
-            // user fields
-            std::vector<uint8_t> value;
-            std::vector<uint8_t> bitmask;
-
-            off_t offset;
-
-            std::string type_str;
-            pd_data_types type;
-            
-
-            std::size_t hash() {
-                std::size_t fn_hash = std::hash<std::string>{}(field_name);
-                std::size_t vs_hash = std::hash<std::string>{}(value_string);
-                std::size_t bm_hash = std::hash<std::string>{}(bitmask_string);
-        
-                return (fn_hash ^ (vs_hash << 1)) ^ (bm_hash << 2);
-            }
-        } entry_t;
 
     public:
         //! construction
@@ -169,10 +223,6 @@ class process_data :
         virtual void push(const std::size_t& hash) {
             if (provider_hash != hash)
                 throw str_exception_tb("permission denied to push %s", id().c_str());
-
-            for (const auto& kv : pd_injections) {
-                inject_val(kv.second, hash);
-            }
         }
 
         //! Write data to buffer.
@@ -188,10 +238,6 @@ class process_data :
         {
             if (provider_hash != hash)
                 throw str_exception_tb("permission denied to write to %s", id().c_str());
-
-            for (const auto& kv : pd_injections) {
-                inject_val(kv.second, buf, len);
-            }
         }
 
         //! Read data from buffer.
@@ -269,45 +315,7 @@ class process_data :
         /*!
          * \param[in,out] entry      Structure to fill.
          */
-        void find_pd_offset_and_type(entry_t& e);
-
-        //! inject value to process data
-        /*!
-         * \param[in]       e       Entry to inject.
-         * \param[in,out]   buf     Buffer to inject.
-         * \param[in]       len     Length of buffer.
-         */
-        void inject_val(const process_data::entry_t& e, uint8_t* buf, size_t len);
-
-        //! inject value to process data
-        /*!
-         * \param[in]   e       Entry to inject.
-         * \param[in]   hash    Process data provider hash.
-         */
-        void inject_val(const process_data::entry_t& e, const size_t& hash);
-
-        //! add injection value
-        /*!
-         * \param[in]   e       Entry to inject.
-         */
-        void add_injection(process_data::entry_t& e) {
-            if (pd_injections.find(e.hash()) != pd_injections.end())
-                return;
-
-            find_pd_offset_and_type(e);
-            pd_injections[e.hash()] = e;
-        }
-        
-        //! del injection value
-        /*!
-         * \param[in]   hash    Entry to inject.
-         */
-        void del_injection(std::size_t& hash) {
-            if (pd_injections.find(hash) != pd_injections.end())
-                return;
-
-            pd_injections.erase(hash);
-        }
+        void find_pd_offset_and_type(pd_entry_t& e);
 
     public:
         volatile uint64_t pd_cookie;
@@ -319,8 +327,6 @@ class process_data :
         std::size_t provider_hash;
         std::shared_ptr<robotkernel::pd_consumer> consumer;
         std::size_t consumer_hash;
-
-        std::map<size_t, entry_t> pd_injections;
 };
 
 //! process data management class with single buffering
@@ -611,6 +617,59 @@ class triple_buffer :
                     ((old_indices & flip_buffer_mask) >> 2);
             } while(!indices.compare_exchange_weak(old_indices, new_indices,
                         std::memory_order_release, std::memory_order_relaxed));
+        }
+};
+
+class triple_buffer_with_injection :
+    public triple_buffer,
+    public pd_injection_base 
+{
+    private:
+        triple_buffer_with_injection();     //!< prevent default construction
+
+    public:
+        //! construction
+        /*!
+         * \param length byte length of process data
+         * \param owner name of owning module
+         * \param name process data name
+         * \param process_data_definition yaml-string representating the structure of the pd
+         */
+        triple_buffer_with_injection(size_t length, const std::string& owner, const std::string& name, 
+                const std::string& process_data_definition = "", const std::string& clk_device = "") :
+            triple_buffer(length, owner, name, process_data_definition, clk_device) 
+            {}
+
+        //! Pushes write data buffer to available on calling \link next \endlink.
+        /*
+         * \param[in] hash      hash value, get it with set_provider!
+         */
+        void push(const std::size_t& hash) {
+            const auto& buf = next(hash);
+
+            for (const auto& kv : pd_injections) {
+                inject_val(kv.second, buf, length);
+            }
+            
+            triple_buffer::push(hash);
+        }
+
+        //! Write data to buffer.
+        /*!
+         * \param[in] hash      hash value, get it with set_provider!
+         * \param[in] offset    Process data offset from beginning of the buffer.
+         * \param[in] buf       Buffer with data to write to internal back buffer.
+         * \param[in] len       Length of data in buffer.
+         * \param[in] do_push   Push the buffer to set it to the actual one.
+         */
+        void write(const std::size_t& hash, off_t offset, uint8_t *buf, 
+                size_t len, bool do_push = true) 
+        {
+            triple_buffer::write(hash, offset, buf, len, false);
+
+            if (do_push) {
+                push(hash);
+            }
         }
 };
 

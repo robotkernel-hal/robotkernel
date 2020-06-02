@@ -1454,7 +1454,7 @@ int kernel::service_add_pd_injection(const service_arglist_t &request,
                 value_string     = request[SERVICE_ADD_PD_INJECTION_REQ_VALUE], 
                 bitmask_string   = request[SERVICE_ADD_PD_INJECTION_REQ_BITMASK];
 
-    process_data::entry_t e;
+    pd_entry_t e;
     e.field_name = field_name;
     e.value_string = value_string;
     e.bitmask_string = bitmask_string;
@@ -1464,7 +1464,13 @@ int kernel::service_add_pd_injection(const service_arglist_t &request,
 
     try {
         auto pd = get_process_data(pd_dev);
-        pd->add_injection(e);
+        
+        std::shared_ptr<pd_injection_base> retval = 
+            std::dynamic_pointer_cast<pd_injection_base>(pd);
+
+        if (retval) {
+            retval->add_injection(e);
+        }
     } catch (std::exception& exc) {
         error_message = exc.what();
     }
@@ -1509,7 +1515,13 @@ int kernel::service_del_pd_injection(const service_arglist_t &request,
 
     try {
         auto pd = get_process_data(pd_dev);
-        pd->del_injection(hash);
+        
+        std::shared_ptr<pd_injection_base> retval = 
+            std::dynamic_pointer_cast<pd_injection_base>(pd);
+
+        if (retval) {
+            retval->del_injection(hash);
+        }
     } catch (std::exception& exc) {
         error_message = exc.what();
     }
@@ -1543,12 +1555,12 @@ int kernel::service_list_pd_injections(const service_arglist_t &request,
     std::vector<rk_type> pd_dev, field_name, value, bitmask;
 
     for (const auto& kv : device_map) {
-        std::shared_ptr<process_data> retval = 
-            std::dynamic_pointer_cast<process_data>(kv.second);
+        std::shared_ptr<pd_injection_base> retval = 
+            std::dynamic_pointer_cast<pd_injection_base>(kv.second);
 
         if (retval) {
             for (const auto& kv_inj : retval->pd_injections) {
-                pd_dev.push_back(retval->id());
+                pd_dev.push_back(kv.second->id());
                 field_name.push_back(kv_inj.second.field_name);
                 value.push_back(kv_inj.second.value_string);
                 bitmask.push_back(kv_inj.second.bitmask_string);

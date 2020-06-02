@@ -98,12 +98,12 @@ void process_data::find_pd_offset_and_type(const std::string& field_name,
 /*!
  * \param[in,out] entry      Structure to fill.
  */
-void process_data::find_pd_offset_and_type(entry_t& e) {
+void process_data::find_pd_offset_and_type(pd_entry_t& e) {
     find_pd_offset_and_type(e.field_name, e.type_str, e.type, e.offset);
 }
 
 #if 0
-double val_to_double(uint8_t *base, const struct process_data::entry_t& item) {
+double val_to_double(uint8_t *base, const struct pd_entry_t& item) {
     switch (item.type) {
 #define CASE_PD_DT(dt_enum, dtype)                          \
         case dt_enum: {                                     \
@@ -134,7 +134,7 @@ double val_to_double(uint8_t *base, const struct process_data::entry_t& item) {
  * \param[in,out]   buf     Buffer to inject.
  * \param[in]       len     Length of buffer.
  */
-void process_data::inject_val(const process_data::entry_t& e, uint8_t* buf, size_t len) {
+void pd_injection_base::inject_val(const pd_entry_t& e, uint8_t* buf, size_t len) {
     switch (e.type) {
 #define CASE_PD_DT(dt_enum, dtype)                                   \
         case dt_enum: {                                              \
@@ -155,16 +155,18 @@ void process_data::inject_val(const process_data::entry_t& e, uint8_t* buf, size
     }
 }
 
+#if 0
 //! inject value to process data
 /*!
  * \param[in]   e       Entry to inject.
  * \param[in]   hash    Process data provider hash.
  */
-void process_data::inject_val(const process_data::entry_t& e, const size_t& hash) {
+void pd_injection_base::inject_val(const pd_entry_t& e, const size_t& hash) {
     const auto& buf = next(hash);
 
     inject_val(e, &buf[0], length);
 }
+#endif
 
 #if 0
 void convert_str_val(const pd_data_types& type, const std::string& value_str,
