@@ -1561,7 +1561,7 @@ int kernel::service_list_pd_injections(const service_arglist_t &request,
 #define SERVICE_LIST_PD_INJECTIONS_RESP_VALUE_STRING    2
 #define SERVICE_LIST_PD_INJECTIONS_RESP_BITMASK_STRING  3
 #define SERVICE_LIST_PD_INJECTIONS_RESP_ERROR_MESSAGE   4
-    response.resize(1); 
+    response.resize(5); 
     response[SERVICE_LIST_PD_INJECTIONS_RESP_PD_DEV]            = pd_dev;
     response[SERVICE_LIST_PD_INJECTIONS_RESP_FIELD_NAME]        = field_name;
     response[SERVICE_LIST_PD_INJECTIONS_RESP_VALUE_STRING]      = value;
