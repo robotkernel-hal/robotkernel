@@ -1478,10 +1478,8 @@ int kernel::service_add_pd_injection(const service_arglist_t &request,
     }
 
     // reponse
-#define SERVICE_ADD_PD_INJECTION_RESP_INJECTION_HASH    0
-#define SERVICE_ADD_PD_INJECTION_RESP_ERROR_MESSAGE     1
-    response.resize(2);
-    response[SERVICE_ADD_PD_INJECTION_RESP_INJECTION_HASH] = e.hash();
+#define SERVICE_ADD_PD_INJECTION_RESP_ERROR_MESSAGE     0
+    response.resize(1);
     response[SERVICE_ADD_PD_INJECTION_RESP_ERROR_MESSAGE] = error_message;
 
     return 0;
@@ -1495,7 +1493,6 @@ const std::string kernel::service_definition_add_pd_injection =
 "- string: value\n"
 "- string: bitmask\n"
 "response:\n"
-"- uint64_t: injection_hash\n"
 "- string: error_message\n";
 
 //! delete pd injection service
@@ -1508,9 +1505,9 @@ int kernel::service_del_pd_injection(const service_arglist_t &request,
         service_arglist_t &response) {
     // request data
 #define SERVICE_DEL_PD_INJECTION_REQ_PD_DEV             0
-#define SERVICE_DEL_PD_INJECTION_REQ_INJECTION_HASH     1
-    std::string pd_dev  = request[SERVICE_DEL_PD_INJECTION_REQ_PD_DEV];
-    size_t hash         = request[SERVICE_DEL_PD_INJECTION_REQ_INJECTION_HASH];          
+#define SERVICE_DEL_PD_INJECTION_REQ_FIELD_NAME         1
+    std::string pd_dev     = request[SERVICE_DEL_PD_INJECTION_REQ_PD_DEV];
+    std::string field_name = request[SERVICE_DEL_PD_INJECTION_REQ_FIELD_NAME];
 
     // response data
     std::string error_message = "";
@@ -1522,7 +1519,7 @@ int kernel::service_del_pd_injection(const service_arglist_t &request,
             std::dynamic_pointer_cast<pd_injection_base>(pd);
 
         if (retval) {
-            retval->del_injection(hash);
+            retval->del_injection(field_name);
         }
     } catch (std::exception& exc) {
         error_message = exc.what();
@@ -1540,7 +1537,7 @@ const std::string kernel::service_definition_del_pd_injection =
 "name: del_pd_injection\n"
 "request:\n"
 "- string: pd_dev\n"
-"- uint64_t: injection_hash\n"
+"- string: field_name\n"
 "response:\n"
 "- string: error_message\n";
         
@@ -1575,7 +1572,7 @@ int kernel::service_list_pd_injections(const service_arglist_t &request,
 #define SERVICE_LIST_PD_INJECTIONS_RESP_VALUE_STRING    2
 #define SERVICE_LIST_PD_INJECTIONS_RESP_BITMASK_STRING  3
 #define SERVICE_LIST_PD_INJECTIONS_RESP_ERROR_MESSAGE   4
-    response.resize(5); 
+    response.resize(4); 
     response[SERVICE_LIST_PD_INJECTIONS_RESP_PD_DEV]            = pd_dev;
     response[SERVICE_LIST_PD_INJECTIONS_RESP_FIELD_NAME]        = field_name;
     response[SERVICE_LIST_PD_INJECTIONS_RESP_VALUE_STRING]      = value;

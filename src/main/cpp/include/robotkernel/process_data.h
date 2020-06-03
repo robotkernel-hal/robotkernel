@@ -57,6 +57,26 @@ enum pd_data_types {
     PD_DT_INT32
 };
 
+inline void convert_str_val(const pd_data_types& type, const std::string& value_str,
+        std::vector<uint8_t>& value) {
+
+    auto convert_fun = [&](auto val) -> void {
+        value.resize(sizeof(typeof(val)));
+        *(typeof(val) *)&value[0] = val;
+    };
+
+    switch (type) {
+        case PD_DT_FLOAT:  { convert_fun((float)   stof (value_str)); break; }
+        case PD_DT_DOUBLE: { convert_fun((double)  stod (value_str)); break; }
+        case PD_DT_UINT8:  { convert_fun((uint8_t) stoul(value_str)); break; }
+        case PD_DT_UINT16: { convert_fun((uint16_t)stoul(value_str)); break; }
+        case PD_DT_UINT32: { convert_fun((uint32_t)stoul(value_str)); break; }
+        case PD_DT_INT8:   { convert_fun((int8_t)  stol (value_str)); break; }
+        case PD_DT_INT16:  { convert_fun((int16_t) stol (value_str)); break; }
+        case PD_DT_INT32:  { convert_fun((int32_t) stol (value_str)); break; }
+    }
+}
+
 //! process data provider class
 /*!
  * derive from this class, if you want to register yourself as
@@ -84,10 +104,14 @@ class pd_consumer {
 };
         
 typedef struct pd_entry {
+    pd_entry() : initialized(false) {}
+
     // input fields
     std::string field_name;
     std::string value_string;
     std::string bitmask_string;
+
+    bool initialized;
 
     // user fields
     std::vector<uint8_t> value;
@@ -97,15 +121,6 @@ typedef struct pd_entry {
 
     std::string type_str;
     pd_data_types type;
-
-
-    std::size_t hash() {
-        std::size_t fn_hash = std::hash<std::string>{}(field_name);
-        std::size_t vs_hash = std::hash<std::string>{}(value_string);
-        std::size_t bm_hash = std::hash<std::string>{}(bitmask_string);
-
-        return (fn_hash ^ (vs_hash << 1)) ^ (bm_hash << 2);
-    }
 } pd_entry_t;
 
 //! process data injection class
@@ -129,37 +144,28 @@ class pd_injection_base
          */
         void inject_val(const pd_entry_t& e, uint8_t* buf, size_t len);
 
-//        //! inject value to process data
-//        /*!
-//         * \param[in]   e       Entry to inject.
-//         * \param[in]   hash    Process data provider hash.
-//         */
-//        void inject_val(const pd_entry_t& e, const size_t& hash);
-
         //! add injection value
         /*!
          * \param[in]   e       Entry to inject.
          */
         void add_injection(pd_entry_t& e) {
-            if (pd_injections.find(e.hash()) != pd_injections.end())
-                return;
-
-            pd_injections[e.hash()] = e;
+            // this may overwrite old injections to that field
+            pd_injections[e.field_name] = e;
         }
         
         //! del injection value
         /*!
-         * \param[in]   hash    Entry to inject.
+         * \param[in]   field_name  Entry to inject.
          */
-        void del_injection(std::size_t& hash) {
-            if (pd_injections.find(hash) != pd_injections.end())
+        void del_injection(const std::string& field_name) {
+            if (pd_injections.find(field_name) != pd_injections.end())
                 return;
 
-            pd_injections.erase(hash);
+            pd_injections.erase(field_name);
         }
 
     public:
-        std::map<size_t, pd_entry_t> pd_injections;
+        std::map<std::string, pd_entry_t> pd_injections;
 };
 
 
@@ -647,8 +653,18 @@ class triple_buffer_with_injection :
         void push(const std::size_t& hash) {
             const auto& buf = next(hash);
 
-            for (const auto& kv : pd_injections) {
-                inject_val(kv.second, buf, length);
+            for (auto& kv : pd_injections) {
+                auto& pd_entry = kv.second;
+
+                if (!pd_entry.initialized) {
+                    find_pd_offset_and_type(pd_entry);
+                    convert_str_val(pd_entry.type, pd_entry.value_string, pd_entry.value);
+                    printf("offset %d, length %d\n", pd_entry.offset, pd_entry.value.size());
+
+                    pd_entry.initialized = true;
+                }
+
+                inject_val(pd_entry, buf, length);
             }
             
             triple_buffer::push(hash);
