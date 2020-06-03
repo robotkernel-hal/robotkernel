@@ -52,6 +52,24 @@ std::map<std::string, pd_data_types> pd_dt_map = {
     { "int16_t",  PD_DT_INT16  },
     { "int32_t",  PD_DT_INT32  },
 };
+    
+//! construct and initialize pd_entry
+/*!
+ * \param[in]  pd               Corresponding process data.
+ * \param[in]  field_name       Field name in process data.
+ * \param[in]  value_string     Value to inject.
+ * \param[in]  bitmask_string   Bitmask for value.
+ */
+pd_entry::pd_entry(std::shared_ptr<process_data> pd, 
+        const std::string& field_name, const std::string& value_string,
+        const std::string& bitmask_string) :
+    field_name(field_name), value_string(value_string), bitmask_string(bitmask_string)
+{
+    pd->find_pd_offset_and_type(*this);
+    convert_str_val(type, value_string, value);
+                    
+    initialized = true;
+}
 
 //! Find offset and type of given process data member.
 /*!

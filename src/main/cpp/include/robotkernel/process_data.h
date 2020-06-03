@@ -45,6 +45,9 @@ namespace robotkernel {
 }
 #endif
 
+// forward declarations
+class process_data;
+
 enum pd_data_types {
     PD_DT_NONE = -1,
     PD_DT_FLOAT = 1,
@@ -63,7 +66,7 @@ void convert_fun(std::vector<uint8_t>& value, T val) {
     *(T *)&value[0] = val;
 };
 
-
+//! convert string values to uint8 array depending on datatype
 inline void convert_str_val(const pd_data_types& type, const std::string& value_str,
         std::vector<uint8_t>& value) {
 
@@ -76,6 +79,7 @@ inline void convert_str_val(const pd_data_types& type, const std::string& value_
         case PD_DT_INT8:   { convert_fun<int8_t>  (value, stol (value_str)); break; }
         case PD_DT_INT16:  { convert_fun<int16_t> (value, stol (value_str)); break; }
         case PD_DT_INT32:  { convert_fun<int32_t> (value, stol (value_str)); break; }
+        default: break;
     }
 }
 
@@ -107,6 +111,17 @@ class pd_consumer {
         
 typedef struct pd_entry {
     pd_entry() : initialized(false) {}
+
+    //! construct and initialize pd_entry
+    /*!
+     * \param[in]  pd               Corresponding process data.
+     * \param[in]  field_name       Field name in process data.
+     * \param[in]  value_string     Value to inject.
+     * \param[in]  bitmask_string   Bitmask for value.
+     */
+    pd_entry(std::shared_ptr<process_data> pd, 
+            const std::string& field_name, const std::string& value_string,
+            const std::string& bitmask_string);
 
     // input fields
     std::string field_name;

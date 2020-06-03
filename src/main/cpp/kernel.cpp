@@ -1454,11 +1454,6 @@ int kernel::service_add_pd_injection(const service_arglist_t &request,
                 value_string     = request[SERVICE_ADD_PD_INJECTION_REQ_VALUE], 
                 bitmask_string   = request[SERVICE_ADD_PD_INJECTION_REQ_BITMASK];
 
-    pd_entry_t e;
-    e.field_name = field_name;
-    e.value_string = value_string;
-    e.bitmask_string = bitmask_string;
-    
     // response data
     std::string error_message = "";
 
@@ -1469,6 +1464,7 @@ int kernel::service_add_pd_injection(const service_arglist_t &request,
             std::dynamic_pointer_cast<pd_injection_base>(pd);
 
         if (retval) {
+            pd_entry_t e(pd, field_name, value_string, bitmask_string);
             retval->add_injection(e);
         } else {
             error_message = format_string("pd device %s does not support injection!", pd_dev.c_str());
