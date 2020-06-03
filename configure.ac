@@ -25,7 +25,7 @@ DX_HTML_FEATURE(ON)
 #
 m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
 AC_PROG_CC
-AX_CHECK_COMPILE_FLAG([-std=gnu++14], [CFLAGS+=" -std=gnu++14"], [AC_PROG_CC_C99])
+AX_CHECK_COMPILE_FLAG([-std=gnu11], [CFLAGS+=" -std=gnu11"])
 AC_PROG_CXX
 AX_CXX_COMPILE_STDCXX_11([ext], [mandatory])
 AC_PROG_LIBTOOL

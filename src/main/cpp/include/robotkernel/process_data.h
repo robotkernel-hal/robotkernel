@@ -57,23 +57,25 @@ enum pd_data_types {
     PD_DT_INT32
 };
 
+template <typename T>
+void convert_fun(std::vector<uint8_t>& value, T val) {
+    value.resize(sizeof(T));
+    *(T *)&value[0] = val;
+};
+
+
 inline void convert_str_val(const pd_data_types& type, const std::string& value_str,
         std::vector<uint8_t>& value) {
 
-    auto convert_fun = [&](auto val) -> void {
-        value.resize(sizeof(typeof(val)));
-        *(typeof(val) *)&value[0] = val;
-    };
-
     switch (type) {
-        case PD_DT_FLOAT:  { convert_fun((float)   stof (value_str)); break; }
-        case PD_DT_DOUBLE: { convert_fun((double)  stod (value_str)); break; }
-        case PD_DT_UINT8:  { convert_fun((uint8_t) stoul(value_str)); break; }
-        case PD_DT_UINT16: { convert_fun((uint16_t)stoul(value_str)); break; }
-        case PD_DT_UINT32: { convert_fun((uint32_t)stoul(value_str)); break; }
-        case PD_DT_INT8:   { convert_fun((int8_t)  stol (value_str)); break; }
-        case PD_DT_INT16:  { convert_fun((int16_t) stol (value_str)); break; }
-        case PD_DT_INT32:  { convert_fun((int32_t) stol (value_str)); break; }
+        case PD_DT_FLOAT:  { convert_fun<float>   (value, stof (value_str)); break; }
+        case PD_DT_DOUBLE: { convert_fun<double>  (value, stod (value_str)); break; }
+        case PD_DT_UINT8:  { convert_fun<uint8_t> (value, stoul(value_str)); break; }
+        case PD_DT_UINT16: { convert_fun<uint16_t>(value, stoul(value_str)); break; }
+        case PD_DT_UINT32: { convert_fun<uint32_t>(value, stoul(value_str)); break; }
+        case PD_DT_INT8:   { convert_fun<int8_t>  (value, stol (value_str)); break; }
+        case PD_DT_INT16:  { convert_fun<int16_t> (value, stol (value_str)); break; }
+        case PD_DT_INT32:  { convert_fun<int32_t> (value, stol (value_str)); break; }
     }
 }
 
