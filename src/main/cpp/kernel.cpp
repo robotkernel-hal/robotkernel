@@ -1466,6 +1466,10 @@ int kernel::service_add_pd_injection(const service_arglist_t &request,
         if (retval) {
             pd_entry_t e(pd, field_name, value_string, bitmask_string);
             retval->add_injection(e);
+
+            if (pd->provider_hash == 0) {
+                pd->push(0);
+            }
         } else {
             error_message = format_string("pd device %s does not support injection!", pd_dev.c_str());
         }

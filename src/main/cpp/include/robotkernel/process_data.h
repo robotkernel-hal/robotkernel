@@ -208,7 +208,7 @@ class process_data :
         process_data(size_t length, const std::string& owner, const std::string& name, 
                 const std::string& process_data_definition = "", const std::string& clk_device = "") :
             device(owner, name, "pd"), pd_cookie(0), length(length), clk_device(clk_device),
-            process_data_definition(process_data_definition)
+            process_data_definition(process_data_definition), provider_hash(0), consumer_hash(0)
             { }
 
         //! Get a pointer to the a data buffer which we can write next, has to be
