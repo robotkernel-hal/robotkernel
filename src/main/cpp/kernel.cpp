@@ -352,6 +352,12 @@ kernel::kernel() {
             std::bind(&kernel::service_stream_info, this, _1, _2));
     add_service(_name, "service_interface_info", service_definition_service_interface_info,
             std::bind(&kernel::service_service_interface_info, this, _1, _2));
+    add_service(_name, "add_pd_injection", service_definition_add_pd_injection,
+            std::bind(&kernel::service_add_pd_injection, this, _1, _2));
+    add_service(_name, "del_pd_injection", service_definition_del_pd_injection,
+            std::bind(&kernel::service_del_pd_injection, this, _1, _2));
+    add_service(_name, "list_pd_injections", service_definition_list_pd_injections,
+            std::bind(&kernel::service_list_pd_injections, this, _1, _2));
 }
 
 //! destruction
@@ -590,6 +596,8 @@ void kernel::config(std::string config_file, int argc, char *argv[]) {
         // add to module map
         klog(verbose, "adding [%s]\n", mdl->get_name().c_str());
         module_map[mdl->get_name()] = mdl;
+        
+        mdl->set_state(module_state_init);
     }
 
     const YAML::Node& bridges = doc["bridges"];
@@ -872,6 +880,8 @@ void kernel::load_module(const YAML::Node& config) {
 
     // add to module map
     module_map[mdl->get_name()] = mdl;
+        
+    mdl->set_state(module_state_init);
 }
 
 //! get dump log
@@ -1424,5 +1434,163 @@ const std::string kernel::service_definition_service_interface_info =
 "- string: name\n"
 "response:\n"
 "- string: owner\n"
+"- string: error_message\n";
+
+//! add pd injection service
+/*!
+ * \param request service request data
+ * \parma response service response data
+ * \return success
+ */
+int kernel::service_add_pd_injection(const service_arglist_t &request,
+        service_arglist_t &response) {
+    // request data
+#define SERVICE_ADD_PD_INJECTION_REQ_PD_DEV             0
+#define SERVICE_ADD_PD_INJECTION_REQ_FIELD_NAME         1
+#define SERVICE_ADD_PD_INJECTION_REQ_VALUE              2
+#define SERVICE_ADD_PD_INJECTION_REQ_BITMASK            3
+    std::string pd_dev           = request[SERVICE_ADD_PD_INJECTION_REQ_PD_DEV], 
+                field_name       = request[SERVICE_ADD_PD_INJECTION_REQ_FIELD_NAME],
+                value_string     = request[SERVICE_ADD_PD_INJECTION_REQ_VALUE], 
+                bitmask_string   = request[SERVICE_ADD_PD_INJECTION_REQ_BITMASK];
+
+    pd_entry_t e;
+    e.field_name = field_name;
+    e.value_string = value_string;
+    e.bitmask_string = bitmask_string;
+    
+    // response data
+    std::string error_message = "";
+
+    try {
+        auto pd = get_process_data(pd_dev);
+        
+        std::shared_ptr<pd_injection_base> retval = 
+            std::dynamic_pointer_cast<pd_injection_base>(pd);
+
+        if (retval) {
+            retval->add_injection(e);
+        } else {
+            error_message = format_string("pd device %s does not support injection!", pd_dev.c_str());
+        }
+    } catch (std::exception& exc) {
+        error_message = exc.what();
+    }
+
+    // reponse
+#define SERVICE_ADD_PD_INJECTION_RESP_INJECTION_HASH    0
+#define SERVICE_ADD_PD_INJECTION_RESP_ERROR_MESSAGE     1
+    response.resize(2);
+    response[SERVICE_ADD_PD_INJECTION_RESP_INJECTION_HASH] = e.hash();
+    response[SERVICE_ADD_PD_INJECTION_RESP_ERROR_MESSAGE] = error_message;
+
+    return 0;
+}
+
+const std::string kernel::service_definition_add_pd_injection = 
+"name: add_pd_injection\n"
+"request:\n"
+"- string: pd_dev\n"
+"- string: field_name\n"
+"- string: value\n"
+"- string: bitmask\n"
+"response:\n"
+"- uint64_t: injection_hash\n"
+"- string: error_message\n";
+
+//! delete pd injection service
+/*!
+ * \param request service request data
+ * \parma response service response data
+ * \return success
+ */
+int kernel::service_del_pd_injection(const service_arglist_t &request,
+        service_arglist_t &response) {
+    // request data
+#define SERVICE_DEL_PD_INJECTION_REQ_PD_DEV             0
+#define SERVICE_DEL_PD_INJECTION_REQ_INJECTION_HASH     1
+    std::string pd_dev  = request[SERVICE_DEL_PD_INJECTION_REQ_PD_DEV];
+    size_t hash         = request[SERVICE_DEL_PD_INJECTION_REQ_INJECTION_HASH];          
+
+    // response data
+    std::string error_message = "";
+
+    try {
+        auto pd = get_process_data(pd_dev);
+        
+        std::shared_ptr<pd_injection_base> retval = 
+            std::dynamic_pointer_cast<pd_injection_base>(pd);
+
+        if (retval) {
+            retval->del_injection(hash);
+        }
+    } catch (std::exception& exc) {
+        error_message = exc.what();
+    }
+
+    // reponse
+#define SERVICE_DEL_PD_INJECTION_RESP_ERROR_MESSAGE     0
+    response.resize(1);
+    response[SERVICE_DEL_PD_INJECTION_RESP_ERROR_MESSAGE] = error_message;
+
+    return 0;
+}
+
+const std::string kernel::service_definition_del_pd_injection = 
+"name: del_pd_injection\n"
+"request:\n"
+"- string: pd_dev\n"
+"- uint64_t: injection_hash\n"
+"response:\n"
+"- string: error_message\n";
+        
+//! list pd injections service
+/*!
+ * \param request service request data
+ * \parma response service response data
+ * \return success
+ */
+int kernel::service_list_pd_injections(const service_arglist_t &request,
+        service_arglist_t &response) {
+
+    std::string error_message = "";
+    std::vector<rk_type> pd_dev, field_name, value, bitmask;
+
+    for (const auto& kv : device_map) {
+        std::shared_ptr<pd_injection_base> retval = 
+            std::dynamic_pointer_cast<pd_injection_base>(kv.second);
+
+        if (retval) {
+            for (const auto& kv_inj : retval->pd_injections) {
+                pd_dev.push_back(kv.second->id());
+                field_name.push_back(kv_inj.second.field_name);
+                value.push_back(kv_inj.second.value_string);
+                bitmask.push_back(kv_inj.second.bitmask_string);
+            }
+        }
+    }
+
+#define SERVICE_LIST_PD_INJECTIONS_RESP_PD_DEV          0
+#define SERVICE_LIST_PD_INJECTIONS_RESP_FIELD_NAME      1
+#define SERVICE_LIST_PD_INJECTIONS_RESP_VALUE_STRING    2
+#define SERVICE_LIST_PD_INJECTIONS_RESP_BITMASK_STRING  3
+#define SERVICE_LIST_PD_INJECTIONS_RESP_ERROR_MESSAGE   4
+    response.resize(5); 
+    response[SERVICE_LIST_PD_INJECTIONS_RESP_PD_DEV]            = pd_dev;
+    response[SERVICE_LIST_PD_INJECTIONS_RESP_FIELD_NAME]        = field_name;
+    response[SERVICE_LIST_PD_INJECTIONS_RESP_VALUE_STRING]      = value;
+    response[SERVICE_LIST_PD_INJECTIONS_RESP_BITMASK_STRING]    = bitmask;
+    response[SERVICE_LIST_PD_INJECTIONS_RESP_ERROR_MESSAGE]     = error_message;
+
+    return 0;
+}
+
+const std::string kernel::service_definition_list_pd_injections = 
+"name: list_pd_injections\n"
+"response:\n"
+"- vector/string: pd_dev\n"
+"- vector/string: field_name\n"
+"- vector/string: value\n"
+"- vector/string: bitmask\n"
 "- string: error_message\n";
 

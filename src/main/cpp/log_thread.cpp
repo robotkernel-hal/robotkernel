@@ -38,7 +38,7 @@
 
 using namespace robotkernel;
 
-int gettid() {
+int _gettid() {
 #ifdef HAVE_GETTID
     return ::gettid();
 #else
@@ -122,10 +122,20 @@ void log_thread::log(struct log_pool_object *obj) {
     }
 }
 
+const static std::string ANSI_RESET = "\u001B[0m";
+const static std::string ANSI_BLACK = "\u001B[30m";
+const static std::string ANSI_RED = "\u001B[31m";
+const static std::string ANSI_GREEN = "\u001B[32m";
+const static std::string ANSI_YELLOW = "\u001B[33m";
+const static std::string ANSI_BLUE = "\u001B[34m";
+const static std::string ANSI_PURPLE = "\u001B[35m";
+const static std::string ANSI_CYAN = "\u001B[36m";
+const static std::string ANSI_WHITE = "\u001B[37m";
+
 //! handler function called if thread is running
 void log_thread::run() {
     set_name("rk:log_thread");
-    klog(verbose, "log_thread started at tid %d\n", gettid());
+    klog(verbose, "log_thread started at tid %d\n", _gettid());
 
     std::unique_lock<std::mutex> lock(mtx);
     
@@ -140,6 +150,21 @@ void log_thread::run() {
             struct log_pool_object *obj = full_pool.front();
             full_pool.pop_front();
             lock.unlock();
+
+            char* have_error = strstr(obj->buf, "ERR");
+            if (have_error) {
+                printf(ANSI_RED.c_str());
+            }
+            
+            char* have_warning = strstr(obj->buf, "WARN");
+            if (have_warning) {
+                printf(ANSI_YELLOW.c_str());
+            }
+
+            char* have_verbose = strstr(obj->buf, "VERB");
+            if (have_verbose) {
+                printf(ANSI_GREEN.c_str());
+            }
 
             if(fix_modname_length == 0)
                 printf("%s", obj->buf);
@@ -172,6 +197,10 @@ void log_thread::run() {
                 if(!close)
                     // missing closing bracket or length already ok
                     printf("%s", obj->buf);
+
+                if (have_error || have_warning || have_verbose) {
+                    printf(ANSI_RESET.c_str());
+                }
             }
 
             lock.lock();

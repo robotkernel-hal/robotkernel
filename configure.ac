@@ -13,8 +13,9 @@ AC_INIT([robotkernel],
 
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADERS([src/main/cpp/include/robotkernel/config.h])
-AM_INIT_AUTOMAKE([-Wall -Werror foreign silent-rules])
-m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
+#AM_INIT_AUTOMAKE([-Wall -Werror foreign silent-rules])
+AM_INIT_AUTOMAKE([-Wall -Werror foreign])
+#m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
 DX_INIT_DOXYGEN([robotkernel-5], [doxyfile], [doc])
 DX_HTML_FEATURE(ON)
@@ -32,16 +33,12 @@ AC_PROG_INSTALL
 m4_ifdef([PKG_PROG_PKG_CONFIG], [PKG_PROG_PKG_CONFIG])
 m4_ifdef([PKG_INSTALLDIR], [PKG_INSTALLDIR], [pkgconfigdir='${libdir}/pkgconfig' AC_SUBST([pkgconfigdir])])
 
-AS_IF([test -e src/dump_log_tp.tp],
-	PKG_CHECK_MODULES([LTTNG_UST], [lttng-ust],
-		[AC_DEFINE([HAVE_LTTNG_UST], [1], [use lttng user space tracing])],
-		[AC_DEFINE([HAVE_LTTNG_UST], [0], [use lttng user space tracing])])
-)
-AM_CONDITIONAL([HAVE_LTTNG_UST], [test -n "$LTTNG_UST_LIBS"])
-
-PKG_CHECK_MODULES([LTTNG_UST], [lttng-ust], [AC_DEFINE([HAVE_LTTNG_UST], [1], [Use lttng-ust logging])])
+PKG_CHECK_MODULES([LTTNG_UST], [lttng-ust], [enable_lttng=yes], [enable_lttng=no])
 PKG_CHECK_MODULES([LIBSTRING_UTIL], [libstring_util])
 PKG_CHECK_MODULES([YAML_CPP], [yaml-cpp], [], [AC_MSG_ERROR([yaml-cpp not found])])
+
+AM_CONDITIONAL([HAVE_LTTNG_UST], [test "$enable_lttng" == "yes"])
+AS_IF([test "$enable_lttng" = "yes"], [AC_DEFINE([HAVE_LTTNG_UST], [1], [Use it])], [AC_DEFINE([HAVE_LTTNG_UST], [0], [Dont use it])])
 
 # Checks for header files.
 AC_CHECK_HEADERS([stdint.h stdlib.h string.h sys/ioctl.h unistd.h execinfo.h termios.h sys/syscall.h process.h libgen.h])

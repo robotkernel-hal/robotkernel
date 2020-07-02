@@ -305,12 +305,14 @@ bool module::reconfigure() {
     }
 
     // try to configure
-    if (mod_configure)
+    if (mod_configure) {
         mod_handle = mod_configure(name.c_str(), config.c_str());
+    }
 
-    if(!mod_handle)
+    if (!mod_handle) {
         throw str_exception("mod_handle of %s is NULL, can not proceed!\n"
                 "(does module export mod_configure() function?)", file_name.c_str());
+    }
 
     return configured();
 }
@@ -360,13 +362,15 @@ int module::set_state(module_state_t state) {
     // get transition
     uint32_t transition = GEN_STATE(act_state, state);
 
-#define set_state__check(to_state) {                    \
-    int ret = 0;                                        \
-    try {                                               \
-        ret = mod_set_state(mod_handle, to_state);      \
-    } catch (exception& e) {                            \
-        klog(error, "set_state: %s\n", e.what());       \
-    }                                                   \
+#define set_state__check(to_state) {                                                                    \
+    int ret = 0;                                                                                        \
+    try {                                                                                               \
+        klog(info, "module %s -> requesting state %s...\n", name.c_str(), state_to_string(to_state));   \
+        ret = mod_set_state(mod_handle, to_state);                                                      \
+        klog(info, "module %s -> state %s reached!\n", name.c_str(), state_to_string(ret));             \
+    } catch (exception& e) {                                                                            \
+        klog(error, "set_state: %s\n", e.what());                                                       \
+    }                                                                                                   \
     if (ret != to_state) return -1; }                          
 
     switch (transition) {
