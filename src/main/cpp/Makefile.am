@@ -18,6 +18,7 @@ include_HEADERS = $(headerdir)/bridge_base.h	\
 				  $(headerdir)/helpers.h \
 				  $(headerdir)/interface_intf.h \
 				  $(headerdir)/kernel.h \
+				  $(headerdir)/kernel_c_wrapper.h \
 				  $(headerdir)/kernel_worker.h \
 				  $(headerdir)/log_base.h \
 				  $(headerdir)/loglevel.h \
@@ -46,7 +47,8 @@ robotkernel_SOURCES = bridge.cpp				\
 					  dump_log.cpp 				\
 					  exceptions.cpp 			\
 					  kernel.cpp 				\
-					  module_base.cpp 				\
+					  module_base.cpp 			\
+					  kernel_c_wrapper.cpp      \
 					  kernel_worker.cpp       	\
 					  log_base.cpp 				\
 					  log_thread.cpp 			\
