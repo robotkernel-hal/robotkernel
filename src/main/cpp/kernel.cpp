@@ -1594,3 +1594,18 @@ const std::string kernel::service_definition_list_pd_injections =
 "- vector/string: bitmask\n"
 "- string: error_message\n";
 
+//! convert buffer to hex string
+std::string robotkernel::hex_string(const void *data, size_t len) {
+    char hex_buf[4];
+    std::stringstream ss;
+    
+    for (size_t i = 0; i < len; ++i) {
+        uint8_t c = ((uint8_t*) data)[i];
+        snprintf(hex_buf, sizeof(hex_buf), "%02X ", c);
+        ss << hex_buf;
+    }
+
+    ss << "\n";
+
+    return ss.str();
+}
