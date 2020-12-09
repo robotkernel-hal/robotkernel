@@ -53,6 +53,32 @@ std::map<std::string, pd_data_types> pd_dt_map = {
     { "int32_t",  PD_DT_INT32  },
 };
 
+//! Return data type length from string
+/*!
+ * \param[in]   dt_name         String representation of datatype.
+ * \return data type length
+ */
+ssize_t process_data::get_data_type_length(const std::string& dt_name) {
+    if (dt_to_len.find(dt_name) != dt_to_len.end()) {
+        return dt_to_len[dt_name];
+    }
+
+    return -1;
+}
+
+//! Return data type from string
+/*!
+ * \param[in]   dt_name         String representation of datatype.
+ * \return data type
+ */
+pd_data_types process_data::get_data_type(const std::string& dt_name) {
+    if (pd_dt_map.find(dt_name) != pd_dt_map.end()) {
+        return pd_dt_map[dt_name];
+    }
+
+    return PD_DT_UNKNOWN;
+}
+
 //! Find offset and type of given process data member.
 /*!
  * \param[in]   field_name      Name of member to find.

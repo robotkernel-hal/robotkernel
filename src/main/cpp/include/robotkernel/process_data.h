@@ -46,6 +46,7 @@ namespace robotkernel {
 #endif
 
 enum pd_data_types {
+    PD_DT_UNKNOWN = -2,
     PD_DT_NONE = -1,
     PD_DT_FLOAT = 1,
     PD_DT_DOUBLE,
@@ -316,6 +317,21 @@ class process_data :
          * \param[in,out] entry      Structure to fill.
          */
         void find_pd_offset_and_type(pd_entry_t& e);
+
+        //! Return data type length from string
+        /*!
+         * \param[in]   dt_name         String representation of datatype.
+         * \return data type length
+         */
+        static ssize_t get_data_type_length(const std::string& dt_name);
+
+        //! Return data type from string
+        /*!
+         * \param[in]   dt_name         String representation of datatype.
+         * \return data type
+         */
+        static pd_data_types get_data_type(const std::string& dt_name);
+
 
     public:
         volatile uint64_t pd_cookie;
