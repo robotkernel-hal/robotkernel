@@ -26,6 +26,7 @@
 #ifndef ROBOTKERNEL__HELPERS_H
 #define ROBOTKERNEL__HELPERS_H
 
+#include <algorithm>
 #include <time.h>
 #include <yaml-cpp/yaml.h>
 
@@ -76,8 +77,52 @@ type get_as(const YAML::Node& node, const std::string key, type dflt) {
     }
 }
 
+template<typename type>
+type match_map(const YAML::Node& node, std::string entry, std::map<std::string, type>& configmapping) {
+    std::transform(entry.begin(), entry.end(), entry.begin(), ::tolower);
+    const std::string default_str("default");
+    typename std::map<std::string, type>::iterator el;
+
+    if (node[entry]) {
+        std::string key = node[entry].as<std::string>();
+        el = configmapping.find(key);
+
+        if (el != configmapping.end()) {
+            return el->second;
+        }
+
+        goto match_map_exit;
+    }
+
+    el = configmapping.find(default_str);
+
+    if (el != configmapping.end()) {
+        return el->second;
+    }
+
+match_map_exit:
+    std::stringstream ss;
+    ss << "Unable to find value for MANDATORY key %s in config. Possible values for " << entry << " are: ";
+    for (const auto& kv : configmapping) {
+        ss << "\'" << kv.first << "\', ";
+    }
+
+    throw string_util::str_exception(ss.str().c_str());
+}
+
 #define get_config(member, dflt) \
     (member) = get_as<typeof(member)>(config, # member, (typeof(member))dflt)
+
+
+namespace robotkernel {
+#ifdef EMACS
+}
+#endif
+
+//! convert buffer to hex string
+std::string hex_string(const void *data, size_t len);
+
+}; // namespace robotkernel
 
 #endif // ROBOTKERNEL__MODULE_H
 
