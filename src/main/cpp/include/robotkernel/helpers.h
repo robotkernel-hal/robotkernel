@@ -122,6 +122,8 @@ namespace robotkernel {
 //! convert buffer to hex string
 std::string hex_string(const void *data, size_t len);
 
+void parse_templates(const YAML::Node& config, std::list<YAML::Node>& instances);
+
 }; // namespace robotkernel
 
 #endif // ROBOTKERNEL__MODULE_H
