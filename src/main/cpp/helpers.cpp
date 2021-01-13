@@ -30,7 +30,7 @@
 using namespace std;
 using namespace robotkernel;
 
-YAML::Node fill_template(const std::string& config, const YAML::Node& instance) {
+YAML::Node robotkernel::fill_template(const std::string& config, const YAML::Node& instance) {
     std::string inst_config = config;
     
     for (const auto& kv : instance) {
@@ -46,7 +46,7 @@ YAML::Node fill_template(const std::string& config, const YAML::Node& instance) 
     return YAML::Load(inst_config);
 }
 
-void parse_templates(const YAML::Node& config, std::list<YAML::Node>& instances) {
+void robotkernel::parse_templates(const YAML::Node& config, std::list<YAML::Node>& instances) {
      std::map<std::string, std::string> class_map;
  
      for (const auto& cls : config["classes"]) {
