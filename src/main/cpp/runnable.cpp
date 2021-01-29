@@ -112,6 +112,11 @@ void runnable::stop() {
     tid.join();
 }
 
+//! join thread
+void runnable::join() {
+    tid.join();
+}
+
 //! set priority
 /*!
  * \param prio new max prio
