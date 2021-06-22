@@ -34,6 +34,7 @@
 #include "robotkernel/module_base.h"
 #include "robotkernel/bridge_base.h"
 #include "robotkernel/config.h"
+#include "robotkernel/rkc_loader.h"
 #include "yaml-cpp/yaml.h"
 #include "sys/stat.h"
 #include "fcntl.h"
@@ -528,7 +529,7 @@ void kernel::config(std::string config_file, int argc, char *argv[]) {
 
     this->config_file = string(real_config_file);
     free(real_config_file);
-    YAML::Node doc = YAML::LoadFile(this->config_file);
+    YAML::Node doc = rkc_load_file(this->config_file);
 
     // search for name
     char *ln_program_name = getenv("LN_PROGRAM_NAME");
