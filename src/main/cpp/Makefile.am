@@ -63,7 +63,8 @@ robotkernel_SOURCES = bridge.cpp				\
 					  stream.cpp                \
 					  trigger.cpp               \
 					  trigger_worker.cpp        \
-					  helpers.cpp
+					  helpers.cpp				\
+					  rkc_loader.cpp
 
 robotkernel_CXXFLAGS = -Wno-unused-local-typedefs 					\
 					   -I$(top_builddir)/src/main/cpp/include 		\
