@@ -73,6 +73,10 @@ so_file::so_file(const YAML::Node& node) : config("") {
     kernel& k = *kernel::get_instance();
     
     if (node["config_file"]) {
+        klog(warning, "entry 'config_file' of so_file %s is deprecated !!! It will be removed in "
+                "future versions. Use 'config: !include config_file.rkc' instead.\n", 
+                file_name.c_str());
+
         string config_file_name = get_as<string>(node, "config_file");
         // check for absolute/relative path
         if (config_file_name[0] != '/') {

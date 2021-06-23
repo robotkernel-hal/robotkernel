@@ -60,6 +60,28 @@ module* currently_loading_module = NULL;
 
 namespace robotkernel {
 void split_file_name(const string& str, string& path, string& file);
+
+module_state_t decode_power_up_state(std::string tmp_power_up) {
+    module_state_t power_up;
+
+    std::transform(tmp_power_up.begin(), tmp_power_up.end(), 
+            tmp_power_up.begin(), (int (*)(int))tolower);
+#define power_up_state(a) \
+    if (tmp_power_up == #a) \
+        power_up = module_state_##a
+
+    power_up_state(init);
+    else power_up_state(preop);
+    else power_up_state(safeop);
+    else power_up_state(op);
+    else power_up_state(boot);
+    else if (tmp_power_up == "true") power_up = module_state_op;
+    else power_up = module_state_init;
+
+#undef power_up_state
+
+    return power_up;
+}
 }
 
 const char *state_to_string(module_state_t state) {
@@ -239,20 +261,7 @@ module::module(const YAML::Node& node)
     }
 
     string tmp_power_up = get_as<string>(node, "power_up", "init");
-
-    std::transform(tmp_power_up.begin(), tmp_power_up.end(), 
-            tmp_power_up.begin(), (int (*)(int))tolower);
-#define power_up_state(a) \
-    if (tmp_power_up == #a) \
-        power_up = module_state_##a
-
-    power_up_state(init);
-    else power_up_state(preop);
-    else power_up_state(safeop);
-    else power_up_state(op);
-    else power_up_state(boot);
-    else if (tmp_power_up == "true") power_up = module_state_op;
-    else power_up = module_state_init;
+    power_up = decode_power_up_state(tmp_power_up);
 
     _init();
 

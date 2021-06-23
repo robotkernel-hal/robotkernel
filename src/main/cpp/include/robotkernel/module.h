@@ -36,7 +36,12 @@
 
 #include <yaml-cpp/yaml.h>
 
-namespace robotkernel { class module; };
+namespace robotkernel { 
+class module; 
+
+module_state_t decode_power_up_state(std::string tmp_power_up);
+
+};
 YAML::Emitter& operator<<(YAML::Emitter& out, const robotkernel::module& mdl);
 
 namespace robotkernel {
@@ -180,6 +185,10 @@ class module :
         int service_get_feat(const service_arglist_t& request,
                 service_arglist_t& response);
         static const std::string service_definition_get_feat;
+
+        void set_power_up(module_state_t power_up_state) {
+            power_up = power_up_state;
+        }
 
         friend YAML::Emitter& (::operator<<)(YAML::Emitter& out,
                 const robotkernel::module& mdl);
