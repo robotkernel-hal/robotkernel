@@ -7,7 +7,11 @@ using namespace string_util;
 using namespace robotkernel;
 using namespace std;
 
-void parse_node(YAML::Node e) {
+namespace robotkernel {
+void split_file_name(const string& str, string& path, string& file);
+}
+
+void parse_node(YAML::Node e, const std::string& config_file_path) {
     kernel& k = *kernel::get_instance();
 
     switch (e.Type()) {
@@ -27,9 +31,16 @@ void parse_node(YAML::Node e) {
                 // check for absolute/relative path
                 if (fn[0] != '/') {
                     // relative path to config file
-                    fn = k.config_file_path + "/" + fn;
+                    fn = config_file_path + "/" + fn;
                 }
 
+    
+                char *real_config_file = realpath(fn.c_str(), NULL);
+                if (!real_config_file)
+                    throw str_exception("supplied config file \"%s\" not found!", fn.c_str());
+                string file, new_config_file_path;
+                split_file_name(string(real_config_file), new_config_file_path, file);
+                
                 klog(verbose, "config file \"%s\"\n", fn.c_str());
 
                 struct stat buffer;   
@@ -39,14 +50,14 @@ void parse_node(YAML::Node e) {
                 }
                 
                 e = YAML::LoadFile(fn);
-                parse_node(e);
+                parse_node(e, new_config_file_path);
             }
             break;
         case YAML::NodeType::Sequence:
             k.log(verbose, "got NodeType: Sequence\n");
             for (auto s : e) {
                 k.log(verbose, "seq -> ");
-                parse_node(s);
+                parse_node(s, config_file_path);
             }
             break;
         case YAML::NodeType::Map:
@@ -54,9 +65,9 @@ void parse_node(YAML::Node e) {
 
             for (auto kv : e) {
                 k.log(verbose, "first -> ");
-                parse_node(kv.first);
+                parse_node(kv.first, config_file_path);
                 k.log(verbose, "second -> ");
-                parse_node(kv.second);
+                parse_node(kv.second, config_file_path);
             }
             break;
     }
@@ -68,7 +79,7 @@ YAML::Node robotkernel::rkc_load_file(const std::string& filename) {
 
     YAML::Node node = YAML::LoadFile(filename);
 
-    parse_node(node);
+    parse_node(node, k.config_file_path);
 
     YAML::Emitter emit;
     emit << node;
