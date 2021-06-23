@@ -1,6 +1,9 @@
+#include <sys/stat.h>
 #include "rkc_loader.h"
 #include "robotkernel/kernel.h"
+#include "string_util/string_util.h"
 
+using namespace string_util;
 using namespace robotkernel;
 using namespace std;
 
@@ -20,6 +23,21 @@ void parse_node(YAML::Node e) {
             if (e.Tag() == "!include") {
                 string fn = e.as<string>();
                 k.log(verbose, "got !include tag: %s\n", fn.c_str());
+                
+                // check for absolute/relative path
+                if (fn[0] != '/') {
+                    // relative path to config file
+                    fn = k.config_file_path + "/" + fn;
+                }
+
+                klog(verbose, "config file \"%s\"\n", fn.c_str());
+
+                struct stat buffer;   
+                int ret = stat(fn.c_str(), &buffer);
+                if(ret != 0) { // check failbit
+                    throw str_exception("could not open config file: %s", fn.c_str());
+                }
+                
                 e = YAML::LoadFile(fn);
             }
             break;
