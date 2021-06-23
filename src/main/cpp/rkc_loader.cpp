@@ -39,6 +39,7 @@ void parse_node(YAML::Node e) {
                 }
                 
                 e = YAML::LoadFile(fn);
+                parse_node(e);
             }
             break;
         case YAML::NodeType::Sequence:
