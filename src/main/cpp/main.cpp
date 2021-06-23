@@ -60,13 +60,16 @@ void signal_handler(int s) {
 
 int usage(int argc, char** argv) {
     klog(info, "usage: robotkernel --config | -c <filename> "
-            "[--quiet, -q] [--verbose, -v] [--help, -h]\n");
+            "[--quiet, -q] [--verbose, -v] [--power_up, -p module=[boot,init,preop,safeop,op] "
+            "[--help, -h]\n");
     klog(info, "\n");
     klog(info, "  --config, -c <filename>     specify config file\n");
     klog(info, "  --quiet, -q                 run in quiet mode\n");
     klog(info, "  --verbose, -v               be more verbose\n");
     klog(info, "  --help, -h                  this help page\n");
     klog(info, "  --test-run, -t              doing test run, load modules and quit\n");
+    klog(info, "  --power_up, -p              powering up modules\n");
+    klog
     return 0;
 }
 
