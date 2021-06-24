@@ -51,6 +51,17 @@ void parse_node(YAML::Node e, const std::string& config_file_path) {
                 
                 e = YAML::LoadFile(fn);
                 parse_node(e, new_config_file_path);
+            } else if (e.Tag() == "!env") {
+                string env_var_name = e.as<string>();
+                char* env_var = getenv(env_var_name.c_str());
+
+                if (nullptr == env_var) {
+                    throw str_exception("environment variable \"%s\" does not exist or is empty!", 
+                            env_var_name.c_str());
+                }
+
+                e = YAML::Load(string(env_var));
+                parse_node(e, config_file_path);
             }
             break;
         case YAML::NodeType::Sequence:
