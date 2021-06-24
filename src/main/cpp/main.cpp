@@ -69,7 +69,6 @@ int usage(int argc, char** argv) {
     klog(info, "  --help, -h                  this help page\n");
     klog(info, "  --test-run, -t              doing test run, load modules and quit\n");
     klog(info, "  --power_up, -p              powering up modules\n");
-    klog
     return 0;
 }
 
