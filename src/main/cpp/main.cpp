@@ -139,6 +139,8 @@ int main(int argc, char* argv[]) {
     string config_file = "";
     struct sigaction action;
 
+    std::map<std::string, module_state_t>  power_up_map;
+
     for (int i = 1; i < argc; ++i) {
         if ((strcmp(argv[i], "--config") == 0) || (strcmp(argv[i], "-c") == 0)) {
             if (++i >= argc) {
@@ -157,6 +159,18 @@ int main(int argc, char* argv[]) {
             return usage(argc, argv);
         else if ((strcmp(argv[i], "--test-run") == 0) || (strcmp(argv[i], "-t") == 0))
             test_run = true;
+        else if ((strcmp(argv[i], "--power_up") == 0) || (strcmp(argv[i], "-p") == 0)) {
+            if (++i >= argc) {
+                klog(info, "--power_up argument missing\n");
+                usage(argc, argv);
+                goto Exit;
+            }
+
+            string power_up_arg = string(argv[i]);
+            vector<string> power_up_split = string_util::split_string(power_up_arg, "=", 1);
+
+            power_up_map[power_up_split[0]] = decode_power_up_state(power_up_split[1]);
+        }
     }
 
     if (config_file == "") {
@@ -166,6 +180,12 @@ int main(int argc, char* argv[]) {
 
     try {
         k.config(config_file, argc, argv);        
+
+        for (const auto& kv : power_up_map) {
+            auto mdl = k.get_module(kv.first);
+            mdl->set_power_up(kv.second);
+        }
+
         power_up_state = k.power_up();
     } catch (exception& e) {
         klog(error, "config exception: %s\n", e.what());
