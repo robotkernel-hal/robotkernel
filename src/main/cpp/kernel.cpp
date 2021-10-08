@@ -116,6 +116,10 @@ int kernel::set_state(std::string mod_name, module_state_t state,
     if (mdl->get_state() == state)
         return state;
 
+    if (state == module_state_boot) {
+        set_state(mod_name, module_state_init);
+    }
+
     // iterate through dependencies
     for (const auto& d_mod_name : mdl->get_depends()) {
         if (std::find(caller.begin(), caller.end(), d_mod_name) != caller.end())
