@@ -66,6 +66,7 @@ AC_CHECK_LIB(socket, socket)
 AC_CHECK_LIB(rt, clock_gettime)
 
 AX_CHECK_LINK_FLAG(-non-static, [LDFLAGS+=" -non-static"])
+AX_CHECK_LINK_FLAG(-lSegFault, [LDFLAGS+=" -lSegFault"])
 
 AC_CHECK_TYPES([cpu_set_t], [], [], [[#include <pthread.h>]])
 
