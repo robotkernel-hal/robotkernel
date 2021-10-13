@@ -367,7 +367,7 @@ int module::set_state(module_state_t state) {
 
     auto& k = *kernel::get_instance();
     module_state_t act_state = get_state();
-    
+
     // get transition
     uint32_t transition = GEN_STATE(act_state, state);
 
@@ -382,6 +382,11 @@ int module::set_state(module_state_t state) {
     }                                                                                                   \
     if (ret != to_state) return -1; }                          
 
+    if ((act_state == module_state_error) && (state == module_state_init)) {
+        set_state__check(state);
+        return 0;
+    }
+    
     switch (transition) {
         case op_2_safeop:
         case op_2_preop:
