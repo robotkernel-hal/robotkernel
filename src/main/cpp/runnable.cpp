@@ -114,7 +114,13 @@ void runnable::stop() {
 
 //! join thread
 void runnable::join() {
-    tid.join();
+    if (
+            (tid.get_id() != std::this_thread::get_id()) &&
+            (tid.joinable())
+       )
+    {
+        tid.join();
+    }
 }
 
 //! set priority
