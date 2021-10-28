@@ -43,8 +43,7 @@
 #define HDL_2_BRIDGECLASS(hdl, bridgename, bridgeclass)                                     \
     struct instance_name ## _wrapper *wr =                                                  \
         reinterpret_cast<struct instance_name ## _wrapper *>(hdl);                          \
-    std::shared_ptr<bridgeclass> dev = wr->sp;                                              \
-    if (!dev)                                                                               \
+    if (!wr->sp)                                                                            \
         throw string_util::str_exception("["#bridgename"] invalid bridge "                  \
                 "handle to <"#bridgeclass" *>\n"); 
 
@@ -65,6 +64,7 @@ EXPORT_C void bridge_remove_service(BRIDGE_HANDLE hdl, const robotkernel::servic
                                                                                             \
 EXPORT_C int bridge_unconfigure(BRIDGE_HANDLE hdl) {                                        \
     HDL_2_BRIDGECLASS(hdl, bridgename, bridgeclass)                                         \
+    wr->sp->deinit();                                                                       \
     wr->sp = nullptr;                                                                       \
     delete wr;                                                                              \
     return 0;                                                                               \
@@ -114,6 +114,12 @@ class bridge_base :
          * usefull to call shared_from_this() at construction time
          */
         void init() {};
+
+        //! optional deinitiazation methon
+        /* 
+         * usefull to call shared_from_this() at construction time
+         */
+        void deinit() {};
 
         //! create and register ln service
         /*!
