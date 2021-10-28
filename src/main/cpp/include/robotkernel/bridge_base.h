@@ -65,6 +65,7 @@ EXPORT_C void bridge_remove_service(BRIDGE_HANDLE hdl, const robotkernel::servic
                                                                                             \
 EXPORT_C int bridge_unconfigure(BRIDGE_HANDLE hdl) {                                        \
     HDL_2_BRIDGECLASS(hdl, bridgename, bridgeclass)                                         \
+    wr->sp = nullptr;                                                                       \
     delete wr;                                                                              \
     return 0;                                                                               \
 }                                                                                           \
