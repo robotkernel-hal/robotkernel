@@ -121,13 +121,13 @@ class bridge_base :
          */
         void deinit() {};
 
-        //! create and register ln service
+        //! create and register service
         /*!
          * \param svc robotkernel service struct
          */
         virtual void add_service(const robotkernel::service_t &svc) = 0;
 
-        //! unregister and remove ln service 
+        //! unregister and remove service 
         /*!
          * \param svc robotkernel service struct
          */

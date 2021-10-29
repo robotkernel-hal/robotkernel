@@ -58,7 +58,7 @@ namespace robotkernel {
             return format_string("%f", (double) *this);
         } else if(__type == typeid(std::string)){
             std::string v = *static_cast<std::string*>((void*)__value);
-            return v; //std::string("\"") + v + "\"";
+            return v;
         } else if(__type == typeid(std::vector<rk_type>)){
             std::vector<rk_type> v = *static_cast<std::vector<rk_type>*>((void*)__value);
             std::stringstream response;
