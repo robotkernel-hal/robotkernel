@@ -162,6 +162,8 @@ class module_base :
 
 };
 
+typedef std::shared_ptr<module_base> sp_module_base_t;
+
 #ifdef EMACS
 {
 #endif
