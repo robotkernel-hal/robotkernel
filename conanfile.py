@@ -1,7 +1,7 @@
 from conans import ConanFile, tools
 
 class MainProject(ConanFile):
-    python_requires = "conan_template_ln_generator/[~=5]@robotkernel/stable"
+    python_requires = "conan_template_ln_generator/[~=5 >=5.0.5]@robotkernel/stable"
     python_requires_extend = "conan_template_ln_generator.RobotkernelLNGeneratorConanFile"
 
     name = "robotkernel"
