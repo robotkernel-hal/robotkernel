@@ -1,6 +1,7 @@
 context: conan
 configurations:
 - any:
-    generate_ln_mds: True
-- imports:
-  - linux_defaults
+  generate_ln_mds: True
+- osl15-x86_64
+  generate_ln_mds: True
+- osl42-x86_64
