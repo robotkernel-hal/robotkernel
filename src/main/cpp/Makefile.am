@@ -44,7 +44,7 @@ include_HEADERS = $(headerdir)/bridge_base.h	\
 				  $(headerdir)/trigger_worker.h \
 				  $(gen_headerdir)/config.h
 
-robotkernel_SOURCES = bridge.cpp				\
+librobotkernel_la_SOURCES = bridge.cpp				\
 					  char_ringbuffer.cpp 		\
 					  dump_log.cpp 				\
 					  exceptions.cpp 			\
@@ -54,7 +54,6 @@ robotkernel_SOURCES = bridge.cpp				\
 					  kernel_worker.cpp       	\
 					  log_base.cpp 				\
 					  log_thread.cpp 			\
-					  main.cpp 					\
 					  module.cpp				\
 					  process_data.cpp			\
 					  rk_type.cpp				\
@@ -68,6 +67,15 @@ robotkernel_SOURCES = bridge.cpp				\
 					  helpers.cpp				\
 					  rkc_loader.cpp			\
 					  service_definitions.cpp
+
+librobotkernel_la_CXXFLAGS = -Wno-unused-local-typedefs 					\
+					   -I$(top_builddir)/src/main/cpp/include 		\
+					   -I$(srcdir)/include/ 						\
+					   @YAML_CPP_CFLAGS@ @LIBSTRING_UTIL_CFLAGS@ 
+
+librobotkernel_la_LDFLAGS=-static
+
+robotkernel_SOURCES = main.cpp
 
 robotkernel_CXXFLAGS = -Wno-unused-local-typedefs 					\
 					   -I$(top_builddir)/src/main/cpp/include 		\
