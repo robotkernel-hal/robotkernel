@@ -904,11 +904,6 @@ int kernel::service_get_dump_log(const service_arglist_t& request,
     return 0;
 }
 
-const std::string kernel::service_definition_get_dump_log = 
-"name: get_dump_log\n"
-"response:\n"
-"- string: log\n";
-
 //! config dump log
 /*!
  * \param request service request data
@@ -958,16 +953,6 @@ int kernel::service_config_dump_log(const service_arglist_t& request,
     return 0;
 }
 
-const std::string kernel::service_definition_config_dump_log = 
-"name: config_dump_log\n"
-"request:\n"
-"- uint32_t: max_len\n"
-"- uint8_t: do_ust\n"
-"- string: set_loglevel\n"
-"response:\n"
-"- string: current_loglevel\n"
-"- string: error_message\n";
-
 //! add module
 /*!
  * \param request service request data
@@ -998,13 +983,6 @@ int kernel::service_add_module(const service_arglist_t& request,
 
     return 0;
 }
-
-const std::string kernel::service_definition_add_module = 
-"name: add_module\n"
-"request:\n"
-"- string: config\n"
-"response:\n"
-"- string: error_message\n";
 
 //! remove module
 /*!
@@ -1043,13 +1021,6 @@ int kernel::service_remove_module(const service_arglist_t& request,
     return 0;
 }
 
-const std::string kernel::service_definition_remove_module = 
-"name: remove_module\n"
-"request:\n"
-"- string: mod_name\n"
-"response:\n"
-"- string: error_message\n";
-
 //! module list
 /*!
  * \param request service request data
@@ -1079,12 +1050,6 @@ int kernel::service_module_list(const service_arglist_t& request,
     
     return 0;
 }
-
-const std::string kernel::service_definition_module_list = 
-"name: module_list\n"
-"response:\n"
-"- vector/string: modules\n"
-"- string: error_message\n";
 
 //! reconfigure module
 /*!
@@ -1132,14 +1097,6 @@ int kernel::service_reconfigure_module(const service_arglist_t& request,
 
     return 0;
 }
-
-const std::string kernel::service_definition_reconfigure_module = 
-"name: reconfigure_module\n"
-"request:\n"
-"- string: mod_name\n"
-"response:\n"
-"- uint64_t: state\n"
-"- string: error_message\n";
 
 std::string kernel::ll_to_string(loglevel ll) {
     if (ll == error)    return "ERR ";
@@ -1221,12 +1178,6 @@ int kernel::service_list_devices(const service_arglist_t &request,
     return 0;
 }
 
-const std::string kernel::service_definition_list_devices = 
-"name: list_devices\n"
-"response:\n"
-"- vector/string: devices\n"
-"- string: error_message\n";
-
 //! process data information
 /*!
  * \param request service request data
@@ -1286,19 +1237,6 @@ int kernel::service_process_data_info(const service_arglist_t &request,
     return 0;
 }
 
-const std::string kernel::service_definition_process_data_info = 
-"name: process_data_info\n"
-"request:\n"
-"- string: name\n"
-"response:\n"
-"- string: owner\n"
-"- string: definition\n"
-"- string: clk_device\n"
-"- int32_t: length\n"
-"- string: provider\n"
-"- string: consumer\n"
-"- string: error_message\n";
-
 //! trigger information
 /*!
  * \param request service request data
@@ -1340,15 +1278,6 @@ int kernel::service_trigger_info(const service_arglist_t &request,
     return 0;
 }
 
-const std::string kernel::service_definition_trigger_info = 
-"name: trigger_info\n"
-"request:\n"
-"- string: name\n"
-"response:\n"
-"- string: owner\n"
-"- double: rate\n"
-"- string: error_message\n";
-
 //! stream information
 /*!
  * \param request service request data
@@ -1387,14 +1316,6 @@ int kernel::service_stream_info(const service_arglist_t &request,
     return 0;
 }
 
-const std::string kernel::service_definition_stream_info = 
-"name: stream_info\n"
-"request:\n"
-"- string: name\n"
-"response:\n"
-"- string: owner\n"
-"- string: error_message\n";
-
 //! service_interface information
 /*!
  * \param request service request data
@@ -1432,14 +1353,6 @@ int kernel::service_service_interface_info(const service_arglist_t &request,
 
     return 0;
 }
-
-const std::string kernel::service_definition_service_interface_info = 
-"name: service_interface_info\n"
-"request:\n"
-"- string: name\n"
-"response:\n"
-"- string: owner\n"
-"- string: error_message\n";
 
 //! add pd injection service
 /*!
@@ -1492,17 +1405,6 @@ int kernel::service_add_pd_injection(const service_arglist_t &request,
     return 0;
 }
 
-const std::string kernel::service_definition_add_pd_injection = 
-"name: add_pd_injection\n"
-"request:\n"
-"- string: pd_dev\n"
-"- string: field_name\n"
-"- string: value\n"
-"- string: bitmask\n"
-"response:\n"
-"- uint64_t: injection_hash\n"
-"- string: error_message\n";
-
 //! delete pd injection service
 /*!
  * \param request service request data
@@ -1541,14 +1443,6 @@ int kernel::service_del_pd_injection(const service_arglist_t &request,
     return 0;
 }
 
-const std::string kernel::service_definition_del_pd_injection = 
-"name: del_pd_injection\n"
-"request:\n"
-"- string: pd_dev\n"
-"- uint64_t: injection_hash\n"
-"response:\n"
-"- string: error_message\n";
-        
 //! list pd injections service
 /*!
  * \param request service request data
@@ -1590,15 +1484,6 @@ int kernel::service_list_pd_injections(const service_arglist_t &request,
     return 0;
 }
 
-const std::string kernel::service_definition_list_pd_injections = 
-"name: list_pd_injections\n"
-"response:\n"
-"- vector/string: pd_dev\n"
-"- vector/string: field_name\n"
-"- vector/string: value\n"
-"- vector/string: bitmask\n"
-"- string: error_message\n";
-
 //! convert buffer to hex string
 std::string robotkernel::hex_string(const void *data, size_t len) {
     char hex_buf[4];
@@ -1614,3 +1499,4 @@ std::string robotkernel::hex_string(const void *data, size_t len) {
 
     return ss.str();
 }
+

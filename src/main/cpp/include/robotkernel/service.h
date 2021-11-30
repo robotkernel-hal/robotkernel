@@ -34,6 +34,8 @@
 
 #include "robotkernel/rk_type.h"
 
+typedef void (*get_sd_t)(std::list<std::string>& sd_list);
+
 namespace robotkernel {
 #ifdef EMACS
 }

@@ -176,16 +176,6 @@ class module :
                 service_arglist_t& response);
         static const std::string service_definition_get_config;
 
-        //! get module feat
-        /*!
-         * \param request service request data
-         * \parma response service response data
-         * \return success
-         */
-        int service_get_feat(const service_arglist_t& request,
-                service_arglist_t& response);
-        static const std::string service_definition_get_feat;
-
         void set_power_up(module_state_t power_up_state) {
             power_up = power_up_state;
         }
