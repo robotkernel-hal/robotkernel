@@ -1,4 +1,6 @@
 context: conan
 configurations:
+- any:
+    generate_ln_mds: True
 - imports:
   - linux_defaults

@@ -9,9 +9,6 @@ class MainProject(base.RobotkernelLNGeneratorConanFile):
     description = "robotkernel-5 is a modular, easy configurable hardware abstraction framework"
     exports_sources = ["*", "!.gitignore"] + ["!%s" % x for x in tools.Git().excluded_files()]
 
-    def config_options(self):
-        self.options.generate_ln_mds = True
-
     def requirements(self):
         self.requires("libstring_util/[~=1]@common/stable")
         self.requires("yaml-cpp/0.6.2@3rdparty/stable")
