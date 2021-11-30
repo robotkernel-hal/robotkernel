@@ -2,7 +2,7 @@ from conans import tools, python_requires, AutoToolsBuildEnvironment
 from conans.client.run_environment import RunEnvironment
 import os
 
-base = python_requires("conan_template_ln_generator/6.0.0@robotkernel/stable")
+base = python_requires("conan_template_ln_generator/[~=5]@robotkernel/stable")
 
 class MainProject(base.RobotkernelLNGeneratorConanFile):
     name = "robotkernel"
