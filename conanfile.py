@@ -1,12 +1,11 @@
-from conans import tools, python_requires, AutoToolsBuildEnvironment
-from conans.client.run_environment import RunEnvironment
-import os
+from conans import ConanFile, tools
 
-base = python_requires("conan_template_ln_generator/[~=5]@robotkernel/stable")
+class MainProject(ConanFile):
+    python_requires = "conan_template_ln_generator/[~=5]@robotkernel/stable"
+    python_requires_extend = "conan_template_ln_generator.RobotkernelLNGeneratorConanFile"
 
-class MainProject(base.RobotkernelLNGeneratorConanFile):
     name = "robotkernel"
-    description = "robotkernel-5 is a modular, easy configurable hardware abstraction framework"
+    description = "robotkernel is a modular, easy configurable hardware abstraction framework"
     exports_sources = ["*", "!.gitignore"] + ["!%s" % x for x in tools.Git().excluded_files()]
 
     def requirements(self):
