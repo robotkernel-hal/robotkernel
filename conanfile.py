@@ -13,5 +13,6 @@ class MainProject(ConanFile):
         self.requires("yaml-cpp/0.6.2@3rdparty/stable")
 
     def config_options(self):
+        self.options.generate_ln_mds = True
         self.options["libstring_util"].shared = True
 
