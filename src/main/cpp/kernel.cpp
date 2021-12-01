@@ -334,35 +334,6 @@ kernel::kernel() {
     _name = "robotkernel";
 
     log(info, PACKAGE_STRING "\n");
-
-    add_service(_name, "get_dump_log", service_definition_get_dump_log,
-            std::bind(&kernel::service_get_dump_log, this, _1, _2));
-    add_service(_name, "config_dump_log", service_definition_config_dump_log,
-            std::bind(&kernel::service_config_dump_log, this, _1, _2));
-    add_service(_name, "module_list", service_definition_module_list,
-            std::bind(&kernel::service_module_list, this, _1, _2));
-    add_service(_name, "reconfigure_module", service_definition_reconfigure_module,
-            std::bind(&kernel::service_reconfigure_module, this, _1, _2));
-    add_service(_name, "add_module", service_definition_add_module,
-            std::bind(&kernel::service_add_module, this, _1, _2));
-    add_service(_name, "remove_module", service_definition_remove_module,
-            std::bind(&kernel::service_remove_module, this, _1, _2));
-    add_service(_name, "list_devices", service_definition_list_devices,
-            std::bind(&kernel::service_list_devices, this, _1, _2));
-    add_service(_name, "process_data_info", service_definition_process_data_info,
-            std::bind(&kernel::service_process_data_info, this, _1, _2));
-    add_service(_name, "trigger_info", service_definition_trigger_info,
-            std::bind(&kernel::service_trigger_info, this, _1, _2));
-    add_service(_name, "stream_info", service_definition_stream_info,
-            std::bind(&kernel::service_stream_info, this, _1, _2));
-    add_service(_name, "service_interface_info", service_definition_service_interface_info,
-            std::bind(&kernel::service_service_interface_info, this, _1, _2));
-    add_service(_name, "add_pd_injection", service_definition_add_pd_injection,
-            std::bind(&kernel::service_add_pd_injection, this, _1, _2));
-    add_service(_name, "del_pd_injection", service_definition_del_pd_injection,
-            std::bind(&kernel::service_del_pd_injection, this, _1, _2));
-    add_service(_name, "list_pd_injections", service_definition_list_pd_injections,
-            std::bind(&kernel::service_list_pd_injections, this, _1, _2));
 }
 
 //! destruction
@@ -537,8 +508,10 @@ void kernel::config(std::string config_file, int argc, char *argv[]) {
 
     // search for name
     char *ln_program_name = getenv("LN_PROGRAM_NAME");
-    if (doc["name"] && !ln_program_name)
-        _name = get_as<string>(doc, "name");
+    if (ln_program_name) {
+        unsetenv("LN_PROGRAM_NAME");
+    }
+    _name = get_as<string>(doc, "name");
 
     // locking all current and future memory to keep it hold in 
     // memory without swapping
@@ -651,6 +624,35 @@ void kernel::config(std::string config_file, int argc, char *argv[]) {
         klog(verbose, "adding [%s]\n", sp->name.c_str());
         service_provider_map[sp->name] = sp;
     }
+
+    add_service(_name, "get_dump_log", service_definition_get_dump_log,
+            std::bind(&kernel::service_get_dump_log, this, _1, _2));
+    add_service(_name, "config_dump_log", service_definition_config_dump_log,
+            std::bind(&kernel::service_config_dump_log, this, _1, _2));
+    add_service(_name, "module_list", service_definition_module_list,
+            std::bind(&kernel::service_module_list, this, _1, _2));
+    add_service(_name, "reconfigure_module", service_definition_reconfigure_module,
+            std::bind(&kernel::service_reconfigure_module, this, _1, _2));
+    add_service(_name, "add_module", service_definition_add_module,
+            std::bind(&kernel::service_add_module, this, _1, _2));
+    add_service(_name, "remove_module", service_definition_remove_module,
+            std::bind(&kernel::service_remove_module, this, _1, _2));
+    add_service(_name, "list_devices", service_definition_list_devices,
+            std::bind(&kernel::service_list_devices, this, _1, _2));
+    add_service(_name, "process_data_info", service_definition_process_data_info,
+            std::bind(&kernel::service_process_data_info, this, _1, _2));
+    add_service(_name, "trigger_info", service_definition_trigger_info,
+            std::bind(&kernel::service_trigger_info, this, _1, _2));
+    add_service(_name, "stream_info", service_definition_stream_info,
+            std::bind(&kernel::service_stream_info, this, _1, _2));
+    add_service(_name, "service_interface_info", service_definition_service_interface_info,
+            std::bind(&kernel::service_service_interface_info, this, _1, _2));
+    add_service(_name, "add_pd_injection", service_definition_add_pd_injection,
+            std::bind(&kernel::service_add_pd_injection, this, _1, _2));
+    add_service(_name, "del_pd_injection", service_definition_del_pd_injection,
+            std::bind(&kernel::service_del_pd_injection, this, _1, _2));
+    add_service(_name, "list_pd_injections", service_definition_list_pd_injections,
+            std::bind(&kernel::service_list_pd_injections, this, _1, _2));
 }
 
 //! powering up modules
