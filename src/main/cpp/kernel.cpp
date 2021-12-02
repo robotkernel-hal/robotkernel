@@ -562,6 +562,11 @@ void kernel::config(std::string config_file, int argc, char *argv[]) {
             throw str_exception("[robotkernel] module %s not configured!\n", name.c_str());
         }
 
+        if (mdl->get_name() == _name){
+            string name = mdl->get_name();
+            throw str_exception("[robotkernel] module name \"%s\" matches robotkernel name\n", name.c_str());
+        }
+
         {
             std::unique_lock<std::recursive_mutex> lock(module_map_mtx);
 
@@ -590,6 +595,11 @@ void kernel::config(std::string config_file, int argc, char *argv[]) {
                                 e.what());
         }
 
+        if (brdg->name == _name){
+            string name = brdg->name;
+            throw str_exception("[robotkernel] bridge name \"%s\" matches robotkernel name\n", name.c_str());
+        }
+
         if (bridge_map.find(brdg->name) != bridge_map.end()) {
             throw str_exception("[robotkernel] duplicate module name: %s\n", 
                     brdg->name.c_str());
@@ -613,6 +623,11 @@ void kernel::config(std::string config_file, int argc, char *argv[]) {
             throw str_exception("exception while instantiating service_provider %s:\n%s",
                                 get_as<string>(*it, "name", "<no name specified>").c_str(),
                                 e.what());
+        }
+
+        if (sp->name == _name){
+            string name = sp->name;
+            throw str_exception("[robotkernel] service_provider name \"%s\" matches robotkernel name\n", name.c_str());
         }
 
         if (service_provider_map.find(sp->name) != service_provider_map.end()) {
