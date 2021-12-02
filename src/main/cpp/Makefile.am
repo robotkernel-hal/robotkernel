@@ -1,6 +1,6 @@
 INSTALL_HEADER = $(INSTALL_DATA) -C
 
-lib_LTLIBRARIES = librobotkernel.la libexports.la
+lib_LTLIBRARIES = librobotkernel.la libservice_definitions.la
 
 BUILT_SOURCES=
 includedir = $(prefix)/include/robotkernel
@@ -85,12 +85,12 @@ robotkernel_CXXFLAGS = -Wno-unused-local-typedefs 					\
 robotkernel_LDFLAGS = -Wl,-export-dynamic -Bdynamic -Wl,--whole-archive,.libs/librobotkernel.a,--no-whole-archive
 robotkernel_LDADD = librobotkernel.la @PTHREAD_LIBS@ @YAML_CPP_LIBS@ @LIBSTRING_UTIL_LIBS@
 
-libexports_la_SOURCES  = service_definitions.cpp
-libexports_la_CXXFLAGS = -Wno-unused-local-typedefs 			\
+libservice_definitions_la_SOURCES  = service_definitions.cpp
+libservice_definitions_la_CXXFLAGS = -Wno-unused-local-typedefs 			\
 					   -I$(top_builddir)/src/main/cpp/include 		\
 					   -I$(srcdir)/include/ 						\
 					   @YAML_CPP_CFLAGS@ @LIBSTRING_UTIL_CFLAGS@  
-libexports_la_LDFLAGS  = 
+libservice_definitions_la_LDFLAGS  = 
 
 if HAVE_LTTNG_UST
 robotkernel_CXXFLAGS += @LTTNG_UST_CFLAGS@
