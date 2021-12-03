@@ -1,7 +1,7 @@
 context: conan
 configurations:
 - any:
-  build_type: { Release, RelWithDebInfo, Debug }
+  build_type: [ Release, RelWithDebInfo, Debug ]
 - imports:
   - linux_defaults
 
