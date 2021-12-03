@@ -1,7 +1,11 @@
 context: conan
 configurations:
   - any:
-      build_type: { Release, Debug }
-  - osl15-x86_64:
-  - osl42-x86_64:
+      build_type: { Release, RelWithDebInfo, Debug }
+  - imports:
+    - linux_defaults
+  - osl15-x86_64-clang9:
+      profiles: { opt-x86_64-clang-standard, opt-x86_64-clang-tuned }
+  - osl42-x86_64-clang9:
+      profiles: { opt-x86_64-clang-standard, opt-x86_64-clang-tuned }
 
