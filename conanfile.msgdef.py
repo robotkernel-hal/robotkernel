@@ -23,7 +23,7 @@ class MainProject(ConanFile):
         re = RunEnvironment(self)
         libdirs = self.deps_cpp_info["robotkernel"].lib_paths
         with tools.environment_append(re.vars):
-            msgdef_dir = os.path.join(self.build_folder, "message_definitions")
+            msgdef_dir = os.path.join(self.build_folder, "message_definitions/robotkernel")
 
             for libdir in libdirs:
                 for filename in os.listdir(libdir):
