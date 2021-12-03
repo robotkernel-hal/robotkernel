@@ -1,8 +1,8 @@
 from conans import ConanFile, tools
 
 class MainProject(ConanFile):
-    python_requires = "conan_template_ln_generator/[~=5 >=5.0.7]@robotkernel/stable"
-    python_requires_extend = "conan_template_ln_generator.RobotkernelLNGeneratorConanFile"
+    python_requires = "conan_template/[~=5]@robotkernel/stable"
+    python_requires_extend = "conan_template.RobotkernelConanFile"
 
     name = "robotkernel"
     description = "robotkernel is a modular, easy configurable hardware abstraction framework"
@@ -13,6 +13,5 @@ class MainProject(ConanFile):
         self.requires("yaml-cpp/0.6.2@3rdparty/stable")
 
     def config_options(self):
-        self.options.generate_ln_mds = True
         self.options["libstring_util"].shared = True
 

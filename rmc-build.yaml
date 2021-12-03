@@ -1,5 +1,10 @@
-context: conan
-configurations:
-  - imports:
-    - linux_defaults
+_: &build_configs
+  - imports: [linux_defaults]
 
+builds:
+  - context: conan
+    build_file: conanfile.msgdef.py
+    configurations: [osl15-x86_64]
+  - context: conan
+    build_file: conanfile.py
+    configurations: *build_configs
