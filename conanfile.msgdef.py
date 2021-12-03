@@ -23,14 +23,14 @@ class MainProject(ConanFile):
         re = RunEnvironment(self)
         libdirs = self.deps_cpp_info["robotkernel"].lib_paths
         with tools.environment_append(re.vars):
-            msgdef_dir = os.path.join(self.build_folder, "share", "ln", "message_definitions")
+            msgdef_dir = os.path.join(self.build_folder, "message_definitions")
 
             for libdir in libdirs:
                 for filename in os.listdir(libdir):
                     if filename.endswith("libservice_definitions.so"):
                         self.run("bridge_ln_generator --so_file %s --out %s" % (os.path.join(libdir, filename), msgdef_dir))
 
-        self.copy("*", "share/ln/message_definitions", "share/ln/message_definitions")
+        self.copy("*", "message_definitions", "message_definitions")
 
 
     def package_info(self):
