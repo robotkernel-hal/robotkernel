@@ -1,11 +1,5 @@
 context: conan
 configurations:
-  - any:
-      build_type: { Release, RelWithDebInfo, Debug }
   - imports:
     - linux_defaults
-  - osl15-x86_64 opt-x86_64-gcc-tuned:
-  - osl15-x86_64 opt-x86_64-gcc-standard:
-  - osl42-x86_64 opt-x86_64-gcc-tuned:
-  - osl42-x86_64 opt-x86_64-gcc-standard:
 
