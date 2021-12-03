@@ -1,7 +1,7 @@
 context: conan
 configurations:
-- any:
-  build_type: { Release, Debug }
-- imports:
-  - linux_defaults
+  - any:
+    build_type: { Release, Debug }
+  - imports:
+    - linux_defaults
 
