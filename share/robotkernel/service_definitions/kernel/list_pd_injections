@@ -1,0 +1,8 @@
+name: kernel/list_pd_injections
+response:
+- vector/string: pd_dev
+- vector/string: field_name
+- vector/string: value
+- vector/string: bitmask
+- string: error_message
+

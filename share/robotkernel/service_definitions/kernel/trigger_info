@@ -1,0 +1,8 @@
+name: kernel/trigger_info
+request:
+- string: name
+response:
+- string: owner
+- double: rate
+- string: error_message
+

@@ -1,0 +1,9 @@
+name: kernel/add_pd_injection
+request:
+- string: pd_dev
+- string: field_name
+- string: value
+- string: bitmask
+response:
+- uint64_t: injection_hash
+- string: error_message

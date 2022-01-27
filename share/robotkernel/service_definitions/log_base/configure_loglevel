@@ -1,0 +1,7 @@
+name: log_base/configure_loglevel
+request:
+- string: set_loglevel
+response:
+- string: current_loglevel
+- string: error_message
+

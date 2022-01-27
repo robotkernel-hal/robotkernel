@@ -1,0 +1,6 @@
+name: kernel/service_interface_info
+request:
+- string: name
+response:
+- string: owner
+- string: error_message

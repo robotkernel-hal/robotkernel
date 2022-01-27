@@ -1,0 +1,4 @@
+name: module/get_state
+response:
+- string: state
+- string: error_message

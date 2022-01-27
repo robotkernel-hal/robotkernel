@@ -1,0 +1,3 @@
+name: kernel/get_dump_log
+response:
+- string: log

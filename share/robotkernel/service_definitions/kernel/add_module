@@ -1,0 +1,5 @@
+name: kernel/add_module
+request:
+- string: config
+response:
+- string: error_message

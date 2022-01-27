@@ -1,0 +1,6 @@
+name: kernel/reconfigure_module
+request:
+- string: mod_name
+response:
+- uint64_t: state
+- string: error_message

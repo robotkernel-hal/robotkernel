@@ -1,0 +1,7 @@
+name: module/set_state
+request:
+- string: state
+response:
+- string: error_message
+
+

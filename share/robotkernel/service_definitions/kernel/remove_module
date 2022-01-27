@@ -1,0 +1,7 @@
+name: kernel/remove_module
+request:
+- string: mod_name
+response:
+- string: error_message
+
+

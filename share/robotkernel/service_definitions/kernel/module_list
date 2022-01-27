@@ -1,0 +1,6 @@
+name: kernel/module_list
+response:
+- vector/string: modules
+- string: error_message
+
+

@@ -1,0 +1,9 @@
+name: kernel/config_dump_log
+request:
+- uint32_t: max_len
+- uint8_t: do_ust
+- string: set_loglevel
+response:
+- string: current_loglevel
+- string: error_message
+

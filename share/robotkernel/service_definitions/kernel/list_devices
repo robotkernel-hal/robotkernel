@@ -1,0 +1,5 @@
+name: kernel/list_devices
+response:
+- vector/string: devices
+- string: error_message
+

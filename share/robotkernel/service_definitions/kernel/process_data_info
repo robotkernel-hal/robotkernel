@@ -1,0 +1,11 @@
+name: kernel/process_data_info
+request:
+- string: name
+response:
+- string: owner
+- string: definition
+- string: clk_device
+- int32_t: length
+- string: provider
+- string: consumer
+- string: error_message
