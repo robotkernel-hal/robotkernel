@@ -3,8 +3,9 @@ _: &build_configs
 
 builds:
   - context: conan
+    build_file: conanfile.msgdef.py
+    test_package: None
+    configurations: [osl15-x86_64]
+  - context: conan
     build_file: conanfile.py
     configurations: *build_configs
-  - context: conan
-    build_file: conanfile.msgdef.py
-    configurations: [osl15-x86_64]
