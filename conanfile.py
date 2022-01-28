@@ -10,6 +10,7 @@ class MainProject(ConanFile):
 
     def requirements(self):
         self.requires(f"{self.name}_ln_msgdef/{self.version}@{self.user}/{self.channel}")
+        self.requires("robotkernel_service_helper/[*]@robotkernel/stable")
         self.requires("libstring_util/[~=1]@common/stable")
         self.requires("yaml-cpp/0.6.2@3rdparty/stable")
 

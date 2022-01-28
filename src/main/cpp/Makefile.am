@@ -2,7 +2,9 @@ INSTALL_HEADER = $(INSTALL_DATA) -C
 
 lib_LTLIBRARIES = librobotkernel.la libservice_definitions.la
 
-BUILT_SOURCES=
+BUILT_SOURCES = $(top_builddir)/src/main/cpp/include/robotkernel/service_definitions.h
+CLEANFILES = $(top_builddir)/src/main/cpp/include/robotkernel/service_definitions.h
+
 includedir = $(prefix)/include/robotkernel
 headerdir = $(srcdir)/include/robotkernel
 gen_headerdir = $(top_builddir)/src/main/cpp/include/robotkernel
@@ -74,6 +76,33 @@ librobotkernel_la_CXXFLAGS = -Wno-unused-local-typedefs 					\
 					   @YAML_CPP_CFLAGS@ @LIBSTRING_UTIL_CFLAGS@ 
 
 librobotkernel_la_LDFLAGS=-static
+
+VPATH = $(srcdir):$(top_srcdir)/share/robotkernel/service_definitions
+
+SERVICE_DEFINITIONS = module/set_state	\
+					  module/get_state	\
+					  module/get_config \
+					  kernel/get_dump_log \
+					  kernel/config_dump_log \
+					  kernel/add_module \
+					  kernel/remove_module \
+					  kernel/module_list \
+					  kernel/reconfigure_module \
+					  kernel/list_devices \
+					  kernel/process_data_info \
+					  kernel/trigger_info \
+					  kernel/stream_info \
+					  kernel/service_interface_info \
+					  kernel/add_pd_injection \
+					  kernel/del_pd_injection \
+					  kernel/list_pd_injections \
+					  log_base/configure_loglevel
+
+$(top_builddir)/src/main/cpp/include/robotkernel/service_definitions.h: Makefile $(SERVICE_DEFINITIONS)
+	install -d $(top_builddir)/src/main/cpp/include/robotkernel
+	@echo creating $@
+	service_generate --indir $(top_srcdir)/share/robotkernel/service_definitions --out $@ $(SERVICE_DEFINITIONS)
+	touch $@
 
 robotkernel_SOURCES = main.cpp
 
