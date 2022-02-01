@@ -29,6 +29,7 @@
 #include "robotkernel/exceptions.h"
 #include "robotkernel/helpers.h"
 #include "robotkernel/trigger.h"
+#include "robotkernel/service_definitions.h"
 #include <sys/stat.h>
 #include <dlfcn.h>
 #include <iostream>
@@ -59,6 +60,12 @@ const char string_state_boot[]    = "<BOOT>";
 module* currently_loading_module = NULL;
 
 namespace robotkernel {
+
+// assign generated service definitions
+const std::string module::service_definition_set_state = module_set_state_service_definition;
+const std::string module::service_definition_get_state = module_get_state_service_definition;
+const std::string module::service_definition_get_config = module_get_config_service_definition;
+
 void split_file_name(const string& str, string& path, string& file);
 
 module_state_t decode_power_up_state(std::string tmp_power_up) {

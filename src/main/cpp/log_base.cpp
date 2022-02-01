@@ -25,6 +25,7 @@
 
 #include "robotkernel/log_base.h"
 #include "robotkernel/config.h"
+#include "robotkernel/service_definitions.h"
 
 #if (HAVE_LTTNG_UST == 1)
 #define TRACEPOINT_CREATE_PROBES
@@ -37,6 +38,10 @@ using namespace std;
 using namespace std::placeholders;
 using namespace robotkernel;
 using namespace string_util;
+
+namespace robotkernel {
+const std::string log_base::service_definition_configure_loglevel = log_base_configure_loglevel_service_definition;
+};
 
 //! construction
 /*!

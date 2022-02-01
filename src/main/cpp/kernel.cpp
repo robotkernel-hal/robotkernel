@@ -35,6 +35,7 @@
 #include "robotkernel/bridge_base.h"
 #include "robotkernel/config.h"
 #include "robotkernel/rkc_loader.h"
+#include "robotkernel/service_definitions.h"
 #include "yaml-cpp/yaml.h"
 #include "sys/stat.h"
 #include "fcntl.h"
@@ -49,6 +50,23 @@ YAML::Node tmp = YAML::Clone(YAML::Node("dieses clone steht hier damit es vom "
             "linker beim statischen linken mit eingepackt wird"));
 
 namespace robotkernel {
+
+// assign generated service definitions
+const std::string kernel::service_definition_get_dump_log = kernel_get_dump_log_service_definition;
+const std::string kernel::service_definition_config_dump_log = kernel_config_dump_log_service_definition;
+const std::string kernel::service_definition_add_module = kernel_add_module_service_definition;
+const std::string kernel::service_definition_remove_module = kernel_remove_module_service_definition;
+const std::string kernel::service_definition_module_list = kernel_module_list_service_definition;
+const std::string kernel::service_definition_reconfigure_module = kernel_reconfigure_module_service_definition;
+const std::string kernel::service_definition_list_devices = kernel_list_devices_service_definition;
+const std::string kernel::service_definition_process_data_info = kernel_process_data_info_service_definition;
+const std::string kernel::service_definition_trigger_info = kernel_trigger_info_service_definition;
+const std::string kernel::service_definition_stream_info = kernel_stream_info_service_definition;
+const std::string kernel::service_definition_service_interface_info = kernel_service_interface_info_service_definition;
+const std::string kernel::service_definition_add_pd_injection = kernel_add_pd_injection_service_definition;
+const std::string kernel::service_definition_del_pd_injection = kernel_del_pd_injection_service_definition;
+const std::string kernel::service_definition_list_pd_injections = kernel_list_pd_injections_service_definition;
+
 void split_file_name(const string& str, string& path, string& file) {
     size_t found;
     found = str.find_last_of("/\\");
