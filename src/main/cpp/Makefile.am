@@ -78,24 +78,24 @@ librobotkernel_la_LDFLAGS=-static
 
 VPATH = $(srcdir):$(top_srcdir)/share/robotkernel/service_definitions
 
-SERVICE_DEFINITIONS = module/set_state	\
-					  module/get_state	\
-					  module/get_config \
-					  kernel/get_dump_log \
-					  kernel/config_dump_log \
-					  kernel/add_module \
-					  kernel/remove_module \
-					  kernel/module_list \
-					  kernel/reconfigure_module \
-					  kernel/list_devices \
-					  kernel/process_data_info \
-					  kernel/trigger_info \
-					  kernel/stream_info \
-					  kernel/service_interface_info \
-					  kernel/add_pd_injection \
-					  kernel/del_pd_injection \
-					  kernel/list_pd_injections \
-					  log_base/configure_loglevel
+SERVICE_DEFINITIONS = robotkernel/module/set_state	\
+					  robotkernel/module/get_state	\
+					  robotkernel/module/get_config \
+					  robotkernel/kernel/get_dump_log \
+					  robotkernel/kernel/config_dump_log \
+					  robotkernel/kernel/add_module \
+					  robotkernel/kernel/remove_module \
+					  robotkernel/kernel/module_list \
+					  robotkernel/kernel/reconfigure_module \
+					  robotkernel/kernel/list_devices \
+					  robotkernel/kernel/process_data_info \
+					  robotkernel/kernel/trigger_info \
+					  robotkernel/kernel/stream_info \
+					  robotkernel/kernel/service_interface_info \
+					  robotkernel/kernel/add_pd_injection \
+					  robotkernel/kernel/del_pd_injection \
+					  robotkernel/kernel/list_pd_injections \
+					  robotkernel/log_base/configure_loglevel
 
 $(top_builddir)/src/main/cpp/include/robotkernel/service_definitions.h: Makefile $(SERVICE_DEFINITIONS)
 	install -d $(top_builddir)/src/main/cpp/include/robotkernel

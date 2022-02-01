@@ -62,9 +62,9 @@ module* currently_loading_module = NULL;
 namespace robotkernel {
 
 // assign generated service definitions
-const std::string module::service_definition_set_state = module_set_state_service_definition;
-const std::string module::service_definition_get_state = module_get_state_service_definition;
-const std::string module::service_definition_get_config = module_get_config_service_definition;
+const std::string module::service_definition_set_state = robotkernel_module_set_state_service_definition;
+const std::string module::service_definition_get_state = robotkernel_module_get_state_service_definition;
+const std::string module::service_definition_get_config = robotkernel_module_get_config_service_definition;
 
 void split_file_name(const string& str, string& path, string& file);
 

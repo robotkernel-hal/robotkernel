@@ -40,7 +40,7 @@ using namespace robotkernel;
 using namespace string_util;
 
 namespace robotkernel {
-const std::string log_base::service_definition_configure_loglevel = log_base_configure_loglevel_service_definition;
+const std::string log_base::service_definition_configure_loglevel = robotkernel_log_base_configure_loglevel_service_definition;
 };
 
 //! construction
