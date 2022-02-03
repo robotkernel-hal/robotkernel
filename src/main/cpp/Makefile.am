@@ -76,7 +76,7 @@ librobotkernel_la_CXXFLAGS = -Wno-unused-local-typedefs 					\
 
 librobotkernel_la_LDFLAGS=-static
 
-VPATH = $(srcdir):$(top_srcdir)/share/robotkernel/service_definitions
+VPATH = $(srcdir):$(top_srcdir)/share/service_definitions
 
 SERVICE_DEFINITIONS = robotkernel/module/set_state	\
 					  robotkernel/module/get_state	\
@@ -100,7 +100,7 @@ SERVICE_DEFINITIONS = robotkernel/module/set_state	\
 $(top_builddir)/src/main/cpp/include/robotkernel/service_definitions.h: Makefile $(SERVICE_DEFINITIONS)
 	install -d $(top_builddir)/src/main/cpp/include/robotkernel
 	@echo creating $@
-	service_generate --indir $(top_srcdir)/share/robotkernel/service_definitions --out $@ $(SERVICE_DEFINITIONS)
+	service_generate --indir $(top_srcdir)/share/service_definitions --out $@ $(SERVICE_DEFINITIONS)
 	touch $@
 
 robotkernel_SOURCES = main.cpp

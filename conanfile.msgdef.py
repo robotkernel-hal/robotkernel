@@ -15,8 +15,8 @@ class MainProject(ConanFile):
         self.build_requires(f"robotkernel_ln_helper/[*]@robotkernel/stable")
 
     def package(self):
-        svc_def_dir = 'share/robotkernel/service_definitions'
-        ln_msg_dir  = 'share/robotkernel/ln/message_definitions'
+        svc_def_dir = 'share/service_definitions'
+        ln_msg_dir  = 'share/ln/message_definitions'
 
         re = RunEnvironment(self)
         
@@ -32,5 +32,5 @@ class MainProject(ConanFile):
         self.copy("*", ln_msg_dir, ln_msg_dir)
 
     def package_info(self):
-        self.env_info.LN_MESSAGE_DEFINITION_DIRS.append(os.path.join(self.package_folder, "share/robotkernel/ln/message_definitions"))
+        self.env_info.LN_MESSAGE_DEFINITION_DIRS.append(os.path.join(self.package_folder, "share/ln/message_definitions"))
  
