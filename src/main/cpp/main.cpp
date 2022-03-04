@@ -213,7 +213,7 @@ int main(int argc, char* argv[]) {
         while (!sig_shutdown) {
             k.state_check();
 
-            struct timespec ts = {0, 1000000000 };
+            struct timespec ts = {0, 500000000 };
             nanosleep(&ts, NULL);
         }
     } catch (exception& e) {
