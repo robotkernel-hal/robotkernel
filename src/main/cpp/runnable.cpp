@@ -152,6 +152,6 @@ void runnable::set_name(std::string name) {
 
     this->thread_name = name;
     if (running())
-        ::set_thread_name(tid, name);
+        ::set_thread_name(name);
 }
 
