@@ -16,4 +16,4 @@ class MainProject(ConanFile):
 
     def config_options(self):
         self.options["libstring_util"].shared = True
-
+        self.options["yaml-cpp"].shared = True
