@@ -1,6 +1,6 @@
 name: kernel/del_pd_injection
 request:
 - string: pd_dev
-- uint64_t: injection_hash
+- string: field_name
 response:
 - string: error_message

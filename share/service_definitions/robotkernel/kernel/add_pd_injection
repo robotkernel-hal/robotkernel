@@ -5,5 +5,4 @@ request:
 - string: value
 - string: bitmask
 response:
-- uint64_t: injection_hash
 - string: error_message
