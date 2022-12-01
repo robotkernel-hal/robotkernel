@@ -45,6 +45,9 @@ namespace robotkernel {
 }
 #endif
 
+// forward declarations
+class process_data;
+
 enum pd_data_types {
     PD_DT_UNKNOWN = -2,
     PD_DT_NONE = -1,
@@ -57,6 +60,29 @@ enum pd_data_types {
     PD_DT_INT16,
     PD_DT_INT32
 };
+
+template <typename T>
+void convert_fun(std::vector<uint8_t>& value, T val) {
+    value.resize(sizeof(T));
+    *(T *)&value[0] = val;
+};
+
+//! convert string values to uint8 array depending on datatype
+inline void convert_str_val(const pd_data_types& type, const std::string& value_str,
+        std::vector<uint8_t>& value) {
+
+    switch (type) {
+        case PD_DT_FLOAT:  { convert_fun<float>   (value, stof (value_str)); break; }
+        case PD_DT_DOUBLE: { convert_fun<double>  (value, stod (value_str)); break; }
+        case PD_DT_UINT8:  { convert_fun<uint8_t> (value, stoul(value_str)); break; }
+        case PD_DT_UINT16: { convert_fun<uint16_t>(value, stoul(value_str)); break; }
+        case PD_DT_UINT32: { convert_fun<uint32_t>(value, stoul(value_str)); break; }
+        case PD_DT_INT8:   { convert_fun<int8_t>  (value, stol (value_str)); break; }
+        case PD_DT_INT16:  { convert_fun<int16_t> (value, stol (value_str)); break; }
+        case PD_DT_INT32:  { convert_fun<int32_t> (value, stol (value_str)); break; }
+        default: break;
+    }
+}
 
 //! process data provider class
 /*!
@@ -85,10 +111,25 @@ class pd_consumer {
 };
         
 typedef struct pd_entry {
+    pd_entry() : initialized(false) {}
+
+    //! construct and initialize pd_entry
+    /*!
+     * \param[in]  pd               Corresponding process data.
+     * \param[in]  field_name       Field name in process data.
+     * \param[in]  value_string     Value to inject.
+     * \param[in]  bitmask_string   Bitmask for value.
+     */
+    pd_entry(std::shared_ptr<process_data> pd, 
+            const std::string& field_name, const std::string& value_string,
+            const std::string& bitmask_string);
+
     // input fields
     std::string field_name;
     std::string value_string;
     std::string bitmask_string;
+
+    bool initialized;
 
     // user fields
     std::vector<uint8_t> value;
@@ -98,15 +139,6 @@ typedef struct pd_entry {
 
     std::string type_str;
     pd_data_types type;
-
-
-    std::size_t hash() {
-        std::size_t fn_hash = std::hash<std::string>{}(field_name);
-        std::size_t vs_hash = std::hash<std::string>{}(value_string);
-        std::size_t bm_hash = std::hash<std::string>{}(bitmask_string);
-
-        return (fn_hash ^ (vs_hash << 1)) ^ (bm_hash << 2);
-    }
 } pd_entry_t;
 
 //! process data injection class
@@ -130,37 +162,28 @@ class pd_injection_base
          */
         void inject_val(const pd_entry_t& e, uint8_t* buf, size_t len);
 
-//        //! inject value to process data
-//        /*!
-//         * \param[in]   e       Entry to inject.
-//         * \param[in]   hash    Process data provider hash.
-//         */
-//        void inject_val(const pd_entry_t& e, const size_t& hash);
-
         //! add injection value
         /*!
          * \param[in]   e       Entry to inject.
          */
         void add_injection(pd_entry_t& e) {
-            if (pd_injections.find(e.hash()) != pd_injections.end())
-                return;
-
-            pd_injections[e.hash()] = e;
+            // this may overwrite old injections to that field
+            pd_injections[e.field_name] = e;
         }
         
         //! del injection value
         /*!
-         * \param[in]   hash    Entry to inject.
+         * \param[in]   field_name  Entry to inject.
          */
-        void del_injection(std::size_t& hash) {
-            if (pd_injections.find(hash) != pd_injections.end())
+        void del_injection(const std::string& field_name) {
+            if (pd_injections.find(field_name) != pd_injections.end())
                 return;
 
-            pd_injections.erase(hash);
+            pd_injections.erase(field_name);
         }
 
     public:
-        std::map<size_t, pd_entry_t> pd_injections;
+        std::map<std::string, pd_entry_t> pd_injections;
 };
 
 
@@ -186,7 +209,7 @@ class process_data :
         process_data(size_t length, const std::string& owner, const std::string& name, 
                 const std::string& process_data_definition = "", const std::string& clk_device = "") :
             device(owner, name, "pd"), pd_cookie(0), length(length), clk_device(clk_device),
-            process_data_definition(process_data_definition)
+            process_data_definition(process_data_definition), provider_hash(0), consumer_hash(0)
             { }
 
         //! Get a pointer to the a data buffer which we can write next, has to be
@@ -663,8 +686,18 @@ class triple_buffer_with_injection :
         void push(const std::size_t& hash) {
             const auto& buf = next(hash);
 
-            for (const auto& kv : pd_injections) {
-                inject_val(kv.second, buf, length);
+            for (auto& kv : pd_injections) {
+                auto& pd_entry = kv.second;
+
+                if (!pd_entry.initialized) {
+                    find_pd_offset_and_type(pd_entry);
+                    convert_str_val(pd_entry.type, pd_entry.value_string, pd_entry.value);
+                    printf("offset %d, length %d\n", pd_entry.offset, pd_entry.value.size());
+
+                    pd_entry.initialized = true;
+                }
+
+                inject_val(pd_entry, buf, length);
             }
             
             triple_buffer::push(hash);

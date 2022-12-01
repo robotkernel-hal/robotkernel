@@ -52,6 +52,24 @@ std::map<std::string, pd_data_types> pd_dt_map = {
     { "int16_t",  PD_DT_INT16  },
     { "int32_t",  PD_DT_INT32  },
 };
+    
+//! construct and initialize pd_entry
+/*!
+ * \param[in]  pd               Corresponding process data.
+ * \param[in]  field_name       Field name in process data.
+ * \param[in]  value_string     Value to inject.
+ * \param[in]  bitmask_string   Bitmask for value.
+ */
+pd_entry::pd_entry(std::shared_ptr<process_data> pd, 
+        const std::string& field_name, const std::string& value_string,
+        const std::string& bitmask_string) :
+    field_name(field_name), value_string(value_string), bitmask_string(bitmask_string)
+{
+    pd->find_pd_offset_and_type(*this);
+    convert_str_val(type, value_string, value);
+                    
+    initialized = true;
+}
 
 //! Return data type length from string
 /*!
@@ -127,32 +145,6 @@ void process_data::find_pd_offset_and_type(const std::string& field_name,
 void process_data::find_pd_offset_and_type(pd_entry_t& e) {
     find_pd_offset_and_type(e.field_name, e.type_str, e.type, e.offset);
 }
-
-#if 0
-double val_to_double(uint8_t *base, const struct pd_entry_t& item) {
-    switch (item.type) {
-#define CASE_PD_DT(dt_enum, dtype)                          \
-        case dt_enum: {                                     \
-            dtype tmp = *(dtype *)(&base[item.offset]);     \
-            return (double)tmp * item.scale;                \
-        }
-
-        CASE_PD_DT(PD_DT_FLOAT, float)
-        CASE_PD_DT(PD_DT_DOUBLE, double)
-        CASE_PD_DT(PD_DT_UINT8, uint8_t)
-        CASE_PD_DT(PD_DT_UINT16, uint16_t)
-        CASE_PD_DT(PD_DT_UINT32, uint32_t)
-        CASE_PD_DT(PD_DT_INT8, int8_t)
-        CASE_PD_DT(PD_DT_INT16, int16_t)
-        CASE_PD_DT(PD_DT_INT32, int32_t)
-
-#undef CASE_PD_DT
-
-    }
-
-    return 0.;
-}
-#endif
         
 //! inject value to process data
 /*!
@@ -180,42 +172,4 @@ void pd_injection_base::inject_val(const pd_entry_t& e, uint8_t* buf, size_t len
 #undef CASE_PD_DT
     }
 }
-
-#if 0
-//! inject value to process data
-/*!
- * \param[in]   e       Entry to inject.
- * \param[in]   hash    Process data provider hash.
- */
-void pd_injection_base::inject_val(const pd_entry_t& e, const size_t& hash) {
-    const auto& buf = next(hash);
-
-    inject_val(e, &buf[0], length);
-}
-#endif
-
-#if 0
-void convert_str_val(const pd_data_types& type, const std::string& value_str,
-        std::vector<uint8_t>& value) {
-    switch (type) {
-#define CASE_PD_DT(dt_enum, dtype, cvrt)                                    \
-        case dt_enum: {                                                     \
-            value.resize(sizeof(dtype));                                    \
-            *(dtype *)&value[0] = cvrt(value_str.c_str());                  \
-            break;                                                          \
-        }
-        
-        CASE_PD_DT(PD_DT_FLOAT, float, atof)
-        CASE_PD_DT(PD_DT_DOUBLE, double, atof)
-        CASE_PD_DT(PD_DT_UINT8, uint8_t, atoi)
-        CASE_PD_DT(PD_DT_UINT16, uint16_t, atoi)
-        CASE_PD_DT(PD_DT_UINT32, uint32_t, atoi)
-        CASE_PD_DT(PD_DT_INT8, int8_t, atoi)
-        CASE_PD_DT(PD_DT_INT16, int16_t, atoi)
-        CASE_PD_DT(PD_DT_INT32, int32_t, atoi)
-        
-#undef CASE_PD_DT
-    }
-}
-#endif
 
