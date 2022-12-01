@@ -6,6 +6,7 @@ config.log
 config.status
 libtool
 robotkernel.pc
+doc/doxygen/
 /**/*~
 /**/.*
 /**/#*
