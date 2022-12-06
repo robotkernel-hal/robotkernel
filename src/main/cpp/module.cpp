@@ -285,6 +285,34 @@ module::module(const YAML::Node& node)
             service_definition_get_config,
             std::bind(&module::service_get_config, this, _1, _2));
 }
+        
+//! module construction
+/*!
+ * \param node configuration node
+ */
+module_v2::module_v2(const YAML::Node& node) : module(node) { 
+    printf("creating module_v2\n"); 
+    if (node["excludes"]) {
+        if (node["excludes"].Type() == YAML::NodeType::Scalar) {
+            std::string tmp = get_as<std::string>(node, "excludes");
+
+            if (tmp == name)
+                throw str_exception("module %s excludes on itself?\n", name.c_str());
+
+            excludes.push_back(tmp); 
+        } else if (node["excludes"].Type() == YAML::NodeType::Sequence) {
+            for (YAML::const_iterator it = node["excludes"].begin();
+                    it != node["excludes"].end(); ++it) {
+                std::string tmp = it->as<std::string>();
+
+                if (tmp == name)
+                    throw str_exception("module %s excludes on itself?\n", name.c_str());
+
+                excludes.push_back(tmp); 
+            }
+        }
+    }
+}
 
 void module::_init() {
     mod_configure           = (mod_configure_t)         dlsym(so_handle, "mod_configure");
@@ -590,4 +618,5 @@ int module::service_get_config(const service_arglist_t& request,
 
     return 0;
 }
+
 
