@@ -291,7 +291,6 @@ module::module(const YAML::Node& node)
  * \param node configuration node
  */
 module_v2::module_v2(const YAML::Node& node) : module(node) { 
-    printf("creating module_v2\n"); 
     if (node["excludes"]) {
         if (node["excludes"].Type() == YAML::NodeType::Scalar) {
             std::string tmp = get_as<std::string>(node, "excludes");
