@@ -195,6 +195,20 @@ class pd_injection_base
 class process_data :
     public device
 {
+    public:
+        class provider {
+            public:
+                size_t hash;
+        };
+
+        class consumer {
+            public:
+                size_t hash;
+        };
+
+        typedef std::shared_ptr<provider> sp_provider_t;
+        typedef std::shared_ptr<consumer> sp_consumer_t;
+
     private:
         process_data();     //!< prevent default construction
 
@@ -223,6 +237,8 @@ class process_data :
 
             return nullptr;
         }
+        
+        virtual uint8_t* next(process_data::sp_provider_t prov) { return this->next(prov->hash); }
 
         //! Get a pointer to the last written data without consuming it, 
         //  which will be available on calling \link pop \endlink
