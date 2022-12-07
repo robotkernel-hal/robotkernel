@@ -196,13 +196,19 @@ class process_data :
     public device
 {
     public:
-        class provider {
+        class provider : public pd_provider {
             public:
+                provider(const std::string& provider_name = "") : 
+                    pd_provider(provider_name), hash(0) {};
+
                 size_t hash;
         };
 
-        class consumer {
+        class consumer : public pd_consumer {
             public:
+                consumer(const std::string& consumer_name = "") :
+                    pd_consumer(consumer_name), hash(0) {};
+
                 size_t hash;
         };
 
@@ -238,7 +244,12 @@ class process_data :
             return nullptr;
         }
         
-        virtual uint8_t* next(process_data::sp_provider_t prov) { return this->next(prov->hash); }
+        //! Get a pointer to the a data buffer which we can write next, has to be
+        //  completed with calling \link push \endlink
+        /*
+         * \param[in] prov      provider, set it with set_provider!
+         */
+        virtual uint8_t* next(process_data::sp_provider_t& prov) { return this->next(prov->hash); }
 
         //! Get a pointer to the last written data without consuming it, 
         //  which will be available on calling \link pop \endlink
@@ -255,6 +266,13 @@ class process_data :
 
             return nullptr;
         }
+        
+        //! Get a pointer to the actual read data. This call
+        //  will consume the data.
+        /*
+         * \param[in] cons      consumer, set it with set_consumer!
+         */
+        virtual uint8_t* pop(process_data::sp_consumer_t& cons) { return this->pop(cons->hash); }
 
         //! Pushes write data buffer to available on calling \link next \endlink.
         /*
@@ -264,6 +282,12 @@ class process_data :
             if (provider_hash != hash)
                 throw str_exception_tb("permission denied to push %s", id().c_str());
         }
+
+        //! Pushes write data buffer to available on calling \link next \endlink.
+        /*
+         * \param[in] proc      provider, set it with set_provider!
+         */
+        virtual void push(process_data::sp_provider_t& prov) { this->push(prov->hash); }
 
         //! Write data to buffer.
         /*!
@@ -295,6 +319,17 @@ class process_data :
                     (consumer_hash != hash))
                 throw str_exception_tb("permission denied to pop %s", id().c_str());
         }
+        
+        //! Read data from buffer.
+        /*!
+         * \param[in] cons      consumer, set it with set_consumer!
+         * \param[in] offset    Process data offset from beginning of the buffer.
+         * \param[in] buf       Buffer with data to write to from internal front buffer.
+         * \param[in] len       Length of data in buffer.
+         * \param[in] do_pop    Pop the buffer and consume it.
+         */
+        virtual void read(process_data::sp_consumer_t& cons, off_t offset, uint8_t *buf, 
+                size_t len, bool do_pop = true) { this->read(cons->hash, offset, buf, len, do_pop); }
 
         //! Returns true if new data has been written
         virtual bool new_data() { return true; }
@@ -310,6 +345,17 @@ class process_data :
 
             return provider_hash;
         }
+        
+        //! set data provider thread, only thread allowed to write and push
+        void set_provider(process_data::sp_provider_t& prov) { 
+            if (    (provider != nullptr) && 
+                    (provider != prov))
+                throw str_exception_tb("cannot set provider for %s, already have one!", id().c_str());
+
+            provider = prov;
+            provider_hash = std::hash<std::shared_ptr<robotkernel::pd_provider> >{}(prov);
+            prov->hash = provider_hash;
+        }
 
         //! reset data provider thread
         void reset_provider(const std::size_t& hash) {
@@ -318,6 +364,14 @@ class process_data :
 
             provider_hash = 0;
             provider = nullptr;
+        }
+        
+        //! reset data provider thread
+        void reset_provider(process_data::sp_provider_t& prov) {
+            if (prov != provider)
+                throw str_exception_tb("cannot reset provider for %s: you are not the provider!", id().c_str());
+
+            this->reset_provider(prov->hash);
         }
 
         //!< set main consumer thread, only thread allowed to pop
@@ -332,6 +386,17 @@ class process_data :
             return consumer_hash;
         }
         
+        //!< set main consumer thread, only thread allowed to pop
+        void set_consumer(process_data::sp_consumer_t& cons) {
+            if (    (consumer != nullptr) &&
+                    (consumer != cons))
+                throw str_exception_tb("cannot set consumer for %s: already have one!", id().c_str());
+
+            consumer = cons;
+            consumer_hash = std::hash<std::shared_ptr<robotkernel::pd_consumer> >{}(cons);
+            cons->hash = consumer_hash;
+        }
+        
         //! reset main consumer thread
         void reset_consumer(const std::size_t& hash) {
             if (consumer_hash != hash)
@@ -339,6 +404,14 @@ class process_data :
 
             consumer_hash = 0;
             consumer = nullptr;
+        }
+
+        //! reset main consumer thread
+        void reset_consumer(process_data::sp_consumer_t& cons) {
+            if (cons != consumer)
+                throw str_exception_tb("cannot reset consumer for %s: you are not the consumer!", id().c_str());
+
+            this->reset_consumer(cons->hash);
         }
 
         //! Find offset and type of given process data member.
