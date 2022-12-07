@@ -109,6 +109,26 @@ class pd_consumer {
         pd_consumer(const std::string& consumer_name) : 
             consumer_name(consumer_name) {}
 };
+    
+class provider : public pd_provider {
+    public:
+        provider(const std::string& provider_name = "") : 
+            pd_provider(provider_name), hash(0) {};
+
+        size_t hash;
+};
+
+class consumer : public pd_consumer {
+    public:
+        consumer(const std::string& consumer_name = "") :
+            pd_consumer(consumer_name), hash(0) {};
+
+        size_t hash;
+};
+
+typedef std::shared_ptr<provider> sp_provider_t;
+typedef std::shared_ptr<consumer> sp_consumer_t;
+
         
 typedef struct pd_entry {
     pd_entry() : initialized(false) {}
@@ -195,26 +215,6 @@ class pd_injection_base
 class process_data :
     public device
 {
-    public:
-        class provider : public pd_provider {
-            public:
-                provider(const std::string& provider_name = "") : 
-                    pd_provider(provider_name), hash(0) {};
-
-                size_t hash;
-        };
-
-        class consumer : public pd_consumer {
-            public:
-                consumer(const std::string& consumer_name = "") :
-                    pd_consumer(consumer_name), hash(0) {};
-
-                size_t hash;
-        };
-
-        typedef std::shared_ptr<provider> sp_provider_t;
-        typedef std::shared_ptr<consumer> sp_consumer_t;
-
     private:
         process_data();     //!< prevent default construction
 
@@ -249,7 +249,7 @@ class process_data :
         /*
          * \param[in] prov      provider, set it with set_provider!
          */
-        virtual uint8_t* next(process_data::sp_provider_t& prov) { return this->next(prov->hash); }
+        virtual uint8_t* next(sp_provider_t& prov) { return this->next(prov->hash); }
 
         //! Get a pointer to the last written data without consuming it, 
         //  which will be available on calling \link pop \endlink
@@ -272,7 +272,7 @@ class process_data :
         /*
          * \param[in] cons      consumer, set it with set_consumer!
          */
-        virtual uint8_t* pop(process_data::sp_consumer_t& cons) { return this->pop(cons->hash); }
+        virtual uint8_t* pop(sp_consumer_t& cons) { return this->pop(cons->hash); }
 
         //! Pushes write data buffer to available on calling \link next \endlink.
         /*
@@ -287,7 +287,7 @@ class process_data :
         /*
          * \param[in] proc      provider, set it with set_provider!
          */
-        virtual void push(process_data::sp_provider_t& prov) { this->push(prov->hash); }
+        virtual void push(sp_provider_t& prov) { this->push(prov->hash); }
 
         //! Write data to buffer.
         /*!
@@ -303,6 +303,17 @@ class process_data :
             if (provider_hash != hash)
                 throw str_exception_tb("permission denied to write to %s", id().c_str());
         }
+        
+        //! Write data to buffer.
+        /*!
+         * \param[in] prov      provider, set it with set_provider!
+         * \param[in] offset    Process data offset from beginning of the buffer.
+         * \param[in] buf       Buffer with data to write to internal back buffer.
+         * \param[in] len       Length of data in buffer.
+         * \param[in] do_push   Push the buffer to set it to the actual one.
+         */
+        virtual void write(sp_provider_t& prov, off_t offset, uint8_t *buf, 
+            size_t len, bool do_push = true) { this->write(prov->hash, offset, buf, len, do_push); }
 
         //! Read data from buffer.
         /*!
@@ -328,7 +339,7 @@ class process_data :
          * \param[in] len       Length of data in buffer.
          * \param[in] do_pop    Pop the buffer and consume it.
          */
-        virtual void read(process_data::sp_consumer_t& cons, off_t offset, uint8_t *buf, 
+        virtual void read(sp_consumer_t& cons, off_t offset, uint8_t *buf, 
                 size_t len, bool do_pop = true) { this->read(cons->hash, offset, buf, len, do_pop); }
 
         //! Returns true if new data has been written
@@ -347,7 +358,7 @@ class process_data :
         }
         
         //! set data provider thread, only thread allowed to write and push
-        void set_provider(process_data::sp_provider_t& prov) { 
+        void set_provider(sp_provider_t& prov) { 
             if (    (provider != nullptr) && 
                     (provider != prov))
                 throw str_exception_tb("cannot set provider for %s, already have one!", id().c_str());
@@ -367,7 +378,7 @@ class process_data :
         }
         
         //! reset data provider thread
-        void reset_provider(process_data::sp_provider_t& prov) {
+        void reset_provider(sp_provider_t& prov) {
             if (prov != provider)
                 throw str_exception_tb("cannot reset provider for %s: you are not the provider!", id().c_str());
 
@@ -387,7 +398,7 @@ class process_data :
         }
         
         //!< set main consumer thread, only thread allowed to pop
-        void set_consumer(process_data::sp_consumer_t& cons) {
+        void set_consumer(sp_consumer_t& cons) {
             if (    (consumer != nullptr) &&
                     (consumer != cons))
                 throw str_exception_tb("cannot set consumer for %s: already have one!", id().c_str());
@@ -407,7 +418,7 @@ class process_data :
         }
 
         //! reset main consumer thread
-        void reset_consumer(process_data::sp_consumer_t& cons) {
+        void reset_consumer(sp_consumer_t& cons) {
             if (cons != consumer)
                 throw str_exception_tb("cannot reset consumer for %s: you are not the consumer!", id().c_str());
 
@@ -781,7 +792,6 @@ class triple_buffer_with_injection :
                 if (!pd_entry.initialized) {
                     find_pd_offset_and_type(pd_entry);
                     convert_str_val(pd_entry.type, pd_entry.value_string, pd_entry.value);
-                    printf("offset %d, length %d\n", pd_entry.offset, pd_entry.value.size());
 
                     pd_entry.initialized = true;
                 }
