@@ -14,6 +14,7 @@ class MainProject(ConanFile):
         self.requires("libstring_util/[~=1]@common/stable")
         self.requires("yaml-cpp/0.6.2@3rdparty/stable")
 
-    def config_options(self):
-        self.options["libstring_util"].shared = True
-        self.options["yaml-cpp"].shared = True
+    def package_id(self):
+        # set to full_package_mode because those can be either shared or not
+        self.info.requires["libstring_util"].full_package_mode()
+        self.info.requires["yaml-cpp"].full_package_mode()
