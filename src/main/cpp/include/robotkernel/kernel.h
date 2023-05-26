@@ -447,6 +447,48 @@ class kernel {
         
         static const std::string service_definition_list_pd_injections;
 };
+
+// kernel_v2, new kernel class, derived from kernel to stay compatible with
+// old previously compiled modules. 
+class kernel_v2 : public kernel {
+    friend class kernel;
+
+    private:
+        typedef std::map<std::string, std::string> datatypes_map_t;
+        datatypes_map_t datatypes_map;
+
+    protected:
+        //! construction
+        /*!
+        */
+        kernel_v2();
+        
+    public:
+        //! Register a new datatype description
+        /*!
+         * \param[in]   name        Datatype name.
+         * \param[in]   desc        Datatype description.
+         *
+         * \throw Exception if datatype was already found.
+         */
+        void add_datatype_desc(const std::string& name, const std::string& desc);
+
+        //! get a registered datatype
+        /*!
+         * \param[in]   name        Datatype name.
+         *
+         * \throw Exception if datatype is not found.
+         *
+         * \return String containing datatype description.
+         */
+        const std::string get_datatype_desc(const std::string&name);
+        
+        //! get kernel singleton instance
+        /*!
+         * \return kernel singleton instance
+         */
+        static kernel_v2 *get_instance() { (kernel_v2 *)kernel::get_instance(); }
+};
         
 // wrapper around \link get_device \endlink
 inline sp_trigger_t kernel::get_trigger(const std::string& name) {

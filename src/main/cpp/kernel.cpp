@@ -371,6 +371,11 @@ kernel::kernel() {
 
     log(info, PACKAGE_STRING "\n");
 }
+        
+kernel_v2::kernel_v2() : kernel::kernel()
+{
+    log(info, "creating kernel_v2\n");
+}
 
 //! destruction
 kernel::~kernel() {
@@ -449,7 +454,7 @@ kernel::~kernel() {
  */
 kernel * kernel::get_instance() {
     if (!instance) {
-        instance = new kernel();
+        instance = new kernel_v2();
         instance->rk_log.start();
     }
 
@@ -463,6 +468,46 @@ void kernel::destroy_instance() {
 
         instance = NULL;
     }
+}
+
+//! Register a new datatype description
+/*!
+ * \param[in]   name        Datatype name.
+ * \param[in]   desc        Datatype description.
+ *
+ * \throw Exception if datatype was already found.
+ */
+void kernel_v2::add_datatype_desc(const std::string& name, const std::string& desc) {
+    datatypes_map_t::iterator dtm_it = datatypes_map.find(name);
+
+    if (dtm_it != datatypes_map.end()) {
+        if ((*dtm_it).second.compare(desc) != 0) {
+            throw str_exception("registering datatype %s was not successfull, already found "
+                    "with different content!", name.c_str());
+        }
+
+        return; // description is the same as alread in.
+    }
+
+    datatypes_map[name] = desc;
+}
+
+//! get a registered datatype
+/*!
+ * \param[in]   name        Datatype name.
+ *
+ * \throw Exception if datatype is not found.
+ *
+ * \return String containing datatype description.
+ */
+const std::string kernel_v2::get_datatype_desc(const std::string&name) {
+    datatypes_map_t::iterator dtm_it = datatypes_map.find(name);
+
+    if (dtm_it == datatypes_map.end()) {
+        throw str_exception("getting datatype %s was not successfull, not found!", name.c_str());
+    }
+
+    return dtm_it->second;
 }
 
 #ifdef __VXWORKS__
