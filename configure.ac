@@ -8,8 +8,8 @@ AC_PREREQ([2.63])
 # them there if needed
 #
 AC_INIT([robotkernel],
-	m4_esyscmd_s([cat project.properties | grep VERSION    | cut -d'=' -f2 | xargs printf "%s"]),
-	m4_esyscmd_s([cat project.properties | grep MAINTAINER | cut -d'=' -f2 | xargs printf "%s"]))
+	m4_esyscmd_s([git describe --long --dirty --tags]),
+	[Robert Burger <robert.burger@dlr.de>])
 
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADERS([src/main/cpp/include/robotkernel/config.h])
