@@ -8,6 +8,9 @@ class MainProject(ConanFile):
     description = "robotkernel is a modular, easy configurable hardware abstraction framework"
     exports_sources = ["*", "!.gitignore"] + ["!%s" % x for x in tools.Git().excluded_files()]
 
+    def source(self):
+        self.run(f"sed 's/AC_INIT(.*/AC_INIT([robotkernel], [{self.version}], [{self.author}])/' -i configure.ac")
+
     def requirements(self):
         self.requires(f"{self.name}_ln_msgdef/{self.version}@{self.user}/{self.channel}")
         self.requires("robotkernel_service_helper/[*]@robotkernel/stable")
