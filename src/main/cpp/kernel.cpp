@@ -111,7 +111,8 @@ void kernel::trace_write(const char *fmt, ...) {
     n = vsnprintf(buf, 256, fmt, ap);
     va_end(ap);
 
-    write(trace_fd, buf, n);
+    int local_ret = write(trace_fd, buf, n);
+    (void)local_ret;
 }
 
 //! kernel singleton instance
