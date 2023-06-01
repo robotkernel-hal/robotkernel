@@ -153,17 +153,17 @@ void log_thread::run() {
 
             char* have_error = strstr(obj->buf, "ERR");
             if (have_error) {
-                printf(ANSI_RED.c_str());
+                printf("%s", ANSI_RED.c_str());
             }
             
             char* have_warning = strstr(obj->buf, "WARN");
             if (have_warning) {
-                printf(ANSI_YELLOW.c_str());
+                printf("%s", ANSI_YELLOW.c_str());
             }
 
             char* have_verbose = strstr(obj->buf, "VERB");
             if (have_verbose) {
-                printf(ANSI_GREEN.c_str());
+                printf("%s", ANSI_GREEN.c_str());
             }
 
             if(fix_modname_length == 0)
@@ -199,7 +199,7 @@ void log_thread::run() {
                     printf("%s", obj->buf);
 
                 if (have_error || have_warning || have_verbose) {
-                    printf(ANSI_RESET.c_str());
+                    printf("%s", ANSI_RESET.c_str());
                 }
             }
 

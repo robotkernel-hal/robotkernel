@@ -9,6 +9,9 @@ class MainProject(ConanFile):
     exports_sources = ["*", "!.gitignore"] + ["!%s" % x for x in tools.Git().excluded_files()]
     tool_requires = ["robotkernel_service_helper/[*]@robotkernel/stable"]
 
+    def source(self):
+        self.run(f"sed 's/AC_INIT(.*/AC_INIT([robotkernel], [{self.version}], [{self.author}])/' -i configure.ac")
+
     def requirements(self):
         self.requires(f"{self.name}_ln_msgdef/{self.version}@{self.user}/{self.channel}")
         self.requires("libstring_util/[~=1]@common/stable")
