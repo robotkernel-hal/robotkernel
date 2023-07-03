@@ -43,6 +43,7 @@ include_HEADERS = $(headerdir)/bridge_base.h	\
 				  $(headerdir)/stream.h \
 				  $(headerdir)/trigger_base.h \
 				  $(headerdir)/trigger.h \
+				  $(headerdir)/trigger_collector.h \
 				  $(headerdir)/trigger_worker.h \
 				  $(gen_headerdir)/config.h
 
