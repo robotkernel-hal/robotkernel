@@ -32,6 +32,8 @@
 
 #include <functional>
 
+namespace robotkernel {
+
 /**
  * Collects triggers for slaves 0..Count-1 via trigger_collect(unique slave id) within timeout and calls
  * callback when all are collected. For example this is used to ensure that data from different process
@@ -88,5 +90,7 @@ class trigger_collector {
         double receive_timeout;
 };
 
+}; // namespace robotkernel
+ 
 #endif // ROBOTKERNEL__TRIGGER_COLLECTOR_H
 
