@@ -1,0 +1,5 @@
+robotkernel (5.0.0-1) unstable; urgency=medium
+
+  * Initial release (Closes: #nnnn)  <nnnn is the bug number of your ITP>
+
+ -- Robert Burger <robert.burger@dlr.de>  Wed, 31 May 2023 09:33:45 +0200
