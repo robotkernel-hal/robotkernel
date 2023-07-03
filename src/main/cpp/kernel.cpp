@@ -115,7 +115,7 @@ void kernel::trace_write(const char *fmt, ...) {
 }
 
 //! kernel singleton instance
-kernel *kernel::instance = NULL;
+kernel_v2 *kernel::instance = NULL;
 
 //! set state of module
 /*!
@@ -458,7 +458,7 @@ kernel * kernel::get_instance() {
         instance->rk_log.start();
     }
 
-    return instance;
+    return dynamic_cast<kernel *>(instance);
 }
 
 //! destroy singleton instance

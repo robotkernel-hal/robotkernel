@@ -53,10 +53,12 @@ namespace robotkernel {
 }
 #endif
 
+class kernel_v2;
+
 class kernel {
     private:
         //! kernel singleton instance
-        static kernel *instance;
+        static kernel_v2 *instance;
 
         kernel(const kernel &);             // prevent copy-construction
         kernel &operator=(const kernel &);  // prevent assignment
@@ -487,7 +489,7 @@ class kernel_v2 : public kernel {
         /*!
          * \return kernel singleton instance
          */
-        static kernel_v2 *get_instance() { (kernel_v2 *)kernel::get_instance(); }
+        static kernel_v2 *get_instance() { return (kernel_v2 *)kernel::get_instance(); }
 };
         
 // wrapper around \link get_device \endlink
