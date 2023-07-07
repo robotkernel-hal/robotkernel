@@ -107,7 +107,7 @@ class rk_type {
         //! get type of rk_type
         /*!
         */
-        std::type_index type() {
+        std::type_index type() const {
             return __type;
         }
 
@@ -156,10 +156,12 @@ class rk_type {
 
         std::string to_string();
 
+        template<typename T>
+        friend T rk_type_cast(const rk_type &rhs);
 };
 
 template<typename T>
-T rk_type_cast(rk_type &rhs) {
+T rk_type_cast(const rk_type &rhs) {
     if (rhs.type() != typeid(T))
         throw std::exception();
 
@@ -167,7 +169,7 @@ T rk_type_cast(rk_type &rhs) {
 }
 
 template<typename T>
-std::vector<rk_type> convertVector(std::vector<T> &in) {
+std::vector<rk_type> convertVector(const std::vector<T> &in) {
     std::vector<rk_type> out(in.size());
     for (int i = 0; i < in.size(); ++i) {
         out[i] = in[i];
@@ -176,7 +178,7 @@ std::vector<rk_type> convertVector(std::vector<T> &in) {
 }
 
 template<typename T>
-std::vector<T> convertVector2(std::vector<rk_type> &in) {
+std::vector<T> convertVector2(const std::vector<rk_type> &in) {
     std::vector<T> out(in.size());
     for (int i = 0; i < in.size(); ++i) {
         out[i] = (T) in[i];
