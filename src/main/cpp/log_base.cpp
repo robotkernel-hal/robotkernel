@@ -98,7 +98,7 @@ int log_base::service_configure_loglevel(const service_arglist_t& request,
         service_arglist_t& response) {
     // request data
 #define CONFIGURE_LOGLEVEL_REQ_SET_LOGLEVEL         0
-    string set_loglevel = request[CONFIGURE_LOGLEVEL_REQ_SET_LOGLEVEL];
+    string set_loglevel = (string)request[CONFIGURE_LOGLEVEL_REQ_SET_LOGLEVEL];
 
     // response data
     string current_loglevel = (std::string)ll;

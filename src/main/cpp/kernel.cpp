@@ -1015,9 +1015,9 @@ int kernel::service_config_dump_log(const service_arglist_t& request,
 #define CONFIG_DUMP_LOG_REQ_MAX_LEN         0
 #define CONFIG_DUMP_LOG_REQ_DO_UST          1
 #define CONFIG_DUMP_LOG_REQ_SET_LOGLEVEL    2
-    uint32_t max_len        = request[CONFIG_DUMP_LOG_REQ_MAX_LEN]; 
-    uint8_t  do_ust         = request[CONFIG_DUMP_LOG_REQ_DO_UST];
-    string   set_loglevel   = request[CONFIG_DUMP_LOG_REQ_SET_LOGLEVEL];
+    uint32_t max_len        = (uint32_t)request[CONFIG_DUMP_LOG_REQ_MAX_LEN]; 
+    uint8_t  do_ust         = (uint8_t)request[CONFIG_DUMP_LOG_REQ_DO_UST];
+    string   set_loglevel   = (string)request[CONFIG_DUMP_LOG_REQ_SET_LOGLEVEL];
 
     // response data
     string current_loglevel = "";
@@ -1062,7 +1062,7 @@ int kernel::service_add_module(const service_arglist_t& request,
         service_arglist_t& response) {
     // request data
 #define ADD_MODULE_REQ_CONFIG   0
-    string config = request[ADD_MODULE_REQ_CONFIG];
+    string config = (string)request[ADD_MODULE_REQ_CONFIG];
 
     //response data
     string error_message = "";
@@ -1093,7 +1093,7 @@ int kernel::service_remove_module(const service_arglist_t& request,
         service_arglist_t& response) {
     // request data
 #define REMOVE_MODULE_REQ_MOD_NAME  0
-    string mod_name = request[REMOVE_MODULE_REQ_MOD_NAME];
+    string mod_name = (string)request[REMOVE_MODULE_REQ_MOD_NAME];
 
     //response data
     string error_message = "";
@@ -1160,7 +1160,7 @@ int kernel::service_reconfigure_module(const service_arglist_t& request,
         service_arglist_t& response) {
     // request data
 #define RECONFIGURE_MODULE_REQ_MOD_NAME 0
-    string mod_name = request[RECONFIGURE_MODULE_REQ_MOD_NAME]; 
+    string mod_name = (string)request[RECONFIGURE_MODULE_REQ_MOD_NAME]; 
 
     //response data
     uint64_t state = 0;
@@ -1287,7 +1287,7 @@ int kernel::service_process_data_info(const service_arglist_t &request,
         service_arglist_t &response) {
     // request data
 #define DEVICES_INFO_REQ_NAME 0
-    string name = request[DEVICES_INFO_REQ_NAME]; 
+    string name = (string)request[DEVICES_INFO_REQ_NAME]; 
 
     //response data
     string owner = "";
@@ -1346,7 +1346,7 @@ int kernel::service_trigger_info(const service_arglist_t &request,
         service_arglist_t &response) {
     // request data
 #define TRIGGER_INFO_REQ_NAME 0
-    string name = request[TRIGGER_INFO_REQ_NAME]; 
+    string name = (string)request[TRIGGER_INFO_REQ_NAME]; 
     
     //response data
     string owner = "";
@@ -1387,7 +1387,7 @@ int kernel::service_stream_info(const service_arglist_t &request,
         service_arglist_t &response) {
     // request data
 #define stream_INFO_REQ_NAME 0
-    string name = request[stream_INFO_REQ_NAME]; 
+    string name = (string)request[stream_INFO_REQ_NAME]; 
 
     //response data
     string owner = "";
@@ -1425,7 +1425,7 @@ int kernel::service_service_interface_info(const service_arglist_t &request,
         service_arglist_t &response) {
     // request data
 #define service_interface_INFO_REQ_NAME 0
-    string name = request[service_interface_INFO_REQ_NAME]; 
+    string name = (string)request[service_interface_INFO_REQ_NAME]; 
 
     //response data
     string owner = "";
@@ -1466,10 +1466,10 @@ int kernel::service_add_pd_injection(const service_arglist_t &request,
 #define SERVICE_ADD_PD_INJECTION_REQ_FIELD_NAME         1
 #define SERVICE_ADD_PD_INJECTION_REQ_VALUE              2
 #define SERVICE_ADD_PD_INJECTION_REQ_BITMASK            3
-    std::string pd_dev           = request[SERVICE_ADD_PD_INJECTION_REQ_PD_DEV], 
-                field_name       = request[SERVICE_ADD_PD_INJECTION_REQ_FIELD_NAME],
-                value_string     = request[SERVICE_ADD_PD_INJECTION_REQ_VALUE], 
-                bitmask_string   = request[SERVICE_ADD_PD_INJECTION_REQ_BITMASK];
+    std::string pd_dev           = (string)request[SERVICE_ADD_PD_INJECTION_REQ_PD_DEV], 
+                field_name       = (string)request[SERVICE_ADD_PD_INJECTION_REQ_FIELD_NAME],
+                value_string     = (string)request[SERVICE_ADD_PD_INJECTION_REQ_VALUE], 
+                bitmask_string   = (string)request[SERVICE_ADD_PD_INJECTION_REQ_BITMASK];
 
     // response data
     std::string error_message = "";
@@ -1513,8 +1513,8 @@ int kernel::service_del_pd_injection(const service_arglist_t &request,
     // request data
 #define SERVICE_DEL_PD_INJECTION_REQ_PD_DEV             0
 #define SERVICE_DEL_PD_INJECTION_REQ_FIELD_NAME         1
-    std::string pd_dev     = request[SERVICE_DEL_PD_INJECTION_REQ_PD_DEV];
-    std::string field_name = request[SERVICE_DEL_PD_INJECTION_REQ_FIELD_NAME];
+    std::string pd_dev     = (string)request[SERVICE_DEL_PD_INJECTION_REQ_PD_DEV];
+    std::string field_name = (string)request[SERVICE_DEL_PD_INJECTION_REQ_FIELD_NAME];
 
     // response data
     std::string error_message = "";
