@@ -39,13 +39,14 @@ namespace robotkernel {
  * callback when all are collected. For example this is used to ensure that data from different process
  * data devices were received since order may vary.
  */
-template<int COUNT>
 class trigger_collector {
     public:
-        trigger_collector(double timeout, std::function<void(void)> callback) : 
-            callback(callback), timeout(timeout)
+        trigger_collector(int count, double timeout, std::function<void(void)> callback) : 
+            callback(callback), count(count), timeout(timeout)
         {
-            for (int i = 0; i < COUNT; i++) {
+            timestamps.resize(count);
+
+            for (int i = 0; i < count; i++) {
                 timestamps[i] = 0;
                 receive_timeout = 0;
             }
@@ -57,7 +58,7 @@ class trigger_collector {
             double ts = get_timestamp();
             if (receive_timeout < ts) {
                 // timeout
-                for (int i = 0; i < COUNT; i++) {
+                for (int i = 0; i < count; i++) {
                     timestamps[i] = 0;
                 }
 
@@ -66,7 +67,7 @@ class trigger_collector {
             
             timestamps[slave_id] = ts;
 
-            for (int i = 0; i < COUNT; i++) {
+            for (int i = 0; i < count; i++) {
                 if (0 == timestamps[i]) {
                     return;
                 }
@@ -85,7 +86,8 @@ class trigger_collector {
     protected:
         std::function<void(void)> callback;
 
-        double timestamps[COUNT];
+        int count;
+        std::vector<double> timestamps;
         double timeout;
         double receive_timeout;
 };
