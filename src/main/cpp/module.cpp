@@ -551,7 +551,7 @@ int module::service_set_state(const service_arglist_t& request,
         service_arglist_t& response) {
     // request data
 #define SET_STATE_REQ_STATE     0
-    string state = (string)request[SET_STATE_REQ_STATE];
+    string state = request[SET_STATE_REQ_STATE];
     kernel& k = *kernel::get_instance();
 
     // response data

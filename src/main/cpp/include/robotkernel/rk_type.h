@@ -144,7 +144,7 @@ class rk_type {
          * \return casted data
          */
         template<typename T>
-        explicit operator T() const {
+            operator T() const {
                 if (__type != typeid(T)) {
                     throw string_util::str_exception("Unsupported cast");
                 } else if (__value == NULL) {
@@ -181,8 +181,7 @@ template<typename T>
 std::vector<T> convertVector2(const std::vector<rk_type> &in) {
     std::vector<T> out(in.size());
     for (unsigned i = 0; i < in.size(); ++i) {
-        T tmp = (T) in[i];
-        out[i] = tmp;
+        out[i] = (T) in[i];
     }
     return out;
 }
