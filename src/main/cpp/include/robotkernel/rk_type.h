@@ -180,7 +180,7 @@ std::vector<rk_type> convertVector(const std::vector<T> &in) {
 template<typename T>
 std::vector<T> convertVector2(const std::vector<rk_type> &in) {
     std::vector<T> out(in.size());
-    for (int i = 0; i < in.size(); ++i) {
+    for (unsigned i = 0; i < in.size(); ++i) {
         out[i] = (T) in[i];
     }
     return out;
