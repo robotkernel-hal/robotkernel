@@ -36,6 +36,7 @@
 #include "robotkernel/config.h"
 #include "robotkernel/rkc_loader.h"
 #include "robotkernel/service_definitions.h"
+
 #include "yaml-cpp/yaml.h"
 #include "sys/stat.h"
 #include "fcntl.h"
@@ -52,20 +53,20 @@ YAML::Node tmp = YAML::Clone(YAML::Node("dieses clone steht hier damit es vom "
 namespace robotkernel {
 
 // assign generated service definitions
-const std::string kernel::service_definition_get_dump_log = robotkernel_kernel_get_dump_log_service_definition;
-const std::string kernel::service_definition_config_dump_log = robotkernel_kernel_config_dump_log_service_definition;
-const std::string kernel::service_definition_add_module = robotkernel_kernel_add_module_service_definition;
-const std::string kernel::service_definition_remove_module = robotkernel_kernel_remove_module_service_definition;
-const std::string kernel::service_definition_module_list = robotkernel_kernel_module_list_service_definition;
-const std::string kernel::service_definition_reconfigure_module = robotkernel_kernel_reconfigure_module_service_definition;
-const std::string kernel::service_definition_list_devices = robotkernel_kernel_list_devices_service_definition;
-const std::string kernel::service_definition_process_data_info = robotkernel_kernel_process_data_info_service_definition;
-const std::string kernel::service_definition_trigger_info = robotkernel_kernel_trigger_info_service_definition;
-const std::string kernel::service_definition_stream_info = robotkernel_kernel_stream_info_service_definition;
-const std::string kernel::service_definition_service_interface_info = robotkernel_kernel_service_interface_info_service_definition;
-const std::string kernel::service_definition_add_pd_injection = robotkernel_kernel_add_pd_injection_service_definition;
-const std::string kernel::service_definition_del_pd_injection = robotkernel_kernel_del_pd_injection_service_definition;
-const std::string kernel::service_definition_list_pd_injections = robotkernel_kernel_list_pd_injections_service_definition;
+const std::string kernel::service_definition_get_dump_log           = services::robotkernel_kernel_get_dump_log_service_definition;
+const std::string kernel::service_definition_config_dump_log        = services::robotkernel_kernel_config_dump_log_service_definition;
+const std::string kernel::service_definition_add_module             = services::robotkernel_kernel_add_module_service_definition;
+const std::string kernel::service_definition_remove_module          = services::robotkernel_kernel_remove_module_service_definition;
+const std::string kernel::service_definition_module_list            = services::robotkernel_kernel_module_list_service_definition;
+const std::string kernel::service_definition_reconfigure_module     = services::robotkernel_kernel_reconfigure_module_service_definition;
+const std::string kernel::service_definition_list_devices           = services::robotkernel_kernel_list_devices_service_definition;
+const std::string kernel::service_definition_process_data_info      = services::robotkernel_kernel_process_data_info_service_definition;
+const std::string kernel::service_definition_trigger_info           = services::robotkernel_kernel_trigger_info_service_definition;
+const std::string kernel::service_definition_stream_info            = services::robotkernel_kernel_stream_info_service_definition;
+const std::string kernel::service_definition_service_interface_info = services::robotkernel_kernel_service_interface_info_service_definition;
+const std::string kernel::service_definition_add_pd_injection       = services::robotkernel_kernel_add_pd_injection_service_definition;
+const std::string kernel::service_definition_del_pd_injection       = services::robotkernel_kernel_del_pd_injection_service_definition;
+const std::string kernel::service_definition_list_pd_injections     = services::robotkernel_kernel_list_pd_injections_service_definition;
 
 void split_file_name(const string& str, string& path, string& file) {
     size_t found;

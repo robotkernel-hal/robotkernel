@@ -30,6 +30,7 @@
 #include "robotkernel/helpers.h"
 #include "robotkernel/trigger.h"
 #include "robotkernel/service_definitions.h"
+
 #include <sys/stat.h>
 #include <dlfcn.h>
 #include <iostream>
@@ -62,9 +63,9 @@ module* currently_loading_module = NULL;
 namespace robotkernel {
 
 // assign generated service definitions
-const std::string module::service_definition_set_state = robotkernel_module_set_state_service_definition;
-const std::string module::service_definition_get_state = robotkernel_module_get_state_service_definition;
-const std::string module::service_definition_get_config = robotkernel_module_get_config_service_definition;
+const std::string module::service_definition_set_state  = services::robotkernel_module_set_state_service_definition;
+const std::string module::service_definition_get_state  = services::robotkernel_module_get_state_service_definition;
+const std::string module::service_definition_get_config = services::robotkernel_module_get_config_service_definition;
 
 void split_file_name(const string& str, string& path, string& file);
 
