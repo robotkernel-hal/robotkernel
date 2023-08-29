@@ -1,4 +1,4 @@
-name: module/get_state
+name: robotkernel/module/get_state
 response:
 - string: state
 - string: error_message

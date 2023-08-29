@@ -1,4 +1,4 @@
-name: kernel/module_list
+name: robotkernel/kernel/module_list
 response:
 - vector/string: modules
 - string: error_message

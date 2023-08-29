@@ -1,4 +1,4 @@
-name: kernel/list_pd_injections
+name: robotkernel/kernel/list_pd_injections
 response:
 - vector/string: pd_dev
 - vector/string: field_name

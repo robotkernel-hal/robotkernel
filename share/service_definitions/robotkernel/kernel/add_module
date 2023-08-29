@@ -1,4 +1,4 @@
-name: kernel/add_module
+name: robotkernel/kernel/add_module
 request:
 - string: config
 response:

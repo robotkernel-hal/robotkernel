@@ -1,4 +1,4 @@
-name: module/set_state
+name: robotkernel/module/set_state
 request:
 - string: state
 response:

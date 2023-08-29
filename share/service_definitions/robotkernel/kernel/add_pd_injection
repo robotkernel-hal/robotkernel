@@ -1,4 +1,4 @@
-name: kernel/add_pd_injection
+name: robotkernel/kernel/add_pd_injection
 request:
 - string: pd_dev
 - string: field_name

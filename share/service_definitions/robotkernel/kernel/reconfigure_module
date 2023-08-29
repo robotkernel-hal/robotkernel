@@ -1,4 +1,4 @@
-name: kernel/reconfigure_module
+name: robotkernel/kernel/reconfigure_module
 request:
 - string: mod_name
 response:

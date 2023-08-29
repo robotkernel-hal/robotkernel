@@ -1,4 +1,4 @@
-name: log_base/configure_loglevel
+name: robotkernel/log_base/configure_loglevel
 request:
 - string: set_loglevel
 response:

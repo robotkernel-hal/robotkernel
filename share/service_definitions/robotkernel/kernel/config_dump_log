@@ -1,4 +1,4 @@
-name: kernel/config_dump_log
+name: robotkernel/kernel/config_dump_log
 request:
 - uint32_t: max_len
 - uint8_t: do_ust

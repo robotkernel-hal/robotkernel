@@ -1,4 +1,4 @@
-name: kernel/trigger_info
+name: robotkernel/kernel/trigger_info
 request:
 - string: name
 response:

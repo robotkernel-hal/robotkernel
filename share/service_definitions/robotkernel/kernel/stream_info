@@ -1,4 +1,4 @@
-name: kernel/stream_info
+name: robotkernel/kernel/stream_info
 request:
 - string: name
 response:

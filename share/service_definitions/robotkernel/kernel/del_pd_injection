@@ -1,4 +1,4 @@
-name: kernel/del_pd_injection
+name: robotkernel/kernel/del_pd_injection
 request:
 - string: pd_dev
 - string: field_name

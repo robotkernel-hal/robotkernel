@@ -1,4 +1,4 @@
-name: kernel/process_data_info
+name: robotkernel/kernel/process_data_info
 request:
 - string: name
 response:

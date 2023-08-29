@@ -1,4 +1,4 @@
-name: kernel/service_interface_info
+name: robotkernel/kernel/service_interface_info
 request:
 - string: name
 response:

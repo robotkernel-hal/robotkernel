@@ -1,4 +1,4 @@
-name: kernel/remove_module
+name: robotkernel/kernel/remove_module
 request:
 - string: mod_name
 response:
