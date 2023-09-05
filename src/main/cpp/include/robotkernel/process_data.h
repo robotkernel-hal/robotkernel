@@ -262,7 +262,7 @@ class process_data :
          */
         virtual uint8_t* pop(const std::size_t& hash) {
             if (consumer_hash != hash)
-                throw str_exception_tb("permission denied to pop %s", id().c_str());
+                throw str_exception_tb("permission denied to pop %s: consumer_hash %d, your hash %d", id().c_str(), consumer_hash, hash);
 
             return nullptr;
         }
@@ -328,7 +328,7 @@ class process_data :
         {
             if (    do_pop &&
                     (consumer_hash != hash))
-                throw str_exception_tb("permission denied to pop %s", id().c_str());
+                throw str_exception_tb("permission denied to pop %s: consumer_hash %d, your hash %d", id().c_str(), consumer_hash, hash);
         }
         
         //! Read data from buffer.
