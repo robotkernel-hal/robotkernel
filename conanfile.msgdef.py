@@ -1,6 +1,9 @@
 import os
-from conans import tools, ConanFile, AutoToolsBuildEnvironment
-from conans.client.run_environment import RunEnvironment
+
+from conan import ConanFile, conan_version
+from conan.tools.files import chdir, copy
+from conan.tools.scm import Version
+
 
 class MainProject(ConanFile):
     name = "robotkernel_ln_msgdef"
@@ -9,28 +12,29 @@ class MainProject(ConanFile):
     license = "GPLv3"
     description = "robotkernel ln message definitions"
     settings = None
-    exports_sources = [ "share/*", ]
+    exports_sources = ["share/*"]
 
-    def build_requirements(self):
-        self.build_requires(f"robotkernel_ln_helper/[*]@robotkernel/stable")
+    tool_requires = ["robotkernel_ln_helper/[*]@robotkernel/stable"]
+
+    generators = "VirtualBuildEnv"
+
+    def build(self):
+        svc_def_dir = "share/service_definitions"
+        ln_msg_dir = "share/ln/message_definitions"
+
+        svc_def_files = []
+        with chdir(self, os.path.join(self.build_folder, svc_def_dir)):
+            for dirpath, _, filenames in os.walk("."):
+                svc_def_files.extend(os.path.join(dirpath, filename) for filename in filenames)
+
+        self.run(f"service_generate --indir {svc_def_dir} --outdir {ln_msg_dir} {' '.join(svc_def_files)}", env="conanbuild")
 
     def package(self):
-        svc_def_dir = 'share/service_definitions'
-        ln_msg_dir  = 'share/ln/message_definitions'
-
-        re = RunEnvironment(self)
-        
-        with tools.environment_append(re.vars):
-
-            svc_def_files = []
-            with tools.chdir(os.path.join(self.build_folder, svc_def_dir)):
-                for (dirpath, dirnames, filenames) in os.walk('.'): 
-                    svc_def_files.extend(os.path.join(dirpath, filename) for filename in filenames)
-
-            self.run("service_generate --indir %s --outdir %s %s" % (svc_def_dir, ln_msg_dir, " ".join(svc_def_files)))
-
-        self.copy("*", ln_msg_dir, ln_msg_dir)
+        copy(self, "share/ln/message_definitions/*", self.build_folder, self.package_folder)
 
     def package_info(self):
-        self.env_info.LN_MESSAGE_DEFINITION_DIRS.append(os.path.join(self.package_folder, "share/ln/message_definitions"))
- 
+        msg_def_dir = os.path.join(self.package_folder, "share/ln/message_definitions")
+        if Version(conan_version) < "2.0.0":
+            self.env_info.LN_MESSAGE_DEFINITION_DIRS.append(msg_def_dir)
+        self.runenv_info.append_path("LN_MESSAGE_DEFINITION_DIRS", msg_def_dir)
+        self.buildenv_info.append_path("LN_MESSAGE_DEFINITION_DIRS", msg_def_dir)

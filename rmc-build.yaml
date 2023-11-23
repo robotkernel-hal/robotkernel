@@ -1,5 +1,5 @@
 _: &build_configs
-  - imports: [linux_defaults]
+  - imports: [linux_defaults_build_profile]
 
 builds:
   - context: conan

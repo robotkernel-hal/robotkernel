@@ -1,4 +1,5 @@
-from conans import ConanFile, tools
+from conan import ConanFile
+
 
 class MainProject(ConanFile):
     python_requires = "conan_template/[~=5]@robotkernel/stable"
@@ -6,7 +7,7 @@ class MainProject(ConanFile):
 
     name = "robotkernel"
     description = "robotkernel is a modular, easy configurable hardware abstraction framework"
-    exports_sources = ["*", "!.gitignore"] + ["!%s" % x for x in tools.Git().excluded_files()]
+    exports_sources = ["*", "!.gitignore"]
     tool_requires = ["robotkernel_service_helper/[~=0 >=0.0.4]@robotkernel/stable"]
 
     def source(self):
@@ -16,4 +17,3 @@ class MainProject(ConanFile):
         self.requires(f"{self.name}_ln_msgdef/{self.version}@{self.user}/{self.channel}")
         self.requires("libstring_util/[~=1]@common/stable")
         self.requires("yaml-cpp/0.6.2@3rdparty/stable")
-
