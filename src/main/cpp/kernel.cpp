@@ -971,15 +971,15 @@ void kernel::remove_devices(const std::string& owner) {
  * \param[in] config    New module configuration.
  */
 void kernel::load_module(const YAML::Node& config) {
-    sp_module_t mdl = make_shared<module>(config);
+    string name = get_as<string>(config, "name");
 
-    if (module_map.find(mdl->get_name()) != module_map.end()) {
-        string name = mdl->get_name();
+    if (module_map.find(name) != module_map.end()) {
         throw str_exception("[robotkernel] duplicate module name: %s\n", name.c_str());
     }
 
+    sp_module_t mdl = make_shared<module>(config);
+
     if (!mdl->configured()) {
-        string name = mdl->get_name();
         throw str_exception("[robotkernel] module %s not configured!\n", name.c_str());
     }
 
