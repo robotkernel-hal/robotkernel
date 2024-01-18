@@ -971,15 +971,15 @@ void kernel::remove_devices(const std::string& owner) {
  * \param[in] config    New module configuration.
  */
 void kernel::load_module(const YAML::Node& config) {
-    sp_module_t mdl = make_shared<module>(config);
+    string name = get_as<string>(config, "name");
 
-    if (module_map.find(mdl->get_name()) != module_map.end()) {
-        string name = mdl->get_name();
+    if (module_map.find(name) != module_map.end()) {
         throw str_exception("[robotkernel] duplicate module name: %s\n", name.c_str());
     }
 
+    sp_module_t mdl = make_shared<module>(config);
+
     if (!mdl->configured()) {
-        string name = mdl->get_name();
         throw str_exception("[robotkernel] module %s not configured!\n", name.c_str());
     }
 
@@ -1067,14 +1067,18 @@ int kernel::service_add_module(const service_arglist_t& request,
 
     //response data
     string error_message = "";
-    
-    klog(info, "got config: %s\n", config.c_str());
 
     try {
         YAML::Node node = YAML::Load(config);
+        string mod_name = get_as<string>(node, "name");
+        string so_file  = get_as<string>(node, "so_file");
+
+        klog(info, "adding module \"%s\" as \"%s\"\n", so_file.c_str(), mod_name.c_str());
         load_module(node);
+        klog(info, "module \"%s\" added\n", mod_name.c_str());
     } catch(exception& e) {
         error_message = e.what();
+        klog(error, "error adding module \"%s\": %s\n", error_message.c_str());
     }
 
 #define ADD_MODULE_RESP_ERROR_MESSAGE   0
@@ -1100,6 +1104,8 @@ int kernel::service_remove_module(const service_arglist_t& request,
     string error_message = "";
 
     try {
+        klog(info, "removing module \"%s\"\n", mod_name.c_str());
+
         std::unique_lock<std::recursive_mutex> lock(module_map_mtx);
         module_map_t::iterator it = module_map.find(mod_name);
         if (it == module_map.end())
@@ -1110,8 +1116,11 @@ int kernel::service_remove_module(const service_arglist_t& request,
         set_state(mdl->get_name(), module_state_init);
 
         module_map.erase(it);
+
+        klog(info, "module \"%s\" removed\n", mod_name.c_str());
     } catch (exception& e) {
         error_message = e.what();
+        klog(error, "error removing module \"%s\": %s\n", error_message.c_str());
     }
 
 #define REMOVE_MODULE_RESP_ERROR_MESSAGE    0
