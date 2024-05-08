@@ -33,8 +33,9 @@ class MainProject(ConanFile):
         copy(self, "share/ln/message_definitions/*", self.build_folder, self.package_folder)
 
     def package_info(self):
+        self.cpp_info.includedirs = []
         msg_def_dir = os.path.join(self.package_folder, "share/ln/message_definitions")
-        if Version(conan_version) < "2.0.0":
+        if conan_version < Version("2.0.0"):
             self.env_info.LN_MESSAGE_DEFINITION_DIRS.append(msg_def_dir)
         self.runenv_info.append_path("LN_MESSAGE_DEFINITION_DIRS", msg_def_dir)
         self.buildenv_info.append_path("LN_MESSAGE_DEFINITION_DIRS", msg_def_dir)
