@@ -7,6 +7,8 @@ using namespace string_util;
 using namespace robotkernel;
 using namespace std;
 
+static std::map<std::string, std::string> arg_map;
+
 namespace robotkernel {
 void split_file_name(const string& str, string& path, string& file);
 }
@@ -62,6 +64,14 @@ void parse_node(YAML::Node e, const std::string& config_file_path) {
 
                 e = YAML::Load(string(env_var));
                 parse_node(e, config_file_path);
+            } else if (e.Tag() == "!arg") {
+                string arg_name = e.as<string>();
+                if (arg_map.find(arg_name) == arg_map.end()) {
+                    throw str_exception("no argument name \"%s\" provided to robotkernel!", arg_name.c_str());
+                }
+
+                e = YAML::Load(arg_map[arg_name]);
+                parse_node(e, config_file_path);
             }
             break;
         case YAML::NodeType::Sequence:
@@ -87,6 +97,15 @@ void parse_node(YAML::Node e, const std::string& config_file_path) {
 YAML::Node robotkernel::rkc_load_file(const std::string& filename) {
     kernel& k = *kernel::get_instance();
     k.log(verbose, "rkc_load_file %s\n", filename.c_str());
+    
+    for (int i = 1; i < k.main_argc; ++i) {
+        if ((strncmp(k.main_argv[i], "--", 2) == 0) && ((i+1) < k.main_argc) && !(strncmp(k.main_argv[i+1], "-", 1) == 0)) {
+            string key = k.main_argv[i++];
+            string value = k.main_argv[i];
+            key.erase(0, 2);
+            arg_map[key] = value;
+        }
+    }
 
     YAML::Node node = YAML::LoadFile(filename);
 
