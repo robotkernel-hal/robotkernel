@@ -128,11 +128,13 @@ void runnable::join() {
  * \param prio new max prio
  */
 void runnable::set_prio(int prio) { 
-    klog(verbose, "[runnable] setting thread priority to %d\n", prio);
+    if (prio != 0) {
+        klog(verbose, "[runnable] setting thread priority to %d\n", prio);
 
-    this->prio = prio;
-    if (running())
-        ::set_priority(prio);
+        this->prio = prio;
+        if (running())
+            ::set_priority(prio);
+    }
 }
         
 //! set affinity mask
@@ -140,10 +142,12 @@ void runnable::set_prio(int prio) {
  * \param mask new cup affinity mask 
  */
 void runnable::set_affinity_mask(int mask) {
-    klog(verbose, "[runnable] setting cpu affinity mask %Xh\n", mask); 
-    this->affinity_mask = mask;
-    if (running())
-        ::set_affinity_mask(mask);
+    if (mask != 0) {
+        klog(verbose, "[runnable] setting cpu affinity mask %Xh\n", mask); 
+        this->affinity_mask = mask;
+        if (running())
+            ::set_affinity_mask(mask);
+    }
 }
         
 //! set thread name
