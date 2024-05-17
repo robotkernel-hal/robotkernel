@@ -106,6 +106,8 @@ struct log_thread::log_pool_object *log_thread::get_pool_object() {
     return obj;
 }
 
+static bool log_thread_value = false;
+
 //! log object to stdout and return to pool
 /*!
  * \param obj object to print and to be returned to pool
@@ -118,7 +120,11 @@ void log_thread::log(struct log_pool_object *obj) {
         empty_pool.push_back(obj);
     } else {
         full_pool.push_back(obj);
-        cond.notify_all();
+
+        if (!log_thread_value) {
+            log_thread_value = true;
+            cond.notify_all();
+        }
     }
 }
 
@@ -142,9 +148,13 @@ void log_thread::run() {
     while (running()) {
         // wait for trigger, this will unlock mutex
         // other threads can now safely add/remove something from _modules
-        if (cond.wait_for(lock, std::chrono::seconds(1)) == std::cv_status::timeout)
-            continue;
+        if (!log_thread_value) {
+            if (cond.wait_for(lock, std::chrono::seconds(1)) == std::cv_status::timeout) {
+                continue;
+            }
+        }
 
+        log_thread_value = false;
 
         while (!full_pool.empty()) {
             struct log_pool_object *obj = full_pool.front();
