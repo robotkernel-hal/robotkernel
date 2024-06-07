@@ -23,6 +23,7 @@
  * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <string_util/string_util.h>
 #include "robotkernel/log_base.h"
 #include "robotkernel/config.h"
 #include "robotkernel/service_definitions.h"
@@ -56,6 +57,9 @@ log_base::log_base(const std::string& name, const std::string& impl,
 
     // search for loglevel
     if (node.IsDefined()) {
+        if (!node.IsMap())
+            throw str_exception("module `config` needs to be a yaml-mapping! -- you provided:\n```yaml\n%s\n```",
+                                YAML::Dump(node).c_str());
         if (node["loglevel"]) {
             ll = info;
             std::string ll_string = get_as<std::string>(node, "loglevel", "");
