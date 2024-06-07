@@ -56,7 +56,7 @@ log_base::log_base(const std::string& name, const std::string& impl,
     ll = k.get_loglevel();
 
     // search for loglevel
-    if (node.IsDefined()) {
+    if (node.IsDefined() && !node.IsNull()) {
         if (!node.IsMap())
             throw str_exception("module `config` needs to be a yaml-mapping! -- you provided:\n```yaml\n%s\n```",
                                 YAML::Dump(node).c_str());
