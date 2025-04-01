@@ -137,6 +137,13 @@ void kernel_c_pop_read_buffer(pdhandle hdl) {
  * \param[in]   hdl         Handle of robotkernel-5 process data retreaved from <get_pd_handle>.
  */
 void kernel_c_release_pd_handle(pdhandle hdl) {
+    auto obj = *(std::shared_ptr<pd_wrapper> *)hdl;
+    if (obj->consumer == 1) {
+        obj->pd_dev->reset_consumer(obj->hash);
+    } else {
+        obj->pd_dev->reset_provider(obj->hash);
+    }
+
     delete (std::shared_ptr<pd_wrapper> *)hdl;
 }
 
