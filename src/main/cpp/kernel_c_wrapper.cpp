@@ -32,6 +32,7 @@ using namespace std;
 using namespace robotkernel;
 
 class pd_wrapper : 
+    public std::enable_shared_from_this<pd_wrapper>,
     public robotkernel::pd_consumer,
     public robotkernel::pd_provider
 {   
@@ -48,12 +49,30 @@ class pd_wrapper :
         }
 
         ~pd_wrapper() {
+            printf("destructing %s\n", pd_dev->id().c_str());
+            release();
+        }
+
+        void aquire() {
+            if (consumer == 1) {
+                hash = pd_dev->set_consumer(shared_from_this());
+            } else {
+                hash = pd_dev->set_provider(shared_from_this());
+            }
+        }
+
+        void release() {
             if (hash != 0) {
+                printf("have hash\n");
                 if (consumer) {
+                    printf("resetting consumer\n");
                     pd_dev->reset_consumer(hash);
                 } else {
+                    printf("resetting provider\n");
                     pd_dev->reset_provider(hash);
                 }
+
+                hash = 0;
             }
         }
 };
@@ -77,11 +96,7 @@ pdhandle kernel_c_get_pd_handle(const char *pd_name, int consumer) {
     *hdl = make_shared<pd_wrapper>(pd_dev);
     auto obj = *hdl;
     obj->consumer = consumer;
-    if (consumer == 1) {
-        obj->hash = obj->pd_dev->set_consumer(obj);
-    } else {
-        obj->hash = obj->pd_dev->set_provider(obj);
-    }
+    obj->aquire();
 
     return (pdhandle)hdl;
 }
@@ -138,11 +153,7 @@ void kernel_c_pop_read_buffer(pdhandle hdl) {
  */
 void kernel_c_release_pd_handle(pdhandle hdl) {
     auto obj = *(std::shared_ptr<pd_wrapper> *)hdl;
-    if (obj->consumer == 1) {
-        obj->pd_dev->reset_consumer(obj->hash);
-    } else {
-        obj->pd_dev->reset_provider(obj->hash);
-    }
+    obj->release();
 
     delete (std::shared_ptr<pd_wrapper> *)hdl;
 }
