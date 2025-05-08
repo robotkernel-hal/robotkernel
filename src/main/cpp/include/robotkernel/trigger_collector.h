@@ -41,9 +41,22 @@ namespace robotkernel {
  */
 class trigger_collector {
     public:
-        trigger_collector(int count, double timeout, std::function<void(void)> callback) : 
-            callback(callback), count(count), timeout(timeout)
-        {
+        trigger_collector() : 
+            callback(nullptr), count(-1), timeout(1.) { };
+
+        trigger_collector(std::function<void(void)> callback) : 
+            callback(callback), count(-1), timeout(1.) { };
+
+        trigger_collector(int count, double timeout, std::function<void(void)> callback)
+        { reinit(count, timeout, callback); };
+
+        virtual ~trigger_collector() { }
+        
+        void reinit(const int count, const double timeout, std::function<void(void)> callback) {
+            this->count = count;
+            this->timeout = timeout;
+            this->callback = callback;
+
             timestamps.resize(count);
 
             for (int i = 0; i < count; i++) {
@@ -51,8 +64,6 @@ class trigger_collector {
                 receive_timeout = 0;
             }
         }
-
-        virtual ~trigger_collector() { }
 
         void trigger_collect(uint32_t slave_id) {
             double ts = get_timestamp();
@@ -73,7 +84,7 @@ class trigger_collector {
                 }
             }
 
-            callback();
+            if (callback) { callback(); }
             receive_timeout = 0;
         }
 
@@ -90,6 +101,7 @@ class trigger_collector {
         std::vector<double> timestamps;
         double timeout;
         double receive_timeout;
+
 };
 
 }; // namespace robotkernel
