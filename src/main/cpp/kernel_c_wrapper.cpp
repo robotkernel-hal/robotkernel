@@ -49,7 +49,6 @@ class pd_wrapper :
         }
 
         ~pd_wrapper() {
-            printf("destructing %s\n", pd_dev->id().c_str());
             release();
         }
 
@@ -63,12 +62,9 @@ class pd_wrapper :
 
         void release() {
             if (hash != 0) {
-                printf("have hash\n");
                 if (consumer) {
-                    printf("resetting consumer\n");
                     pd_dev->reset_consumer(hash);
                 } else {
-                    printf("resetting provider\n");
                     pd_dev->reset_provider(hash);
                 }
 
