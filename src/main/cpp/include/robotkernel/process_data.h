@@ -36,6 +36,7 @@
 #include <cstring>
 
 #include "robotkernel/device.h"
+#include "robotkernel/trigger.h"
 #include "robotkernel/rk_type.h"
 
 #include "string_util/string_util.h"
@@ -227,10 +228,7 @@ class process_data :
          * \param process_data_definition yaml-string representating the structure of the pd
          */
         process_data(size_t length, const std::string& owner, const std::string& name, 
-                const std::string& process_data_definition = "", const std::string& clk_device = "") :
-            device(owner, name, "pd"), pd_cookie(0), length(length), clk_device(clk_device),
-            process_data_definition(process_data_definition), provider_hash(0), consumer_hash(0)
-            { }
+                const std::string& process_data_definition = "", const std::string& clk_device = "");
 
         //! Get a pointer to the a data buffer which we can write next, has to be
         //  completed with calling \link push \endlink
@@ -243,6 +241,8 @@ class process_data :
 
             return nullptr;
         }
+
+        virtual void trigger(void) { trigger_dev->trigger_modules(); }
         
         //! Get a pointer to the a data buffer which we can write next, has to be
         //  completed with calling \link push \endlink
@@ -278,16 +278,13 @@ class process_data :
         /*
          * \param[in] hash      hash value, get it with set_provider!
          */
-        virtual void push(const std::size_t& hash) {
-            if (provider_hash != hash)
-                throw str_exception_tb("permission denied to push %s", id().c_str());
-        }
+        virtual void push(const std::size_t& hash, bool do_trigger = true);
 
         //! Pushes write data buffer to available on calling \link next \endlink.
         /*
          * \param[in] proc      provider, set it with set_provider!
          */
-        virtual void push(sp_provider_t& prov) { this->push(prov->hash); }
+        virtual void push(sp_provider_t& prov, bool do_trigger = true) { this->push(prov->hash, do_trigger); }
 
         //! Write data to buffer.
         /*!
@@ -313,7 +310,8 @@ class process_data :
          * \param[in] do_push   Push the buffer to set it to the actual one.
          */
         virtual void write(sp_provider_t& prov, off_t offset, uint8_t *buf, 
-            size_t len, bool do_push = true) { this->write(prov->hash, offset, buf, len, do_push); }
+            size_t len, bool do_push = true) 
+        { this->write(prov->hash, offset, buf, len, do_push); }
 
         //! Read data from buffer.
         /*!
@@ -459,13 +457,17 @@ class process_data :
     public:
         volatile uint64_t pd_cookie;
         const size_t length;
-        const std::string clk_device;
+        std::string clk_device;
         const std::string process_data_definition;
 
+        std::shared_ptr<robotkernel::trigger> trigger_dev;
         std::shared_ptr<robotkernel::pd_provider> provider;
         std::size_t provider_hash;
         std::shared_ptr<robotkernel::pd_consumer> consumer;
         std::size_t consumer_hash;
+
+    private: 
+        bool trigger_dev_generated = false;
 };
 
 //! process data management class with single buffering
@@ -491,37 +493,25 @@ class single_buffer :
          * \param process_data_definition yaml-string representating the structure of the pd
          */
         single_buffer(size_t length, const std::string& owner, const std::string& name, 
-                const std::string& process_data_definition = "", const std::string& clk_device = "") :
-            process_data(length, owner, name, process_data_definition, clk_device)
-            {
-                data.resize(length);
-            }
+                const std::string& process_data_definition = "", const std::string& clk_device = "");
         
         //! Get a pointer to the a data buffer which we can write next, has to be
         //  completed with calling \link push \endlink
         /*
          * \param[in] hash      hash value, get it with set_provider!
          */
-        uint8_t* next(const std::size_t& hash) {
-            process_data::next(hash);
-            
-            return (uint8_t *)&data[0];
-        }
+        uint8_t* next(const std::size_t& hash) override;
 
         //! Get a pointer to the last written data without consuming it, 
         //  which will be available on calling \link pop \endlink
-        uint8_t* peek() {
-            return (uint8_t *)&data[0];
-        }
+        uint8_t* peek() override;
 
         //! Get a pointer to the actual read data. This call
         //  will consume the data.
         /*
          * \param[in] hash      hash value, get it with set_consumer!
          */
-        uint8_t* pop(const std::size_t& hash) {
-            return (uint8_t *)&data[0];
-        }
+        uint8_t* pop(const std::size_t& hash) override;
 
         //! Write data to buffer.
         /*!
@@ -532,16 +522,7 @@ class single_buffer :
          * \param[in] do_push   Push the buffer to set it to the actual one.
          */
         void write(const std::size_t& hash, off_t offset, uint8_t *buf, 
-                size_t len, bool do_push = true) 
-        {
-            process_data::write(hash, offset, buf, len, do_push);
-
-            if ((offset + len) > length)
-                throw str_exception_tb("wanted to write to many bytes: %d > length %d\n",
-                        (offset + len), length);
-
-            std::memcpy(&data[offset], buf, len);
-        }
+                size_t len, bool do_push = true) override;
 
         //! Read data from buffer.
         /*!
@@ -552,14 +533,7 @@ class single_buffer :
          * \param[in] do_pop    Pop the buffer and consume it.
          */
         void read(const std::size_t& hash, off_t offset, uint8_t *buf, 
-                size_t len, bool do_pop = true) 
-        {
-            if ((offset + len) > length)
-                throw str_exception_tb("wanted to read to many bytes: %d > length %d\n",
-                        (offset + len), length);
-            
-            std::memcpy(buf, &data[offset], len);
-        }
+                size_t len, bool do_pop = true) override;
 };
 
 //! process data management class with triple buffering
@@ -597,59 +571,31 @@ class triple_buffer :
          * \param process_data_definition yaml-string representating the structure of the pd
          */
         triple_buffer(size_t length, const std::string& owner, const std::string& name, 
-                const std::string& process_data_definition = "", const std::string& clk_device = "") :
-            process_data(length, owner, name, process_data_definition, clk_device)
-            {
-                // initilize indices with front(0), back(1), flip(2)
-                indices.store((0x00) | (0x01 << 2) | (0x02 << 4));
-
-                data[0].resize(length);
-                data[1].resize(length);
-                data[2].resize(length);
-            }
+                const std::string& process_data_definition = "", const std::string& clk_device = "");
         
         //! Get a pointer to the a data buffer which we can write next, has to be
         //  completed with calling \link push \endlink
         /*
          * \param[in] hash      hash value, get it with set_provider!
          */
-        uint8_t* next(const std::size_t& hash) {
-            process_data::next(hash);
-
-            auto& tmp_buf = back_buffer();
-            return (uint8_t *)&tmp_buf[0];
-        }
+        uint8_t* next(const std::size_t& hash) override;
 
         //! Get a pointer to the last written data without consuming it, 
         //  which will be available on calling \link pop \endlink
-        uint8_t* peek() {
-            auto& tmp_buf = flip_buffer();
-            return (uint8_t *)&tmp_buf[0];
-        }
+        uint8_t* peek() override;
 
         //! Get a pointer to the actual read data. This call
         //  will consume the data.
         /* 
          * \param[in] hash      hash value, get it with set_consumer!
          */
-        uint8_t* pop(const std::size_t& hash) {
-            process_data::pop(hash);
-
-            swap_front();
-
-            auto& tmp_buf = front_buffer();
-            return (uint8_t *)&tmp_buf[0];
-        }
+        uint8_t* pop(const std::size_t& hash) override;
 
         //! Pushes write data buffer to available on calling \link next \endlink.
         /*
          * \param[in] hash      hash value, get it with set_provider!
          */
-        void push(const std::size_t& hash) {
-            process_data::push(hash);
-
-            swap_back();
-        }
+        void push(const std::size_t& hash, bool do_trigger = true) override;
 
         //! Write data to buffer.
         /*!
@@ -660,20 +606,7 @@ class triple_buffer :
          * \param[in] do_push   Push the buffer to set it to the actual one.
          */
         void write(const std::size_t& hash, off_t offset, uint8_t *buf, 
-                size_t len, bool do_push = true) 
-        {
-            process_data::write(hash, offset, buf, len, do_push);
-
-            if ((offset + len) > length)
-                throw str_exception_tb("wanted to write to many bytes: %d > length %d\n",
-                        (offset + len), length);
-
-            auto& tmp_buf = back_buffer();
-            std::memcpy(&tmp_buf[offset], buf, len);
-
-            if (do_push)
-                swap_back();
-        }
+                size_t len, bool do_push = true) override;
 
         //! Read data from buffer.
         /*!
@@ -684,79 +617,26 @@ class triple_buffer :
          * \param[in] do_pop    Pop the buffer and consume it.
          */
         void read(const std::size_t& hash, off_t offset, uint8_t *buf, 
-                size_t len, bool do_pop = true) {
-            process_data::read(hash, offset, buf, len, do_pop);
-
-            if ((offset + len) > length)
-                throw str_exception_tb("wanted to read to many bytes: %d > length %d\n",
-                        (offset + len), length);
-            
-
-            if (do_pop) {
-                swap_front();
-            }
-
-            auto& tmp_buf = front_buffer();
-            std::memcpy(buf, &tmp_buf[offset], len);
-        }
+                size_t len, bool do_pop = true) override;
 
         //! Returns true if new data has been written
-        bool new_data() {
-            uint8_t old_indices = indices.load(std::memory_order_consume);
-
-            if (!(old_indices & written_mask))
-                return false; // nothing new
-            
-            return true; 
-        }
+        bool new_data() override;
 
     private:
         //! return current read buffer
-        const std::vector<uint8_t>& front_buffer() {
-            int idx = indices.load(std::memory_order_consume) & front_buffer_mask;
-            return data[idx];
-        }
+        const std::vector<uint8_t>& front_buffer();
 
         //! return current flip buffer
-        std::vector<uint8_t>& flip_buffer() {
-            int idx = (indices.load(std::memory_order_consume) & flip_buffer_mask) >> 4;
-            return data[idx];
-        }
+        std::vector<uint8_t>& flip_buffer();
+        
         //! return current write buffer
-        std::vector<uint8_t>& back_buffer() {
-            int idx = (indices.load(std::memory_order_consume) & back_buffer_mask) >> 2;
-            return data[idx];
-        }
+        std::vector<uint8_t>& back_buffer();
 
         //! swaps the buffers 
-        void swap_front() {
-            uint8_t new_indices, old_indices = indices.load(std::memory_order_consume);
-
-            do {
-                if (!(old_indices & written_mask))
-                    return; // nothing new, do not swap
-
-                new_indices = 
-                    ((old_indices & front_buffer_mask) << 4)        |
-                    ((old_indices & back_buffer_mask))              |
-                    ((old_indices & flip_buffer_mask) >> 4);
-            } while(!indices.compare_exchange_weak(old_indices, new_indices,
-                        std::memory_order_release, std::memory_order_relaxed));
-        }
+        void swap_front();
 
         //! swaps the buffers and mark as written
-        void swap_back() {
-            uint8_t new_indices, old_indices = indices.load(std::memory_order_consume);
-
-            do {
-                new_indices = 
-                    ((old_indices & written_mask) | written_mask)   | 
-                    ((old_indices & front_buffer_mask))             |
-                    ((old_indices & back_buffer_mask) << 2)         |
-                    ((old_indices & flip_buffer_mask) >> 2);
-            } while(!indices.compare_exchange_weak(old_indices, new_indices,
-                        std::memory_order_release, std::memory_order_relaxed));
-        }
+        void swap_back();
 };
 
 class triple_buffer_with_injection :
@@ -775,32 +655,13 @@ class triple_buffer_with_injection :
          * \param process_data_definition yaml-string representating the structure of the pd
          */
         triple_buffer_with_injection(size_t length, const std::string& owner, const std::string& name, 
-                const std::string& process_data_definition = "", const std::string& clk_device = "") :
-            triple_buffer(length, owner, name, process_data_definition, clk_device) 
-            {}
+                const std::string& process_data_definition = "", const std::string& clk_device = "");
 
         //! Pushes write data buffer to available on calling \link next \endlink.
         /*
          * \param[in] hash      hash value, get it with set_provider!
          */
-        void push(const std::size_t& hash) {
-            const auto& buf = next(hash);
-
-            for (auto& kv : pd_injections) {
-                auto& pd_entry = kv.second;
-
-                if (!pd_entry.initialized) {
-                    find_pd_offset_and_type(pd_entry);
-                    convert_str_val(pd_entry.type, pd_entry.value_string, pd_entry.value);
-
-                    pd_entry.initialized = true;
-                }
-
-                inject_val(pd_entry, buf, length);
-            }
-            
-            triple_buffer::push(hash);
-        }
+        void push(const std::size_t& hash, bool do_trigger = true) override;
 
         //! Write data to buffer.
         /*!
@@ -811,14 +672,7 @@ class triple_buffer_with_injection :
          * \param[in] do_push   Push the buffer to set it to the actual one.
          */
         void write(const std::size_t& hash, off_t offset, uint8_t *buf, 
-                size_t len, bool do_push = true) 
-        {
-            triple_buffer::write(hash, offset, buf, len, false);
-
-            if (do_push) {
-                push(hash);
-            }
-        }
+                size_t len, bool do_push = true) override;
 };
 
 //! process data management class with pointer buffer
@@ -844,35 +698,25 @@ class pointer_buffer :
          * \param process_data_definition yaml-string representating the structure of the pd
          */
         pointer_buffer(size_t length, uint8_t *ptr, const std::string& owner, const std::string& name, 
-                const std::string& process_data_definition = "", const std::string& clk_device = "") :
-            process_data(length, owner, name, process_data_definition, clk_device), ptr(ptr)
-            { }
+                const std::string& process_data_definition = "", const std::string& clk_device = "");
         
         //! Get a pointer to the a data buffer which we can write next, has to be
         //  completed with calling \link push \endlink
         /*
          * \param[in] hash      hash value, get it with set_provider!
          */
-        uint8_t* next(const std::size_t& hash) {
-            process_data::next(hash);
-
-            return ptr;
-        }
+        uint8_t* next(const std::size_t& hash) override;
 
         //! Get a pointer to the last written data without consuming it, 
         //  which will be available on calling \link pop \endlink
-        uint8_t* peek() {
-            return ptr;
-        }
+        uint8_t* peek() override;
 
         //! Get a pointer to the actual read data. This call
         //  will consume the data.
         /*
          * \param[in] hash      hash value, get it with set_consumer!
          */
-        uint8_t* pop(const std::size_t& hash) {
-            return ptr;
-        }
+        uint8_t* pop(const std::size_t& hash) override;
 
         //! Write data to buffer.
         /*!
@@ -883,16 +727,7 @@ class pointer_buffer :
          * \param[in] do_push   Push the buffer to set it to the actual one.
          */
         void write(const std::size_t& hash, off_t offset, uint8_t *buf, 
-                size_t len, bool do_push = true) 
-        {
-            process_data::write(hash, offset, buf, len, do_push);
-
-            if ((offset + len) > length)
-                throw str_exception_tb("wanted to write to many bytes: %d > length %d\n",
-                        (offset + len), length);
-
-            std::memcpy(&ptr[offset], buf, len);
-        }
+                size_t len, bool do_push = true) override;
 
         //! Read data from buffer.
         /*!
@@ -903,15 +738,7 @@ class pointer_buffer :
          * \param[in] do_pop    Pop the buffer and consume it.
          */
         void read(const std::size_t& hash, off_t offset, uint8_t *buf, 
-                size_t len, bool do_pop = true) 
-        {
-            if ((offset + len) > length)
-                throw str_exception_tb("wanted to read to many bytes: %d > length %d\n",
-                        (offset + len), length);
-            
-
-            std::memcpy(buf, &ptr[offset], len);
-        }
+                size_t len, bool do_pop = true) override;
 };
 
 
