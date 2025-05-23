@@ -34,6 +34,21 @@
 
 namespace robotkernel {
 
+/** 
+ * Trigger callback class to call an arbitrary function from trigger tick 
+ */
+class trigger_cb : public robotkernel::trigger_base {
+    public:
+        std::function<void(void)> cb;
+
+        trigger_cb(std::function<void(void)> cb) : cb(cb) {}
+
+        //! trigger function
+        void tick() { cb(); }
+};
+
+typedef std::shared_ptr<trigger_cb> sp_trigger_cb_t;
+
 /**
  * Collects triggers for slaves 0..Count-1 via trigger_collect(unique slave id) within timeout and calls
  * callback when all are collected. For example this is used to ensure that data from different process
@@ -103,6 +118,8 @@ class trigger_collector {
         double receive_timeout;
 
 };
+
+typedef std::shared_ptr<trigger_collect> sp_trigger_collector_t;
 
 }; // namespace robotkernel
  
