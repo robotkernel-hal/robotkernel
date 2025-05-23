@@ -119,7 +119,7 @@ class trigger_collector {
 
 };
 
-typedef std::shared_ptr<trigger_collect> sp_trigger_collector_t;
+typedef std::shared_ptr<trigger_collector> sp_trigger_collector_t;
 
 }; // namespace robotkernel
  
