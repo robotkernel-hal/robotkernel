@@ -193,20 +193,17 @@ int kernel::set_state(std::string mod_name, module_state_t state,
     }
 
     if (state != module_state_init) {
-        auto mdl_v2 = std::dynamic_pointer_cast<module_v2>(mdl);
-        if (mdl_v2 != nullptr) {
-            for (const auto& e_mod_name : mdl_v2->get_excludes()) {
-                if (std::find(caller.begin(), caller.end(), e_mod_name) != caller.end())
-                    continue; // do not recurse any further
+        for (const auto& e_mod_name : mdl->get_excludes()) {
+            if (std::find(caller.begin(), caller.end(), e_mod_name) != caller.end())
+                continue; // do not recurse any further
 
-                module_state_t exc_mod_state = get_state(e_mod_name);
-                if (exc_mod_state == module_state_init) {
-                    continue;
-                }
-
-                log(info, "switching excluded module \"%s\" to init\n", e_mod_name.c_str());
-                set_state(e_mod_name, module_state_init, caller);
+            module_state_t exc_mod_state = get_state(e_mod_name);
+            if (exc_mod_state == module_state_init) {
+                continue;
             }
+
+            log(info, "switching excluded module \"%s\" to init\n", e_mod_name.c_str());
+            set_state(e_mod_name, module_state_init, caller);
         }
     }
 
@@ -633,7 +630,7 @@ void kernel::config(std::string config_file, int argc, char *argv[]) {
     for (YAML::const_iterator it = modules.begin(); it != modules.end(); ++it) {
         sp_module_t mdl;
         try {
-            mdl = make_shared<module_v2>(*it);
+            mdl = make_shared<module>(*it);
         }
         catch(const exception& e) {
             throw str_exception("exception while instantiating module %s:\n%s",

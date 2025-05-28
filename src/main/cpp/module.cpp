@@ -267,31 +267,7 @@ module::module(const YAML::Node& node)
             }
         }
     }
-
-    string tmp_power_up = get_as<string>(node, "power_up", "init");
-    power_up = decode_power_up_state(tmp_power_up);
-
-    _init();
-
-    currently_loading_module = NULL;
-
-    kernel& k = *kernel::get_instance();
-    k.add_service(name, "set_state",
-            service_definition_set_state,
-            std::bind(&module::service_set_state, this, _1, _2));
-    k.add_service(name, "get_state",
-            service_definition_get_state,
-            std::bind(&module::service_get_state, this, _1, _2));
-    k.add_service(name, "get_config",
-            service_definition_get_config,
-            std::bind(&module::service_get_config, this, _1, _2));
-}
-        
-//! module construction
-/*!
- * \param node configuration node
- */
-module_v2::module_v2(const YAML::Node& node) : module(node) { 
+    
     if (node["excludes"]) {
         if (node["excludes"].Type() == YAML::NodeType::Scalar) {
             std::string tmp = get_as<std::string>(node, "excludes");
@@ -312,8 +288,26 @@ module_v2::module_v2(const YAML::Node& node) : module(node) {
             }
         }
     }
-}
 
+    string tmp_power_up = get_as<string>(node, "power_up", "init");
+    power_up = decode_power_up_state(tmp_power_up);
+
+    _init();
+
+    currently_loading_module = NULL;
+
+    kernel& k = *kernel::get_instance();
+    k.add_service(name, "set_state",
+            service_definition_set_state,
+            std::bind(&module::service_set_state, this, _1, _2));
+    k.add_service(name, "get_state",
+            service_definition_get_state,
+            std::bind(&module::service_get_state, this, _1, _2));
+    k.add_service(name, "get_config",
+            service_definition_get_config,
+            std::bind(&module::service_get_config, this, _1, _2));
+}
+        
 void module::_init() {
     mod_configure           = (mod_configure_t)         dlsym(so_handle, "mod_configure");
     mod_unconfigure         = (mod_unconfigure_t)       dlsym(so_handle, "mod_unconfigure");

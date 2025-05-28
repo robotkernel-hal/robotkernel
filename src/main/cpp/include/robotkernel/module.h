@@ -50,7 +50,6 @@ namespace robotkernel {
 #endif
 
 class kernel_worker;
-class module_v2;
 
 //! module class
 /*!
@@ -61,8 +60,6 @@ class module :
     public robotkernel::so_file,
     public robotkernel::trigger_base
 {
-    friend class module_v2;
-
     private:
         module();
         module(const module&);             // prevent copy-construction
@@ -97,7 +94,8 @@ class module :
 
         typedef std::list<external_trigger *> trigger_list_t; //! trigger list
         typedef std::list<std::string> depend_list_t;         //! dependency list
-
+        typedef std::list<std::string> exclude_list_t;         //! dependency list
+        
         //! module construction
         /*!
          * \param node configuration node
@@ -182,11 +180,16 @@ class module :
         void set_power_up(module_state_t power_up_state) {
             power_up = power_up_state;
         }
+        
+        const exclude_list_t& get_excludes();           //!< return exclude list
+        void add_excludes(std::string other_module);    //!< add new exclude
+        void remove_excludes(std::string other_module); //!< remove exclude
 
         friend YAML::Emitter& (::operator<<)(YAML::Emitter& out,
                 const robotkernel::module& mdl);
 
         depend_list_t depends;          //! module dependecy list
+        exclude_list_t excludes;        //! module exclude list
         trigger_list_t triggers;        //! module trigger list
 
     private:
@@ -234,45 +237,22 @@ inline void module::remove_depends(std::string other_module) {
     }
 }
 
-typedef std::shared_ptr<module> sp_module_t;
-typedef std::map<std::string, sp_module_t> module_map_t;
-
 //! return power up state
 inline const module_state_t module::get_power_up() {
     return power_up;
 }
 
-// module_v2, new module class, derived from module to stay compatible with
-// old previously compiled modules. 
-class module_v2 : public module {
-    public:
-        typedef std::list<std::string> exclude_list_t;         //! dependency list
-        
-        exclude_list_t excludes;          //! module dependecy list
-        
-    public:
-        //! module construction
-        /*!
-         * \param node configuration node
-         */
-        module_v2(const YAML::Node& node);
-
-        const exclude_list_t& get_excludes();           //!< return exclude list
-        void add_excludes(std::string other_module);    //!< add new exclude
-        void remove_excludes(std::string other_module); //!< remove exclude
-};
-
 //! return dependency list
-inline const module_v2::exclude_list_t& module_v2::get_excludes() {
+inline const module::exclude_list_t& module::get_excludes() {
     return excludes;
 }
 
 //! add new exclude
-inline void module_v2::add_excludes(std::string other_module) {
+inline void module::add_excludes(std::string other_module) {
     excludes.push_back(other_module);
 }
 
-inline void module_v2::remove_excludes(std::string other_module) {
+inline void module::remove_excludes(std::string other_module) {
     for(exclude_list_t::iterator i = excludes.begin();
             i != excludes.end(); ) {
 
@@ -286,6 +266,8 @@ inline void module_v2::remove_excludes(std::string other_module) {
     }
 }
 
+typedef std::shared_ptr<module> sp_module_t;
+typedef std::map<std::string, sp_module_t> module_map_t;
 
 #ifdef EMACS
 {
