@@ -117,7 +117,7 @@ void kernel::trace_write(const char *fmt, ...) {
 }
 
 //! kernel singleton instance
-kernel_v2 *kernel::instance = NULL;
+kernel *kernel::instance = NULL;
 
 //! set state of module
 /*!
@@ -371,11 +371,6 @@ kernel::kernel() {
     log(info, PACKAGE_STRING "\n");
 }
         
-kernel_v2::kernel_v2() : kernel::kernel()
-{
-    log(info, "creating kernel_v2\n");
-}
-
 //! destruction
 kernel::~kernel() {
     log(info, "destructing...\n");
@@ -453,7 +448,7 @@ kernel::~kernel() {
  */
 kernel * kernel::get_instance() {
     if (!instance) {
-        instance = new kernel_v2();
+        instance = new kernel();
         instance->rk_log.start();
     }
 
@@ -476,7 +471,7 @@ void kernel::destroy_instance() {
  *
  * \throw Exception if datatype was already found.
  */
-void kernel_v2::add_datatype_desc(const std::string& name, const std::string& desc) {
+void kernel::add_datatype_desc(const std::string& name, const std::string& desc) {
     datatypes_map_t::iterator dtm_it = datatypes_map.find(name);
 
     if (dtm_it != datatypes_map.end()) {
@@ -499,7 +494,7 @@ void kernel_v2::add_datatype_desc(const std::string& name, const std::string& de
  *
  * \return String containing datatype description.
  */
-const std::string kernel_v2::get_datatype_desc(const std::string&name) {
+const std::string kernel::get_datatype_desc(const std::string&name) {
     datatypes_map_t::iterator dtm_it = datatypes_map.find(name);
 
     if (dtm_it == datatypes_map.end()) {

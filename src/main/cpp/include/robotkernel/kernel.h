@@ -53,12 +53,10 @@ namespace robotkernel {
 }
 #endif
 
-class kernel_v2;
-
 class kernel {
     private:
         //! kernel singleton instance
-        static kernel_v2 *instance;
+        static kernel *instance;
 
         kernel(const kernel &);             // prevent copy-construction
         kernel &operator=(const kernel &);  // prevent assignment
@@ -70,6 +68,9 @@ class kernel {
         std::recursive_mutex        module_map_mtx;             //!< module map lock
         service_map_t               services;                   //!< service list
         device_listener_map_t       dl_map;                     //!< device listeners
+
+        typedef std::map<std::string, std::string> datatypes_map_t;
+        datatypes_map_t datatypes_map;
 
         device_map_t device_map;
 
@@ -202,6 +203,25 @@ class kernel {
          * \return shared pointer to process data device
          */
         sp_stream_t get_stream(const std::string& name);
+        
+        //! Register a new datatype description
+        /*!
+         * \param[in]   name        Datatype name.
+         * \param[in]   desc        Datatype description.
+         *
+         * \throw Exception if datatype was already found.
+         */
+        void add_datatype_desc(const std::string& name, const std::string& desc);
+
+        //! get a registered datatype
+        /*!
+         * \param[in]   name        Datatype name.
+         *
+         * \throw Exception if datatype is not found.
+         *
+         * \return String containing datatype description.
+         */
+        const std::string get_datatype_desc(const std::string&name);
 
         //! get kernel singleton instance
         /*!
@@ -448,48 +468,6 @@ class kernel {
                 service_arglist_t &response);
         
         static const std::string service_definition_list_pd_injections;
-};
-
-// kernel_v2, new kernel class, derived from kernel to stay compatible with
-// old previously compiled modules. 
-class kernel_v2 : public kernel {
-    friend class kernel;
-
-    private:
-        typedef std::map<std::string, std::string> datatypes_map_t;
-        datatypes_map_t datatypes_map;
-
-    protected:
-        //! construction
-        /*!
-        */
-        kernel_v2();
-        
-    public:
-        //! Register a new datatype description
-        /*!
-         * \param[in]   name        Datatype name.
-         * \param[in]   desc        Datatype description.
-         *
-         * \throw Exception if datatype was already found.
-         */
-        void add_datatype_desc(const std::string& name, const std::string& desc);
-
-        //! get a registered datatype
-        /*!
-         * \param[in]   name        Datatype name.
-         *
-         * \throw Exception if datatype is not found.
-         *
-         * \return String containing datatype description.
-         */
-        const std::string get_datatype_desc(const std::string&name);
-        
-        //! get kernel singleton instance
-        /*!
-         * \return kernel singleton instance
-         */
-        static kernel_v2 *get_instance() { return (kernel_v2 *)kernel::get_instance(); }
 };
         
 // wrapper around \link get_device \endlink
