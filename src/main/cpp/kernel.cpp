@@ -925,8 +925,10 @@ void kernel::remove_device_listener(sp_device_listener_t dl) {
 // add a named device
 void kernel::add_device(sp_device_t req) {
     auto map_index = req->id();
-    if (device_map.find(map_index) != device_map.end())
+    if (device_map.find(map_index) != device_map.end()) {
+        log(warning, "duplicate regiser of device \"%s\", ignoring new device!\n", map_index.c_str());
         return; // already in
+    }
 
     log(verbose, "registered device \"%s\"\n", map_index.c_str());
     device_map[map_index] = req;
