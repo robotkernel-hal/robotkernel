@@ -214,7 +214,8 @@ class pd_injection_base
  * a double buffer support to ensure data consistency.
  */
 class process_data :
-    public device
+    public device,
+    public pd_injection_base 
 {
     private:
         process_data();     //!< prevent default construction
@@ -637,42 +638,6 @@ class triple_buffer :
 
         //! swaps the buffers and mark as written
         void swap_back();
-};
-
-class triple_buffer_with_injection :
-    public triple_buffer,
-    public pd_injection_base 
-{
-    private:
-        triple_buffer_with_injection();     //!< prevent default construction
-
-    public:
-        //! construction
-        /*!
-         * \param length byte length of process data
-         * \param owner name of owning module
-         * \param name process data name
-         * \param process_data_definition yaml-string representating the structure of the pd
-         */
-        triple_buffer_with_injection(size_t length, const std::string& owner, const std::string& name, 
-                const std::string& process_data_definition = "", const std::string& clk_device = "");
-
-        //! Pushes write data buffer to available on calling \link next \endlink.
-        /*
-         * \param[in] hash      hash value, get it with set_provider!
-         */
-        void push(const std::size_t& hash, bool do_trigger = true) override;
-
-        //! Write data to buffer.
-        /*!
-         * \param[in] hash      hash value, get it with set_provider!
-         * \param[in] offset    Process data offset from beginning of the buffer.
-         * \param[in] buf       Buffer with data to write to internal back buffer.
-         * \param[in] len       Length of data in buffer.
-         * \param[in] do_push   Push the buffer to set it to the actual one.
-         */
-        void write(const std::size_t& hash, off_t offset, uint8_t *buf, 
-                size_t len, bool do_push = true) override;
 };
 
 //! process data management class with pointer buffer

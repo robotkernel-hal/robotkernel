@@ -102,9 +102,24 @@ device(owner, name, "pd"), pd_cookie(0), length(length), clk_device(clk_device),
 /*
  * \param[in] hash      hash value, get it with set_provider!
  */
-void process_data::push(const std::size_t& hash, bool do_trigger) {
-    if (provider_hash != hash) {
+void process_data::push(sp_pd_provider_t& prov, bool do_trigger) {
+    if ((provider == nullptr) || (provider->hash != prov->hash)) {
         throw str_exception_tb("permission denied to push %s", id().c_str());
+    }
+
+    const auto& buf = next(prov);
+
+    for (auto& kv : pd_injections) {
+        auto& pd_entry = kv.second;
+
+        if (!pd_entry.initialized) {
+            find_pd_offset_and_type(pd_entry);
+            convert_str_val(pd_entry.type, pd_entry.value_string, pd_entry.value);
+
+            pd_entry.initialized = true;
+        }
+
+        inject_val(pd_entry, buf, length);
     }
 
     if (trigger_dev && do_trigger) {
@@ -460,59 +475,6 @@ void triple_buffer::swap_back() {
             ((old_indices & flip_buffer_mask) >> 2);
     } while(!indices.compare_exchange_weak(old_indices, new_indices,
                 std::memory_order_release, std::memory_order_relaxed));
-}
-
-//! construction
-/*!
- * \param length byte length of process data
- * \param owner name of owning module
- * \param name process data name
- * \param process_data_definition yaml-string representating the structure of the pd
- */
-triple_buffer_with_injection::triple_buffer_with_injection(size_t length, const std::string& owner, const std::string& name, 
-        const std::string& process_data_definition, const std::string& clk_device) :
-triple_buffer(length, owner, name, process_data_definition, clk_device) 
-{}
-
-//! Pushes write data buffer to available on calling \link next \endlink.
-/*
- * \param[in] hash      hash value, get it with set_provider!
- */
-void triple_buffer_with_injection::push(const std::size_t& hash, bool do_trigger) {
-    const auto& buf = next(hash);
-
-    for (auto& kv : pd_injections) {
-        auto& pd_entry = kv.second;
-
-        if (!pd_entry.initialized) {
-            find_pd_offset_and_type(pd_entry);
-            convert_str_val(pd_entry.type, pd_entry.value_string, pd_entry.value);
-
-            pd_entry.initialized = true;
-        }
-
-        inject_val(pd_entry, buf, length);
-    }
-
-    triple_buffer::push(hash, do_trigger);
-}
-
-//! Write data to buffer.
-/*!
- * \param[in] hash      hash value, get it with set_provider!
- * \param[in] offset    Process data offset from beginning of the buffer.
- * \param[in] buf       Buffer with data to write to internal back buffer.
- * \param[in] len       Length of data in buffer.
- * \param[in] do_push   Push the buffer to set it to the actual one.
- */
-void triple_buffer_with_injection::write(const std::size_t& hash, off_t offset, uint8_t *buf, 
-        size_t len, bool do_push) 
-{
-    triple_buffer::write(hash, offset, buf, len, false);
-
-    if (do_push) {
-        push(hash, true);
-    }
 }
 
 //! construction
