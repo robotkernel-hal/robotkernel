@@ -31,45 +31,44 @@
 using namespace std;
 using namespace robotkernel;
 
-class pd_wrapper : 
-    public std::enable_shared_from_this<pd_wrapper>,
-    public robotkernel::pd_consumer,
-    public robotkernel::pd_provider
-{   
+class pd_wrapper {
     public:
         sp_process_data_t pd_dev;
-        std::size_t hash;
-        int consumer;
 
     public:
-        pd_wrapper(sp_process_data_t pd_dev) : 
-            pd_consumer(string("kernel_c_pd_wrapper") + pd_dev->id()),
-            pd_provider(string("kernel_c_pd_wrapper") + pd_dev->id()),
-            pd_dev(pd_dev), hash(0), consumer(0) {
+        pd_wrapper(sp_process_data_t pd_dev) : pd_dev(pd_dev) {}
+        virtual ~pd_wrapper() {}
+};
+
+class pd_wrapper_consumer : public pd_wrapper {
+    public:
+        robotkernel::sp_pd_consumer_t cons;
+
+    public:
+        pd_wrapper_consumer(sp_process_data_t pd_dev) : pd_wrapper(pd_dev) {
+            cons = make_shared<robotkernel::pd_consumer>(string("kernel_c_pd_wrapper_consumer") + pd_dev->id());
+            pd_dev->set_consumer(cons);
         }
 
-        ~pd_wrapper() {
-            release();
+        virtual ~pd_wrapper_consumer() {
+            pd_dev->reset_consumer(cons);
+            cons = nullptr;
+        }
+};
+
+class pd_wrapper_provider : public pd_wrapper {
+    public:
+        robotkernel::sp_pd_provider_t prov;
+
+    public:
+        pd_wrapper_provider(sp_process_data_t pd_dev) : pd_wrapper(pd_dev) {
+            prov = make_shared<robotkernel::pd_provider>(string("kernel_c_pd_wrapper_provider") + pd_dev->id());
+            pd_dev->set_provider(prov);
         }
 
-        void aquire() {
-            if (consumer == 1) {
-                hash = pd_dev->set_consumer(shared_from_this());
-            } else {
-                hash = pd_dev->set_provider(shared_from_this());
-            }
-        }
-
-        void release() {
-            if (hash != 0) {
-                if (consumer) {
-                    pd_dev->reset_consumer(hash);
-                } else {
-                    pd_dev->reset_provider(hash);
-                }
-
-                hash = 0;
-            }
+        virtual ~pd_wrapper_provider() {
+            pd_dev->reset_provider(prov);
+            prov = nullptr;
         }
 };
 
@@ -87,12 +86,13 @@ extern "C" {
 pdhandle kernel_c_get_pd_handle(const char *pd_name, int consumer) {
     kernel& k = *(kernel::get_instance());
     auto pd_dev = k.get_process_data(string(pd_name));
+    pd_wrapper *hdl = nullptr;
 
-    std::shared_ptr<pd_wrapper> *hdl = new std::shared_ptr<pd_wrapper>();
-    *hdl = make_shared<pd_wrapper>(pd_dev);
-    auto obj = *hdl;
-    obj->consumer = consumer;
-    obj->aquire();
+    if (consumer) {
+        hdl = new pd_wrapper_provider(pd_dev);
+    } else {
+        hdl = new pd_wrapper_consumer(pd_dev);
+    }
 
     return (pdhandle)hdl;
 }
@@ -104,7 +104,7 @@ pdhandle kernel_c_get_pd_handle(const char *pd_name, int consumer) {
  * \return 0 on match, -1 otherwise.
  */
 int kernel_c_check_pd_desc(pdhandle hdl, const char *desc) {
-    auto obj = *(std::shared_ptr<pd_wrapper> *)hdl;
+    auto obj = (pd_wrapper *)hdl;
     return string(desc) != obj->pd_dev->process_data_definition;
 }
 
@@ -114,8 +114,8 @@ int kernel_c_check_pd_desc(pdhandle hdl, const char *desc) {
  * \return buffer for next outputs.
  */
 uint8_t *kernel_c_next_write_buffer(pdhandle hdl) {
-    auto obj = *(std::shared_ptr<pd_wrapper> *)hdl;
-    return obj->pd_dev->next(obj->hash);
+    auto obj = reinterpret_cast<pd_wrapper_provider *>((pd_wrapper *)hdl);
+    return obj->pd_dev->next(obj->prov);
 }
 
 //! Push next write buffer to be set as outputs.
@@ -123,8 +123,8 @@ uint8_t *kernel_c_next_write_buffer(pdhandle hdl) {
  * \param[in]   hdl         Handle of robotkernel-5 process data retreaved from <get_pd_handle>.
  */
 void kernel_c_push_write_buffer(pdhandle hdl) {
-    auto obj = *(std::shared_ptr<pd_wrapper> *)hdl;
-    obj->pd_dev->push(obj->hash);
+    auto obj = reinterpret_cast<pd_wrapper_provider *>((pd_wrapper *)hdl);
+    obj->pd_dev->push(obj->prov);
 }
 
 /*! Get actual read buffer with valid inputs.
@@ -132,7 +132,7 @@ void kernel_c_push_write_buffer(pdhandle hdl) {
  * \return buffer to be read with valid inputs.
  */
 uint8_t *kernel_c_act_read_buffer(pdhandle hdl) {
-    auto obj = *(std::shared_ptr<pd_wrapper> *)hdl;
+    auto obj = reinterpret_cast<pd_wrapper_consumer *>((pd_wrapper *)hdl);
     return obj->pd_dev->peek();
 }
 
@@ -140,18 +140,15 @@ uint8_t *kernel_c_act_read_buffer(pdhandle hdl) {
  * \param[in]   hdl         Handle of robotkernel-5 process data retreaved from <get_pd_handle>.
  */
 void kernel_c_pop_read_buffer(pdhandle hdl) {
-    auto obj = *(std::shared_ptr<pd_wrapper> *)hdl;
-    obj->pd_dev->pop(obj->hash);
+    auto obj = reinterpret_cast<pd_wrapper_consumer *>((pd_wrapper *)hdl);
+    obj->pd_dev->pop(obj->cons);
 }
 
 /*! Release process data handle (Deregisters as consumer or provider)
  * \param[in]   hdl         Handle of robotkernel-5 process data retreaved from <get_pd_handle>.
  */
 void kernel_c_release_pd_handle(pdhandle hdl) {
-    auto obj = *(std::shared_ptr<pd_wrapper> *)hdl;
-    obj->release();
-
-    delete (std::shared_ptr<pd_wrapper> *)hdl;
+    delete (pd_wrapper *)hdl;
 }
 
 #ifdef EMACS_IS_STUPID

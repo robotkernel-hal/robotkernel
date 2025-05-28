@@ -82,7 +82,7 @@ pd_entry::pd_entry(std::shared_ptr<process_data> pd,
 process_data::process_data(size_t length, const std::string& owner, const std::string& name, 
         const std::string& process_data_definition, const std::string& clk_device) :
 device(owner, name, "pd"), pd_cookie(0), length(length), clk_device(clk_device),
-    process_data_definition(process_data_definition), provider_hash(0), consumer_hash(0)
+    process_data_definition(process_data_definition)
 {
     kernel& k = *(kernel::get_instance());
 
@@ -95,6 +95,15 @@ device(owner, name, "pd"), pd_cookie(0), length(length), clk_device(clk_device),
         k.add_device(trigger_dev);
 
         trigger_dev_generated = true;
+    }
+}
+        
+process_data::~process_data() {
+    kernel& k = *(kernel::get_instance());
+
+    if (trigger_dev_generated) {
+        k.remove_device(trigger_dev);
+        trigger_dev = nullptr;
     }
 }
        
@@ -127,7 +136,6 @@ void process_data::push(sp_pd_provider_t& prov, bool do_trigger) {
     }
 }
 
-
 //! Return data type length from string
 /*!
  * \param[in]   dt_name         String representation of datatype.
@@ -159,7 +167,7 @@ pd_data_types process_data::get_data_type(const std::string& dt_name) {
  * \param[in]   field_name      Name of member to find.
  * \param[out]  type_str        Type as string.
  * \param[out]  type            Type as enum.
- * \param[out]  offset          Byte offset of member.
+ * \param[out]  offset          Byte offset of memberi
  */
 void process_data::find_pd_offset_and_type(const std::string& field_name, 
         std::string& type_str, pd_data_types& type, off_t& offset) {
@@ -201,6 +209,46 @@ void process_data::find_pd_offset_and_type(const std::string& field_name,
  */
 void process_data::find_pd_offset_and_type(pd_entry_t& e) {
     find_pd_offset_and_type(e.field_name, e.type_str, e.type, e.offset);
+}
+
+//! set data provider thread, only thread allowed to write and push
+void process_data::set_provider(sp_pd_provider_t& prov) { 
+    if (    (provider != nullptr) && 
+            (provider != prov)) {
+        throw str_exception_tb("cannot set provider for %s, already have one!", id().c_str());
+    }
+
+    provider = prov;
+    prov->hash = std::hash<std::shared_ptr<robotkernel::pd_provider> >{}(prov);
+}
+
+//! reset data provider thread
+void process_data::reset_provider(sp_pd_provider_t& prov) {
+    if (prov->hash != provider->hash) {
+        throw str_exception_tb("cannot reset provider for %s: you are not the provider!", id().c_str());
+    }
+
+    prov->hash = 0;
+    provider = nullptr;
+}
+
+//!< set main consumer thread, only thread allowed to pop
+void process_data::set_consumer(sp_pd_consumer_t& cons) {
+    if (    (consumer != nullptr) &&
+            (consumer != cons))
+        throw str_exception_tb("cannot set consumer for %s: already have one!", id().c_str());
+
+    consumer = cons;
+    cons->hash = std::hash<std::shared_ptr<robotkernel::pd_consumer> >{}(cons);
+}
+
+//! reset main consumer thread
+void process_data::reset_consumer(sp_pd_consumer_t& cons) {
+    if (cons->hash != consumer->hash)
+        throw str_exception_tb("cannot reset consumer for %s: you are not the consumer!", id().c_str());
+
+    cons->hash = 0;
+    consumer = nullptr;
 }
         
 //! inject value to process data
@@ -249,8 +297,8 @@ process_data(length, owner, name, process_data_definition, clk_device)
 /*
  * \param[in] hash      hash value, get it with set_provider!
  */
-uint8_t* single_buffer::next(const std::size_t& hash) {
-    process_data::next(hash);
+uint8_t* single_buffer::next(sp_pd_provider_t& prov) {
+    process_data::next(prov);
 
     return (uint8_t *)&data[0];
 }
@@ -266,7 +314,9 @@ uint8_t* single_buffer::peek() {
 /*
  * \param[in] hash      hash value, get it with set_consumer!
  */
-uint8_t* single_buffer::pop(const std::size_t& hash) {
+uint8_t* single_buffer::pop(sp_pd_consumer_t& cons) {
+    (void)process_data::pop(cons); 
+
     return (uint8_t *)&data[0];
 }
 
@@ -278,10 +328,10 @@ uint8_t* single_buffer::pop(const std::size_t& hash) {
  * \param[in] len       Length of data in buffer.
  * \param[in] do_push   Push the buffer to set it to the actual one.
  */
-void single_buffer::write(const std::size_t& hash, off_t offset, uint8_t *buf, 
+void single_buffer::write(sp_pd_provider_t& prov, off_t offset, uint8_t *buf, 
         size_t len, bool do_push) 
 {
-    process_data::write(hash, offset, buf, len, do_push);
+    process_data::write(prov, offset, buf, len, do_push);
 
     if ((offset + len) > length)
         throw str_exception_tb("wanted to write to many bytes: %d > length %d\n",
@@ -298,9 +348,11 @@ void single_buffer::write(const std::size_t& hash, off_t offset, uint8_t *buf,
  * \param[in] len       Length of data in buffer.
  * \param[in] do_pop    Pop the buffer and consume it.
  */
-void single_buffer::read(const std::size_t& hash, off_t offset, uint8_t *buf, 
+void single_buffer::read(sp_pd_consumer_t& cons, off_t offset, uint8_t *buf, 
         size_t len, bool do_pop) 
 {
+    process_data::read(cons, offset, buf, len, do_pop);
+
     if ((offset + len) > length)
         throw str_exception_tb("wanted to read to many bytes: %d > length %d\n",
                 (offset + len), length);
@@ -332,8 +384,8 @@ process_data(length, owner, name, process_data_definition, clk_device)
 /*
  * \param[in] hash      hash value, get it with set_provider!
  */
-uint8_t* triple_buffer::next(const std::size_t& hash) {
-    process_data::next(hash);
+uint8_t* triple_buffer::next(sp_pd_provider_t& prov) {
+    (void)process_data::next(prov);
 
     auto& tmp_buf = back_buffer();
     return (uint8_t *)&tmp_buf[0];
@@ -351,8 +403,8 @@ uint8_t* triple_buffer::peek() {
 /* 
  * \param[in] hash      hash value, get it with set_consumer!
  */
-uint8_t* triple_buffer::pop(const std::size_t& hash) {
-    process_data::pop(hash);
+uint8_t* triple_buffer::pop(sp_pd_consumer_t& cons) {
+    (void)process_data::pop(cons);
 
     swap_front();
 
@@ -364,8 +416,8 @@ uint8_t* triple_buffer::pop(const std::size_t& hash) {
 /*
  * \param[in] hash      hash value, get it with set_provider!
  */
-void triple_buffer::push(const std::size_t& hash, bool do_trigger) {
-    process_data::push(hash, do_trigger);
+void triple_buffer::push(sp_pd_provider_t& prov, bool do_trigger) {
+    process_data::push(prov, do_trigger);
 
     swap_back();
 }
@@ -378,10 +430,10 @@ void triple_buffer::push(const std::size_t& hash, bool do_trigger) {
  * \param[in] len       Length of data in buffer.
  * \param[in] do_push   Push the buffer to set it to the actual one.
  */
-void triple_buffer::write(const std::size_t& hash, off_t offset, uint8_t *buf, 
+void triple_buffer::write(sp_pd_provider_t& prov, off_t offset, uint8_t *buf, 
         size_t len, bool do_push) 
 {
-    process_data::write(hash, offset, buf, len, do_push);
+    process_data::write(prov, offset, buf, len, do_push);
 
     if ((offset + len) > length)
         throw str_exception_tb("wanted to write to many bytes: %d > length %d\n",
@@ -402,10 +454,10 @@ void triple_buffer::write(const std::size_t& hash, off_t offset, uint8_t *buf,
  * \param[in] len       Length of data in buffer.
  * \param[in] do_pop    Pop the buffer and consume it.
  */
-void triple_buffer::read(const std::size_t& hash, off_t offset, uint8_t *buf, 
+void triple_buffer::read(sp_pd_consumer_t& cons, off_t offset, uint8_t *buf, 
         size_t len, bool do_pop) 
 {
-    process_data::read(hash, offset, buf, len, do_pop);
+    process_data::read(cons, offset, buf, len, do_pop);
 
     if ((offset + len) > length)
         throw str_exception_tb("wanted to read to many bytes: %d > length %d\n",
@@ -494,8 +546,8 @@ pointer_buffer::pointer_buffer(size_t length, uint8_t *ptr, const std::string& o
 /*
  * \param[in] hash      hash value, get it with set_provider!
  */
-uint8_t* pointer_buffer::next(const std::size_t& hash) {
-    process_data::next(hash);
+uint8_t* pointer_buffer::next(sp_pd_provider_t& prov) {
+    (void)process_data::next(prov);
 
     return ptr;
 }
@@ -511,7 +563,9 @@ uint8_t* pointer_buffer::peek() {
 /*
  * \param[in] hash      hash value, get it with set_consumer!
  */
-uint8_t* pointer_buffer::pop(const std::size_t& hash) {
+uint8_t* pointer_buffer::pop(sp_pd_consumer_t& cons) {
+    (void)process_data::pop(cons);
+
     return ptr;
 }
 
@@ -523,10 +577,10 @@ uint8_t* pointer_buffer::pop(const std::size_t& hash) {
  * \param[in] len       Length of data in buffer.
  * \param[in] do_push   Push the buffer to set it to the actual one.
  */
-void pointer_buffer::write(const std::size_t& hash, off_t offset, uint8_t *buf, 
+void pointer_buffer::write(sp_pd_provider_t& prov, off_t offset, uint8_t *buf, 
         size_t len, bool do_push) 
 {
-    process_data::write(hash, offset, buf, len, do_push);
+    process_data::write(prov, offset, buf, len, do_push);
 
     if ((offset + len) > length)
         throw str_exception_tb("wanted to write to many bytes: %d > length %d\n",
@@ -543,9 +597,11 @@ void pointer_buffer::write(const std::size_t& hash, off_t offset, uint8_t *buf,
  * \param[in] len       Length of data in buffer.
  * \param[in] do_pop    Pop the buffer and consume it.
  */
-void pointer_buffer::read(const std::size_t& hash, off_t offset, uint8_t *buf, 
+void pointer_buffer::read(sp_pd_consumer_t& cons, off_t offset, uint8_t *buf, 
         size_t len, bool do_pop) 
 {
+    process_data::read(cons, offset, buf, len, do_pop);
+
     if ((offset + len) > length)
         throw str_exception_tb("wanted to read to many bytes: %d > length %d\n",
                 (offset + len), length);

@@ -1310,9 +1310,9 @@ int kernel::service_process_data_info(const service_arglist_t &request,
             definiton = pd->process_data_definition;
             clk_device = pd->clk_device;
             if (pd->provider)
-                provider  = pd->provider->provider_name;
+                provider  = pd->provider->name;
             if (pd->consumer)
-                consumer  = pd->consumer->consumer_name;
+                consumer  = pd->consumer->name;
             length    = pd->length;
         } else 
             error_message = 
@@ -1487,10 +1487,6 @@ int kernel::service_add_pd_injection(const service_arglist_t &request,
         if (retval) {
             pd_entry_t e(pd, field_name, value_string, bitmask_string);
             retval->add_injection(e);
-
-            if (pd->provider_hash == 0) {
-                pd->push(0);
-            }
         } else {
             error_message = format_string("pd device %s does not support injection!", pd_dev.c_str());
         }

@@ -90,45 +90,27 @@ inline void convert_str_val(const pd_data_types& type, const std::string& value_
  * derive from this class, if you want to register yourself as
  * process data provider
  */
-class pd_provider {
+class pd_provcon_base {
     public:
-        std::string provider_name;
+        std::string name;
+        size_t hash;
 
-        pd_provider(const std::string& provider_name) : 
-            provider_name(provider_name) {}
+        pd_provcon_base(const std::string& name) : 
+            name(name), hash(0) {}
 };
 
-//! process data consumer class
-/*!
- * derive from this class, if you want to register yourself as
- * process data consumer
- */
-class pd_consumer {
+class pd_provider : public pd_provcon_base {
     public:
-        std::string consumer_name;
+        pd_provider(const std::string& name) : pd_provcon_base(name) {}
+};
 
-        pd_consumer(const std::string& consumer_name) : 
-            consumer_name(consumer_name) {}
+class pd_consumer : public pd_provcon_base {
+    public:
+        pd_consumer(const std::string& name) : pd_provcon_base(name) {}
 };
     
-class provider : public pd_provider {
-    public:
-        provider(const std::string& provider_name = "") : 
-            pd_provider(provider_name), hash(0) {};
-
-        size_t hash;
-};
-
-class consumer : public pd_consumer {
-    public:
-        consumer(const std::string& consumer_name = "") :
-            pd_consumer(consumer_name), hash(0) {};
-
-        size_t hash;
-};
-
-typedef std::shared_ptr<provider> sp_provider_t;
-typedef std::shared_ptr<consumer> sp_consumer_t;
+typedef std::shared_ptr<pd_provider> sp_pd_provider_t;
+typedef std::shared_ptr<pd_consumer> sp_pd_consumer_t;
 
         
 typedef struct pd_entry {
@@ -230,27 +212,22 @@ class process_data :
          */
         process_data(size_t length, const std::string& owner, const std::string& name, 
                 const std::string& process_data_definition = "", const std::string& clk_device = "");
+        virtual ~process_data();
 
         //! Get a pointer to the a data buffer which we can write next, has to be
         //  completed with calling \link push \endlink
         /*
          * \param[in] hash      hash value, get it with set_provider!
          */
-        virtual uint8_t* next(const std::size_t& hash) {
-            if (    (provider_hash != hash))
+        virtual uint8_t* next(sp_pd_provider_t& prov) {
+            if ((provider == nullptr) || (provider->hash != prov->hash)) {
                 throw str_exception_tb("permission denied to write to %s", id().c_str());
+            }
 
             return nullptr;
         }
 
         virtual void trigger(void) { trigger_dev->trigger_modules(); }
-        
-        //! Get a pointer to the a data buffer which we can write next, has to be
-        //  completed with calling \link push \endlink
-        /*
-         * \param[in] prov      provider, set it with set_provider!
-         */
-        virtual uint8_t* next(sp_provider_t& prov) { return this->next(prov->hash); }
 
         //! Get a pointer to the last written data without consuming it, 
         //  which will be available on calling \link pop \endlink
@@ -261,31 +238,20 @@ class process_data :
         /*
          * \param[in] hash      hash value, get it with set_consumer!
          */
-        virtual uint8_t* pop(const std::size_t& hash) {
-            if (consumer_hash != hash)
-                throw str_exception_tb("permission denied to pop %s: consumer_hash %d, your hash %d", id().c_str(), consumer_hash, hash);
+        virtual uint8_t* pop(sp_pd_consumer_t& cons) {
+            if ((consumer == nullptr) || (consumer->hash != cons->hash)) {
+                throw str_exception_tb("permission denied to pop %s: consumer_hash %d, your hash %d", 
+                        id().c_str(), consumer->hash, cons->hash);
+            }
 
             return nullptr;
         }
-        
-        //! Get a pointer to the actual read data. This call
-        //  will consume the data.
-        /*
-         * \param[in] cons      consumer, set it with set_consumer!
-         */
-        virtual uint8_t* pop(sp_consumer_t& cons) { return this->pop(cons->hash); }
-
-        //! Pushes write data buffer to available on calling \link next \endlink.
-        /*
-         * \param[in] hash      hash value, get it with set_provider!
-         */
-        virtual void push(const std::size_t& hash, bool do_trigger = true);
 
         //! Pushes write data buffer to available on calling \link next \endlink.
         /*
          * \param[in] proc      provider, set it with set_provider!
          */
-        virtual void push(sp_provider_t& prov, bool do_trigger = true) { this->push(prov->hash, do_trigger); }
+        virtual void push(sp_pd_provider_t& prov, bool do_trigger = true);
 
         //! Write data to buffer.
         /*!
@@ -295,24 +261,13 @@ class process_data :
          * \param[in] len       Length of data in buffer.
          * \param[in] do_push   Push the buffer to set it to the actual one.
          */
-        virtual void write(const std::size_t& hash, off_t offset, uint8_t *buf, 
+        virtual void write(sp_pd_provider_t& prov, off_t offset, uint8_t *buf, 
             size_t len, bool do_push = true) 
         {
-            if (provider_hash != hash)
+            if ((provider == nullptr) || (provider->hash != prov->hash)) {
                 throw str_exception_tb("permission denied to write to %s", id().c_str());
+            }
         }
-        
-        //! Write data to buffer.
-        /*!
-         * \param[in] prov      provider, set it with set_provider!
-         * \param[in] offset    Process data offset from beginning of the buffer.
-         * \param[in] buf       Buffer with data to write to internal back buffer.
-         * \param[in] len       Length of data in buffer.
-         * \param[in] do_push   Push the buffer to set it to the actual one.
-         */
-        virtual void write(sp_provider_t& prov, off_t offset, uint8_t *buf, 
-            size_t len, bool do_push = true) 
-        { this->write(prov->hash, offset, buf, len, do_push); }
 
         //! Read data from buffer.
         /*!
@@ -322,107 +277,30 @@ class process_data :
          * \param[in] len       Length of data in buffer.
          * \param[in] do_pop    Pop the buffer and consume it.
          */
-        virtual void read(const std::size_t& hash, off_t offset, uint8_t *buf, 
+        virtual void read(sp_pd_consumer_t& cons, off_t offset, uint8_t *buf, 
                 size_t len, bool do_pop = true) 
         {
-            if (    do_pop &&
-                    (consumer_hash != hash))
-                throw str_exception_tb("permission denied to pop %s: consumer_hash %d, your hash %d", id().c_str(), consumer_hash, hash);
+            if (do_pop && ((consumer == nullptr) || (consumer->hash != cons->hash))) {
+                throw str_exception_tb("permission denied to pop %s: consumer_hash %d, your hash %d", 
+                        id().c_str(), consumer->hash, cons->hash);
+            }
         }
-        
-        //! Read data from buffer.
-        /*!
-         * \param[in] cons      consumer, set it with set_consumer!
-         * \param[in] offset    Process data offset from beginning of the buffer.
-         * \param[in] buf       Buffer with data to write to from internal front buffer.
-         * \param[in] len       Length of data in buffer.
-         * \param[in] do_pop    Pop the buffer and consume it.
-         */
-        virtual void read(sp_consumer_t& cons, off_t offset, uint8_t *buf, 
-                size_t len, bool do_pop = true) { this->read(cons->hash, offset, buf, len, do_pop); }
 
         //! Returns true if new data has been written
         virtual bool new_data() { return true; }
 
         //! set data provider thread, only thread allowed to write and push
-        std::size_t set_provider(std::shared_ptr<robotkernel::pd_provider> mod) {
-            if (    (provider != nullptr) && 
-                    (provider != mod))
-                throw str_exception_tb("cannot set provider for %s, already have one!", id().c_str());
-
-            provider = mod;
-            provider_hash = std::hash<std::shared_ptr<robotkernel::pd_provider> >{}(mod);
-
-            return provider_hash;
-        }
-        
-        //! set data provider thread, only thread allowed to write and push
-        void set_provider(sp_provider_t& prov) { 
-            if (    (provider != nullptr) && 
-                    (provider != prov))
-                throw str_exception_tb("cannot set provider for %s, already have one!", id().c_str());
-
-            provider = prov;
-            provider_hash = std::hash<std::shared_ptr<robotkernel::pd_provider> >{}(prov);
-            prov->hash = provider_hash;
-        }
+        void set_provider(robotkernel::sp_pd_provider_t& prov);
 
         //! reset data provider thread
-        void reset_provider(const std::size_t& hash) {
-            if (provider_hash != hash)
-                throw str_exception_tb("cannot reset provider for %s: you are not the provider!", id().c_str());
-
-            provider_hash = 0;
-            provider = nullptr;
-        }
-        
-        //! reset data provider thread
-        void reset_provider(sp_provider_t& prov) {
-            if (prov != provider)
-                throw str_exception_tb("cannot reset provider for %s: you are not the provider!", id().c_str());
-
-            this->reset_provider(prov->hash);
-        }
+        void reset_provider(sp_pd_provider_t& prov);
 
         //!< set main consumer thread, only thread allowed to pop
-        std::size_t set_consumer(std::shared_ptr<robotkernel::pd_consumer> mod) {
-            if (    (consumer != nullptr) &&
-                    (consumer != mod))
-                throw str_exception_tb("cannot set consumer for %s: already have one!", id().c_str());
+        void set_consumer(robotkernel::sp_pd_consumer_t& cons);
 
-            consumer = mod;
-            consumer_hash = std::hash<std::shared_ptr<robotkernel::pd_consumer> >{}(mod);
-
-            return consumer_hash;
-        }
-        
-        //!< set main consumer thread, only thread allowed to pop
-        void set_consumer(sp_consumer_t& cons) {
-            if (    (consumer != nullptr) &&
-                    (consumer != cons))
-                throw str_exception_tb("cannot set consumer for %s: already have one!", id().c_str());
-
-            consumer = cons;
-            consumer_hash = std::hash<std::shared_ptr<robotkernel::pd_consumer> >{}(cons);
-            cons->hash = consumer_hash;
-        }
         
         //! reset main consumer thread
-        void reset_consumer(const std::size_t& hash) {
-            if (consumer_hash != hash)
-                throw str_exception_tb("cannot reset consumer for %s: you are not the consumer!", id().c_str());
-
-            consumer_hash = 0;
-            consumer = nullptr;
-        }
-
-        //! reset main consumer thread
-        void reset_consumer(sp_consumer_t& cons) {
-            if (cons != consumer)
-                throw str_exception_tb("cannot reset consumer for %s: you are not the consumer!", id().c_str());
-
-            this->reset_consumer(cons->hash);
-        }
+        void reset_consumer(sp_pd_consumer_t& cons);
 
         //! Find offset and type of given process data member.
         /*!
@@ -463,9 +341,7 @@ class process_data :
 
         std::shared_ptr<robotkernel::trigger> trigger_dev;
         std::shared_ptr<robotkernel::pd_provider> provider;
-        std::size_t provider_hash;
         std::shared_ptr<robotkernel::pd_consumer> consumer;
-        std::size_t consumer_hash;
 
     private: 
         bool trigger_dev_generated = false;
@@ -501,7 +377,7 @@ class single_buffer :
         /*
          * \param[in] hash      hash value, get it with set_provider!
          */
-        uint8_t* next(const std::size_t& hash) override;
+        uint8_t* next(sp_pd_provider_t& prov) override;
 
         //! Get a pointer to the last written data without consuming it, 
         //  which will be available on calling \link pop \endlink
@@ -512,7 +388,7 @@ class single_buffer :
         /*
          * \param[in] hash      hash value, get it with set_consumer!
          */
-        uint8_t* pop(const std::size_t& hash) override;
+        uint8_t* pop(sp_pd_consumer_t& cons) override;
 
         //! Write data to buffer.
         /*!
@@ -522,7 +398,7 @@ class single_buffer :
          * \param[in] len       Length of data in buffer.
          * \param[in] do_push   Push the buffer to set it to the actual one.
          */
-        void write(const std::size_t& hash, off_t offset, uint8_t *buf, 
+        void write(sp_pd_provider_t& prov, off_t offset, uint8_t *buf, 
                 size_t len, bool do_push = true) override;
 
         //! Read data from buffer.
@@ -533,7 +409,7 @@ class single_buffer :
          * \param[in] len       Length of data in buffer.
          * \param[in] do_pop    Pop the buffer and consume it.
          */
-        void read(const std::size_t& hash, off_t offset, uint8_t *buf, 
+        void read(sp_pd_consumer_t& cons, off_t offset, uint8_t *buf, 
                 size_t len, bool do_pop = true) override;
 };
 
@@ -579,7 +455,7 @@ class triple_buffer :
         /*
          * \param[in] hash      hash value, get it with set_provider!
          */
-        uint8_t* next(const std::size_t& hash) override;
+        uint8_t* next(sp_pd_provider_t& prov) override;
 
         //! Get a pointer to the last written data without consuming it, 
         //  which will be available on calling \link pop \endlink
@@ -590,13 +466,13 @@ class triple_buffer :
         /* 
          * \param[in] hash      hash value, get it with set_consumer!
          */
-        uint8_t* pop(const std::size_t& hash) override;
+        uint8_t* pop(sp_pd_consumer_t& cons) override;
 
         //! Pushes write data buffer to available on calling \link next \endlink.
         /*
          * \param[in] hash      hash value, get it with set_provider!
          */
-        void push(const std::size_t& hash, bool do_trigger = true) override;
+        void push(sp_pd_provider_t& prov, bool do_trigger = true) override;
 
         //! Write data to buffer.
         /*!
@@ -606,7 +482,7 @@ class triple_buffer :
          * \param[in] len       Length of data in buffer.
          * \param[in] do_push   Push the buffer to set it to the actual one.
          */
-        void write(const std::size_t& hash, off_t offset, uint8_t *buf, 
+        void write(sp_pd_provider_t& prov, off_t offset, uint8_t *buf, 
                 size_t len, bool do_push = true) override;
 
         //! Read data from buffer.
@@ -617,7 +493,7 @@ class triple_buffer :
          * \param[in] len       Length of data in buffer.
          * \param[in] do_pop    Pop the buffer and consume it.
          */
-        void read(const std::size_t& hash, off_t offset, uint8_t *buf, 
+        void read(sp_pd_consumer_t& cons, off_t offset, uint8_t *buf, 
                 size_t len, bool do_pop = true) override;
 
         //! Returns true if new data has been written
@@ -665,12 +541,21 @@ class pointer_buffer :
         pointer_buffer(size_t length, uint8_t *ptr, const std::string& owner, const std::string& name, 
                 const std::string& process_data_definition = "", const std::string& clk_device = "");
         
+        void set_ptr(sp_pd_provider_t& prov, uint8_t *ptr) {
+            if ((provider == nullptr) || (provider->hash != prov->hash)) {
+                throw str_exception_tb("permission denied set pointer %s: provider_hash %d, your hash %d", 
+                        id().c_str(), provider->hash, prov->hash);
+            }
+
+            this->ptr = ptr;
+        }
+
         //! Get a pointer to the a data buffer which we can write next, has to be
         //  completed with calling \link push \endlink
         /*
          * \param[in] hash      hash value, get it with set_provider!
          */
-        uint8_t* next(const std::size_t& hash) override;
+        uint8_t* next(sp_pd_provider_t& prov) override;
 
         //! Get a pointer to the last written data without consuming it, 
         //  which will be available on calling \link pop \endlink
@@ -681,7 +566,7 @@ class pointer_buffer :
         /*
          * \param[in] hash      hash value, get it with set_consumer!
          */
-        uint8_t* pop(const std::size_t& hash) override;
+        uint8_t* pop(sp_pd_consumer_t& cons) override;
 
         //! Write data to buffer.
         /*!
@@ -691,7 +576,7 @@ class pointer_buffer :
          * \param[in] len       Length of data in buffer.
          * \param[in] do_push   Push the buffer to set it to the actual one.
          */
-        void write(const std::size_t& hash, off_t offset, uint8_t *buf, 
+        void write(sp_pd_provider_t& prov, off_t offset, uint8_t *buf, 
                 size_t len, bool do_push = true) override;
 
         //! Read data from buffer.
@@ -702,7 +587,7 @@ class pointer_buffer :
          * \param[in] len       Length of data in buffer.
          * \param[in] do_pop    Pop the buffer and consume it.
          */
-        void read(const std::size_t& hash, off_t offset, uint8_t *buf, 
+        void read(sp_pd_consumer_t& cons, off_t offset, uint8_t *buf, 
                 size_t len, bool do_pop = true) override;
 };
 
