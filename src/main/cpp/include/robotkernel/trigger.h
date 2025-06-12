@@ -28,7 +28,8 @@
 
 #include <string>
 #include <mutex>
-#include "robotkernel/module_intf.h"
+
+// public headers
 #include "robotkernel/runnable.h"
 #include "robotkernel/device.h"
 #include "robotkernel/trigger_base.h"

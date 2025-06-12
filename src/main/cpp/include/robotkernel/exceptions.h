@@ -26,7 +26,6 @@
 #ifndef ROBOTKERNEL__EXCEPTIONS_H
 #define ROBOTKERNEL__EXCEPTIONS_H
 
-#include "robotkernel/module_intf.h"
 #include <exception>
 #include <iostream>
 #include <sstream>
@@ -36,6 +35,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include <stdarg.h>
+
 #include "string_util/string_util.h" // str_exception
 
 namespace robotkernel {

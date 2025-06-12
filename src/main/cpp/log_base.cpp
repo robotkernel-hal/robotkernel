@@ -24,15 +24,20 @@
  */
 
 #include <string_util/string_util.h>
+
+// public headers
 #include "robotkernel/log_base.h"
 #include "robotkernel/config.h"
 #include "robotkernel/service_definitions.h"
+
+// private headers
+#include "kernel.h"
 
 #if (HAVE_LTTNG_UST == 1)
 #define TRACEPOINT_CREATE_PROBES
 #define TRACEPOINT_DEFINE
 
-#include "robotkernel/lttng_tp.h"
+#include "lttng_tp.h"
 #endif
 
 using namespace std;
@@ -52,8 +57,7 @@ log_base::log_base(const std::string& name, const std::string& impl,
         const std::string& service_prefix, const YAML::Node& node) :
     name(name), impl(impl), service_prefix(service_prefix)
 {
-    kernel& k = *kernel::get_instance();
-    ll = k.get_loglevel();
+    ll = pkernel->get_loglevel();
 
     // search for loglevel
     if (node.IsDefined() && !node.IsNull()) {
@@ -79,7 +83,7 @@ log_base::log_base(const std::string& name, const std::string& impl,
     if (service_prefix != "") 
         service_name = service_prefix + "." + service_name;
 
-    k.add_service(name, service_name, log_base::service_definition_configure_loglevel,
+    pkernel->add_service(name, service_name, log_base::service_definition_configure_loglevel,
             std::bind(&log_base::service_configure_loglevel, this, _1, _2));
 }
 
@@ -89,8 +93,7 @@ log_base::~log_base() {
     if (service_prefix != "") 
         service_name = service_prefix + "." + service_name;
 
-    kernel& k = *kernel::get_instance();
-    k.remove_service(name, service_name);
+    pkernel->remove_service(name, service_name);
 }
 
 //! service to configure loglevels loglevel
@@ -127,54 +130,37 @@ int log_base::service_configure_loglevel(const service_arglist_t& request,
 
 //! log to kernel logging facility
 void log_base::log(loglevel lvl, const char *format, ...) {
-    kernel& k = *kernel::get_instance();
     struct log_thread::log_pool_object *obj;
 
-    char buf[1024];
-    int bufpos = 0;
-    bufpos += snprintf(buf+bufpos, sizeof(buf)-bufpos, "[%s|%s] ", 
+    if ((obj = pkernel->rk_log.get_pool_object()) != NULL) {
+        // only ifempty log pool avaliable!
+        obj->lvl = lvl;
+        int bufpos = snprintf(obj->buf+bufpos, sizeof(obj->buf)-bufpos, "[%s|%s] ", 
             name.c_str(), impl.c_str());
 
-    // format argument list    
-    va_list args;
-    va_start(args, format);
-    vsnprintf(buf+bufpos, sizeof(buf)-bufpos, format, args);
-    va_end(args);
-
-    if (lvl > ll)
-        goto log_exit;
-
-    if ((obj = k.rk_log.get_pool_object()) != NULL) {
-        // only ifempty log pool avaliable!
-        struct tm timeinfo;
-        struct timespec ts;
-        clock_gettime(CLOCK_REALTIME, &ts);
-        double timestamp = (double)ts.tv_sec + (ts.tv_nsec / 1e9);
-        time_t seconds = (time_t)timestamp;
-        double mseconds = (timestamp - (double)seconds) * 1000.;
-        localtime_r(&seconds, &timeinfo);
-        strftime(obj->buf, sizeof(obj->buf), "%F %T", &timeinfo);
-
-
-        int len = strlen(obj->buf);
-        snprintf(obj->buf + len, sizeof(obj->buf) - len, ".%03.0f ", mseconds);
-        len = strlen(obj->buf);
-        snprintf(obj->buf + len, sizeof(obj->buf) - len, "%s %s", 
-                k.ll_to_string(lvl).c_str(), buf);
-        k.rk_log.log(obj);
-    }
-
-log_exit:
-    if (k.do_log_to_trace_fd()) {
-        k.trace_write(buf);
-    }
+        // format argument list    
+        va_list args;
+        va_start(args, format);
+        vsnprintf(obj->buf+bufpos, sizeof(obj->buf)-bufpos, format, args);
+        va_end(args);
+    
+        if (pkernel->do_log_to_trace_fd()) {
+            pkernel->trace_write(obj->buf);
+        }
 
 #if (HAVE_LTTNG_UST == 1)
-    if (k.log_to_lttng_ust) {
-        tracepoint(robotkernel, lttng_log, buf);
-    }
+        if (pkernel->log_to_lttng_ust) {
+            tracepoint(robotkernel, lttng_log, obj->buf);
+        }
 #endif
 
-    dump_log(buf);
+        dump_log(obj->buf);
+
+        if (lvl > ll) {
+            pkernel->rk_log.return_pool_object(obj);
+        } else {
+            pkernel->rk_log.log(obj);
+        }
+    }
 }
 

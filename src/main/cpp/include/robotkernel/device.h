@@ -30,9 +30,6 @@
 #include <map>
 
 namespace robotkernel {
-#ifdef EMACS
-}
-#endif
 
 class device {
     public:
@@ -48,18 +45,17 @@ class device {
             owner(owner), device_name(device_name), suffix(suffix) {};
         virtual ~device() {};
 
-        std::string id() const {
-            return owner + std::string(".") + device_name + std::string(".") + suffix;
-        };
+        std::string id() const;
+};
+        
+inline std::string device::id() const {
+    return owner + std::string(".") + device_name + std::string(".") + suffix;
 };
 
 typedef std::shared_ptr<device> sp_device_t;
 typedef std::map<std::string, sp_device_t> device_map_t;
 
-#ifdef EMACS
-{
-#endif
-} // namespace robotkernel
+}; // namespace robotkernel
 
 #endif // ROBOTKERNEL__DEVICE_H
 

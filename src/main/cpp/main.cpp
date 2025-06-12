@@ -23,10 +23,13 @@
  * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// public headers
 #include "robotkernel/config.h"
-#include "robotkernel/kernel.h"
-#include "robotkernel/module_intf.h"
-#include "robotkernel/module.h"
+
+// private headers
+#include "kernel.h"
+#include "module.h"
+
 #include <stdio.h>
 #include <string>
 #include <string.h>

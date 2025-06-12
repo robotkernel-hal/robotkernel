@@ -23,8 +23,8 @@
  * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-#include "robotkernel/char_ringbuffer.h"
+// private headers
+#include "char_ringbuffer.h"
 
 using namespace std;
 using namespace robotkernel;

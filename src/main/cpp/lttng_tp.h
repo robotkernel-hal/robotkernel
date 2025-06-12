@@ -1,7 +1,6 @@
-//! robotkernel rt helpers
+//! robotkernel lttng tracepoints
 /*!
  * (C) Robert Burger <robert.burger@dlr.de>
- * (C) Jan Cremer <jan.cremer@dlr.de>
  */
 
 // vim: set expandtab softtabstop=4 shiftwidth=4
@@ -24,37 +23,40 @@
  * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#undef TRACEPOINT_PROVIDER
+#define TRACEPOINT_PROVIDER robotkernel
 
-#ifndef ROBOTKERNEL_RT_HELPER_H
-#define ROBOTKERNEL_RT_HELPER_H
+#undef TRACEPOINT_INCLUDE
+#define TRACEPOINT_INCLUDE "lttng_tp.h"
 
-#if defined (HAVE_PTHREAD_SETNAME_NP_3) || defined (HAVE_PTHREAD_SETNAME_NP_2) || defined (HAVE_PTHREAD_SETNAME_NP_1)
-#ifndef _GNU_SOURCE
-#define _GNU_SOURCE
-#endif
-#endif
+#if !defined(ROBOTKERNEL_LTTNG_TP_H) || defined(TRACEPOINT_HEADER_MULTI_READ)
+#define ROBOTKERNEL_LTTNG_TP_H
 
-#include <pthread.h>
+#include <lttng/tracepoint.h>
 
-#include <string>
-#include <thread>
+TRACEPOINT_EVENT(
+    robotkernel,
+    lttng_log,
+    TP_ARGS(
+        char*, log_msg_arg
+    ),
+    TP_FIELDS(
+        ctf_string(log_msg, log_msg_arg)
+    )
+)
 
-namespace robotkernel {
-#ifdef EMACS
-}
-#endif
+TRACEPOINT_EVENT(
+    robotkernel,
+    dump_log,
+    TP_ARGS(
+        char*, log_msg_arg
+    ),
+    TP_FIELDS(
+        ctf_string(log_msg, log_msg_arg)
+    )
+)
 
-void set_priority(int priority, int policy = SCHED_FIFO);
-void set_affinity_mask(int affinity_mask);
+#endif // ROBOTKERNEL_LTTNG_TP_H
 
-void set_thread_name(std::thread& tid, const std::string& thread_name);
-void set_thread_name(pthread_t tid, const std::string& thread_name);
-void set_thread_name(const std::string& thread_name);
-
-#ifdef EMACS
-{
-#endif
-}
-
-#endif // ROBOTKERNEL_RT_HELPER_H
+#include <lttng/tracepoint-event.h>
 

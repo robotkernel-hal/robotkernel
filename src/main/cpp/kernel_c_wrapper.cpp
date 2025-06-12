@@ -23,10 +23,12 @@
  * along with module_kernel_c.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "kernel_c_wrapper.h"
-
-#include "robotkernel/kernel.h"
+// pubic headers
+#include "robotkernel/kernel_c_wrapper.h"
 #include "robotkernel/process_data.h"
+
+// private headers
+#include "kernel.h"
 
 using namespace std;
 using namespace robotkernel;

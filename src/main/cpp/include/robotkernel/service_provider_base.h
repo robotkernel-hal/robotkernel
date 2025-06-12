@@ -26,15 +26,17 @@
 #ifndef ROBOTKERNEL_INTERFACE_BASE_H
 #define ROBOTKERNEL_INTERFACE_BASE_H
 
+#include <unistd.h>
+#include <stdint.h>
+#include <list>
+#include <stdio.h>
 
+// public headers
 #include "robotkernel/device_listener.h"
 #include "robotkernel/exceptions.h"
 #include "robotkernel/helpers.h"
-#include "robotkernel/interface_intf.h"
-#include "robotkernel/kernel.h"
 #include "robotkernel/log_base.h"
-#include "robotkernel/service_provider.h"
-#include "robotkernel/service_provider_intf.h"
+#include "robotkernel/service_interface.h"
 
 #include "yaml-cpp/yaml.h"
 
@@ -49,6 +51,62 @@
 #else
 #define EXPORT_C
 #endif
+
+#define SERVICE_PROVIDER_HANDLE void*
+
+//! service_provider register
+/*!
+ * \param mod_name module name to register
+ * \return service_provider handle
+ */
+typedef SERVICE_PROVIDER_HANDLE(*sp_register_t)(const char* name);
+
+//! service_provider unregister
+/*!
+ * \param hdl service_provider handle
+ * \return success
+ */
+typedef int (*sp_unregister_t)(SERVICE_PROVIDER_HANDLE hdl);
+
+//! test service requester
+/*!
+ * \return true if we can handle service requester
+ */
+typedef bool (*sp_test_interface_t)(SERVICE_PROVIDER_HANDLE hdl,
+        robotkernel::sp_service_interface_t req);
+
+//! add slave
+/*!
+ * \param hdl service provider handle
+ * \param req slave inteface specialization         
+ */
+typedef void (*sp_add_interface_t)(SERVICE_PROVIDER_HANDLE hdl, 
+        robotkernel::sp_service_interface_t req);
+
+//! remove registered slave
+/*!
+ * \param hdl service provider handle
+ * \param req slave inteface specialization         
+ * \param slave_id id in module
+ */
+typedef void (*sp_remove_interface_t)(SERVICE_PROVIDER_HANDLE hdl, 
+        robotkernel::sp_service_interface_t req);
+
+//! remove module
+/*!
+ * \param hdl service provider handle
+ * \param mod_name module owning slaves
+ */
+typedef void (*sp_remove_module_t)(SERVICE_PROVIDER_HANDLE hdl, 
+        const char *mod_name);
+
+//! service provider magic 
+/*!
+ * \return return service provider magic string
+ */
+typedef const char* (*sp_get_sp_magic_t)(SERVICE_PROVIDER_HANDLE hdl);
+
+#ifdef __cplusplus
 
 #define HDL_2_SERVICE_PROVIDERCLASS(hdl, spname, spclass)              \
     struct spname ## _wrapper *wr =                                    \
@@ -108,9 +166,6 @@ EXPORT_C bool sp_test_interface(SERVICE_PROVIDER_HANDLE hdl,           \
 }                                                                      \
 
 namespace robotkernel {
-#ifdef EMACS
-}
-#endif
 
 template <class T, class S>
 class service_provider_base : 
@@ -137,13 +192,13 @@ class service_provider_base :
         {};
         
         void init() {
-            robotkernel::kernel::get_instance()->add_device_listener(shared_from_this());
+            ::robotkernel::kernel_base::add_device_listener(shared_from_this());
         };
         
         virtual ~service_provider_base() {};
         
         void deinit() {
-            robotkernel::kernel::get_instance()->remove_device_listener(shared_from_this());
+            ::robotkernel::kernel_base::remove_device_listener(shared_from_this());
         };
 
         //! Add a interface to our provided services
@@ -255,10 +310,9 @@ inline bool service_provider_base<T, S>::test_interface(sp_service_interface_t r
     return (std::dynamic_pointer_cast<S>(req) != NULL);
 }
 
-#ifdef EMACS
-{
-#endif
 }; // namespace robotkernel
+
+#endif // __cplusplus
 
 #endif // ROBOTKERNEL_INTERFACE_BASE_H
 

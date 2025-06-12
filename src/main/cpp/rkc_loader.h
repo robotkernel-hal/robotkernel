@@ -1,4 +1,4 @@
-//! robotkernel lttng tracepoints
+//! robotkernel rkc_loader class
 /*!
  * (C) Robert Burger <robert.burger@dlr.de>
  */
@@ -23,40 +23,16 @@
  * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#undef TRACEPOINT_PROVIDER
-#define TRACEPOINT_PROVIDER robotkernel
+#ifndef ROBOTKERNEL__RKC_LOADER_H
+#define ROBOTKERNEL__RKC_LOADER_H
 
-#undef TRACEPOINT_INCLUDE
-#define TRACEPOINT_INCLUDE "robotkernel/lttng_tp.h"
+#include <yaml-cpp/yaml.h>
 
-#if !defined(ROBOTKERNEL_LTTNG_TP_H) || defined(TRACEPOINT_HEADER_MULTI_READ)
-#define ROBOTKERNEL_LTTNG_TP_H
+namespace robotkernel {
 
-#include <lttng/tracepoint.h>
+YAML::Node rkc_load_file(const std::string& filename);
 
-TRACEPOINT_EVENT(
-    robotkernel,
-    lttng_log,
-    TP_ARGS(
-        char*, log_msg_arg
-    ),
-    TP_FIELDS(
-        ctf_string(log_msg, log_msg_arg)
-    )
-)
+};
 
-TRACEPOINT_EVENT(
-    robotkernel,
-    dump_log,
-    TP_ARGS(
-        char*, log_msg_arg
-    ),
-    TP_FIELDS(
-        ctf_string(log_msg, log_msg_arg)
-    )
-)
-
-#endif // ROBOTKERNEL_LTTNG_TP_H
-
-#include <lttng/tracepoint-event.h>
+#endif // ROBOTKERNEL__RKC_LOADER_H
 

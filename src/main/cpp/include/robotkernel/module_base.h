@@ -26,11 +26,17 @@
 #ifndef ROBOTKERNEL_MODULE_BASE_H
 #define ROBOTKERNEL_MODULE_BASE_H
 
-#include "robotkernel/module_intf.h"
-#include "robotkernel/kernel.h"
+#include <unistd.h>
+#include <stdint.h>
+#include <list>
+#include <stdio.h>
+
+#include "robotkernel/kernel_base.h"
+#include "robotkernel/trigger_base.h"
 #include "robotkernel/exceptions.h"
 #include "robotkernel/helpers.h"
 #include "robotkernel/log_base.h"
+#include "robotkernel/service_definitions.h"
 #include "yaml-cpp/yaml.h"
 
 #ifdef __cplusplus
@@ -38,6 +44,97 @@
 #else
 #define EXPORT_C
 #endif
+
+#define MODULE_HANDLE void*
+
+const static uint16_t module_state_init     = 0x0001;
+const static uint16_t module_state_preop    = 0x0002;
+const static uint16_t module_state_safeop   = 0x0004;
+const static uint16_t module_state_op       = 0x0008;
+const static uint16_t module_state_boot     = 0x0010;
+const static uint16_t module_state_error    = 0x8000;
+
+typedef uint16_t module_state_t;
+
+#define GEN_STATE(from, to) \
+    ((uint32_t)from << 16 | to)
+
+#define DEFINE_STATE(from, to) \
+    const static uint32_t from ## _2_ ## to = GEN_STATE(module_state_ ## from, module_state_ ## to)
+
+DEFINE_STATE(boot, boot);
+DEFINE_STATE(boot, init);
+DEFINE_STATE(boot, preop);
+DEFINE_STATE(boot, safeop);
+DEFINE_STATE(boot, op);
+DEFINE_STATE(init, boot);
+DEFINE_STATE(init, init);
+DEFINE_STATE(init, preop);
+DEFINE_STATE(init, safeop);
+DEFINE_STATE(init, op);
+DEFINE_STATE(preop, boot);
+DEFINE_STATE(preop, init);
+DEFINE_STATE(preop, preop);
+DEFINE_STATE(preop, safeop);
+DEFINE_STATE(preop, op);
+DEFINE_STATE(safeop, boot);
+DEFINE_STATE(safeop, init);
+DEFINE_STATE(safeop, preop);
+DEFINE_STATE(safeop, safeop);
+DEFINE_STATE(safeop, op);
+DEFINE_STATE(op, boot);
+DEFINE_STATE(op, init);
+DEFINE_STATE(op, preop);
+DEFINE_STATE(op, safeop);
+DEFINE_STATE(op, op);
+
+typedef uint32_t transition_t;
+
+// -----------------------------------------------------------------------------------
+// module symbols
+// -----------------------------------------------------------------------------------
+
+extern "C" const char *state_to_string(module_state_t state);
+extern "C" module_state_t string_to_state(const char *state);
+
+//! configures module
+/*!
+  \param name module name
+  \param config configure file
+  \return handle on success, NULL otherwise
+ */
+typedef MODULE_HANDLE (*mod_configure_t)(const char* name, const char* config);
+
+//! unconfigure module
+/*!
+  \param hdl module handle
+  \return success or failure
+ */
+typedef int (*mod_unconfigure_t)(MODULE_HANDLE hdl);
+
+//! set module state machine to defined state
+/*!
+  \param hdl module handle
+  \param state requested state
+  \return success or failure
+ */
+typedef int (*mod_set_state_t)(MODULE_HANDLE hdl, module_state_t state);
+
+//! get module state machine state
+/*!
+  \param hdl module handle
+  \return current state
+ */
+typedef module_state_t (*mod_get_state_t)(MODULE_HANDLE hdl);
+
+//! module tick callback
+/*!
+ * \param hdl module handle
+ */
+typedef void (*mod_tick_t)(MODULE_HANDLE hdl);
+
+// CPLUSPLUS Base Class
+#ifdef __cplusplus
 
 #define HDL_2_MODCLASS(hdl, impl, modclass)                                         \
     struct impl ## _wrapper *wr =                                                   \
@@ -89,13 +186,11 @@ EXPORT_C MODULE_HANDLE mod_configure(const char* name, const char* config) {    
 }
 
 namespace robotkernel {
-#ifdef EMACS
-}
-#endif
 
 class module_base : 
     public robotkernel::log_base,  
-    public robotkernel::trigger_base
+    public robotkernel::trigger_base,
+    public services::robotkernel::log_base::svc_base_configure_loglevel
 {
     private:
         module_base();                  //!< prevent default construction
@@ -111,9 +206,7 @@ class module_base :
          * \param[in] name     Instance name of the module.
          */
         module_base(const std::string& impl, const std::string& name, 
-                const YAML::Node& node = YAML::Node()) : 
-            log_base(name, impl, "", node), name(name), state(module_state_init)
-        { }
+                const YAML::Node& node = YAML::Node());
 
         //! Module destruction
         virtual ~module_base() {};
@@ -130,11 +223,11 @@ class module_base :
          */
         virtual void init() {};
     
-        //! Get robotkernel module
-        /*!
-         * \returns Shared pointer to our robotkernel module class.
-         */
-        robotkernel::sp_module_t get_module();
+//        //! Get robotkernel module
+//        /*!
+//         * \returns Shared pointer to our robotkernel module class.
+//         */
+//        robotkernel::sp_module_t get_module();
 
         //! Module trigger implementation.
         virtual void tick() {
@@ -178,14 +271,21 @@ class module_base :
          */
         virtual module_state_t get_state() { return state; }
 
+        //! svc_configure_loglevel
+        /*!
+         * \param[in]   req     Service request data.
+         * \param[out]  resp    Service response data.
+         */
+        virtual void svc_configure_loglevel(
+            const struct services::robotkernel::log_base::svc_req_configure_loglevel& req,
+            struct services::robotkernel::log_base::svc_resp_configure_loglevel& resp) override;
 };
 
 typedef std::shared_ptr<module_base> sp_module_base_t;
 
-#ifdef EMACS
-{
-#endif
-};
+}; // namespace robotkernel
+
+#endif // __cplusplus
 
 #endif // ROBOTKERNEL_MODULE_BASE_H
 

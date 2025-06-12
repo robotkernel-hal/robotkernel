@@ -29,6 +29,15 @@
 #include <algorithm>
 #include <time.h>
 #include <yaml-cpp/yaml.h>
+#include <stdarg.h>  // For va_start, etc.
+#include <memory>    // For std::unique_ptr
+#include <pthread.h>
+
+#include <string>
+#include <thread>
+
+
+#include <string_util/string_util.h>
 
 #include "robotkernel/exceptions.h"
 
@@ -122,15 +131,22 @@ match_map_exit:
 
 
 namespace robotkernel {
-#ifdef EMACS
-}
-#endif
 
 //! convert buffer to hex string
 std::string hex_string(const void *data, size_t len);
 
 YAML::Node fill_template(const std::string& config, const YAML::Node& instance);
 void parse_templates(const YAML::Node& config, std::list<YAML::Node>& instances);
+
+std::string string_printf(const std::string fmt_str, ...);
+
+void set_priority(int priority, int policy = SCHED_FIFO);
+void set_affinity_mask(int affinity_mask);
+
+void set_thread_name(std::thread& tid, const std::string& thread_name);
+void set_thread_name(pthread_t tid, const std::string& thread_name);
+void set_thread_name(const std::string& thread_name);
+
 
 }; // namespace robotkernel
 

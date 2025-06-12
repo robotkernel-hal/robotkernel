@@ -29,10 +29,13 @@
 #include <string>
 #include <stdio.h>
 
-#include <robotkernel/module_intf.h>
-#include <robotkernel/service.h>
-#include <robotkernel/so_file.h>
-#include <robotkernel/trigger_base.h>
+// public headers
+#include "robotkernel/service.h"
+#include "robotkernel/module_base.h"
+#include "robotkernel/trigger_base.h"
+
+// private headers
+#include "so_file.h"
 
 #include <yaml-cpp/yaml.h>
 

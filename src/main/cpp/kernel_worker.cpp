@@ -25,8 +25,10 @@
 
 #include <stdio.h>
 #include <sstream>
-#include "robotkernel/kernel_worker.h"
-#include "robotkernel/kernel.h"
+
+// private headers
+#include "kernel_worker.h"
+#include "kernel.h"
 
 using namespace string_util;
 using namespace robotkernel;
@@ -34,18 +36,19 @@ using namespace std;
 
 kernel_worker::kernel_worker(int prio, int affinity_mask) :
     runnable(prio, affinity_mask, format_string("kernel_worker.prio_%d."
-                "affinity_mask_%d", prio, affinity_mask))
+                "affinity_mask_%d", prio, affinity_mask)),
+    log_base("kernel_worker", "robotkernel", "")
 {
     // start worker thread
     start();
-    klog(info, "[kernel_worker] created with prio %d\n", prio);
+    log(info, "[kernel_worker] created with prio %d\n", prio);
 };
         
 //! destruction
 kernel_worker::~kernel_worker() {
     // stop worker thread
     stop();
-    klog(info, "[kernel_worker] destructed\n");
+    log(info, "[kernel_worker] destructed\n");
 }
 
 //! add module to trigger
@@ -58,7 +61,7 @@ void kernel_worker::add_module(module *mdl) {
     // push to module list
     modules.push_back(mdl);
 
-    klog(info, "[kernel_worker] added module %s\n", mdl->get_name().c_str());
+    log(info, "[kernel_worker] added module %s\n", mdl->get_name().c_str());
 }
 
 //! remove module to trigger
@@ -72,14 +75,14 @@ bool kernel_worker::remove_module(module *mdl) {
     // remove from module list
     modules.remove(mdl);
     
-    klog(info, "[kernel_worker] removed module %s\n", mdl->get_name().c_str());
+    log(info, "[kernel_worker] removed module %s\n", mdl->get_name().c_str());
 
     return (modules.size() == 0);
 }
 
 //! handler function called if thread is running
 void kernel_worker::run() {
-    klog(info, "[kernel_worker] running worker thread\n");
+    log(info, "[kernel_worker] running worker thread\n");
 
     // lock mutex cause we access _modules
     std::unique_lock<std::mutex> lock(mtx);
@@ -103,6 +106,6 @@ void kernel_worker::run() {
         }
     }
 
-    klog(info, "[kernel_worker] finished worker thread\n");
+    log(info, "[kernel_worker] finished worker thread\n");
 }
 

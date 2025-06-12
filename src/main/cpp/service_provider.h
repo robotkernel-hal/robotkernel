@@ -29,14 +29,15 @@
 
 #include <string>
 #include "yaml-cpp/yaml.h"
-#include "robotkernel/kernel.h"
-#include "robotkernel/service_provider_intf.h"
-#include "robotkernel/so_file.h"
+
+// public headers
+#include "robotkernel/service_provider_base.h"
+
+// private headers
+#include "kernel.h"
+#include "so_file.h"
 
 namespace robotkernel {
-#ifdef EMACS
-}
-#endif
 
 //! service_provider class
 /*!
@@ -103,10 +104,7 @@ class service_provider : public so_file {
 typedef std::shared_ptr<service_provider> sp_service_provider_t;
 typedef std::map<std::string, sp_service_provider_t> service_provider_map_t;
 
-#ifdef EMACS
-{
-#endif
-}
+}; // namespace robotkernel
 
 #endif // ROBOTKERNEL__SERVICE_PROVIDER_H
 

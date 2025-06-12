@@ -27,13 +27,9 @@
 #define ROBOTKERNEL__TRIGGER_BASE_H
 
 #include <string>
-#include "robotkernel/module_intf.h"
-#include "robotkernel/runnable.h"
+#include <memory>
 
 namespace robotkernel {
-#ifdef EMACS
-}
-#endif
 
 //! trigger_base
 /*
@@ -54,10 +50,7 @@ class trigger_base {
 typedef std::shared_ptr<trigger_base> sp_trigger_base_t;
 typedef std::list<sp_trigger_base_t> trigger_list_t;
 
-#ifdef EMACS 
-{
-#endif
-} // namespace robotkernel
+}; // namespace robotkernel;
 
 #endif // ROBOTKERNEL__TRIGGER_BASE_H
 

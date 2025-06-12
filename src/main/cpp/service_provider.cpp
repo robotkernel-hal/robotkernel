@@ -23,11 +23,15 @@
  * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "robotkernel/kernel.h"
-#include "robotkernel/service_provider.h"
-#include "robotkernel/kernel_worker.h"
+// public headers
 #include "robotkernel/exceptions.h"
 #include "robotkernel/helpers.h"
+
+// private headers
+#include "kernel.h"
+#include "kernel_worker.h"
+#include "service_provider.h"
+
 #include <sys/stat.h>
 #include <dlfcn.h>
 #include <iostream>

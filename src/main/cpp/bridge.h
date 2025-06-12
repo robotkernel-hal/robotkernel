@@ -28,9 +28,14 @@
 
 #include <string>
 #include <stdio.h>
-#include "robotkernel/bridge_intf.h"
-#include "robotkernel/so_file.h"
+
+// public headers
+#include "robotkernel/bridge_base.h"
 #include "robotkernel/service.h"
+
+// private headers
+#include "so_file.h"
+
 #include "yaml-cpp/yaml.h"
 
 namespace robotkernel {

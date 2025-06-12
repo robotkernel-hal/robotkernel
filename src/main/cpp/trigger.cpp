@@ -23,9 +23,12 @@
  * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// public headers
 #include "robotkernel/trigger.h"
 #include "robotkernel/trigger_worker.h"
-#include "robotkernel/kernel.h"
+
+// private headers
+#include "kernel.h"
 
 #include "string_util/string_util.h"
 

@@ -23,16 +23,28 @@
  * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// public headers
 #include "robotkernel/module_base.h"
-#include "robotkernel/kernel.h"
+
+// private headers
+#include "kernel.h"
 
 using namespace robotkernel;
 
-// Get robotkernel module
-robotkernel::sp_module_t module_base::get_module() {
-    robotkernel::kernel& k = *robotkernel::kernel::get_instance();
-    return k.get_module(name);
-}
+//! Module construction
+/*!
+ * \param[in] impl     Name of the module.
+ * \param[in] name     Instance name of the module.
+ */
+module_base::module_base(const std::string& impl, const std::string& name, const YAML::Node& node) : 
+    log_base(name, impl, "", node), name(name), state(module_state_init)
+{ }
+
+//// Get robotkernel module
+//robotkernel::sp_module_t module_base::get_module() {
+//    robotkernel::kernel& k = *robotkernel::kernel::get_instance();
+//    return k.get_module(name);
+//}
 
 //! Set module state machine to defined state.
 /*!
@@ -111,3 +123,13 @@ int module_base::set_state(module_state_t state) {
     return (this->state = state);
 }
 
+//! svc_configure_loglevel
+/*!
+ * \param[in]   req     Service request data.
+ * \param[out]  resp    Service response data.
+ */
+void module_base::svc_configure_loglevel(
+        const struct services::robotkernel::log_base::svc_req_configure_loglevel& req,
+        struct services::robotkernel::log_base::svc_resp_configure_loglevel& resp)
+{
+}

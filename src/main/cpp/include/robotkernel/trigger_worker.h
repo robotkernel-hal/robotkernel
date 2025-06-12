@@ -29,14 +29,12 @@
 #include <string>
 #include <mutex>
 #include <condition_variable>
-#include "robotkernel/module_intf.h"
+
+// public header
 #include "robotkernel/runnable.h"
 #include "robotkernel/trigger_base.h"
 
 namespace robotkernel {
-#ifdef EMACS
-}
-#endif
 
 //! trigger worker thread
 class trigger_worker : 
@@ -94,11 +92,7 @@ class trigger_worker :
 typedef std::shared_ptr<trigger_worker> sp_trigger_worker_t;
 typedef std::map<trigger_worker::worker_key, sp_trigger_worker_t> trigger_workers_t;
 
-
-#ifdef EMACS 
-{
-#endif
-} // namespace robotkernel
+}; // namespace robotkernel
 
 #endif // ROBOTKERNEL__TRIGGER_WORKER_H
 

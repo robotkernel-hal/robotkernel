@@ -26,45 +26,52 @@
 #ifndef ROBOTKERNEL_LOG_BASE_H
 #define ROBOTKERNEL_LOG_BASE_H
 
-#include "robotkernel/kernel.h"
+#include "robotkernel/kernel_base.h"
+#include "robotkernel/loglevel.h"
 #include "robotkernel/exceptions.h"
+#include "robotkernel/service_definitions.h"
 #include "robotkernel/helpers.h"
 #include "yaml-cpp/yaml.h"
 
 namespace robotkernel {
-    class log_base {
-        private:
-            log_base();                 //!< prevent default construction
 
-        public:
-            loglevel ll;                //!< loglevel loglevel
-            std::string name;           //!< name of module
-            std::string impl;           //!< name of implementation
-            std::string service_prefix; //!< name of service
+// forward declaration
+class kernel;
 
-            //! construction
-            /*!
-             * \param node config node
-             */
-            log_base(const std::string& name, const std::string& impl, 
-                    const std::string& service_prefix, const YAML::Node& node = YAML::Node());
+class log_base : public kernel_base {
+    private:
+        log_base();                 //!< prevent default construction
 
-            //! virtual destruction
-            virtual ~log_base();
+    public:
+        loglevel ll;                //!< loglevel loglevel
+        std::string name;           //!< name of module
+        std::string impl;           //!< name of implementation
+        std::string service_prefix; //!< name of service
 
-            //! service to configure modules loglevel
-            /*!
-             * \param request service request data
-             * \parma response service response data
-             */
-            int service_configure_loglevel(const service_arglist_t& request, 
-                    service_arglist_t& response);
-            static const std::string service_definition_configure_loglevel;
+        //! construction
+        /*!
+         * \param node config node
+         */
+        log_base(const std::string& name, const std::string& impl, 
+                const std::string& service_prefix, const YAML::Node& node = YAML::Node());
 
-            //! log to kernel logging facility
-            void log(robotkernel::loglevel lvl, const char *format, ...);
-    };
+        //! virtual destruction
+        virtual ~log_base();
+
+        //! service to configure modules loglevel
+        /*!
+         * \param request service request data
+         * \parma response service response data
+         */
+        int service_configure_loglevel(const service_arglist_t& request, 
+                service_arglist_t& response);
+        static const std::string service_definition_configure_loglevel;
+
+        //! log to kernel logging facility
+        void log(robotkernel::loglevel lvl, const char *format, ...);
 };
+
+}; // namespace robotkernel
 
 #endif // ROBOTKERNEL_LOG_BASE_H
 

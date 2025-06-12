@@ -26,11 +26,16 @@
 #ifndef ROBOTKERNEL_BRIDGE_BASE_H
 #define ROBOTKERNEL_BRIDGE_BASE_H
 
-#include "robotkernel/bridge_intf.h"
+#include <unistd.h>
+#include <stdint.h>
+#include <list>
+#include <stdio.h>
+
+// public headers
 #include "robotkernel/log_base.h"
-#include "robotkernel/kernel.h"
 #include "robotkernel/exceptions.h"
 #include "robotkernel/helpers.h"
+#include <robotkernel/service.h>
 
 #include "yaml-cpp/yaml.h"
 
@@ -39,6 +44,36 @@
 #else
 #define EXPORT_C
 #endif
+
+#define BRIDGE_HANDLE void*
+
+//! bridge configure
+/*!
+ * \param name bridge name
+ * \param config bridge config
+ * \return bridge handle
+ */
+typedef BRIDGE_HANDLE (*bridge_configure_t)(const char* name, const char* config);
+
+//! bridge unconfigure
+/*!
+ * \param hdl bridge handle
+ */
+typedef int (*bridge_unconfigure_t)(BRIDGE_HANDLE hdl);
+
+//! create and register ln service
+/*!
+ * \param svc robotkernel service struct
+ */
+typedef void (*bridge_add_service_t)(BRIDGE_HANDLE hdl, const robotkernel::service_t &svc);
+
+//! unregister and remove ln service 
+/*!
+ * \param svc robotkernel service struct
+ */
+typedef void (*bridge_remove_service_t)(BRIDGE_HANDLE hdl, const robotkernel::service_t &svc);
+
+#ifdef __cplusplus
 
 #define HDL_2_BRIDGECLASS(hdl, bridgename, bridgeclass)                                     \
     struct instance_name ## _wrapper *wr =                                                  \
@@ -85,9 +120,6 @@ EXPORT_C BRIDGE_HANDLE bridge_configure(const char* name, const char* config) { 
 }
 
 namespace robotkernel {
-#ifdef EMACS
-}
-#endif
 
 class bridge_base : 
     public log_base 
@@ -134,10 +166,9 @@ class bridge_base :
         virtual void remove_service(const robotkernel::service_t &svc) = 0;
 };
 
-#ifdef EMACS
-{
-#endif
-};
+}; // namespace robotkernel
+   
+#endif // __cplusplus
 
 #endif // ROBOTKERNEL_BRIDGE_BASE_H
 

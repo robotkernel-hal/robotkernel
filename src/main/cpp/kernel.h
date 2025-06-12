@@ -30,21 +30,22 @@
 #include <mutex>
 #include <functional>
 
-#include <robotkernel/bridge.h>
 #include <robotkernel/device_listener.h>
-#include <robotkernel/dump_log.h>
 #include <robotkernel/exceptions.h>
-#include <robotkernel/log_thread.h>
 #include <robotkernel/loglevel.h>
-#include <robotkernel/module.h>
 #include <robotkernel/process_data.h>
 #include <robotkernel/rk_type.h>
 #include <robotkernel/service.h>
 #include <robotkernel/service_interface.h>
-#include <robotkernel/service_provider.h>
 #include <robotkernel/stream.h>
 #include <robotkernel/trigger.h>
 
+// private headers
+#include "log_thread.h"
+#include "module.h"
+#include "bridge.h"
+#include "service_provider.h"
+#include "dump_log.h"
 
 #define klog(...) robotkernel::kernel::get_instance()->log(__VA_ARGS__)
 

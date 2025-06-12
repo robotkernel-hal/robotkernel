@@ -26,11 +26,13 @@
 #include <stdio.h>
 #include <signal.h>
 
+// public headers
 #include "robotkernel/runnable.h"
-#include "robotkernel/kernel.h"
 #include "robotkernel/config.h"
 #include "robotkernel/helpers.h"
-#include "robotkernel/rt_helper.h"
+
+// private headers
+#include "kernel.h"
 
 #ifdef __QNX__
 #include <sys/neutrino.h>

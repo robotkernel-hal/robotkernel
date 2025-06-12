@@ -23,13 +23,16 @@
  * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "robotkernel/kernel.h"
-#include "robotkernel/module.h"
-#include "robotkernel/kernel_worker.h"
+// public headers 
 #include "robotkernel/exceptions.h"
 #include "robotkernel/helpers.h"
 #include "robotkernel/trigger.h"
 #include "robotkernel/service_definitions.h"
+
+// private headers 
+#include "kernel.h"
+#include "module.h"
+#include "kernel_worker.h"
 
 #include <sys/stat.h>
 #include <dlfcn.h>
@@ -138,9 +141,6 @@ module::external_trigger::external_trigger(const YAML::Node& node) {
 
     if (node["prio"]) {
         prio = get_as<int>(node, "prio");
-
-        if (direct_mode)
-            klog(info, "external_trigger prio will not have any effect in direct mode!\n");
     }
 
     if(node["affinity"]) {
@@ -150,9 +150,6 @@ module::external_trigger::external_trigger(const YAML::Node& node) {
         else if (affinity.Type() == YAML::NodeType::Sequence)
             for (YAML::const_iterator it = affinity.begin(); it != affinity.end(); ++it)
                 affinity_mask |= (1 << it->as<int>());
-
-        if (direct_mode)
-            klog(info, "external_trigger affinity will not have any effect in direct mode!\n");
     }
 }
 

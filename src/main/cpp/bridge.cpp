@@ -23,10 +23,12 @@
  * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "robotkernel/kernel.h"
-#include "robotkernel/bridge.h"
 #include "robotkernel/exceptions.h"
 #include "robotkernel/helpers.h"
+
+#include "kernel.h"
+#include "bridge.h"
+
 #include <dlfcn.h>
 #include <stdlib.h>
 #include <string.h>

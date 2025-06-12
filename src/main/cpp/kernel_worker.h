@@ -31,18 +31,20 @@
 #include <mutex>
 #include <stdio.h>
 #include <list>
-#include "robotkernel/module.h"
+
+// public headers 
 #include "robotkernel/runnable.h"
+#include "robotkernel/log_base.h"
+
+// private headers
+#include "module.h"
 
 namespace robotkernel {
-#ifdef EMACS
-}
-#endif
 
 //! kernel worker thread
 /*!
  */
-class kernel_worker : public runnable {
+class kernel_worker : public runnable, public log_base {
     private:
         kernel_worker();
         kernel_worker(const kernel_worker&);             // prevent copy-construction
@@ -97,9 +99,6 @@ inline void kernel_worker::tick() {
     cond.notify_one();
 }
 
-#ifdef EMACS
-{
-#endif
 } // namespace robotkernel
 
 #endif // ROBOTKERNEL__KERNEL_WORKER_H

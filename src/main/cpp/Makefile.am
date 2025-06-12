@@ -9,37 +9,38 @@ includedir = $(prefix)/include/robotkernel
 headerdir = $(srcdir)/include/robotkernel
 gen_headerdir = $(top_builddir)/src/main/cpp/include/robotkernel
 
+
+#				  $(headerdir)/bridge.h
+#				  $(headerdir)/kernel.h
+#				  $(headerdir)/kernel_worker.h
+#				  $(headerdir)/log_thread.h
+#				  $(headerdir)/module.h
+#				  $(headerdir)/service_provider.h
+#				  $(headerdir)/so_file.h
+#				  $(headerdir)/char_ringbuffer.h
+#				  $(headerdir)/dump_log.h
+#				  $(headerdir)/module_intf.h
+#				$(headerdir)/bridge_intf.h 
+
 bin_PROGRAMS = robotkernel
 include_HEADERS = $(headerdir)/bridge_base.h	\
-				  $(headerdir)/bridge.h \
-				  $(headerdir)/bridge_intf.h \
-				  $(headerdir)/char_ringbuffer.h \
 				  $(headerdir)/config.h.in \
 				  $(headerdir)/device.h \
 				  $(headerdir)/device_listener.h \
-				  $(headerdir)/dump_log.h \
 				  $(headerdir)/exceptions.h \
 				  $(headerdir)/helpers.h \
-				  $(headerdir)/interface_intf.h \
-				  $(headerdir)/kernel.h \
+				  $(headerdir)/kernel_base.h \
 				  $(headerdir)/kernel_c_wrapper.h \
-				  $(headerdir)/kernel_worker.h \
 				  $(headerdir)/log_base.h \
 				  $(headerdir)/loglevel.h \
-				  $(headerdir)/log_thread.h \
 				  $(headerdir)/module_base.h \
-				  $(headerdir)/module.h \
-				  $(headerdir)/module_intf.h \
 				  $(headerdir)/process_data.h \
 				  $(headerdir)/rk_type.h \
-				  $(headerdir)/rt_helper.h \
 				  $(headerdir)/runnable.h \
 				  $(headerdir)/service.h \
+				  $(headerdir)/service_definitions.h \
 				  $(headerdir)/service_provider_base.h \
-				  $(headerdir)/service_provider.h \
-				  $(headerdir)/service_provider_intf.h \
 				  $(headerdir)/service_interface.h \
-				  $(headerdir)/so_file.h \
 				  $(headerdir)/stream.h \
 				  $(headerdir)/trigger_base.h \
 				  $(headerdir)/trigger.h \
@@ -52,6 +53,7 @@ librobotkernel_la_SOURCES = bridge.cpp				\
 					  dump_log.cpp 				\
 					  exceptions.cpp 			\
 					  kernel.cpp 				\
+					  kernel_base.cpp 				\
 					  module_base.cpp 			\
 					  kernel_c_wrapper.cpp      \
 					  kernel_worker.cpp       	\
@@ -60,7 +62,6 @@ librobotkernel_la_SOURCES = bridge.cpp				\
 					  module.cpp				\
 					  process_data.cpp			\
 					  rk_type.cpp				\
-					  rt_helper.cpp 			\
 					  runnable.cpp 				\
 					  service_provider.cpp 		\
 					  so_file.cpp 				\
@@ -103,6 +104,7 @@ $(top_builddir)/src/main/cpp/include/robotkernel/service_definitions.h: Makefile
 	@echo creating $@
 	service_generate --add_namespace services --indir $(top_srcdir)/share/service_definitions --out $@ $(SERVICE_DEFINITIONS)
 	touch $@
+
 
 robotkernel_SOURCES = main.cpp
 

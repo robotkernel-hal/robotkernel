@@ -28,13 +28,10 @@
 
 #include <string>
 
-#include "yaml-cpp/yaml.h"
+// public header
 #include "robotkernel/device.h"
 
 namespace robotkernel {
-#ifdef EMACS
-}
-#endif
 
 class device_listener 
 {
@@ -63,9 +60,6 @@ inline device_listener::~device_listener() {}
 typedef std::shared_ptr<device_listener> sp_device_listener_t;
 typedef std::map<std::pair<std::string, std::string>, sp_device_listener_t> device_listener_map_t;
 
-#ifdef EMACS
-{
-#endif
-}
+}; // namespace robotkernel
 
 #endif // ROBOTKERNEL_device_listener_H

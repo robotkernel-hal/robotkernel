@@ -23,7 +23,6 @@
  * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "robotkernel/dump_log.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -32,13 +31,15 @@
 
 #include <list>
 
+// public headers
 #include "robotkernel/config.h"
 
+// private headers
+#include "char_ringbuffer.h"
+#include "dump_log.h"
 #if (HAVE_LTTNG_UST == 1)
-#include "robotkernel/lttng_tp.h"
+#include "lttng_tp.h"
 #endif
-
-#include "robotkernel/char_ringbuffer.h"
 
 using namespace std;
 using namespace robotkernel;

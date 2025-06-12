@@ -28,19 +28,21 @@
 #include <iostream>
 #include <algorithm>
 #include <string_util/string_util.h>
-#include "robotkernel/kernel.h"
+
+// public headers
 #include "robotkernel/helpers.h"
-#include "robotkernel/exceptions.h"
 #include "robotkernel/module_base.h"
 #include "robotkernel/bridge_base.h"
 #include "robotkernel/config.h"
-#include "robotkernel/rkc_loader.h"
 #include "robotkernel/service_definitions.h"
+
+// private headers
+#include "kernel.h"
+#include "rkc_loader.h"
 
 #include "yaml-cpp/yaml.h"
 #include "sys/stat.h"
 #include "fcntl.h"
-
 
 using namespace std;
 using namespace std::placeholders;
@@ -364,8 +366,9 @@ void kernel::remove_services(const std::string& owner) {
 /*!
  * \param configfile config file name
  */
-kernel::kernel() {
-    ll = info;
+kernel::kernel() 
+{
+    //ll = info;
     _name = "robotkernel";
 
     log(info, PACKAGE_STRING "\n");
@@ -441,6 +444,7 @@ kernel::~kernel() {
     log(info, "clean up finished\n");
     dump_log_free();
 }
+
 
 //! get kernel singleton instance
 /*!
@@ -652,7 +656,7 @@ void kernel::config(std::string config_file, int argc, char *argv[]) {
         }
 
         // add to module map
-        klog(verbose, "adding [%s]\n", mdl->get_name().c_str());
+        log(verbose, "adding [%s]\n", mdl->get_name().c_str());
         module_map[mdl->get_name()] = mdl;
         
         mdl->set_state(module_state_init);
@@ -681,7 +685,7 @@ void kernel::config(std::string config_file, int argc, char *argv[]) {
         }
 
         // add to module map
-        klog(verbose, "adding [%s]\n", brdg->name.c_str());
+        log(verbose, "adding [%s]\n", brdg->name.c_str());
         bridge_map[brdg->name] = brdg;
 
         for (const auto& kv : services)
@@ -711,7 +715,7 @@ void kernel::config(std::string config_file, int argc, char *argv[]) {
         }
 
         // add to module map
-        klog(verbose, "adding [%s]\n", sp->name.c_str());
+        log(verbose, "adding [%s]\n", sp->name.c_str());
         service_provider_map[sp->name] = sp;
     }
 
@@ -835,7 +839,7 @@ bool kernel::state_check() {
     for (auto& kv : module_map) {
         module_state_t state = kv.second->get_state();
         if (state == module_state_error) {
-            klog(error, "module %s signaled error, switching "
+            log(error, "module %s signaled error, switching "
                     "to init\n", kv.first.c_str());
             set_state(kv.first.c_str(), module_state_init);
         }
@@ -875,7 +879,7 @@ int kernel::state_change(const char *mod_name, module_state_t new_state) {
     if (new_state == current_state)
         return 0;
 
-    klog(info, "WARNING: module %s changed state to %d, old state %d\n",
+    log(info, "WARNING: module %s changed state to %d, old state %d\n",
             mod_name, new_state, current_state);
 
     printf("\n\n\n THIS IS UNEXPECTED !!!! \n\n\n");
@@ -936,7 +940,7 @@ void kernel::add_device(sp_device_t req) {
 void kernel::remove_device(sp_device_t req) {
     auto map_index = req->id();
 
-    klog(verbose, "removing device %s\n", map_index.c_str());
+    log(verbose, "removing device %s\n", map_index.c_str());
 
     for (const auto& kv : dl_map) 
         kv.second->notify_remove_device(req);
@@ -953,7 +957,7 @@ void kernel::remove_device(sp_device_t req) {
 void kernel::remove_devices(const std::string& owner) {
     for (auto it = device_map.begin(); it != device_map.end(); ) {
         if (it->second->owner == owner) {
-            klog(verbose, "removing device %s\n", it->second->id().c_str());
+            log(verbose, "removing device %s\n", it->second->id().c_str());
             it = device_map.erase(it);
         } else
             ++it;
@@ -1019,7 +1023,7 @@ int kernel::service_config_dump_log(const service_arglist_t& request,
     string error_message    = "";
 
     dump_log_set_len(max_len, do_ust);
-    klog(info, "dump_log len set to %d, do_ust to %d\n", max_len, do_ust);
+    log(info, "dump_log len set to %d, do_ust to %d\n", max_len, do_ust);
 
 #define loglevel_to_string(x)             \
     if (ll == x)                          \
@@ -1067,12 +1071,12 @@ int kernel::service_add_module(const service_arglist_t& request,
         string mod_name = get_as<string>(node, "name");
         string so_file  = get_as<string>(node, "so_file");
 
-        klog(info, "adding module \"%s\" as \"%s\"\n", so_file.c_str(), mod_name.c_str());
+        log(info, "adding module \"%s\" as \"%s\"\n", so_file.c_str(), mod_name.c_str());
         load_module(node);
-        klog(info, "module \"%s\" added\n", mod_name.c_str());
+        log(info, "module \"%s\" added\n", mod_name.c_str());
     } catch(exception& e) {
         error_message = e.what();
-        klog(error, "error adding module \"%s\": %s\n", error_message.c_str());
+        log(error, "error adding module \"%s\": %s\n", error_message.c_str());
     }
 
 #define ADD_MODULE_RESP_ERROR_MESSAGE   0
@@ -1098,7 +1102,7 @@ int kernel::service_remove_module(const service_arglist_t& request,
     string error_message = "";
 
     try {
-        klog(info, "removing module \"%s\"\n", mod_name.c_str());
+        log(info, "removing module \"%s\"\n", mod_name.c_str());
 
         std::unique_lock<std::recursive_mutex> lock(module_map_mtx);
         module_map_t::iterator it = module_map.find(mod_name);
@@ -1111,10 +1115,10 @@ int kernel::service_remove_module(const service_arglist_t& request,
 
         module_map.erase(it);
 
-        klog(info, "module \"%s\" removed\n", mod_name.c_str());
+        log(info, "module \"%s\" removed\n", mod_name.c_str());
     } catch (exception& e) {
         error_message = e.what();
-        klog(error, "error removing module \"%s\": %s\n", error_message.c_str());
+        log(error, "error removing module \"%s\": %s\n", error_message.c_str());
     }
 
 #define REMOVE_MODULE_RESP_ERROR_MESSAGE    0
@@ -1210,48 +1214,38 @@ std::string kernel::ll_to_string(loglevel ll) {
     return "????";
 }
 
-#include "robotkernel/dump_log.h"
-
 void kernel::log(loglevel lvl, const char *format, ...) {  
     struct log_thread::log_pool_object *obj;
-    
-    char buf[1024];
-    int bufpos = 0;
-    bufpos += snprintf(buf+bufpos, sizeof(buf)+bufpos, "[%s|robotkernel] ", 
-            _name.c_str());
-
-    // format argument list    
-    va_list args;
-    va_start(args, format);
-    vsnprintf(buf+bufpos, sizeof(buf)-bufpos, format, args);
-    va_end(args);
-    
-    if (ll < lvl)
-        goto log_exit;
 
     if ((obj = rk_log.get_pool_object()) != NULL) {
-        // only ifempty log pool avaliable!
-        struct tm timeinfo;
-        struct timespec ts;
-        clock_gettime(CLOCK_REALTIME, &ts);
-        double timestamp = (double)ts.tv_sec + (ts.tv_nsec / 1e9);
-        time_t seconds = (time_t)timestamp;
-        double mseconds = (timestamp - (double)seconds) * 1000.;
-        localtime_r(&seconds, &timeinfo);
-        strftime(obj->buf, sizeof(obj->buf), "%F %T", &timeinfo);
-
-
-        int len = strlen(obj->buf);
-        snprintf(obj->buf + len, sizeof(obj->buf) - len, ".%03.0f ", mseconds);
-        len = strlen(obj->buf);
-
-        snprintf(obj->buf + len, sizeof(obj->buf) - len, "%s %s", 
-                ll_to_string(lvl).c_str(), buf);
-        rk_log.log(obj);
-    }
+        obj->lvl = lvl;
+        
+        int bufpos = snprintf(obj->buf+bufpos, sizeof(obj->buf)+bufpos, "[%s|robotkernel] ", _name.c_str());
     
-log_exit:
-    ::dump_log(buf);
+        // format argument list    
+        va_list args;
+        va_start(args, format);
+        vsnprintf(obj->buf+bufpos, sizeof(obj->buf)-bufpos, format, args);
+        va_end(args);
+        
+        if (do_log_to_trace_fd()) {
+            trace_write(obj->buf);
+        }
+
+#if (HAVE_LTTNG_UST == 1)
+        if (log_to_lttng_ust) {
+//            tracepoint(robotkernel, lttng_log, obj->buf);
+        }
+#endif
+
+        dump_log(obj->buf);
+
+        if (lvl > ll) {
+            rk_log.return_pool_object(obj);
+        } else {
+            rk_log.log(obj);
+        }
+    }
 }
 
 

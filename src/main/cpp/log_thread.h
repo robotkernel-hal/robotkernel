@@ -30,6 +30,7 @@
 #include <mutex>
 #include <condition_variable>
 #include "robotkernel/runnable.h"
+#include "robotkernel/loglevel.h"
 
 #ifdef __VXWORKS__
 #undef log
@@ -50,6 +51,8 @@ class log_thread : public runnable {
         struct log_pool_object {
             char buf[1024];
             size_t len;
+            struct timespec ts;
+            loglevel lvl;
         };
     
         unsigned int fix_modname_length;
@@ -67,6 +70,10 @@ class log_thread : public runnable {
          * \return empty pool object
          */
         struct log_pool_object *get_pool_object();
+
+        void return_pool_object(struct log_pool_object *obj) {
+            empty_pool.push_back(obj);
+        }
 
         //! log object to stdout and return to pool
         /*!
