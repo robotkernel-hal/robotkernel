@@ -44,6 +44,13 @@
      ((tvp)->tv_nsec cmp (uvp)->tv_nsec) : \
      ((tvp)->tv_sec cmp (uvp)->tv_sec))
 
+         
+#define get_symbol(name) {                                                      \
+    name = (name ## _t)dlsym(so_handle, #name);                                 \
+    if (!name)                                                                  \
+        throw str_exception("missing " #name " in %s\n", file_name.c_str());    \
+}
+
 template <typename type>
 type get_as(const YAML::Node& node, const std::string key) {
     if (!node[key]) {

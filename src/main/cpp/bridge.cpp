@@ -44,12 +44,6 @@ using namespace string_util;
  */
 bridge::bridge(const YAML::Node& node) : so_file(node) {
     name = get_as<string>(node, "name");
-    
-#define get_symbol(name) {                                                      \
-    name = (name ## _t)dlsym(so_handle, #name);                                 \
-    if (!name)                                                                  \
-        throw str_exception("missing " #name " in %s\n", file_name.c_str());    \
-}
 
     get_symbol(bridge_configure);
     get_symbol(bridge_unconfigure);
