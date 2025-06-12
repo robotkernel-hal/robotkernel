@@ -129,7 +129,7 @@ void trigger::set_rate(double new_rate) {
 }
 
 //! trigger all modules in list
-void trigger::trigger_modules() {
+void trigger::do_trigger() {
     std::unique_lock<std::mutex> lock(list_mtx);
 
     for (auto& t : triggers) {

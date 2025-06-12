@@ -227,7 +227,7 @@ class process_data :
             return nullptr;
         }
 
-        virtual void trigger(void) { trigger_dev->trigger_modules(); }
+        virtual void trigger(void) { trigger_dev->do_trigger(); }
 
         //! Get a pointer to the last written data without consuming it, 
         //  which will be available on calling \link pop \endlink
@@ -238,7 +238,7 @@ class process_data :
         /*
          * \param[in] hash      hash value, get it with set_consumer!
          */
-        virtual uint8_t* pop(sp_pd_consumer_t& cons) {
+        virtual uint8_t* pop(sp_pd_consumer_t& cons, bool do_trigger = true) {
             if ((consumer == nullptr) || (consumer->hash != cons->hash)) {
                 throw str_exception_tb("permission denied to pop %s: consumer_hash %d, your hash %d", 
                         id().c_str(), consumer->hash, cons->hash);
@@ -262,7 +262,7 @@ class process_data :
          * \param[in] do_push   Push the buffer to set it to the actual one.
          */
         virtual void write(sp_pd_provider_t& prov, off_t offset, uint8_t *buf, 
-            size_t len, bool do_push = true) 
+            size_t len, bool do_push = true, bool do_trigger = true) 
         {
             if ((provider == nullptr) || (provider->hash != prov->hash)) {
                 throw str_exception_tb("permission denied to write to %s", id().c_str());
@@ -278,12 +278,14 @@ class process_data :
          * \param[in] do_pop    Pop the buffer and consume it.
          */
         virtual void read(sp_pd_consumer_t& cons, off_t offset, uint8_t *buf, 
-                size_t len, bool do_pop = true) 
+                size_t len, bool do_pop = true, bool do_trigger = true) 
         {
             if (do_pop && ((consumer == nullptr) || (consumer->hash != cons->hash))) {
                 throw str_exception_tb("permission denied to pop %s: consumer_hash %d, your hash %d", 
                         id().c_str(), consumer->hash, cons->hash);
             }
+
+            pd_cookie++;
         }
 
         //! Returns true if new data has been written
@@ -388,7 +390,7 @@ class single_buffer :
         /*
          * \param[in] hash      hash value, get it with set_consumer!
          */
-        uint8_t* pop(sp_pd_consumer_t& cons) override;
+        uint8_t* pop(sp_pd_consumer_t& cons, bool do_trigger = true) override;
 
         //! Write data to buffer.
         /*!
@@ -399,7 +401,7 @@ class single_buffer :
          * \param[in] do_push   Push the buffer to set it to the actual one.
          */
         void write(sp_pd_provider_t& prov, off_t offset, uint8_t *buf, 
-                size_t len, bool do_push = true) override;
+                size_t len, bool do_push = true, bool do_trigger = true) override;
 
         //! Read data from buffer.
         /*!
@@ -410,7 +412,7 @@ class single_buffer :
          * \param[in] do_pop    Pop the buffer and consume it.
          */
         void read(sp_pd_consumer_t& cons, off_t offset, uint8_t *buf, 
-                size_t len, bool do_pop = true) override;
+                size_t len, bool do_pop = true, bool do_trigger = true) override;
 };
 
 //! process data management class with triple buffering
@@ -466,7 +468,7 @@ class triple_buffer :
         /* 
          * \param[in] hash      hash value, get it with set_consumer!
          */
-        uint8_t* pop(sp_pd_consumer_t& cons) override;
+        uint8_t* pop(sp_pd_consumer_t& cons, bool do_trigger = true) override;
 
         //! Pushes write data buffer to available on calling \link next \endlink.
         /*
@@ -483,7 +485,7 @@ class triple_buffer :
          * \param[in] do_push   Push the buffer to set it to the actual one.
          */
         void write(sp_pd_provider_t& prov, off_t offset, uint8_t *buf, 
-                size_t len, bool do_push = true) override;
+                size_t len, bool do_push = true, bool do_trigger = true) override;
 
         //! Read data from buffer.
         /*!
@@ -494,7 +496,7 @@ class triple_buffer :
          * \param[in] do_pop    Pop the buffer and consume it.
          */
         void read(sp_pd_consumer_t& cons, off_t offset, uint8_t *buf, 
-                size_t len, bool do_pop = true) override;
+                size_t len, bool do_pop = true, bool do_trigger = true) override;
 
         //! Returns true if new data has been written
         bool new_data() override;
@@ -566,7 +568,7 @@ class pointer_buffer :
         /*
          * \param[in] hash      hash value, get it with set_consumer!
          */
-        uint8_t* pop(sp_pd_consumer_t& cons) override;
+        uint8_t* pop(sp_pd_consumer_t& cons, bool do_trigger = true) override;
 
         //! Write data to buffer.
         /*!
@@ -577,7 +579,7 @@ class pointer_buffer :
          * \param[in] do_push   Push the buffer to set it to the actual one.
          */
         void write(sp_pd_provider_t& prov, off_t offset, uint8_t *buf, 
-                size_t len, bool do_push = true) override;
+                size_t len, bool do_push = true, bool do_trigger = true) override;
 
         //! Read data from buffer.
         /*!
@@ -588,7 +590,7 @@ class pointer_buffer :
          * \param[in] do_pop    Pop the buffer and consume it.
          */
         void read(sp_pd_consumer_t& cons, off_t offset, uint8_t *buf, 
-                size_t len, bool do_pop = true) override;
+                size_t len, bool do_pop = true, bool do_trigger = true) override;
 };
 
 

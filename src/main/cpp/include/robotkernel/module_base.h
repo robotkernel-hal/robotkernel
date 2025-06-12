@@ -103,6 +103,7 @@ class module_base :
     public:
         const std::string name;         //!< module instance name
         module_state_t state;           //!< actual module state
+        std::mutex state_mtx;
         
         //! Module construction
         /*!
@@ -127,7 +128,7 @@ class module_base :
         /* 
          * usefull to call shared_from_this() at construction time
          */
-        void init() {};
+        virtual void init() {};
     
         //! Get robotkernel module
         /*!
@@ -141,24 +142,41 @@ class module_base :
                     impl.c_str(), name.c_str());
         }
 
+        //*********************************************
+        // STATE MACHINE FUNCTIONS
+        //*********************************************
+
         //! Set module state machine to defined state.
         /*!
          * \param[in] state     Requested state which will be tried to switch to.
          *
          * \return success or failure
          */
-        virtual int set_state(module_state_t state) {
-            throw string_util::str_exception("[%s|%s] set_state not implemented!\n",
-                    impl.c_str(), name.c_str());
-        }
+        virtual int set_state(module_state_t state);
+
+        //! State transition from PREOP to SAFEOP
+        virtual void set_state_op_2_safeop() {}
+
+        //! State transition from PREOP to SAFEOP
+        virtual void set_state_safeop_2_preop() {}
+
+        //! State transition from PREOP to SAFEOP
+        virtual void set_state_preop_2_init() {}
+
+        //! State transition from PREOP to SAFEOP
+        virtual void set_state_init_2_preop() {}
+
+        //! State transition from PREOP to SAFEOP
+        virtual void set_state_preop_2_safeop() {}
+
+        //! State transition from PREOP to SAFEOP
+        virtual void set_state_safeop_2_op() {}
 
         //! Get module state machine state.
         /*!
          * \return Current state.
          */
-        virtual module_state_t get_state() {
-            return state;
-        }
+        virtual module_state_t get_state() { return state; }
 
 };
 

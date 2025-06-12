@@ -132,7 +132,7 @@ class trigger :
         virtual void set_rate(double new_rate);
 
         //! trigger all modules in list
-        void trigger_modules();
+        void do_trigger();
 
         //! wait blocking for next trigger
         /*!

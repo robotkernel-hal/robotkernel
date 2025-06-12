@@ -34,3 +34,80 @@ robotkernel::sp_module_t module_base::get_module() {
     return k.get_module(name);
 }
 
+//! Set module state machine to defined state.
+/*!
+ * \param[in] state     Requested state which will be tried to switch to.
+ *
+ * \return success or failure
+ */
+int module_base::set_state(module_state_t state) {
+    std::unique_lock<std::mutex> lock(state_mtx);
+
+    // get transition
+    uint32_t transition = GEN_STATE(this->state, state);
+
+    switch (transition) {
+        case op_2_safeop:
+        case op_2_preop:
+        case op_2_init:
+        case op_2_boot:
+            // ====> stop sending commands
+            set_state_op_2_safeop();
+
+            if (state == module_state_safeop)
+                break;
+        case safeop_2_preop:
+        case safeop_2_init:
+        case safeop_2_boot:
+            // ====> stop receiving measurements
+            set_state_safeop_2_preop();
+
+            if (state == module_state_preop)
+                break;
+        case preop_2_init:
+        case preop_2_boot:
+            // ====> deinit devices
+            set_state_preop_2_init();
+        case init_2_init:
+            if (state == module_state_init)
+                break;
+        case init_2_boot:
+            break;
+        case boot_2_init:
+        case boot_2_preop:
+        case boot_2_safeop:
+        case boot_2_op:
+            if (state == module_state_init)
+                break;
+        case init_2_op:
+        case init_2_safeop:
+        case init_2_preop:
+            // ====> init devices
+            set_state_init_2_preop();
+
+            if (state == module_state_preop)
+                break;
+        case preop_2_op:
+        case preop_2_safeop:
+            // ====> start receiving measurements
+            set_state_preop_2_safeop();
+
+            if (state == module_state_safeop)
+                break;
+        case safeop_2_op:
+            // ====> start sending commands
+            set_state_safeop_2_op();
+            break;
+        case op_2_op:
+        case safeop_2_safeop:
+        case preop_2_preop:
+            // ====> do nothing
+            break;
+
+        default:
+            break;
+    }
+
+    return (this->state = state);
+}
+

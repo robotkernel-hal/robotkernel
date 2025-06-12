@@ -92,7 +92,7 @@ device(owner, name, "pd"), pd_cookie(0), length(length), clk_device(clk_device),
         trigger_dev = make_shared<robotkernel::trigger>(owner, name);
         this->clk_device = trigger_dev->id();
 
-        k.add_device(trigger_dev);
+//        k.add_device(trigger_dev);
 
         trigger_dev_generated = true;
     }
@@ -102,7 +102,7 @@ process_data::~process_data() {
     kernel& k = *(kernel::get_instance());
 
     if (trigger_dev_generated) {
-        k.remove_device(trigger_dev);
+//        k.remove_device(trigger_dev);
         trigger_dev = nullptr;
     }
 }
@@ -131,8 +131,10 @@ void process_data::push(sp_pd_provider_t& prov, bool do_trigger) {
         inject_val(pd_entry, buf, length);
     }
 
+    pd_cookie++;
+
     if (trigger_dev && do_trigger) {
-        trigger_dev->trigger_modules();
+        trigger_dev->do_trigger();
     }
 }
 
@@ -314,8 +316,12 @@ uint8_t* single_buffer::peek() {
 /*
  * \param[in] hash      hash value, get it with set_consumer!
  */
-uint8_t* single_buffer::pop(sp_pd_consumer_t& cons) {
+uint8_t* single_buffer::pop(sp_pd_consumer_t& cons, bool do_trigger) {
     (void)process_data::pop(cons); 
+
+    if (do_trigger) {
+        trigger_dev->do_trigger();
+    }
 
     return (uint8_t *)&data[0];
 }
@@ -329,15 +335,19 @@ uint8_t* single_buffer::pop(sp_pd_consumer_t& cons) {
  * \param[in] do_push   Push the buffer to set it to the actual one.
  */
 void single_buffer::write(sp_pd_provider_t& prov, off_t offset, uint8_t *buf, 
-        size_t len, bool do_push) 
+        size_t len, bool do_push, bool do_trigger) 
 {
-    process_data::write(prov, offset, buf, len, do_push);
+    process_data::write(prov, offset, buf, len, do_push, do_trigger);
 
     if ((offset + len) > length)
         throw str_exception_tb("wanted to write to many bytes: %d > length %d\n",
                 (offset + len), length);
 
     std::memcpy(&data[offset], buf, len);
+
+    if (do_trigger) {
+        trigger_dev->do_trigger();
+    }
 }
 
 //! Read data from buffer.
@@ -349,15 +359,19 @@ void single_buffer::write(sp_pd_provider_t& prov, off_t offset, uint8_t *buf,
  * \param[in] do_pop    Pop the buffer and consume it.
  */
 void single_buffer::read(sp_pd_consumer_t& cons, off_t offset, uint8_t *buf, 
-        size_t len, bool do_pop) 
+        size_t len, bool do_pop, bool do_trigger) 
 {
-    process_data::read(cons, offset, buf, len, do_pop);
+    process_data::read(cons, offset, buf, len, do_pop, do_trigger);
 
     if ((offset + len) > length)
         throw str_exception_tb("wanted to read to many bytes: %d > length %d\n",
                 (offset + len), length);
 
     std::memcpy(buf, &data[offset], len);
+
+    if (do_trigger) {
+        trigger_dev->do_trigger();
+    }
 }
 
 //! construction
@@ -403,12 +417,17 @@ uint8_t* triple_buffer::peek() {
 /* 
  * \param[in] hash      hash value, get it with set_consumer!
  */
-uint8_t* triple_buffer::pop(sp_pd_consumer_t& cons) {
+uint8_t* triple_buffer::pop(sp_pd_consumer_t& cons, bool do_trigger) {
     (void)process_data::pop(cons);
 
     swap_front();
 
     auto& tmp_buf = front_buffer();
+
+    if (do_trigger) {
+        trigger_dev->do_trigger();
+    }
+
     return (uint8_t *)&tmp_buf[0];
 }
 
@@ -417,9 +436,13 @@ uint8_t* triple_buffer::pop(sp_pd_consumer_t& cons) {
  * \param[in] hash      hash value, get it with set_provider!
  */
 void triple_buffer::push(sp_pd_provider_t& prov, bool do_trigger) {
-    process_data::push(prov, do_trigger);
+    process_data::push(prov, false);
 
     swap_back();
+
+    if (trigger_dev && do_trigger) {
+        trigger_dev->do_trigger();
+    }
 }
 
 //! Write data to buffer.
@@ -431,9 +454,9 @@ void triple_buffer::push(sp_pd_provider_t& prov, bool do_trigger) {
  * \param[in] do_push   Push the buffer to set it to the actual one.
  */
 void triple_buffer::write(sp_pd_provider_t& prov, off_t offset, uint8_t *buf, 
-        size_t len, bool do_push) 
+        size_t len, bool do_push, bool do_trigger) 
 {
-    process_data::write(prov, offset, buf, len, do_push);
+    process_data::write(prov, offset, buf, len, do_push, do_trigger);
 
     if ((offset + len) > length)
         throw str_exception_tb("wanted to write to many bytes: %d > length %d\n",
@@ -443,7 +466,10 @@ void triple_buffer::write(sp_pd_provider_t& prov, off_t offset, uint8_t *buf,
     std::memcpy(&tmp_buf[offset], buf, len);
 
     if (do_push)
-        swap_back();
+        push(prov, do_trigger);
+    else if (do_trigger) {
+        trigger_dev->do_trigger();
+    }
 }
 
 //! Read data from buffer.
@@ -455,7 +481,7 @@ void triple_buffer::write(sp_pd_provider_t& prov, off_t offset, uint8_t *buf,
  * \param[in] do_pop    Pop the buffer and consume it.
  */
 void triple_buffer::read(sp_pd_consumer_t& cons, off_t offset, uint8_t *buf, 
-        size_t len, bool do_pop) 
+        size_t len, bool do_pop, bool do_trigger) 
 {
     process_data::read(cons, offset, buf, len, do_pop);
 
@@ -470,6 +496,10 @@ void triple_buffer::read(sp_pd_consumer_t& cons, off_t offset, uint8_t *buf,
 
     auto& tmp_buf = front_buffer();
     std::memcpy(buf, &tmp_buf[offset], len);
+
+    if (do_trigger) {
+        trigger_dev->do_trigger();
+    }
 }
 
 //! Returns true if new data has been written
@@ -563,8 +593,12 @@ uint8_t* pointer_buffer::peek() {
 /*
  * \param[in] hash      hash value, get it with set_consumer!
  */
-uint8_t* pointer_buffer::pop(sp_pd_consumer_t& cons) {
-    (void)process_data::pop(cons);
+uint8_t* pointer_buffer::pop(sp_pd_consumer_t& cons, bool do_trigger) {
+    (void)process_data::pop(cons, do_trigger);
+
+    if (do_trigger) {
+        trigger_dev->do_trigger();
+    }
 
     return ptr;
 }
@@ -578,15 +612,19 @@ uint8_t* pointer_buffer::pop(sp_pd_consumer_t& cons) {
  * \param[in] do_push   Push the buffer to set it to the actual one.
  */
 void pointer_buffer::write(sp_pd_provider_t& prov, off_t offset, uint8_t *buf, 
-        size_t len, bool do_push) 
+        size_t len, bool do_push, bool do_trigger) 
 {
-    process_data::write(prov, offset, buf, len, do_push);
+    process_data::write(prov, offset, buf, len, do_push, do_trigger);
 
     if ((offset + len) > length)
         throw str_exception_tb("wanted to write to many bytes: %d > length %d\n",
                 (offset + len), length);
 
     std::memcpy(&ptr[offset], buf, len);
+
+    if (do_trigger) {
+        trigger_dev->do_trigger();
+    }
 }
 
 //! Read data from buffer.
@@ -598,14 +636,18 @@ void pointer_buffer::write(sp_pd_provider_t& prov, off_t offset, uint8_t *buf,
  * \param[in] do_pop    Pop the buffer and consume it.
  */
 void pointer_buffer::read(sp_pd_consumer_t& cons, off_t offset, uint8_t *buf, 
-        size_t len, bool do_pop) 
+        size_t len, bool do_pop, bool do_trigger) 
 {
-    process_data::read(cons, offset, buf, len, do_pop);
+    process_data::read(cons, offset, buf, len, do_pop, do_trigger);
 
     if ((offset + len) > length)
         throw str_exception_tb("wanted to read to many bytes: %d > length %d\n",
                 (offset + len), length);
 
-
     std::memcpy(buf, &ptr[offset], len);
+
+    if (do_trigger) {
+        trigger_dev->do_trigger();
+    }
 }
+
