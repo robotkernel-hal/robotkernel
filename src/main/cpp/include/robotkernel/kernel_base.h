@@ -81,6 +81,14 @@ class kernel_base {
          * \param req device to remove
          */
         static void remove_device(sp_device_t req);
+        
+        //! get a device by name
+        /*!
+         * \param dev_name device name
+         * \return device
+         */
+        template <typename T>
+        std::shared_ptr<T> get_device(const std::string& dev_name);
 };
 
 }; // namespace robotkernel;

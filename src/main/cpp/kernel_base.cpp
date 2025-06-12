@@ -96,3 +96,14 @@ void kernel_base::add_device(sp_device_t req) {
 void kernel_base::remove_device(sp_device_t req) {
     return _pkernel->remove_device(req);
 }
+        
+//! get a device by name
+/*!
+ * \param dev_name device name
+ * \return device
+ */
+template <typename T>
+std::shared_ptr<T> kernel_base::get_device(const std::string& dev_name) {
+    return _pkernel->get_device<T>(dev_name);
+}
+
