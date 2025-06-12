@@ -123,13 +123,3 @@ int module_base::set_state(module_state_t state) {
     return (this->state = state);
 }
 
-//! svc_configure_loglevel
-/*!
- * \param[in]   req     Service request data.
- * \param[out]  resp    Service response data.
- */
-void module_base::svc_configure_loglevel(
-        const struct services::robotkernel::log_base::svc_req_configure_loglevel& req,
-        struct services::robotkernel::log_base::svc_resp_configure_loglevel& resp)
-{
-}

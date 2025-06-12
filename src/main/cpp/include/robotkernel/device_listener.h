@@ -62,4 +62,5 @@ typedef std::map<std::pair<std::string, std::string>, sp_device_listener_t> devi
 
 }; // namespace robotkernel
 
-#endif // ROBOTKERNEL_device_listener_H
+#endif // ROBOTKERNEL_DEVICE_LISTENER_H
+

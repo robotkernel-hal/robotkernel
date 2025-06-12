@@ -189,8 +189,7 @@ namespace robotkernel {
 
 class module_base : 
     public robotkernel::log_base,  
-    public robotkernel::trigger_base,
-    public services::robotkernel::log_base::svc_base_configure_loglevel
+    public robotkernel::trigger_base
 {
     private:
         module_base();                  //!< prevent default construction
@@ -270,15 +269,6 @@ class module_base :
          * \return Current state.
          */
         virtual module_state_t get_state() { return state; }
-
-        //! svc_configure_loglevel
-        /*!
-         * \param[in]   req     Service request data.
-         * \param[out]  resp    Service response data.
-         */
-        virtual void svc_configure_loglevel(
-            const struct services::robotkernel::log_base::svc_req_configure_loglevel& req,
-            struct services::robotkernel::log_base::svc_resp_configure_loglevel& resp) override;
 };
 
 typedef std::shared_ptr<module_base> sp_module_base_t;

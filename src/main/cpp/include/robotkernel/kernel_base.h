@@ -32,14 +32,8 @@
 
 namespace robotkernel {
 
-class kernel;
-
 class kernel_base {
     public:
-        kernel *pkernel;
-
-        kernel_base();
-
         //! add service to kernel
         /*!
          * \param owner service owner

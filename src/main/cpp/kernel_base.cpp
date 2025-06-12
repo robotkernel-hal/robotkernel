@@ -33,8 +33,6 @@ using namespace robotkernel;
 
 static kernel *_pkernel = kernel::get_instance();
 
-kernel_base::kernel_base() : pkernel(_pkernel) {}
-
 //! add service to kernel
 /*!
  * \param owner service owner

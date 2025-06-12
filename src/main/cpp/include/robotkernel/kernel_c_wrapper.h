@@ -29,9 +29,6 @@
 #include <stdint.h>
 
 extern "C" {
-#ifdef EMACS_IS_STUPID
-}
-#endif
 
 typedef void * pdhandle;      //!< handle to robotkernel-5 process data
 
@@ -80,9 +77,6 @@ void kernel_c_pop_read_buffer(pdhandle hdl);
  */
 void kernel_c_release_pd_handle(pdhandle hdl);
 
-#ifdef EMACS_IS_STUPID
-{
-#endif
 };
 
 #endif // PD_SFUN_HELPER_H

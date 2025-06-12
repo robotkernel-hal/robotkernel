@@ -26,7 +26,6 @@
 #ifndef ROBOTKERNEL_LOG_BASE_H
 #define ROBOTKERNEL_LOG_BASE_H
 
-#include "robotkernel/kernel_base.h"
 #include "robotkernel/loglevel.h"
 #include "robotkernel/exceptions.h"
 #include "robotkernel/service_definitions.h"
@@ -35,10 +34,9 @@
 
 namespace robotkernel {
 
-// forward declaration
-class kernel;
-
-class log_base : public kernel_base {
+class log_base : 
+    public services::robotkernel::log_base::svc_base_configure_loglevel
+{
     private:
         log_base();                 //!< prevent default construction
 
@@ -58,14 +56,14 @@ class log_base : public kernel_base {
         //! virtual destruction
         virtual ~log_base();
 
-        //! service to configure modules loglevel
+        //! svc_configure_loglevel
         /*!
-         * \param request service request data
-         * \parma response service response data
+         * \param[in]   req     Service request data.
+         * \param[out]  resp    Service response data.
          */
-        int service_configure_loglevel(const service_arglist_t& request, 
-                service_arglist_t& response);
-        static const std::string service_definition_configure_loglevel;
+        void svc_configure_loglevel(
+            const struct services::robotkernel::log_base::svc_req_configure_loglevel& req, 
+            struct services::robotkernel::log_base::svc_resp_configure_loglevel& resp) override;
 
         //! log to kernel logging facility
         void log(robotkernel::loglevel lvl, const char *format, ...);
