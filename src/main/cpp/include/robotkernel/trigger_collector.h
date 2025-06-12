@@ -73,10 +73,18 @@ class trigger_collector {
             this->callback = callback;
 
             timestamps.resize(count);
+            active_mask.resize(count);
 
             for (int i = 0; i < count; i++) {
                 timestamps[i] = 0;
+                active_mask[i] = true;
                 receive_timeout = 0;
+            }
+        }
+
+        void set_active_mask(const std::vector<bool>& active_mask) {
+            for (unsigned i = 0; (i < active_mask.size()) && (i < this->active_mask.size()); ++i) {
+                this->active_mask[i] = active_mask[i];
             }
         }
 
@@ -94,7 +102,7 @@ class trigger_collector {
             timestamps[slave_id] = ts;
 
             for (int i = 0; i < count; i++) {
-                if (0 == timestamps[i]) {
+                if ((active_mask[i]) && (0 == timestamps[i])) {
                     return;
                 }
             }
@@ -114,6 +122,7 @@ class trigger_collector {
 
         int count;
         std::vector<double> timestamps;
+        std::vector<bool> active_mask;
         double timeout;
         double receive_timeout;
 
