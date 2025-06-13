@@ -130,7 +130,7 @@ EXPORT_C SERVICE_PROVIDER_HANDLE sp_register(const char* name) {       \
     wr->sp = std::make_shared<spclass>(name);                          \
     wr->sp->init();                                                    \
                                                                        \
-    return (MODULE_HANDLE)wr;                                          \
+    return (SERVICE_PROVIDER_HANDLE)wr;                                          \
 }                                                                      \
                                                                        \
 EXPORT_C int sp_unregister(SERVICE_PROVIDER_HANDLE hdl) {              \
