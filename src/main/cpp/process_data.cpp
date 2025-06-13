@@ -81,8 +81,7 @@ pd_entry::pd_entry(std::shared_ptr<process_data> pd,
  */
 process_data::process_data(size_t length, const std::string& owner, const std::string& name, 
         const std::string& process_data_definition, const std::string& clk_device) :
-device(owner, name, "pd"), pd_cookie(0), length(length), clk_device(clk_device),
-    process_data_definition(process_data_definition)
+device(owner, name, "pd"), pd_cookie(0), length(length), process_data_definition(process_data_definition)
 {
     kernel& k = *(kernel::get_instance());
 
@@ -90,10 +89,6 @@ device(owner, name, "pd"), pd_cookie(0), length(length), clk_device(clk_device),
         trigger_dev = k.get_trigger(clk_device);
     } else {
         trigger_dev = make_shared<robotkernel::trigger>(owner, name);
-        this->clk_device = trigger_dev->id();
-
-//        k.add_device(trigger_dev);
-
         trigger_dev_generated = true;
     }
 }
@@ -102,7 +97,6 @@ process_data::~process_data() {
     kernel& k = *(kernel::get_instance());
 
     if (trigger_dev_generated) {
-//        k.remove_device(trigger_dev);
         trigger_dev = nullptr;
     }
 }

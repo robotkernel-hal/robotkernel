@@ -338,7 +338,6 @@ class process_data :
     public:
         volatile uint64_t pd_cookie;
         const size_t length;
-        std::string clk_device;
         const std::string process_data_definition;
 
         std::shared_ptr<robotkernel::trigger> trigger_dev;
@@ -444,10 +443,10 @@ class triple_buffer :
     public:
         //! construction
         /*!
-         * \param length byte length of process data
-         * \param owner name of owning module
-         * \param name process data name
-         * \param process_data_definition yaml-string representating the structure of the pd
+         * \param[in]   length                  Byte length of process data.
+         * \param[in]   owner                   Name of owning module.
+         * \param[in]   name                    Process data name.
+         * \param[in]   process_data_definition YAML-string representating the structure of the pd.
          */
         triple_buffer(size_t length, const std::string& owner, const std::string& name, 
                 const std::string& process_data_definition = "", const std::string& clk_device = "");
@@ -543,6 +542,13 @@ class pointer_buffer :
         pointer_buffer(size_t length, uint8_t *ptr, const std::string& owner, const std::string& name, 
                 const std::string& process_data_definition = "", const std::string& clk_device = "");
         
+        //! Set pointer to a new address.
+        /*!
+         * \param[in]   prov    PD Provider, must match set provider.
+         * \param[in]   ptr     New address to process data.
+         *
+         * \exception   str_exception_tb    Permission denied
+         */
         void set_ptr(sp_pd_provider_t& prov, uint8_t *ptr) {
             if ((provider == nullptr) || (provider->hash != prov->hash)) {
                 throw str_exception_tb("permission denied set pointer %s: provider_hash %d, your hash %d", 
@@ -597,6 +603,7 @@ class pointer_buffer :
 typedef std::shared_ptr<process_data> sp_process_data_t;
 typedef std::shared_ptr<single_buffer> sp_single_buffer_t;
 typedef std::shared_ptr<triple_buffer> sp_triple_buffer_t;
+typedef std::shared_ptr<pointer_buffer> sp_pointer_buffer_t;
 typedef std::map<std::string, sp_process_data_t> process_data_map_t;
 
 #ifdef EMACS

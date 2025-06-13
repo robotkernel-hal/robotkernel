@@ -1,4 +1,4 @@
-//! robotkernel kernel base
+//! robotkernel module base
 /*!
  * (C) Robert Burger <robert.burger@dlr.de>
  */
@@ -23,15 +23,14 @@
  * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// public headers
-#include "robotkernel/kernel_base.h"
+#ifndef ROBOTKERNEL_KERNEL_BASE_H
+#define ROBOTKERNEL_KERNEL_BASE_H
 
-// private headers
-#include "kernel.h"
+#include "robotkernel/device.h"
+#include "robotkernel/device_listener.h"
+#include "robotkernel/service.h"
 
-using namespace robotkernel;
-
-static kernel *_pkernel = kernel::get_instance();
+namespace robotkernel {
 
 //! add service to kernel
 /*!
@@ -40,70 +39,57 @@ static kernel *_pkernel = kernel::get_instance();
  * \param service_definition service definition
  * \param callback service callback
  */
-void kernel_base::add_service(
+extern void add_service(
         const std::string &owner,
         const std::string &name,
         const std::string &service_definition,
-        service_callback_t callback)
-{
-    return _pkernel->add_service(owner, name, service_definition, callback);
-}
+        service_callback_t callback);
 
 //! remove on service given by name
 /*!
  * \param[in] owner     Owner of service.
  * \param[in] name      Name of service.
  */
-void kernel_base::remove_service(
+extern void remove_service(
         const std::string& owner, 
-        const std::string& name)
-{
-    return _pkernel->remove_service(owner, name);
-}
+        const std::string& name);
 
 //! adds a device listener
 /*
  * \param[in] dl    device listener to add. this device listener
  *                  will be notified whenever a new device is added.
  */
-void kernel_base::add_device_listener(sp_device_listener_t dl)
-{
-    return _pkernel->add_device_listener(dl);
-}
+extern void add_device_listener(sp_device_listener_t dl);
 
 //! remove a device listener
 /*
  * \param[in] dl    device listener to reomve. this device listener
  *                  will no longer be notified when a new device is added.
  */
-void kernel_base::remove_device_listener(sp_device_listener_t dl)
-{
-    return _pkernel->remove_device_listener(dl);
-}
+extern void remove_device_listener(sp_device_listener_t dl);
 
 //! add a named device
 /*
  * \param req device to add
  */
-void kernel_base::add_device(sp_device_t req) {
-    return _pkernel->add_device(req);
-}
+extern void add_device(sp_device_t req);
 
 //! remove a named device
 /*!
  * \param req device to remove
  */
-void kernel_base::remove_device(sp_device_t req) {
-    return _pkernel->remove_device(req);
-}
-        
+extern void remove_device(sp_device_t req);
+
 //! get a device by name
 /*!
  * \param dev_name device name
  * \return device
  */
 template <typename T>
-std::shared_ptr<T> kernel_base::get_device(const std::string& dev_name) {
-    return _pkernel->get_device<T>(dev_name);
-}
+extern std::shared_ptr<T> get_device(const std::string& dev_name);
+
+}; // namespace robotkernel;
+
+#endif // ROBOTKERNEL_KERNEL_BASE_H
+
 

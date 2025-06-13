@@ -31,7 +31,6 @@
 #include <list>
 #include <stdio.h>
 
-#include "robotkernel/kernel_base.h"
 #include "robotkernel/trigger_base.h"
 #include "robotkernel/exceptions.h"
 #include "robotkernel/helpers.h"

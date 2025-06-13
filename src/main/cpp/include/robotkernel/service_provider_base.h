@@ -192,13 +192,13 @@ class service_provider_base :
         {};
         
         void init() {
-            ::robotkernel::kernel_base::add_device_listener(shared_from_this());
+            ::robotkernel::add_device_listener(shared_from_this());
         };
         
         virtual ~service_provider_base() {};
         
         void deinit() {
-            ::robotkernel::kernel_base::remove_device_listener(shared_from_this());
+            ::robotkernel::remove_device_listener(shared_from_this());
         };
 
         //! Add a interface to our provided services

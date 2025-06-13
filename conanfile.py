@@ -8,7 +8,7 @@ class MainProject(ConanFile):
     name = "robotkernel"
     description = "robotkernel is a modular, easy configurable hardware abstraction framework"
     exports_sources = ["*", "!.gitignore"]
-    tool_requires = ["robotkernel_service_helper/[~6]@robotkernel/unstable"]
+    tool_requires = ["robotkernel_service_helper/[~6]@robotkernel/snapshot"]
 
     def source(self):
         self.run(f"sed 's/AC_INIT(.*/AC_INIT([robotkernel], [{self.version}], [{self.author}])/' -i configure.ac")

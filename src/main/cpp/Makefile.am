@@ -29,7 +29,7 @@ include_HEADERS = $(headerdir)/bridge_base.h	\
 				  $(headerdir)/device_listener.h \
 				  $(headerdir)/exceptions.h \
 				  $(headerdir)/helpers.h \
-				  $(headerdir)/kernel_base.h \
+				  $(headerdir)/robotkernel.h \
 				  $(headerdir)/kernel_c_wrapper.h \
 				  $(headerdir)/log_base.h \
 				  $(headerdir)/loglevel.h \
@@ -53,7 +53,7 @@ librobotkernel_la_SOURCES = bridge.cpp				\
 					  dump_log.cpp 				\
 					  exceptions.cpp 			\
 					  kernel.cpp 				\
-					  kernel_base.cpp 				\
+					  robotkernel.cpp 				\
 					  module_base.cpp 			\
 					  kernel_c_wrapper.cpp      \
 					  kernel_worker.cpp       	\

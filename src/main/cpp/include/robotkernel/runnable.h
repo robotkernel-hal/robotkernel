@@ -27,24 +27,11 @@
 #define ROBOTKERNEL__RUNNABLE_H
 
 #include <string>
-
-#if defined (HAVE_PTHREAD_SETNAME_NP_3) || defined (HAVE_PTHREAD_SETNAME_NP_2) || defined (HAVE_PTHREAD_SETNAME_NP_1)
-#ifndef _GNU_SOURCE
-#define _GNU_SOURCE
-#endif
-#endif
-
-#include <pthread.h>
-#include <stdio.h>
-#include <list>
 #include <thread>
 
 #include <yaml-cpp/yaml.h>
 
 namespace robotkernel {
-#ifdef EMACS
-}
-#endif
 
 //! runnable base class
 /*!
@@ -59,7 +46,6 @@ class runnable {
 
         runnable(const runnable&);             // prevent copy-construction
         runnable& operator=(const runnable&);  // prevent assignment
-
 
         int policy;                 //!< thread scheduling policy
         int prio;                   //!< thread priority
@@ -100,8 +86,9 @@ class runnable {
                                             //   thread is running
 
         const int& get_policy() const;        //!< return policy
-        const int& get_affinity_mask() const; //!< return affinity mask
         const int& get_prio() const;          //!< return priority 
+        const int& get_affinity_mask() const; //!< return affinity mask
+        const std::string& get_name() const;  //!< return thread name.
 
         void set_policy(int policy);        //!< set policy
         void set_prio(int prio);            //!< set priority
@@ -121,19 +108,20 @@ inline const int& runnable::get_policy() const {
 
 inline const int& runnable::get_affinity_mask() const { 
     return affinity_mask; 
-};
+}
 
 inline const int& runnable::get_prio() const {
     return prio; 
-};
+}
+
+inline const std::string& runnable::get_name() const {
+    return thread_name;
+}
 
 inline void runnable::set_policy(int policy) {
     this->policy = policy;
-};
+}
 
-#ifdef EMACS
-{
-#endif
 } // namespace robotkernel
 
 #endif // ROBOTKERNEL__RUNNABLE_H

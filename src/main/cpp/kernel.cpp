@@ -1302,7 +1302,7 @@ int kernel::service_process_data_info(const service_arglist_t &request,
         if (pd) {
             owner     = pd->owner;
             definiton = pd->process_data_definition;
-            clk_device = pd->clk_device;
+            clk_device = pd->trigger_dev ? pd->trigger_dev->id() : "";
             if (pd->provider)
                 provider  = pd->provider->name;
             if (pd->consumer)
