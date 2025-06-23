@@ -10,7 +10,7 @@ to write a bunch of simple and small configuration in
 Components
 ==========
 
-Robotkernel-5 is a program which dynamically loads other objects called
+Robotkernel is a program which dynamically loads other objects called
 components. There are different types of components, which are
 distinguished by it's functionality.
 
@@ -104,7 +104,7 @@ act as inter-process communication bridge. usefull to provide
 communication with other applications e.g. links-and-nodes.
 
 ![service brigde
-example](Robotkernel-5_multiple_service_bridge_example.png "service brigde example")
+example](Robotkernel_multiple_service_bridge_example.png "service brigde example")
 
 ### Exported C-Api interface
 
@@ -166,7 +166,7 @@ the robotkernel by calling *add\_device*.
 Devices
 =======
 
-Robotkernel-5 devices are the internal representation of module
+Robotkernel devices are the internal representation of module
 resources. These devices may be *process data*, *stream* or *trigger*.
 Each **component** may use *robotkernel* internal devices to provide
 data to other components or to make inter-process-communication. All
@@ -356,4 +356,4 @@ int module::service_set_state(const service_arglist_t& request, service_arglist_
 }
 ```
 
-<Category:Robotkernel> [!](Category:Robotkernel-5 "wikilink")
+<Category:Robotkernel> [!](Category:Robotkernel "wikilink")
