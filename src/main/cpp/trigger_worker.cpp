@@ -34,7 +34,7 @@
 using namespace std;
 using namespace robotkernel;
 using namespace string_util;
-        
+
 bool trigger_worker::worker_key::operator<(const worker_key& a) const {
     if (prio < a.prio)
         return true;
@@ -61,14 +61,14 @@ trigger_worker::trigger_worker(int prio, int affinity_mask, int divisor) :
 {
     // start worker thread
     start();
-    klog(info, "[trigger_worker] created with prio %d\n", prio);
+    kernel::instance.log(info, "[trigger_worker] created with prio %d\n", prio);
 };
         
 //! destruction
 trigger_worker::~trigger_worker() {
     // stop worker thread
     stop();
-    klog(info, "[trigger_worker] destructed\n");
+    kernel::instance.log(info, "[trigger_worker] destructed\n");
 }
 
 //! add trigger to worker
@@ -98,7 +98,7 @@ void trigger_worker::remove_trigger(sp_trigger_base_t trigger) {
 
 //! handler function called if thread is running
 void trigger_worker::run() {
-    klog(info, "[trigger_worker] running worker thread\n");
+    kernel::instance.log(info, "[trigger_worker] running worker thread\n");
     
     // lock mutex cause we access _modules
     std::unique_lock<std::mutex> lock(mtx);
@@ -113,7 +113,7 @@ void trigger_worker::run() {
             t->tick();
     }
         
-    klog(info, "[trigger_worker] finished worker thread\n");
+    kernel::instance.log(info, "[trigger_worker] finished worker thread\n");
 }
 
 //! trigger worker

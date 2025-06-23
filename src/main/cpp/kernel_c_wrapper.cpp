@@ -86,8 +86,7 @@ extern "C" {
  * \returns handle to process data device
  */
 pdhandle kernel_c_get_pd_handle(const char *pd_name, int consumer) {
-    kernel& k = *(kernel::get_instance());
-    auto pd_dev = k.get_process_data(string(pd_name));
+    auto pd_dev = kernel::instance.get_device<process_data>(string(pd_name));
     pd_wrapper *hdl = nullptr;
 
     if (consumer) {

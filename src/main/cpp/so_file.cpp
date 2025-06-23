@@ -73,10 +73,9 @@ string searchFile(string file_name, vector<const char*> &locations){
   */
 so_file::so_file(const YAML::Node& node) : config("") {
     file_name = get_as<string>(node, "so_file");
-    kernel& k = *kernel::get_instance();
     
     if (node["config_file"]) {
-        klog(warning, "entry 'config_file' of so_file %s is deprecated !!! It will be removed in "
+        kernel::instance.log(warning, "entry 'config_file' of so_file %s is deprecated !!! It will be removed in "
                 "future versions. Use 'config: !include config_file.rkc' instead.\n", 
                 file_name.c_str());
 
@@ -84,10 +83,10 @@ so_file::so_file(const YAML::Node& node) : config("") {
         // check for absolute/relative path
         if (config_file_name[0] != '/') {
             // relative path to config file
-            config_file_name = k.config_file_path + "/" + config_file_name;
+            config_file_name = kernel::instance.config_file_path + "/" + config_file_name;
         }
 
-        klog(verbose, "so_file %s config file \"%s\"\n", 
+        kernel::instance.log(verbose, "so_file %s config file \"%s\"\n", 
                 file_name.c_str(), config_file_name.c_str());
 
         ifstream t(config_file_name.c_str());
@@ -106,10 +105,10 @@ so_file::so_file(const YAML::Node& node) : config("") {
     if (file_name.c_str()[0] != '/') {
         vector<const char*> locations{
                 ".",                                // local dir
-                k.config_file_path.c_str(),         // relative to config file
+                kernel::instance.config_file_path.c_str(),         // relative to config file
                 getenv("ROBOTKERNEL_LIBRARY_PATH"), // search environment
                 getenv("LD_LIBRARY_PATH"),          // dlopen respects this, but we want to ensure a load order
-                k._internal_modpath.c_str(),
+                kernel::instance._internal_modpath.c_str(),
         };
         file_name = searchFile(file_name, locations);
     }
@@ -127,11 +126,11 @@ so_file::so_file(const YAML::Node& node) : config("") {
   destroys so_file
   */
 so_file::~so_file() {
-    if (so_handle && !kernel::get_instance()->_do_not_unload_modules) {
-        klog(verbose, "unloading so_file %s\n", file_name.c_str());
+    if (so_handle && !kernel::instance._do_not_unload_modules) {
+        kernel::instance.log(verbose, "unloading so_file %s\n", file_name.c_str());
 
         if (dlclose(so_handle) != 0)
-            klog(error, "error on unloading so_file %s\n", file_name.c_str());
+            kernel::instance.log(error, "error on unloading so_file %s\n", file_name.c_str());
         else
             so_handle = NULL;
     }

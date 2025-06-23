@@ -103,11 +103,11 @@ void robotkernel::set_priority(int priority, int policy) {
     if (!priority)
         return;
     struct sched_param param;
-    klog(info, "setting thread priority to %d, policy %d\n", priority, policy);
+    robotkernel::kernel::instance.log(info, "setting thread priority to %d, policy %d\n", priority, policy);
 
     param.sched_priority = priority;
     if (pthread_setschedparam(pthread_self(), policy, &param) != 0)
-        klog(warning, "setPriority: pthread_setschedparam(0x%x, %d, %d): %s\n",
+        robotkernel::kernel::instance.log(warning, "setPriority: pthread_setschedparam(0x%x, %d, %d): %s\n",
                 pthread_self(), policy, priority, strerror(errno));
 }
 
@@ -125,11 +125,11 @@ void robotkernel::set_affinity_mask(int affinity_mask) {
         if (affinity_mask & (1 << i))
             CPU_SET(i, &cpuset);
 
-    klog(info, "setting cpu affinity mask %#x\n", affinity_mask);
+    robotkernel::kernel::instance.log(info, "setting cpu affinity mask %#x\n", affinity_mask);
 
     int ret = pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuset);
     if (ret != 0)
-        klog(warning, "setAffinityMask: pthread_setaffinity(%p, %#x): %d %s\n", 
+        robotkernel::kernel::instance.log(warning, "setAffinityMask: pthread_setaffinity(%p, %#x): %d %s\n", 
                 (void *) pthread_self(), affinity_mask, ret, strerror(ret));
 #endif
 }

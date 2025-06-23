@@ -59,17 +59,17 @@ service_provider::service_provider(const YAML::Node& node) : so_file(node) {
     sp_test_interface   = (sp_test_interface_t)dlsym(so_handle, "sp_test_interface");
 
     if (!sp_register)
-        klog(verbose, "missing sp_register in %s\n", file_name.c_str());
+        robotkernel::kernel::instance.log(verbose, "missing sp_register in %s\n", file_name.c_str());
     if (!sp_unregister)
-        klog(verbose, "missing sp_unregister in %s\n", file_name.c_str());
+        robotkernel::kernel::instance.log(verbose, "missing sp_unregister in %s\n", file_name.c_str());
     if (!sp_add_interface)
-        klog(verbose, "missing sp_add_interface in %s\n", file_name.c_str());
+        robotkernel::kernel::instance.log(verbose, "missing sp_add_interface in %s\n", file_name.c_str());
     if (!sp_remove_interface)
-        klog(verbose, "missing sp_remove_interface in %s\n", file_name.c_str());
+        robotkernel::kernel::instance.log(verbose, "missing sp_remove_interface in %s\n", file_name.c_str());
     if (!sp_remove_module)
-        klog(verbose, "missing sp_remove_module in %s\n", file_name.c_str());
+        robotkernel::kernel::instance.log(verbose, "missing sp_remove_module in %s\n", file_name.c_str());
     if (!sp_test_interface)
-        klog(verbose, "missing sp_test_interface in %s\n", file_name.c_str());
+        robotkernel::kernel::instance.log(verbose, "missing sp_test_interface in %s\n", file_name.c_str());
 
     // try to configure
     if (sp_register) {
@@ -82,7 +82,7 @@ service_provider::service_provider(const YAML::Node& node) : so_file(node) {
   destroys service_provider
   */
 service_provider::~service_provider() {
-    klog(verbose, "service_provider destructing %s\n", file_name.c_str());
+    robotkernel::kernel::instance.log(verbose, "service_provider destructing %s\n", file_name.c_str());
 
     // unconfigure service_provider first
     if (sp_handle && sp_unregister) {
@@ -100,7 +100,7 @@ void service_provider::add_interface(sp_service_interface_t req) {
         throw str_exception("%s not configured!\n", name.c_str());
 
     if (!sp_add_interface) {
-        klog(error, "%s error: no sp_add_interface function\n", name.c_str());
+        robotkernel::kernel::instance.log(error, "%s error: no sp_add_interface function\n", name.c_str());
         return; 
     }
 
@@ -117,7 +117,7 @@ void service_provider::remove_interface(sp_service_interface_t req) {
         throw str_exception("%s not configured!\n", name.c_str());
 
     if (!sp_remove_interface) {
-        klog(error, "%s error: no sp_remove_interface function\n", name.c_str());
+        robotkernel::kernel::instance.log(error, "%s error: no sp_remove_interface function\n", name.c_str());
         return;
     }
 
@@ -133,7 +133,7 @@ void service_provider::remove_module(std::string mod_name) {
         throw str_exception("%s not configured!\n", name.c_str());
 
     if (!sp_remove_module) {
-        klog(error, "%s error: no sp_remove_module function\n", name.c_str());
+        robotkernel::kernel::instance.log(error, "%s error: no sp_remove_module function\n", name.c_str());
         return;
     }
 

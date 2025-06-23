@@ -37,7 +37,7 @@
 using namespace std;
 using namespace robotkernel;
 using namespace string_util;
-        
+
 // construction
 trigger::trigger(const std::string& owner, const std::string& name, double rate) 
     : device(owner, name, "trigger"), rate(rate)
@@ -102,7 +102,7 @@ void trigger::remove_trigger(sp_trigger_base_t trigger) {
         }
     }
 
-    klog(verbose, "trigger %s removed\n", id().c_str());
+    robotkernel::kernel::instance.log(verbose, "trigger %s removed\n", id().c_str());
 }
 
 //! wait blocking for next trigger

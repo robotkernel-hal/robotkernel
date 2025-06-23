@@ -45,7 +45,15 @@ using namespace std::placeholders;
 using namespace robotkernel;
 using namespace string_util;
 
-static ::robotkernel::kernel *_pkernel = ::robotkernel::kernel::get_instance();
+//! construction
+/*!
+ * \param[in]   ll          Loglevel to set.
+ */
+log_base::log_base(loglevel ll) :
+    ll(ll), name("robotkernel"), impl("robotkernel"), service_prefix("")
+{
+    //add_svc_configure_loglevel(name, "configure_loglevel");
+}
 
 //! construction
 /*!
@@ -55,7 +63,7 @@ log_base::log_base(const std::string& name, const std::string& impl,
         const std::string& service_prefix, const YAML::Node& node) :
     name(name), impl(impl), service_prefix(service_prefix)
 {
-    ll = _pkernel->get_loglevel();
+    ll = robotkernel::kernel::instance.get_loglevel();
 
     // search for loglevel
     if (node.IsDefined() && !node.IsNull()) {
@@ -99,6 +107,7 @@ void log_base::svc_configure_loglevel(
         struct services::robotkernel::log_base::svc_resp_configure_loglevel& resp) 
 {
     resp.current_loglevel = ll;
+    ll = req.set_loglevel;
     resp.error_message = "";
 }
 
@@ -106,7 +115,7 @@ void log_base::svc_configure_loglevel(
 void log_base::log(loglevel lvl, const char *format, ...) {
     struct log_thread::log_pool_object *obj;
 
-    if ((obj = _pkernel->rk_log.get_pool_object()) != NULL) {
+    if ((obj = robotkernel::kernel::instance.rk_log.get_pool_object()) != NULL) {
         // only ifempty log pool avaliable!
         obj->lvl = lvl;
         int bufpos = snprintf(obj->buf+bufpos, sizeof(obj->buf)-bufpos, "[%s|%s] ", 
@@ -115,15 +124,17 @@ void log_base::log(loglevel lvl, const char *format, ...) {
         // format argument list    
         va_list args;
         va_start(args, format);
-        vsnprintf(obj->buf+bufpos, sizeof(obj->buf)-bufpos, format, args);
+        bufpos += vsnprintf(obj->buf+bufpos, sizeof(obj->buf)-bufpos, format, args);
         va_end(args);
     
-        if (_pkernel->do_log_to_trace_fd()) {
-            _pkernel->trace_write(obj->buf);
+        obj->len = bufpos;
+
+        if (robotkernel::kernel::instance.do_log_to_trace_fd()) {
+            robotkernel::kernel::instance.trace_write(obj);
         }
 
 #if (HAVE_LTTNG_UST == 1)
-        if (_pkernel->log_to_lttng_ust) {
+        if (robotkernel::kernel::instance.log_to_lttng_ust) {
             tracepoint(robotkernel, lttng_log, obj->buf);
         }
 #endif
@@ -131,9 +142,9 @@ void log_base::log(loglevel lvl, const char *format, ...) {
         dump_log(obj->buf);
 
         if (lvl > ll) {
-            _pkernel->rk_log.return_pool_object(obj);
+            robotkernel::kernel::instance.rk_log.return_pool_object(obj);
         } else {
-            _pkernel->rk_log.log(obj);
+            robotkernel::kernel::instance.rk_log.log(obj);
         }
     }
 }

@@ -144,10 +144,8 @@ const static std::string ANSI_WHITE = "\u001B[37m";
 
 //! handler function called if thread is running
 void log_thread::run() {
-    kernel& k = *kernel::get_instance();
-
     set_name("rk:log_thread");
-    k.log(verbose, "log_thread started at tid %d\n", _gettid());
+    kernel::instance.log(verbose, "log_thread started at tid %d\n", _gettid());
     char tmp_buf[2*1024];
 
     std::unique_lock<std::mutex> lock(mtx);
@@ -180,7 +178,7 @@ void log_thread::run() {
             snprintf(&tmp_buf[len], sizeof(tmp_buf) - len, ".%03.0f ", mseconds);
             len = strlen(&tmp_buf[0]);
             snprintf(&tmp_buf[len], sizeof(tmp_buf) - len, "%s %s", 
-                    k.ll_to_string(obj->lvl).c_str(), obj->buf);
+                    kernel::instance.ll_to_string(obj->lvl).c_str(), obj->buf);
 
             char* have_error = strstr(&tmp_buf[0], "ERR");
             if (have_error) {

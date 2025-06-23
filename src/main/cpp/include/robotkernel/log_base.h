@@ -48,6 +48,12 @@ class log_base :
 
         //! construction
         /*!
+         * \param[in]   ll          Loglevel to set.
+         */
+        log_base(loglevel ll);
+
+        //! construction
+        /*!
          * \param node config node
          */
         log_base(const std::string& name, const std::string& impl, 
@@ -55,6 +61,15 @@ class log_base :
 
         //! virtual destruction
         virtual ~log_base();
+
+        //! Return current loglevel
+        const loglevel get_loglevel() const;
+
+        //! Set new loglevel
+        /*!
+         * \param[in]   ll      New loglevel to be set.
+         */
+        void set_loglevel(loglevel ll);
 
         //! svc_configure_loglevel
         /*!
@@ -68,6 +83,20 @@ class log_base :
         //! log to kernel logging facility
         void log(robotkernel::loglevel lvl, const char *format, ...);
 };
+
+//! Return current loglevel
+inline const loglevel log_base::get_loglevel() const { 
+    return ll; 
+}
+
+//! Set new loglevel
+/*!
+ * \param[in]   ll      New loglevel to be set.
+ */
+inline void log_base::set_loglevel(loglevel ll) { 
+    this->ll = ll; 
+}
+
 
 }; // namespace robotkernel
 

@@ -236,7 +236,7 @@ module::module(const YAML::Node& node)
             } catch (YAML::Exception& e) {
                 YAML::Emitter t;
                 t << node["trigger"];
-                klog(error, "%s exception creating external trigger: %s\n"
+                robotkernel::kernel::instance.log(error, "%s exception creating external trigger: %s\n"
                         "got config string: \n====\n%s\n====\n",
                         name.c_str(), e.what(), t.c_str());
                 throw;
@@ -293,14 +293,13 @@ module::module(const YAML::Node& node)
 
     currently_loading_module = NULL;
 
-    kernel& k = *kernel::get_instance();
-    k.add_service(name, "set_state",
+    kernel::instance.add_service(name, "set_state",
             service_definition_set_state,
             std::bind(&module::service_set_state, this, _1, _2));
-    k.add_service(name, "get_state",
+    kernel::instance.add_service(name, "get_state",
             service_definition_get_state,
             std::bind(&module::service_get_state, this, _1, _2));
-    k.add_service(name, "get_config",
+    kernel::instance.add_service(name, "get_config",
             service_definition_get_config,
             std::bind(&module::service_get_config, this, _1, _2));
 }
@@ -313,15 +312,15 @@ void module::_init() {
     mod_tick                = (mod_tick_t)              dlsym(so_handle, "mod_tick");
 
     if (!mod_configure)
-        klog(warning, "missing mod_configure in %s\n", file_name.c_str());;
+        robotkernel::kernel::instance.log(warning, "missing mod_configure in %s\n", file_name.c_str());;
     if (!mod_unconfigure)
-        klog(verbose, "missing mod_unconfigure in %s\n", file_name.c_str());
+        robotkernel::kernel::instance.log(verbose, "missing mod_unconfigure in %s\n", file_name.c_str());
     if (!mod_set_state)
-        klog(verbose, "missing mod_set_state in %s\n", file_name.c_str());
+        robotkernel::kernel::instance.log(verbose, "missing mod_set_state in %s\n", file_name.c_str());
     if (!mod_get_state)
-        klog(verbose, "missing mod_get_state in %s\n", file_name.c_str());
+        robotkernel::kernel::instance.log(verbose, "missing mod_get_state in %s\n", file_name.c_str());
     if (!mod_tick)
-        klog(verbose, "missing mod_tick in %s\n", file_name.c_str());
+        robotkernel::kernel::instance.log(verbose, "missing mod_tick in %s\n", file_name.c_str());
 
     // try to configure
     reconfigure();
@@ -357,7 +356,7 @@ bool module::reconfigure() {
   destroys module
   */
 module::~module() {
-    klog(verbose, "%s destructing %s\n", name.c_str(), file_name.c_str());
+    robotkernel::kernel::instance.log(verbose, "%s destructing %s\n", name.c_str(), file_name.c_str());
 
     while (!triggers.empty()) {
         external_trigger *trigger = triggers.front();
@@ -368,13 +367,13 @@ module::~module() {
 
     // unconfigure module first
     if (mod_handle && mod_unconfigure) {
-        klog(verbose, "%s calling unconfigure\n", name.c_str());
+        robotkernel::kernel::instance.log(verbose, "%s calling unconfigure\n", name.c_str());
         mod_unconfigure(mod_handle);
         mod_handle = NULL;
     }
 
-    kernel::get_instance()->remove_devices(name);
-    kernel::get_instance()->remove_services(name);
+    kernel::instance.remove_devices(name);
+    kernel::instance.remove_services(name);
 }
 
 //! Set module state 
@@ -387,11 +386,10 @@ int module::set_state(module_state_t state) {
         throw str_exception("%s not configured\n", name.c_str());
 
     if (!mod_set_state) {
-        klog(error, "%s error: no mod_set_state function\n", name.c_str());
+        robotkernel::kernel::instance.log(error, "%s error: no mod_set_state function\n", name.c_str());
         return -1;
     }
 
-    auto& k = *kernel::get_instance();
     module_state_t act_state = get_state();
 
     // get transition
@@ -400,12 +398,12 @@ int module::set_state(module_state_t state) {
 #define set_state__check(to_state) {                                                                    \
     int ret = 0;                                                                                        \
     try {                                                                                               \
-        klog(info, "module %s -> requesting state %s\n", name.c_str(), state_to_string(to_state));   \
+        robotkernel::kernel::instance.log(info, "module %s -> requesting state %s\n", name.c_str(), state_to_string(to_state));   \
         ret = mod_set_state(mod_handle, to_state);                                                      \
-        klog(info, "module %s -> reached    state %s\n", name.c_str(), state_to_string(ret));          \
+        robotkernel::kernel::instance.log(info, "module %s -> reached    state %s\n", name.c_str(), state_to_string(ret));          \
     } catch (exception& e) {                                                                            \
-        klog(error, "set_state: %s\n", e.what());                                                       \
-        klog(error,"module %s -> refused    state %s, error %s, staying in %s\n", name.c_str(),        \
+        robotkernel::kernel::instance.log(error, "set_state: %s\n", e.what());                                                       \
+        robotkernel::kernel::instance.log(error,"module %s -> refused    state %s, error %s, staying in %s\n", name.c_str(),        \
                 state_to_string(to_state), e.what(), state_to_string(act_state));                       \
     }                                                                                                   \
     if (ret != to_state) return -1; }                          
@@ -432,10 +430,10 @@ int module::set_state(module_state_t state) {
             set_state__check(module_state_preop);
 
             for (const auto& et : triggers) {
-                klog(info, "%s removing module trigger %s\n",
+                robotkernel::kernel::instance.log(info, "%s removing module trigger %s\n",
                         name.c_str(), et->dev_name.c_str());
                 
-                auto t_dev = k.get_trigger(et->dev_name);
+                auto t_dev = kernel::instance.get_device<trigger>(et->dev_name);
                 t_dev->remove_trigger(shared_from_this());
             } 
             
@@ -474,10 +472,10 @@ int module::set_state(module_state_t state) {
         case preop_2_safeop:
             // ====> start receiving measurements, registering triggers
             for (const auto& et : triggers) {
-                klog(info, "%s adding module trigger \"%s\"\n",
+                robotkernel::kernel::instance.log(info, "%s adding module trigger \"%s\"\n",
                         name.c_str(), et->dev_name.c_str());
                 
-                auto t_dev = k.get_trigger(et->dev_name);
+                auto t_dev = kernel::instance.get_device<trigger>(et->dev_name);
                 divisor = et->divisor;
                 t_dev->add_trigger(shared_from_this(), et->direct_mode, et->prio, et->affinity_mask);
             }
@@ -514,7 +512,7 @@ module_state_t module::get_state() {
         throw str_exception("%s not configured\n", name.c_str());
 
     if (!mod_get_state) {
-        klog(error, "%s error: no mod_get_state function\n", name.c_str()); 
+        robotkernel::kernel::instance.log(error, "%s error: no mod_get_state function\n", name.c_str()); 
         return module_state_init;
     }
 
@@ -546,13 +544,12 @@ int module::service_set_state(const service_arglist_t& request,
     // request data
 #define SET_STATE_REQ_STATE     0
     string state = request[SET_STATE_REQ_STATE];
-    kernel& k = *kernel::get_instance();
 
     // response data
     string error_message;
 
     try {      
-        k.set_state(name, string_to_state(state.c_str()));
+        kernel::instance.set_state(name, string_to_state(state.c_str()));
     } catch (const exception& e) {
         error_message = e.what();
     }
@@ -572,14 +569,13 @@ int module::service_set_state(const service_arglist_t& request,
  */
 int module::service_get_state(const service_arglist_t& request, 
         service_arglist_t& response) {
-    kernel& k = *kernel::get_instance();
     
     // response data
     string state = "";
     string error_message = "";
 
     try {      
-        module_state_t act_state = k.get_state(name);
+        module_state_t act_state = kernel::instance.get_state(name);
         state = state_to_string(act_state);
     } catch (const exception& e) {
         error_message = e.what();

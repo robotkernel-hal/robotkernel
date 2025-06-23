@@ -54,22 +54,6 @@ YAML::Node tmp = YAML::Clone(YAML::Node("dieses clone steht hier damit es vom "
 
 namespace robotkernel {
 
-// assign generated service definitions
-const std::string kernel::service_definition_get_dump_log           = services::robotkernel_kernel_get_dump_log_service_definition;
-const std::string kernel::service_definition_config_dump_log        = services::robotkernel_kernel_config_dump_log_service_definition;
-const std::string kernel::service_definition_add_module             = services::robotkernel_kernel_add_module_service_definition;
-const std::string kernel::service_definition_remove_module          = services::robotkernel_kernel_remove_module_service_definition;
-const std::string kernel::service_definition_module_list            = services::robotkernel_kernel_module_list_service_definition;
-const std::string kernel::service_definition_reconfigure_module     = services::robotkernel_kernel_reconfigure_module_service_definition;
-const std::string kernel::service_definition_list_devices           = services::robotkernel_kernel_list_devices_service_definition;
-const std::string kernel::service_definition_process_data_info      = services::robotkernel_kernel_process_data_info_service_definition;
-const std::string kernel::service_definition_trigger_info           = services::robotkernel_kernel_trigger_info_service_definition;
-const std::string kernel::service_definition_stream_info            = services::robotkernel_kernel_stream_info_service_definition;
-const std::string kernel::service_definition_service_interface_info = services::robotkernel_kernel_service_interface_info_service_definition;
-const std::string kernel::service_definition_add_pd_injection       = services::robotkernel_kernel_add_pd_injection_service_definition;
-const std::string kernel::service_definition_del_pd_injection       = services::robotkernel_kernel_del_pd_injection_service_definition;
-const std::string kernel::service_definition_list_pd_injections     = services::robotkernel_kernel_list_pd_injections_service_definition;
-
 void split_file_name(const string& str, string& path, string& file) {
     size_t found;
     found = str.find_last_of("/\\");
@@ -117,9 +101,17 @@ void kernel::trace_write(const char *fmt, ...) {
     int local_ret = write(trace_fd, buf, n);
     (void)local_ret;
 }
+        
+void kernel::trace_write(const struct log_thread::log_pool_object *obj) {
+    if (trace_fd < 0)
+        return;
+
+    int local_ret = write(trace_fd, obj->buf, obj->len);
+    (void)local_ret;
+}
 
 //! kernel singleton instance
-kernel *kernel::instance = NULL;
+kernel kernel::instance;
 
 //! set state of module
 /*!
@@ -366,12 +358,12 @@ void kernel::remove_services(const std::string& owner) {
 /*!
  * \param configfile config file name
  */
-kernel::kernel() 
+kernel::kernel() :
+    log_base(info)
 {
-    //ll = info;
     _name = "robotkernel";
 
-    log(info, PACKAGE_STRING "\n");
+    rk_log.start();
 }
         
 //! destruction
@@ -445,29 +437,6 @@ kernel::~kernel() {
     dump_log_free();
 }
 
-
-//! get kernel singleton instance
-/*!
- * \return kernel singleton instance
- */
-kernel * kernel::get_instance() {
-    if (!instance) {
-        instance = new kernel();
-        instance->rk_log.start();
-    }
-
-    return dynamic_cast<kernel *>(instance);
-}
-
-//! destroy singleton instance
-void kernel::destroy_instance() {
-    if (instance) {
-        delete instance;
-
-        instance = NULL;
-    }
-}
-
 //! Register a new datatype description
 /*!
  * \param[in]   name        Datatype name.
@@ -530,7 +499,7 @@ void kernel::config(std::string config_file, int argc, char *argv[]) {
 
     split_file_name(string(real_exec_file), exec_file_path, file);
     log(verbose, "got exec path %s\n", exec_file_path.c_str());
-    log(info, "searching interfaces and modules ....\n");
+    log(verbose, "searching interfaces and modules ....\n");
     free(real_exec_file);
 
     string base_path, sub_path;
@@ -564,9 +533,9 @@ void kernel::config(std::string config_file, int argc, char *argv[]) {
     }
 
     if (_internal_modpath != string(""))
-        log(info, "found modules path %s\n", _internal_modpath.c_str());
+        log(verbose, "found modules path %s\n", _internal_modpath.c_str());
     if (_internal_intfpath != string(""))
-        log(info, "found interfaces path %s\n", _internal_intfpath.c_str());
+        log(verbose, "found interfaces path %s\n", _internal_intfpath.c_str());
 
     if (config_file.compare("") == 0) {
         return;
@@ -578,7 +547,7 @@ void kernel::config(std::string config_file, int argc, char *argv[]) {
 
     split_file_name(string(real_config_file), config_file_path, file);
 
-    log(info, "got config file path: %s, file name %s\n",
+    log(verbose, "got config file path: %s, file name %s\n",
             config_file_path.c_str(), file.c_str());
 
     this->config_file = string(real_config_file);
@@ -591,6 +560,9 @@ void kernel::config(std::string config_file, int argc, char *argv[]) {
         unsetenv("LN_PROGRAM_NAME");
     }
     _name = get_as<string>(doc, "name");
+    log_base::name = _name;
+
+    log(info, "Robotkernel " PACKAGE_VERSION "\n");
 
     // locking all current and future memory to keep it hold in 
     // memory without swapping
@@ -719,34 +691,21 @@ void kernel::config(std::string config_file, int argc, char *argv[]) {
         service_provider_map[sp->name] = sp;
     }
 
-    add_service(_name, "get_dump_log", service_definition_get_dump_log,
-            std::bind(&kernel::service_get_dump_log, this, _1, _2));
-    add_service(_name, "config_dump_log", service_definition_config_dump_log,
-            std::bind(&kernel::service_config_dump_log, this, _1, _2));
-    add_service(_name, "module_list", service_definition_module_list,
-            std::bind(&kernel::service_module_list, this, _1, _2));
-    add_service(_name, "reconfigure_module", service_definition_reconfigure_module,
-            std::bind(&kernel::service_reconfigure_module, this, _1, _2));
-    add_service(_name, "add_module", service_definition_add_module,
-            std::bind(&kernel::service_add_module, this, _1, _2));
-    add_service(_name, "remove_module", service_definition_remove_module,
-            std::bind(&kernel::service_remove_module, this, _1, _2));
-    add_service(_name, "list_devices", service_definition_list_devices,
-            std::bind(&kernel::service_list_devices, this, _1, _2));
-    add_service(_name, "process_data_info", service_definition_process_data_info,
-            std::bind(&kernel::service_process_data_info, this, _1, _2));
-    add_service(_name, "trigger_info", service_definition_trigger_info,
-            std::bind(&kernel::service_trigger_info, this, _1, _2));
-    add_service(_name, "stream_info", service_definition_stream_info,
-            std::bind(&kernel::service_stream_info, this, _1, _2));
-    add_service(_name, "service_interface_info", service_definition_service_interface_info,
-            std::bind(&kernel::service_service_interface_info, this, _1, _2));
-    add_service(_name, "add_pd_injection", service_definition_add_pd_injection,
-            std::bind(&kernel::service_add_pd_injection, this, _1, _2));
-    add_service(_name, "del_pd_injection", service_definition_del_pd_injection,
-            std::bind(&kernel::service_del_pd_injection, this, _1, _2));
-    add_service(_name, "list_pd_injections", service_definition_list_pd_injections,
-            std::bind(&kernel::service_list_pd_injections, this, _1, _2));
+    add_svc_get_dump_log(_name, "get_dump_log");
+    add_svc_config_dump_log(_name, "config_dump_log");
+    add_svc_module_list(_name, "module_list");
+    add_svc_reconfigure_module(_name, "reconfigure_module");
+    add_svc_add_module(_name, "add_module");
+    add_svc_remove_module(_name, "remove_module");
+    add_svc_list_devices(_name, "list_devices");
+    add_svc_process_data_info(_name, "process_data_info");
+    add_svc_trigger_info(_name, "trigger_info");
+    add_svc_stream_info(_name, "stream_info");
+    add_svc_service_interface_info(_name, "service_interface_info");
+    add_svc_add_pd_injection(_name, "add_pd_injection");
+    add_svc_del_pd_injection(_name, "del_pd_injection");
+    add_svc_list_pd_injections(_name, "list_pd_injections");
+    add_svc_configure_loglevel(_name, "configure_loglevel");
 }
 
 //! powering up modules
@@ -987,87 +946,63 @@ void kernel::load_module(const YAML::Node& config) {
     mdl->set_state(module_state_init);
 }
 
-//! get dump log
+//! svc_get_dump_log
 /*!
- * \param request service request data
- * \parma response service response data
- * \return success
+ * \param[in]   req     Service request data.
+ * \param[out]  resp    Service response data.
  */
-int kernel::service_get_dump_log(const service_arglist_t& request, 
-        service_arglist_t& response) {
-#define GET_DUMP_LOG_RESP_LOG   0
-    response.resize(1);
-    response[0] = dump_log_dump();
-
-    return 0;
+void kernel::svc_get_dump_log(
+        const struct services::robotkernel::kernel::svc_req_get_dump_log& req, 
+        struct services::robotkernel::kernel::svc_resp_get_dump_log& resp) 
+{
+    resp.log = dump_log_dump();
 }
 
-//! config dump log
+//! svc_config_dump_log
 /*!
- * \param request service request data
- * \parma response service response data
- * \return success
+ * \param[in]   req     Service request data.
+ * \param[out]  resp    Service response data.
  */
-int kernel::service_config_dump_log(const service_arglist_t& request, 
-        service_arglist_t& response) {
-    // request data
-#define CONFIG_DUMP_LOG_REQ_MAX_LEN         0
-#define CONFIG_DUMP_LOG_REQ_DO_UST          1
-#define CONFIG_DUMP_LOG_REQ_SET_LOGLEVEL    2
-    uint32_t max_len        = request[CONFIG_DUMP_LOG_REQ_MAX_LEN]; 
-    uint8_t  do_ust         = request[CONFIG_DUMP_LOG_REQ_DO_UST];
-    string   set_loglevel   = request[CONFIG_DUMP_LOG_REQ_SET_LOGLEVEL];
-
+void kernel::svc_config_dump_log(
+        const struct services::robotkernel::kernel::svc_req_config_dump_log& req, 
+        struct services::robotkernel::kernel::svc_resp_config_dump_log& resp) 
+{
     // response data
-    string current_loglevel = "";
-    string error_message    = "";
+    resp.current_loglevel = "";
+    resp.error_message    = "";
 
-    dump_log_set_len(max_len, do_ust);
-    log(info, "dump_log len set to %d, do_ust to %d\n", max_len, do_ust);
+    dump_log_set_len(req.max_len, req.do_ust);
+    log(info, "dump_log len set to %d, do_ust to %d\n", req.max_len, req.do_ust);
 
 #define loglevel_to_string(x)             \
     if (ll == x)                          \
-    current_loglevel = string(#x)
+    resp.current_loglevel = string(#x)
 
     loglevel_to_string(error);
     else loglevel_to_string(warning);
     else loglevel_to_string(info);
     else loglevel_to_string(verbose);
 
-    if(set_loglevel.size()) {
-        py_value *pval = eval_full(set_loglevel);
+    if(req.set_loglevel.size()) {
+        py_value *pval = eval_full(req.set_loglevel);
         py_string *pstring = dynamic_cast<py_string *>(pval);
 
         if (pstring) 
             ll = string(*pstring);
     }
-
-#define CONFIG_DUMP_LOG_RESP_CURRENT_LOGLEVEL   0
-#define CONFIG_DUMP_LOG_RESP_ERROR_MESSAGE      1
-    response.resize(2);
-    response[CONFIG_DUMP_LOG_RESP_CURRENT_LOGLEVEL] = current_loglevel;
-    response[CONFIG_DUMP_LOG_RESP_ERROR_MESSAGE]    = error_message;
-
-    return 0;
 }
 
-//! add module
+//! svc_add_module
 /*!
- * \param request service request data
- * \parma response service response data
- * \return success
+ * \param[in]   req     Service request data.
+ * \param[out]  resp    Service response data.
  */
-int kernel::service_add_module(const service_arglist_t& request, 
-        service_arglist_t& response) {
-    // request data
-#define ADD_MODULE_REQ_CONFIG   0
-    string config = request[ADD_MODULE_REQ_CONFIG];
-
-    //response data
-    string error_message = "";
-
+void kernel::svc_add_module(
+        const struct services::robotkernel::kernel::svc_req_add_module& req, 
+        struct services::robotkernel::kernel::svc_resp_add_module& resp) 
+{
     try {
-        YAML::Node node = YAML::Load(config);
+        YAML::Node node = YAML::Load(req.config);
         string mod_name = get_as<string>(node, "name");
         string so_file  = get_as<string>(node, "so_file");
 
@@ -1075,134 +1010,98 @@ int kernel::service_add_module(const service_arglist_t& request,
         load_module(node);
         log(info, "module \"%s\" added\n", mod_name.c_str());
     } catch(exception& e) {
-        error_message = e.what();
-        log(error, "error adding module \"%s\": %s\n", error_message.c_str());
+        resp.error_message = e.what();
+        log(error, "error adding module \"%s\": %s\n", resp.error_message.c_str());
     }
 
-#define ADD_MODULE_RESP_ERROR_MESSAGE   0
-    response.resize(1);
-    response[ADD_MODULE_RESP_ERROR_MESSAGE] = error_message;
-
-    return 0;
 }
 
-//! remove module
+//! svc_remove_module
 /*!
- * \param request service request data
- * \parma response service response data
- * \return success
+ * \param[in]   req     Service request data.
+ * \param[out]  resp    Service response data.
  */
-int kernel::service_remove_module(const service_arglist_t& request, 
-        service_arglist_t& response) {
-    // request data
-#define REMOVE_MODULE_REQ_MOD_NAME  0
-    string mod_name = request[REMOVE_MODULE_REQ_MOD_NAME];
-
-    //response data
-    string error_message = "";
-
+void kernel::svc_remove_module(
+        const struct services::robotkernel::kernel::svc_req_remove_module& req, 
+        struct services::robotkernel::kernel::svc_resp_remove_module& resp)
+{
     try {
-        log(info, "removing module \"%s\"\n", mod_name.c_str());
+        log(info, "removing module \"%s\"\n", req.mod_name.c_str());
 
         std::unique_lock<std::recursive_mutex> lock(module_map_mtx);
-        module_map_t::iterator it = module_map.find(mod_name);
+        module_map_t::iterator it = module_map.find(req.mod_name);
         if (it == module_map.end())
             throw str_exception("[robotkernel] module %s not found!\n", 
-                    mod_name.c_str());
+                    req.mod_name.c_str());
 
         sp_module_t mdl = it->second;
         set_state(mdl->get_name(), module_state_init);
 
         module_map.erase(it);
 
-        log(info, "module \"%s\" removed\n", mod_name.c_str());
+        log(info, "module \"%s\" removed\n", req.mod_name.c_str());
     } catch (exception& e) {
-        error_message = e.what();
-        log(error, "error removing module \"%s\": %s\n", error_message.c_str());
+        resp.error_message = e.what();
+        log(error, "error removing module \"%s\": %s\n", resp.error_message.c_str());
     }
-
-#define REMOVE_MODULE_RESP_ERROR_MESSAGE    0
-    response.resize(1);
-    response[REMOVE_MODULE_RESP_ERROR_MESSAGE] = error_message;
-
-    return 0;
 }
 
-//! module list
+//! svc_module_list
 /*!
- * \param request service request data
- * \parma response service response data
- * \return success
+ * \param[in]   req     Service request data.
+ * \param[out]  resp    Service response data.
  */
-int kernel::service_module_list(const service_arglist_t& request, 
-        service_arglist_t& response) {
+void kernel::svc_module_list(
+        const struct services::robotkernel::kernel::svc_req_module_list& req, 
+        struct services::robotkernel::kernel::svc_resp_module_list& resp) 
+{
     //response data
-    std::vector<rk_type> modules(0);
-    string error_message = "";
+    resp.error_message = "";
 
     try {        
         std::unique_lock<std::recursive_mutex> lock(module_map_mtx);
 
         for (const auto& kv : module_map) 
-            modules.push_back(kv.first);
+            resp.modules.push_back(kv.first);
     } catch(exception& e) {
-        error_message = e.what();
+        resp.error_message = e.what();
     }
-    
-#define MODULE_LIST_RESP_MODULES        0
-#define MODULE_LIST_RESP_ERROR_MESSAGE  1
-    response.resize(2);
-    response[MODULE_LIST_RESP_MODULES]       = modules;
-    response[MODULE_LIST_RESP_ERROR_MESSAGE] = error_message;
-    
-    return 0;
 }
 
-//! reconfigure module
+//! svc_reconfigure_module
 /*!
- * \param request service request data
- * \parma response service response data
- * \return success
+ * \param[in]   req     Service request data.
+ * \param[out]  resp    Service response data.
  */
-int kernel::service_reconfigure_module(const service_arglist_t& request, 
-        service_arglist_t& response) {
-    // request data
-#define RECONFIGURE_MODULE_REQ_MOD_NAME 0
-    string mod_name = request[RECONFIGURE_MODULE_REQ_MOD_NAME]; 
-
+void kernel::svc_reconfigure_module(
+        const struct services::robotkernel::kernel::svc_req_reconfigure_module& req, 
+        struct services::robotkernel::kernel::svc_resp_reconfigure_module& resp)
+{
     //response data
-    uint64_t state = 0;
-    string error_message = "";
+    resp.state = 0;
+    resp.error_message = "";
 
     try {
         module_map_mtx.lock();
 
-        module_map_t::iterator it = module_map.find(mod_name);
+        module_map_t::iterator it = module_map.find(req.mod_name);
         if (it == module_map.end()) {
             module_map_mtx.unlock();
             throw str_exception("[robotkernel] module %s not found!\n", 
-                    mod_name.c_str());
+                    req.mod_name.c_str());
         }
 
         sp_module_t mdl = it->second;
 
         module_map_mtx.unlock();
 
-        if (get_state(mod_name) != module_state_init)
+        if (get_state(req.mod_name) != module_state_init)
             set_state(mdl->get_name(), module_state_init);
 
         mdl->reconfigure();
     } catch(exception& e) {
-        error_message = e.what();
+        resp.error_message = e.what();
     }
-    
-#define RECONFIGURE_MODULE_RESP_STATE           0
-#define RECONFIGURE_MODULE_RESP_ERROR_MESSAGE   1
-    response.resize(2);
-    response[RECONFIGURE_MODULE_RESP_STATE]         = state;
-    response[RECONFIGURE_MODULE_RESP_ERROR_MESSAGE] = error_message;
-
-    return 0;
 }
 
 std::string kernel::ll_to_string(loglevel ll) {
@@ -1214,337 +1113,198 @@ std::string kernel::ll_to_string(loglevel ll) {
     return "????";
 }
 
-void kernel::log(loglevel lvl, const char *format, ...) {  
-    struct log_thread::log_pool_object *obj;
-
-    if ((obj = rk_log.get_pool_object()) != NULL) {
-        obj->lvl = lvl;
-        
-        int bufpos = snprintf(obj->buf+bufpos, sizeof(obj->buf)+bufpos, "[%s|robotkernel] ", _name.c_str());
-    
-        // format argument list    
-        va_list args;
-        va_start(args, format);
-        vsnprintf(obj->buf+bufpos, sizeof(obj->buf)-bufpos, format, args);
-        va_end(args);
-        
-        if (do_log_to_trace_fd()) {
-            trace_write(obj->buf);
-        }
-
-#if (HAVE_LTTNG_UST == 1)
-        if (log_to_lttng_ust) {
-//            tracepoint(robotkernel, lttng_log, obj->buf);
-        }
-#endif
-
-        dump_log(obj->buf);
-
-        if (lvl > ll) {
-            rk_log.return_pool_object(obj);
-        } else {
-            rk_log.log(obj);
-        }
+//! svc_list_devices
+/*!
+ * \param[in]   req     Service request data.
+ * \param[out]  resp    Service response data.
+ */
+void kernel::svc_list_devices(
+        const struct services::robotkernel::kernel::svc_req_list_devices& req, 
+        struct services::robotkernel::kernel::svc_resp_list_devices& resp) 
+{
+    for (const auto& kv : device_map) {
+        resp.devices.push_back(kv.first);
     }
+
+    resp.error_message = "";
 }
 
-
-//! list process data objects
+//! svc_process_data_info
 /*!
- * \param request service request data
- * \parma response service response data
- * \return success
+ * \param[in]   req     Service request data.
+ * \param[out]  resp    Service response data.
  */
-int kernel::service_list_devices(const service_arglist_t &request,
-        service_arglist_t &response) {
-    //response data
-    std::vector<rk_type> devices(0);
-    string error_message = "";
+void kernel::svc_process_data_info(
+        const struct services::robotkernel::kernel::svc_req_process_data_info& req, 
+        struct services::robotkernel::kernel::svc_resp_process_data_info& resp) 
+{
+    resp.error_message = "";
 
-    //for (const auto& pd : devices_map)
-    //    devicess.push_back(pd.first);
-    for (const auto& kv : device_map)
-        devices.push_back(kv.first);
-
-#define LIST_DEVICES_RESP_DEVICESS   0
-#define LIST_DEVICES_RESP_ERROR_MESSAGE   1
-    response.resize(2);
-    response[LIST_DEVICES_RESP_DEVICESS] = devices;
-    response[LIST_DEVICES_RESP_ERROR_MESSAGE] = error_message;
-
-    return 0;
-}
-
-//! process data information
-/*!
- * \param request service request data
- * \parma response service response data
- * \return success
- */
-int kernel::service_process_data_info(const service_arglist_t &request,
-        service_arglist_t &response) {
-    // request data
-#define DEVICES_INFO_REQ_NAME 0
-    string name = request[DEVICES_INFO_REQ_NAME]; 
-
-    //response data
-    string owner = "";
-    string definiton = "";
-    string clk_device = "";
-    string provider = "";
-    string consumer = "";
-    int32_t length = 0;
-    string error_message = "";
-
-    if (device_map.find(name) != device_map.end()) {
-        const auto& pd = std::dynamic_pointer_cast<process_data>(device_map[name]);
+    if (device_map.find(req.name) != device_map.end()) {
+        const auto& pd = std::dynamic_pointer_cast<process_data>(device_map[req.name]);
 
         if (pd) {
-            owner     = pd->owner;
-            definiton = pd->process_data_definition;
-            clk_device = pd->trigger_dev ? pd->trigger_dev->id() : "";
+            resp.owner      = pd->owner;
+            resp.definition = pd->process_data_definition;
+            resp.clk_device = pd->trigger_dev ? pd->trigger_dev->id() : "";
             if (pd->provider)
-                provider  = pd->provider->name;
+                resp.provider  = pd->provider->name;
             if (pd->consumer)
-                consumer  = pd->consumer->name;
-            length    = pd->length;
+                resp.consumer  = pd->consumer->name;
+            resp.length    = pd->length;
         } else 
-            error_message = 
-                format_string("device with name \"%s\" is not a process data device!", name.c_str());
+            resp.error_message = 
+                format_string("device with name \"%s\" is not a process data device!", req.name.c_str());
     } else
-        error_message = 
-            format_string("process data device with name \"%s\" not found!", name.c_str());
-
-#define DEVICES_INFO_RESP_OWNER            0
-#define DEVICES_INFO_RESP_DEFINITION       1
-#define DEVICES_INFO_RESP_CLK_DEVICE       2
-#define DEVICES_INFO_RESP_LENGTH           3
-#define DEVICES_INFO_RESP_PROVIDER         4
-#define DEVICES_INFO_RESP_CONSUMER         5
-#define DEVICES_INFO_RESP_ERROR_MESSAGE    6
-    response.resize(7);
-    response[DEVICES_INFO_RESP_OWNER]          = owner;
-    response[DEVICES_INFO_RESP_DEFINITION]     = definiton;
-    response[DEVICES_INFO_RESP_CLK_DEVICE]     = clk_device;
-    response[DEVICES_INFO_RESP_LENGTH]         = length;
-    response[DEVICES_INFO_RESP_PROVIDER]       = provider;
-    response[DEVICES_INFO_RESP_CONSUMER]       = consumer;
-    response[DEVICES_INFO_RESP_ERROR_MESSAGE]  = error_message;
-
-    return 0;
+        resp.error_message = 
+            format_string("process data device with name \"%s\" not found!", req.name.c_str());
 }
 
-//! trigger information
+//! svc_trigger_info
 /*!
- * \param request service request data
- * \parma response service response data
- * \return success
+ * \param[in]   req     Service request data.
+ * \param[out]  resp    Service response data.
  */
-int kernel::service_trigger_info(const service_arglist_t &request,
-        service_arglist_t &response) {
-    // request data
-#define TRIGGER_INFO_REQ_NAME 0
-    string name = request[TRIGGER_INFO_REQ_NAME]; 
-    
+void kernel::svc_trigger_info(
+        const struct services::robotkernel::kernel::svc_req_trigger_info& req, 
+        struct services::robotkernel::kernel::svc_resp_trigger_info& resp)
+{
     //response data
-    string owner = "";
-    double rate = 0.;
-    string error_message = "";
+    resp.owner = "";
+    resp.rate = 0.;
+    resp.error_message = "";
 
-    if (device_map.find(name) != device_map.end()) {
-        const auto& dev = std::dynamic_pointer_cast<trigger>(device_map[name]);
+    if (device_map.find(req.name) != device_map.end()) {
+        const auto& dev = std::dynamic_pointer_cast<trigger>(device_map[req.name]);
 
         if (dev) {
-            owner     = dev->owner;
-            rate      = dev->get_rate();
+            resp.owner     = dev->owner;
+            resp.rate      = dev->get_rate();
         } else 
-            error_message = 
-                format_string("device with name \"%s\" is not a trigger device!", name.c_str());
+            resp.error_message = 
+                format_string("device with name \"%s\" is not a trigger device!", req.name.c_str());
     } else
-        error_message = 
-            format_string("device with name \"%s\" not found!", name.c_str());
-
-#define TRIGGER_INFO_RESP_OWNER            0
-#define TRIGGER_INFO_RESP_RATE             1
-#define TRIGGER_INFO_RESP_ERROR_MESSAGE    2
-    response.resize(3);
-    response[TRIGGER_INFO_RESP_OWNER]          = owner;
-    response[TRIGGER_INFO_RESP_RATE]           = rate;
-    response[TRIGGER_INFO_RESP_ERROR_MESSAGE]  = error_message;
-
-    return 0;
+        resp.error_message = 
+            format_string("device with name \"%s\" not found!", req.name.c_str());
 }
 
-//! stream information
+//! svc_stream_info
 /*!
- * \param request service request data
- * \parma response service response data
- * \return success
+ * \param[in]   req     Service request data.
+ * \param[out]  resp    Service response data.
  */
-int kernel::service_stream_info(const service_arglist_t &request,
-        service_arglist_t &response) {
-    // request data
-#define stream_INFO_REQ_NAME 0
-    string name = request[stream_INFO_REQ_NAME]; 
-
+void kernel::svc_stream_info(
+        const struct services::robotkernel::kernel::svc_req_stream_info& req, 
+        struct services::robotkernel::kernel::svc_resp_stream_info& resp)
+{
     //response data
-    string owner = "";
-    double rate = 0.;
-    string error_message = "";
+    resp.owner = "";
+    resp.error_message = "";
 
-    if (device_map.find(name) != device_map.end()) {
-        const auto& dev = std::dynamic_pointer_cast<stream>(device_map[name]);
+    if (device_map.find(req.name) != device_map.end()) {
+        const auto& dev = std::dynamic_pointer_cast<stream>(device_map[req.name]);
 
         if (dev) {
-            owner     = dev->owner;
+            resp.owner     = dev->owner;
         } else 
-            error_message = 
-                format_string("device with name \"%s\" is not a stream device!", name.c_str());
+            resp.error_message = 
+                format_string("device with name \"%s\" is not a stream device!", req.name.c_str());
     } else
-        error_message = 
-            format_string("device with name \"%s\" not found!", name.c_str());
-
-#define stream_INFO_RESP_OWNER            0
-#define stream_INFO_RESP_ERROR_MESSAGE    1
-    response.resize(2);
-    response[stream_INFO_RESP_OWNER]          = owner;
-    response[stream_INFO_RESP_ERROR_MESSAGE]  = error_message;
-
-    return 0;
+        resp.error_message = 
+            format_string("device with name \"%s\" not found!", req.name.c_str());
 }
 
-//! service_interface information
+//! svc_service_interface_info
 /*!
- * \param request service request data
- * \parma response service response data
- * \return success
+ * \param[in]   req     Service request data.
+ * \param[out]  resp    Service response data.
  */
-int kernel::service_service_interface_info(const service_arglist_t &request,
-        service_arglist_t &response) {
-    // request data
-#define service_interface_INFO_REQ_NAME 0
-    string name = request[service_interface_INFO_REQ_NAME]; 
-
+void kernel::svc_service_interface_info(
+        const struct services::robotkernel::kernel::svc_req_service_interface_info& req, 
+        struct services::robotkernel::kernel::svc_resp_service_interface_info& resp)
+{
     //response data
-    string owner = "";
-    double rate = 0.;
-    string error_message = "";
+    resp.owner = "";
+    resp.error_message = "";
 
-    if (device_map.find(name) != device_map.end()) {
-        const auto& dev = std::dynamic_pointer_cast<service_interface>(device_map[name]);
+    if (device_map.find(req.name) != device_map.end()) {
+        const auto& dev = std::dynamic_pointer_cast<service_interface>(device_map[req.name]);
 
         if (dev) {
-            owner     = dev->owner;
+            resp.owner     = dev->owner;
         } else 
-            error_message = 
-                format_string("device with name \"%s\" is not a service_interface device!", name.c_str());
+            resp.error_message = 
+                format_string("device with name \"%s\" is not a service_interface device!", req.name.c_str());
     } else
-        error_message = 
-            format_string("device with name \"%s\" not found!", name.c_str());
-
-#define service_interface_INFO_RESP_OWNER            0
-#define service_interface_INFO_RESP_ERROR_MESSAGE    1
-    response.resize(2);
-    response[service_interface_INFO_RESP_OWNER]          = owner;
-    response[service_interface_INFO_RESP_ERROR_MESSAGE]  = error_message;
-
-    return 0;
+        resp.error_message = 
+            format_string("device with name \"%s\" not found!", req.name.c_str());
 }
 
-//! add pd injection service
+//! svc_add_pd_injection
 /*!
- * \param request service request data
- * \parma response service response data
- * \return success
+ * \param[in]   req     Service request data.
+ * \param[out]  resp    Service response data.
  */
-int kernel::service_add_pd_injection(const service_arglist_t &request,
-        service_arglist_t &response) {
-    // request data
-#define SERVICE_ADD_PD_INJECTION_REQ_PD_DEV             0
-#define SERVICE_ADD_PD_INJECTION_REQ_FIELD_NAME         1
-#define SERVICE_ADD_PD_INJECTION_REQ_VALUE              2
-#define SERVICE_ADD_PD_INJECTION_REQ_BITMASK            3
-    std::string pd_dev           = request[SERVICE_ADD_PD_INJECTION_REQ_PD_DEV], 
-                field_name       = request[SERVICE_ADD_PD_INJECTION_REQ_FIELD_NAME],
-                value_string     = request[SERVICE_ADD_PD_INJECTION_REQ_VALUE], 
-                bitmask_string   = request[SERVICE_ADD_PD_INJECTION_REQ_BITMASK];
-
+void kernel::svc_add_pd_injection(
+        const struct services::robotkernel::kernel::svc_req_add_pd_injection& req, 
+        struct services::robotkernel::kernel::svc_resp_add_pd_injection& resp)
+{
     // response data
-    std::string error_message = "";
+    resp.error_message = "";
 
     try {
-        auto pd = get_process_data(pd_dev);
+        auto pd = get_device<process_data>(req.pd_dev);
         
         std::shared_ptr<pd_injection_base> retval = 
             std::dynamic_pointer_cast<pd_injection_base>(pd);
 
         if (retval) {
-            pd_entry_t e(pd, field_name, value_string, bitmask_string);
+            pd_entry_t e(pd, req.field_name, req.value, req.bitmask);
             retval->add_injection(e);
         } else {
-            error_message = format_string("pd device %s does not support injection!", pd_dev.c_str());
+            resp.error_message = format_string("pd device %s does not support injection!", req.pd_dev.c_str());
         }
     } catch (std::exception& exc) {
-        error_message = exc.what();
+        resp.error_message = exc.what();
     }
-
-    // reponse
-#define SERVICE_ADD_PD_INJECTION_RESP_ERROR_MESSAGE     0
-    response.resize(1);
-    response[SERVICE_ADD_PD_INJECTION_RESP_ERROR_MESSAGE] = error_message;
-
-    return 0;
 }
 
-//! delete pd injection service
+//! svc_del_pd_injection
 /*!
- * \param request service request data
- * \parma response service response data
- * \return success
+ * \param[in]   req     Service request data.
+ * \param[out]  resp    Service response data.
  */
-int kernel::service_del_pd_injection(const service_arglist_t &request,
-        service_arglist_t &response) {
-    // request data
-#define SERVICE_DEL_PD_INJECTION_REQ_PD_DEV             0
-#define SERVICE_DEL_PD_INJECTION_REQ_FIELD_NAME         1
-    std::string pd_dev     = request[SERVICE_DEL_PD_INJECTION_REQ_PD_DEV];
-    std::string field_name = request[SERVICE_DEL_PD_INJECTION_REQ_FIELD_NAME];
-
+void kernel::svc_del_pd_injection(
+        const struct services::robotkernel::kernel::svc_req_del_pd_injection& req, 
+        struct services::robotkernel::kernel::svc_resp_del_pd_injection& resp)
+{
     // response data
-    std::string error_message = "";
+    resp.error_message = "";
 
     try {
-        auto pd = get_process_data(pd_dev);
+        auto pd = get_device<process_data>(req.pd_dev);
         
         std::shared_ptr<pd_injection_base> retval = 
             std::dynamic_pointer_cast<pd_injection_base>(pd);
 
         if (retval) {
-            retval->del_injection(field_name);
+            retval->del_injection(req.field_name);
         }
     } catch (std::exception& exc) {
-        error_message = exc.what();
+        resp.error_message = exc.what();
     }
-
-    // reponse
-#define SERVICE_DEL_PD_INJECTION_RESP_ERROR_MESSAGE     0
-    response.resize(1);
-    response[SERVICE_DEL_PD_INJECTION_RESP_ERROR_MESSAGE] = error_message;
-
-    return 0;
 }
 
-//! list pd injections service
+//! svc_list_pd_injections
 /*!
- * \param request service request data
- * \parma response service response data
- * \return success
+ * \param[in]   req     Service request data.
+ * \param[out]  resp    Service response data.
  */
-int kernel::service_list_pd_injections(const service_arglist_t &request,
-        service_arglist_t &response) {
-
-    std::string error_message = "";
-    std::vector<rk_type> pd_dev, field_name, value, bitmask;
+void kernel::svc_list_pd_injections(
+        const struct services::robotkernel::kernel::svc_req_list_pd_injections& req, 
+        struct services::robotkernel::kernel::svc_resp_list_pd_injections& resp)
+{
+    resp.error_message = "";
 
     for (const auto& kv : device_map) {
         std::shared_ptr<pd_injection_base> retval = 
@@ -1552,27 +1312,13 @@ int kernel::service_list_pd_injections(const service_arglist_t &request,
 
         if (retval) {
             for (const auto& kv_inj : retval->pd_injections) {
-                pd_dev.push_back(kv.second->id());
-                field_name.push_back(kv_inj.second.field_name);
-                value.push_back(kv_inj.second.value_string);
-                bitmask.push_back(kv_inj.second.bitmask_string);
+                resp.pd_dev.push_back(kv.second->id());
+                resp.field_name.push_back(kv_inj.second.field_name);
+                resp.value.push_back(kv_inj.second.value_string);
+                resp.bitmask.push_back(kv_inj.second.bitmask_string);
             }
         }
     }
-
-#define SERVICE_LIST_PD_INJECTIONS_RESP_PD_DEV          0
-#define SERVICE_LIST_PD_INJECTIONS_RESP_FIELD_NAME      1
-#define SERVICE_LIST_PD_INJECTIONS_RESP_VALUE_STRING    2
-#define SERVICE_LIST_PD_INJECTIONS_RESP_BITMASK_STRING  3
-#define SERVICE_LIST_PD_INJECTIONS_RESP_ERROR_MESSAGE   4
-    response.resize(4); 
-    response[SERVICE_LIST_PD_INJECTIONS_RESP_PD_DEV]            = pd_dev;
-    response[SERVICE_LIST_PD_INJECTIONS_RESP_FIELD_NAME]        = field_name;
-    response[SERVICE_LIST_PD_INJECTIONS_RESP_VALUE_STRING]      = value;
-    response[SERVICE_LIST_PD_INJECTIONS_RESP_BITMASK_STRING]    = bitmask;
-    response[SERVICE_LIST_PD_INJECTIONS_RESP_ERROR_MESSAGE]     = error_message;
-
-    return 0;
 }
 
 //! convert buffer to hex string

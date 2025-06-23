@@ -62,16 +62,16 @@ void signal_handler(int s) {
 }
 
 int usage(int argc, char** argv) {
-    klog(info, "usage: robotkernel --config | -c <filename> "
+    robotkernel::kernel::instance.log(info, "usage: robotkernel --config | -c <filename> "
             "[--quiet, -q] [--verbose, -v] [--power_up, -p module=[boot,init,preop,safeop,op] "
             "[--help, -h]\n");
-    klog(info, "\n");
-    klog(info, "  --config, -c <filename>     specify config file\n");
-    klog(info, "  --quiet, -q                 run in quiet mode\n");
-    klog(info, "  --verbose, -v               be more verbose\n");
-    klog(info, "  --help, -h                  this help page\n");
-    klog(info, "  --test-run, -t              doing test run, load modules and quit\n");
-    klog(info, "  --power_up, -p              powering up modules\n");
+    robotkernel::kernel::instance.log(info, "\n");
+    robotkernel::kernel::instance.log(info, "  --config, -c <filename>     specify config file\n");
+    robotkernel::kernel::instance.log(info, "  --quiet, -q                 run in quiet mode\n");
+    robotkernel::kernel::instance.log(info, "  --verbose, -v               be more verbose\n");
+    robotkernel::kernel::instance.log(info, "  --help, -h                  this help page\n");
+    robotkernel::kernel::instance.log(info, "  --test-run, -t              doing test run, load modules and quit\n");
+    robotkernel::kernel::instance.log(info, "  --power_up, -p              powering up modules\n");
     return 0;
 }
 
@@ -137,8 +137,6 @@ int main(int argc, char* argv[]) {
     }
 #endif
 
-    kernel &k = *kernel::get_instance();
-
     string config_file = "";
     struct sigaction action;
 
@@ -147,7 +145,7 @@ int main(int argc, char* argv[]) {
     for (int i = 1; i < argc; ++i) {
         if ((strcmp(argv[i], "--config") == 0) || (strcmp(argv[i], "-c") == 0)) {
             if (++i >= argc) {
-                klog(info, "--config filename missing\n");
+                robotkernel::kernel::instance.log(info, "--config filename missing\n");
                 usage(argc, argv);
                 goto Exit;
             }
@@ -155,16 +153,16 @@ int main(int argc, char* argv[]) {
             config_file = string(argv[i]);
 
         } else if ((strcmp(argv[i], "--quiet") == 0) || (strcmp(argv[i], "-q") == 0))
-            k.set_loglevel(error);
+            kernel::instance.set_loglevel(error);
         else if ((strcmp(argv[i], "--verbose") == 0) || (strcmp(argv[i], "-v") == 0))
-            k.set_loglevel(verbose);
+            kernel::instance.set_loglevel(verbose);
         else if ((strcmp(argv[i], "--help") == 0) || (strcmp(argv[i], "-h") == 0))
             return usage(argc, argv);
         else if ((strcmp(argv[i], "--test-run") == 0) || (strcmp(argv[i], "-t") == 0))
             test_run = true;
         else if ((strcmp(argv[i], "--power_up") == 0) || (strcmp(argv[i], "-p") == 0)) {
             if (++i >= argc) {
-                klog(info, "--power_up argument missing\n");
+                robotkernel::kernel::instance.log(info, "--power_up argument missing\n");
                 usage(argc, argv);
                 goto Exit;
             }
@@ -182,24 +180,24 @@ int main(int argc, char* argv[]) {
     }
 
     try {
-        k.config(config_file, argc, argv);        
+        kernel::instance.config(config_file, argc, argv);        
 
         for (const auto& kv : power_up_map) {
-            auto mdl = k.get_module(kv.first);
+            auto mdl = kernel::instance.get_module(kv.first);
             mdl->set_power_up(kv.second);
         }
 
-        power_up_state = k.power_up();
+        power_up_state = kernel::instance.power_up();
     } catch (exception& e) {
-        klog(error, "config exception: %s\n", e.what());
+        robotkernel::kernel::instance.log(error, "config exception: %s\n", e.what());
         ret = -1;
         goto Exit;
     }
 
     if (power_up_state)
-        klog(info, "up and running!\n");
+        robotkernel::kernel::instance.log(info, "up and running!\n");
     else
-        klog(info, "not powered up!\n");
+        robotkernel::kernel::instance.log(info, "not powered up!\n");
 
     /* attach signal handler */
     action.sa_handler = signal_handler;
@@ -214,7 +212,7 @@ int main(int argc, char* argv[]) {
 
     try {
         while (!sig_shutdown) {
-            k.state_check();
+            kernel::instance.state_check();
 
             struct timespec ts = {0, 500000000 };
             nanosleep(&ts, NULL);
@@ -225,20 +223,13 @@ int main(int argc, char* argv[]) {
     }
 
 Exit:
-    klog(info, "exiting\n");
+    robotkernel::kernel::instance.log(info, "exiting\n");
 
 #ifdef __VXWORKS__
     // on vxworks we have to call select once to do magic cleanup
-//    if (k.clnt)
-//        k.clnt->wait_for_service_requests(0);
+//    if (kernel::instance.clnt)
+//        kernel::instance.clnt->wait_for_service_requests(0);
 #endif // __VXWORKS__
-
-    try {
-        kernel::destroy_instance();
-    } catch (exception& e) {
-        printf("exception: %s\n", e.what());
-        ret = -1;
-    }
 
     printf("done ... returning now from main\n");
     return ret;

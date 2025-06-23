@@ -37,8 +37,10 @@
 #include <robotkernel/rk_type.h>
 #include <robotkernel/service.h>
 #include <robotkernel/service_interface.h>
+#include <robotkernel/service_definitions.h>
 #include <robotkernel/stream.h>
 #include <robotkernel/trigger.h>
+#include <robotkernel/log_base.h>
 
 // private headers
 #include "log_thread.h"
@@ -47,17 +49,30 @@
 #include "service_provider.h"
 #include "dump_log.h"
 
-#define klog(...) robotkernel::kernel::get_instance()->log(__VA_ARGS__)
-
 namespace robotkernel {
-#ifdef EMACS
-}
-#endif
 
-class kernel {
-    private:
+class kernel :
+    public log_base,
+    public services::robotkernel::kernel::svc_base_config_dump_log,
+    public services::robotkernel::kernel::svc_base_get_dump_log,
+    public services::robotkernel::kernel::svc_base_list_devices,
+    public services::robotkernel::kernel::svc_base_module_list,
+    public services::robotkernel::kernel::svc_base_add_module,
+    public services::robotkernel::kernel::svc_base_remove_module,
+    public services::robotkernel::kernel::svc_base_reconfigure_module,
+    public services::robotkernel::kernel::svc_base_process_data_info,
+    public services::robotkernel::kernel::svc_base_trigger_info,
+    public services::robotkernel::kernel::svc_base_stream_info,
+    public services::robotkernel::kernel::svc_base_service_interface_info,
+    public services::robotkernel::kernel::svc_base_add_pd_injection,
+    public services::robotkernel::kernel::svc_base_del_pd_injection,
+    public services::robotkernel::kernel::svc_base_list_pd_injections
+{
+    public:
         //! kernel singleton instance
-        static kernel *instance;
+        static kernel instance;
+
+    private:
 
         kernel(const kernel &);             // prevent copy-construction
         kernel &operator=(const kernel &);  // prevent assignment
@@ -75,13 +90,11 @@ class kernel {
 
         device_map_t device_map;
 
-        int trace_fd;
-        bool log_to_trace_fd;
+        int trace_fd = 0;
+        bool log_to_trace_fd = false;
 
     protected:
         //! construction
-        /*!
-        */
         kernel();
 
         //! destruction
@@ -98,6 +111,7 @@ class kernel {
 
         //! log object to trace fd
         void trace_write(const char *fmt, ...);
+        void trace_write(const struct log_thread::log_pool_object *obj);
 
         //! call a robotkernel service
         /*!
@@ -184,27 +198,6 @@ class kernel {
         template <typename T>
         std::shared_ptr<T> get_device(const std::string& dev_name);
         
-        //! wrapper around \link get_device \endlink
-        /*!
-         * \param[in] name  Trigger device name.
-         * \return shared pointer to trigger device
-         */
-        sp_trigger_t get_trigger(const std::string& name);
-
-        //! wrapper around \link get_device \endlink
-        /*!
-         * \param[in] name  process data device name.
-         * \return shared pointer to process data device
-         */
-        sp_process_data_t get_process_data(const std::string& name);
-
-        //! wrapper around \link get_device \endlink
-        /*!
-         * \param[in] name  process data device name.
-         * \return shared pointer to process data device
-         */
-        sp_stream_t get_stream(const std::string& name);
-        
         //! Register a new datatype description
         /*!
          * \param[in]   name        Datatype name.
@@ -223,19 +216,6 @@ class kernel {
          * \return String containing datatype description.
          */
         const std::string get_datatype_desc(const std::string&name);
-
-        //! get kernel singleton instance
-        /*!
-         * \return kernel singleton instance
-         */
-        static kernel *get_instance();
-
-        //! destroy singleton instance
-        static void destroy_instance();
-
-        const loglevel get_loglevel() const { return ll; }
-
-        void set_loglevel(loglevel ll) { this->ll = ll; }
 
         //! construction
         /*!
@@ -309,182 +289,137 @@ class kernel {
         std::string _internal_intfpath;
 
         log_thread rk_log;
-        bool log_to_lttng_ust;
+        bool log_to_lttng_ust = false;
 
         static std::string ll_to_string(loglevel ll);
 
-        // write to logfile
-        void log(loglevel ll, const char *format, ...);
 
-        //! get dump log
+        //! svc_get_dump_log
         /*!
-         * \param request service request data
-         * \parma response service response data
-         * \return success
+         * \param[in]   req     Service request data.
+         * \param[out]  resp    Service response data.
          */
-        int service_get_dump_log(const service_arglist_t &request,
-                service_arglist_t &response);
-
-        static const std::string service_definition_get_dump_log;
-
-        //! config dump log
-        /*!
-         * \param request service request data
-         * \parma response service response data
-         * \return success
-         */
-        int service_config_dump_log(const service_arglist_t &request,
-                service_arglist_t &response);
-
-        static const std::string service_definition_config_dump_log;
-
-        //! add module
-        /*!
-         * \param request service request data
-         * \parma response service response data
-         * \return success
-         */
-        int service_add_module(const service_arglist_t &request,
-                service_arglist_t &response);
-
-        static const std::string service_definition_add_module;
-
-        //! remove module
-        /*!
-         * \param request service request data
-         * \parma response service response data
-         * \return success
-         */
-        int service_remove_module(const service_arglist_t &request,
-                service_arglist_t &response);
-
-        static const std::string service_definition_remove_module;
-
-        //! module list
-        /*!
-         * \param request service request data
-         * \parma response service response data
-         * \return success
-         */
-        int service_module_list(const service_arglist_t &request,
-                service_arglist_t &response);
-
-        static const std::string service_definition_module_list;
-
-        //! reconfigure module
-        /*!
-         * \param request service request data
-         * \parma response service response data
-         * \return success
-         */
-        int service_reconfigure_module(const service_arglist_t &request,
-                service_arglist_t &response);
-
-        static const std::string service_definition_reconfigure_module;
-
-        //! list process data objects
-        /*!
-         * \param request service request data
-         * \parma response service response data
-         * \return success
-         */
-        int service_list_devices(const service_arglist_t &request,
-                service_arglist_t &response);
-
-        static const std::string service_definition_list_devices;
-
-        //! process data information
-        /*!
-         * \param request service request data
-         * \parma response service response data
-         * \return success
-         */
-        int service_process_data_info(const service_arglist_t &request,
-                service_arglist_t &response);
-
-        static const std::string service_definition_process_data_info;
-
-        //! trigger information
-        /*!
-         * \param request service request data
-         * \parma response service response data
-         * \return success
-         */
-        int service_trigger_info(const service_arglist_t &request,
-                service_arglist_t &response);
-
-        static const std::string service_definition_trigger_info;
+        void svc_get_dump_log(
+            const struct services::robotkernel::kernel::svc_req_get_dump_log& req, 
+            struct services::robotkernel::kernel::svc_resp_get_dump_log& resp) override;
         
-        //! stream information
+        //! svc_config_dump_log
         /*!
-         * \param request service request data
-         * \parma response service response data
-         * \return success
+         * \param[in]   req     Service request data.
+         * \param[out]  resp    Service response data.
          */
-        int service_stream_info(const service_arglist_t &request,
-                service_arglist_t &response);
-
-        static const std::string service_definition_stream_info;
+        void svc_config_dump_log(
+            const struct services::robotkernel::kernel::svc_req_config_dump_log& req, 
+            struct services::robotkernel::kernel::svc_resp_config_dump_log& resp) override;
+    
+        //! svc_add_module
+        /*!
+         * \param[in]   req     Service request data.
+         * \param[out]  resp    Service response data.
+         */
+        void svc_add_module(
+            const struct services::robotkernel::kernel::svc_req_add_module& req, 
+            struct services::robotkernel::kernel::svc_resp_add_module& resp) override;
         
-        //! service_interface information
+        //! svc_remove_module
         /*!
-         * \param request service request data
-         * \parma response service response data
-         * \return success
+         * \param[in]   req     Service request data.
+         * \param[out]  resp    Service response data.
          */
-        int service_service_interface_info(const service_arglist_t &request,
-                service_arglist_t &response);
+        void svc_remove_module(
+            const struct services::robotkernel::kernel::svc_req_remove_module& req, 
+            struct services::robotkernel::kernel::svc_resp_remove_module& resp) override;
 
-        static const std::string service_definition_service_interface_info;
-
-        //! add pd injection service
+        //! svc_module_list
         /*!
-         * \param request service request data
-         * \parma response service response data
-         * \return success
+         * \param[in]   req     Service request data.
+         * \param[out]  resp    Service response data.
          */
-        int service_add_pd_injection(const service_arglist_t &request,
-                service_arglist_t &response);
+        void svc_module_list(
+            const struct services::robotkernel::kernel::svc_req_module_list& req, 
+            struct services::robotkernel::kernel::svc_resp_module_list& resp) override;
 
-        static const std::string service_definition_add_pd_injection;
-
-        //! delete pd injection service
+        //! svc_reconfigure_module
         /*!
-         * \param request service request data
-         * \parma response service response data
-         * \return success
+         * \param[in]   req     Service request data.
+         * \param[out]  resp    Service response data.
          */
-        int service_del_pd_injection(const service_arglist_t &request,
-                service_arglist_t &response);
+        void svc_reconfigure_module(
+            const struct services::robotkernel::kernel::svc_req_reconfigure_module& req, 
+            struct services::robotkernel::kernel::svc_resp_reconfigure_module& resp) override;
+
+        //! svc_list_devices
+        /*!
+         * \param[in]   req     Service request data.
+         * \param[out]  resp    Service response data.
+         */
+        void svc_list_devices(
+            const struct services::robotkernel::kernel::svc_req_list_devices& req, 
+            struct services::robotkernel::kernel::svc_resp_list_devices& resp) override;
+
+        //! svc_process_data_info
+        /*!
+         * \param[in]   req     Service request data.
+         * \param[out]  resp    Service response data.
+         */
+        void svc_process_data_info(
+            const struct services::robotkernel::kernel::svc_req_process_data_info& req, 
+            struct services::robotkernel::kernel::svc_resp_process_data_info& resp) override;
         
-        static const std::string service_definition_del_pd_injection;
-        
-        //! list pd injections service
+        //! svc_trigger_info
         /*!
-         * \param request service request data
-         * \parma response service response data
-         * \return success
+         * \param[in]   req     Service request data.
+         * \param[out]  resp    Service response data.
          */
-        int service_list_pd_injections(const service_arglist_t &request,
-                service_arglist_t &response);
+        void svc_trigger_info(
+            const struct services::robotkernel::kernel::svc_req_trigger_info& req, 
+            struct services::robotkernel::kernel::svc_resp_trigger_info& resp) override;
         
-        static const std::string service_definition_list_pd_injections;
+        //! svc_stream_info
+        /*!
+         * \param[in]   req     Service request data.
+         * \param[out]  resp    Service response data.
+         */
+        void svc_stream_info(
+            const struct services::robotkernel::kernel::svc_req_stream_info& req, 
+            struct services::robotkernel::kernel::svc_resp_stream_info& resp) override;
+
+        //! svc_service_interface_info
+        /*!
+         * \param[in]   req     Service request data.
+         * \param[out]  resp    Service response data.
+         */
+        void svc_service_interface_info(
+            const struct services::robotkernel::kernel::svc_req_service_interface_info& req, 
+            struct services::robotkernel::kernel::svc_resp_service_interface_info& resp) override;
+        
+        //! svc_add_pd_injection
+        /*!
+         * \param[in]   req     Service request data.
+         * \param[out]  resp    Service response data.
+         */
+        void svc_add_pd_injection(
+            const struct services::robotkernel::kernel::svc_req_add_pd_injection& req, 
+            struct services::robotkernel::kernel::svc_resp_add_pd_injection& resp) override;
+
+        //! svc_del_pd_injection
+        /*!
+         * \param[in]   req     Service request data.
+         * \param[out]  resp    Service response data.
+         */
+        void svc_del_pd_injection(
+            const struct services::robotkernel::kernel::svc_req_del_pd_injection& req, 
+            struct services::robotkernel::kernel::svc_resp_del_pd_injection& resp) override;
+
+        //! svc_list_pd_injections
+        /*!
+         * \param[in]   req     Service request data.
+         * \param[out]  resp    Service response data.
+         */
+        void svc_list_pd_injections(
+            const struct services::robotkernel::kernel::svc_req_list_pd_injections& req, 
+            struct services::robotkernel::kernel::svc_resp_list_pd_injections& resp) override;
 };
-        
-// wrapper around \link get_device \endlink
-inline sp_trigger_t kernel::get_trigger(const std::string& name) {
-    return get_device<trigger>(name);
-}
-
-// wrapper around \link get_device \endlink
-inline sp_process_data_t kernel::get_process_data(const std::string& name) {
-    return get_device<process_data>(name);
-}
-
-// wrapper around \link get_device \endlink
-inline sp_stream_t kernel::get_stream(const std::string& name) {
-    return get_device<stream>(name);
-}
         
 // get a device by name
 template <typename T>
@@ -500,9 +435,6 @@ inline std::shared_ptr<T> kernel::get_device(const std::string& dev_name) {
     return retval;
 };
 
-#ifdef EMACS
-{
-#endif
 } // namespace robotkernel
 
 #endif // ROBOTKERNEL__KERNEL_H

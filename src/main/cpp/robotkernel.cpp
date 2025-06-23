@@ -29,8 +29,6 @@
 // private headers
 #include "kernel.h"
 
-static robotkernel::kernel *_pkernel = robotkernel::kernel::get_instance();
-
 //! add service to kernel
 /*!
  * \param owner service owner
@@ -44,7 +42,7 @@ void robotkernel::add_service(
         const std::string &service_definition,
         service_callback_t callback)
 {
-    return _pkernel->add_service(owner, name, service_definition, callback);
+    return robotkernel::kernel::instance.add_service(owner, name, service_definition, callback);
 }
 
 //! remove on service given by name
@@ -56,7 +54,7 @@ void robotkernel::remove_service(
         const std::string& owner, 
         const std::string& name)
 {
-    return _pkernel->remove_service(owner, name);
+    return robotkernel::kernel::instance.remove_service(owner, name);
 }
 
 //! adds a device listener
@@ -66,7 +64,7 @@ void robotkernel::remove_service(
  */
 void robotkernel::add_device_listener(sp_device_listener_t dl)
 {
-    return _pkernel->add_device_listener(dl);
+    return robotkernel::kernel::instance.add_device_listener(dl);
 }
 
 //! remove a device listener
@@ -76,7 +74,7 @@ void robotkernel::add_device_listener(sp_device_listener_t dl)
  */
 void robotkernel::remove_device_listener(sp_device_listener_t dl)
 {
-    return _pkernel->remove_device_listener(dl);
+    return robotkernel::kernel::instance.remove_device_listener(dl);
 }
 
 //! add a named device
@@ -84,7 +82,7 @@ void robotkernel::remove_device_listener(sp_device_listener_t dl)
  * \param req device to add
  */
 void robotkernel::add_device(sp_device_t req) {
-    return _pkernel->add_device(req);
+    return robotkernel::kernel::instance.add_device(req);
 }
 
 //! remove a named device
@@ -92,7 +90,7 @@ void robotkernel::add_device(sp_device_t req) {
  * \param req device to remove
  */
 void robotkernel::remove_device(sp_device_t req) {
-    return _pkernel->remove_device(req);
+    return robotkernel::kernel::instance.remove_device(req);
 }
         
 //! get a device by name
@@ -102,6 +100,6 @@ void robotkernel::remove_device(sp_device_t req) {
  */
 template <typename T>
 std::shared_ptr<T> robotkernel::get_device(const std::string& dev_name) {
-    return _pkernel->get_device<T>(dev_name);
+    return robotkernel::kernel::instance.get_device<T>(dev_name);
 }
 
