@@ -1,11 +1,11 @@
-**robotkernel-5** is an easily configurable hardware abstraction
+**robotkernel** is an easily configurable hardware abstraction
 framework. In most robotic system assembly of robotic hardware
 components is a challenging task. With
-[robotkernel-5](robotkernel-5 "wikilink") the control engineer just has
+[robotkernel](robotkernel "wikilink") the control engineer just has
 to write a bunch of simple and small configuration in
 [YAML](wp:YAML "wikilink").
 
-![robotkernel-5 overview](rk_overview.png "robotkernel-5 overview")
+![robotkernel overview](rk_overview.png "robotkernel overview")
 
 Components
 ==========
@@ -17,7 +17,7 @@ distinguished by it's functionality.
 Modules
 -------
 
-![robotkernel-5 module](rk_module.png "robotkernel-5 module")
+![robotkernel module](rk_module.png "robotkernel module")
 
 The main components are the *modules*. A *modules* usually is an
 implementation of a hardware component/device driver. Everything what's
@@ -26,11 +26,11 @@ included here.
 
 ### State Machine
 
-Each robotkernel-5 module has to implement the robotkernel-5 state
+Each robotkernel module has to implement the robotkernel state
 machine.
 
-![robotkernel-5 state
-machine](rk_state_machine.png "robotkernel-5 state machine")
+![robotkernel state
+machine](rk_state_machine.png "robotkernel state machine")
 
   State    short description                description
   -------- -------------------------------- ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -44,12 +44,12 @@ machine](rk_state_machine.png "robotkernel-5 state machine")
 ### Exported C-Api interface
 
 A module provides a bunch of simple C entry points for the
-robotkernel-5. These are:
+robotkernel. These are:
 
 #### mod\_configure
 
 *mod\_configure* will be Called after the *module* has been loaded by
-the robotkernel-5. The *module* will get it's configuration usually
+the robotkernel. The *module* will get it's configuration usually
 written in YAML. It should now do a state transition to the init state
 and do all it's initialization stuff.
 
@@ -79,7 +79,7 @@ typedef int (*mod_set_state_t)(MODULE_HANDLE hdl, module_state_t state);
 
 #### mod\_get\_state
 
-*mod\_get\_state* will be called by the robotkernel-5 to determine the
+*mod\_get\_state* will be called by the robotkernel to determine the
 *module*'s state
 
 ``` {.C++}
@@ -109,12 +109,12 @@ example](Robotkernel-5_multiple_service_bridge_example.png "service brigde examp
 ### Exported C-Api interface
 
 A bridge provides a bunch of simple C entry points for the
-robotkernel-5. These are:
+robotkernel. These are:
 
 #### bridge\_configure
 
 *bridge\_configure* will be Called after the *bridge* has been loaded by
-the robotkernel-5. The *bridge* will get it's configuration usually
+the robotkernel. The *bridge* will get it's configuration usually
 written in YAML. It should now do all needed initialization stuff.
 
 ``` {.C++}
@@ -154,21 +154,21 @@ typedef void (*bridge_remove_service_t)(BRIDGE_HANDLE hdl, const robotkernel::se
 Service Providers
 -----------------
 
-![robotkernel-5 service
-provider](rk_service_provider.png "robotkernel-5 service provider")
+![robotkernel service
+provider](rk_service_provider.png "robotkernel service provider")
 
 They provide a set of common services to the user to gain the same
 expiriance for different attached hardware. Therefor a module has to
 derive from the service providers *base* class and implement the service
 functions. Afterwards the derived class instances can be registered to
-the robotkernel-5 by calling *add\_device*.
+the robotkernel by calling *add\_device*.
 
 Devices
 =======
 
 Robotkernel-5 devices are the internal representation of module
 resources. These devices may be *process data*, *stream* or *trigger*.
-Each **component** may use *robotkernel-5* internal devices to provide
+Each **component** may use *robotkernel* internal devices to provide
 data to other components or to make inter-process-communication. All
 devices consist of the owning modules name, the device name and an
 device suffix. They are represented by a unique name concatenated from
@@ -178,13 +178,13 @@ device suffix. They are represented by a unique name concatenated from
 ```
 
 . The devices will be allocated by the owning module and then registered
-to the *robotkernel-5* with the add\_device call.
+to the *robotkernel* with the add\_device call.
 
 ``` {.C++}
 void add_device(std::shared_ptr<device> dev);
 ```
 
-Removing (Unregistering) devices from the robotkernel-5 can either be
+Removing (Unregistering) devices from the robotkernel can either be
 done by removing single device or by removing all devices owned by a
 module.
 
@@ -205,9 +205,9 @@ Process data
 
 A process data device is used to provide cyclic-realtime data to other
 **components**. It is derived from the *device* base class and can be
-registered to the robotkernel-5. For a detailed description of
-robotkernel-5 process data implementations please refer to
-[robotkernel-5/process\_data](robotkernel-5/process_data "wikilink").
+registered to the robotkernel. For a detailed description of
+robotkernel process data implementations please refer to
+[robotkernel/process\_data](robotkernel/process_data "wikilink").
 
 Streams
 -------
@@ -223,7 +223,7 @@ size_t read(void* buf, size_t bufsize);
 size_t write(void* buf, size_t bufsize);
 ```
 
-Afterwards, the *stream* could be registered to the robotkernel-5 by
+Afterwards, the *stream* could be registered to the robotkernel by
 calling ''add\_device'.
 
 ``` {.C++}
@@ -267,7 +267,7 @@ while (1) {
 ```
 
 The waiting module should now retreave the trigger device from the
-robotkernel-5 and registers its handler.
+robotkernel and registers its handler.
 
 ``` {.C++}
 class my_trigger_func : public trigger_base {
@@ -301,7 +301,7 @@ static const std::string service_definition_set_state;
 Service registration
 --------------------
 
-Service need to be registered to the robotkernel-5. Therefore a module
+Service need to be registered to the robotkernel. Therefore a module
 has to call the *add\_service* function.
 
 ``` {.C++}
