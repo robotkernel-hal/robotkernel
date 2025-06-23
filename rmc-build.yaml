@@ -3,7 +3,7 @@ _: &build_configs
 
 builds:
   - context: conan
-    build_file: conanfile.msgdef.py
+    build_file: share/service_definitions/conanfile.py
     test_package: msgdef_test_package
     configurations: *build_configs
   - context: conan
