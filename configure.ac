@@ -10,7 +10,7 @@ AC_PREREQ([2.63])
 AC_INIT([robotkernel], m4_esyscmd_s([git describe --long --dirty --tags]), [Robert Burger <robert.burger@dlr.de>])
 
 AC_CONFIG_MACRO_DIR([m4])
-AC_CONFIG_HEADERS([src/main/cpp/include/robotkernel/config.h])
+AC_CONFIG_HEADERS([include/robotkernel/config.h])
 #AM_INIT_AUTOMAKE([-Wall -Werror foreign silent-rules])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 #m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
@@ -72,6 +72,6 @@ AC_CHECK_TYPES([cpu_set_t], [], [], [[#include <pthread.h>]])
 AC_CHECK_LIB(pthread, pthread_create, PTHREAD_LIBS="-lpthread")
 AC_SUBST(PTHREAD_LIBS)
 
-AC_CONFIG_FILES([Makefile src/main/cpp/Makefile robotkernel.pc])
+AC_CONFIG_FILES([Makefile src/Makefile robotkernel.pc])
 
 AC_OUTPUT

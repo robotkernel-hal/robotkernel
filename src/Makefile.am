@@ -2,12 +2,12 @@ INSTALL_HEADER = $(INSTALL_DATA) -C
 
 lib_LTLIBRARIES = librobotkernel.la
 
-BUILT_SOURCES = $(top_builddir)/src/main/cpp/include/robotkernel/service_definitions.h
-CLEANFILES = $(top_builddir)/src/main/cpp/include/robotkernel/service_definitions.h
+BUILT_SOURCES = $(top_builddir)/include/robotkernel/service_definitions.h
+CLEANFILES = $(top_builddir)/include/robotkernel/service_definitions.h
 
 includedir = $(prefix)/include/robotkernel
-headerdir = $(srcdir)/include/robotkernel
-gen_headerdir = $(top_builddir)/src/main/cpp/include/robotkernel
+headerdir = $(top_builddir)/include/robotkernel
+gen_headerdir = $(top_builddir)/include/robotkernel
 
 
 #				  $(headerdir)/bridge.h
@@ -72,8 +72,8 @@ librobotkernel_la_SOURCES = bridge.cpp				\
 					  rkc_loader.cpp
 
 librobotkernel_la_CXXFLAGS = -Wno-unused-local-typedefs 					\
-					   -I$(top_builddir)/src/main/cpp/include 		\
-					   -I$(srcdir)/include/ 						\
+					   -I$(top_builddir)/include 		\
+					   -I$(srcdir) 						\
 					   @YAML_CPP_CFLAGS@ @LIBSTRING_UTIL_CFLAGS@ 
 
 librobotkernel_la_LDFLAGS=-static
@@ -99,8 +99,8 @@ SERVICE_DEFINITIONS = robotkernel/module/set_state	\
 					  robotkernel/kernel/list_pd_injections \
 					  robotkernel/log_base/configure_loglevel
 
-$(top_builddir)/src/main/cpp/include/robotkernel/service_definitions.h: Makefile $(SERVICE_DEFINITIONS)
-	install -d $(top_builddir)/src/main/cpp/include/robotkernel
+$(top_builddir)/include/robotkernel/service_definitions.h: Makefile $(SERVICE_DEFINITIONS)
+	install -d $(top_builddir)/include/robotkernel
 	@echo creating $@
 	service_generate --add_namespace services --indir $(top_srcdir)/share/service_definitions --out $@ $(SERVICE_DEFINITIONS)
 	touch $@
@@ -109,8 +109,8 @@ $(top_builddir)/src/main/cpp/include/robotkernel/service_definitions.h: Makefile
 robotkernel_SOURCES = main.cpp
 
 robotkernel_CXXFLAGS = -Wno-unused-local-typedefs 					\
-					   -I$(top_builddir)/src/main/cpp/include 		\
-					   -I$(srcdir)/include/ 						\
+					   -I$(top_builddir)/include 		\
+					   -I$(srcdir) 						\
 					   @YAML_CPP_CFLAGS@ @LIBSTRING_UTIL_CFLAGS@ 
 
 robotkernel_LDFLAGS = -Wl,-export-dynamic -Bdynamic -Wl,--whole-archive,.libs/librobotkernel.a,--no-whole-archive

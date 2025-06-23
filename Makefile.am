@@ -1,5 +1,5 @@
 ACLOCAL_AMFLAGS = -I m4
 
-SUBDIRS = src/main/cpp
+SUBDIRS = src
 pkgconfig_DATA = robotkernel.pc
 
