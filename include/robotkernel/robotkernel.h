@@ -85,8 +85,22 @@ extern void remove_device(sp_device_t req);
  * \param dev_name device name
  * \return device
  */
+extern std::shared_ptr<device> get_device(const std::string& dev_name);
+
+//! get a device by name
+/*!
+ * \param dev_name device name
+ * \return device
+ */
 template <typename T>
-extern std::shared_ptr<T> get_device(const std::string& dev_name);
+inline std::shared_ptr<T> get_device(const std::string& dev_name) {
+    std::shared_ptr<T> retval = std::dynamic_pointer_cast<T>(get_device(dev_name));
+    if (!retval)
+        throw string_util::str_exception("device %s is not of type %s\n", 
+                dev_name.c_str(), typeid(T).name());
+
+    return retval;
+};
 
 }; // namespace robotkernel;
 

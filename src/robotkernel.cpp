@@ -98,8 +98,7 @@ void robotkernel::remove_device(sp_device_t req) {
  * \param dev_name device name
  * \return device
  */
-template <typename T>
-std::shared_ptr<T> robotkernel::get_device(const std::string& dev_name) {
-    return robotkernel::kernel::instance.get_device<T>(dev_name);
+std::shared_ptr<robotkernel::device> robotkernel::get_device(const std::string& dev_name) {
+    return robotkernel::kernel::instance.get_device<robotkernel::device>(dev_name);
 }
 
