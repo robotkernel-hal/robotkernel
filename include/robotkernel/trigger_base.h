@@ -28,6 +28,7 @@
 
 #include <string>
 #include <memory>
+#include <list>
 
 namespace robotkernel {
 
