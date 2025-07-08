@@ -58,13 +58,21 @@ int module_base::set_state(module_state_t state) {
     // get transition
     uint32_t transition = GEN_STATE(this->state, state);
 
+#define try_set_state(transition) \
+    try { \
+        set_state_ ## transition(); \
+    } catch (std::exception& e) { \
+        log(error, "caught exception during " #transition ": %s\n", e.what()); \
+        return module_state_error; \
+    }
+
     switch (transition) {
         case op_2_safeop:
         case op_2_preop:
         case op_2_init:
         case op_2_boot:
             // ====> stop sending commands
-            set_state_op_2_safeop();
+            try_set_state(op_2_safeop);
 
             if (state == module_state_safeop)
                 break;
@@ -72,14 +80,14 @@ int module_base::set_state(module_state_t state) {
         case safeop_2_init:
         case safeop_2_boot:
             // ====> stop receiving measurements
-            set_state_safeop_2_preop();
+            try_set_state(safeop_2_preop);
 
             if (state == module_state_preop)
                 break;
         case preop_2_init:
         case preop_2_boot:
             // ====> deinit devices
-            set_state_preop_2_init();
+            try_set_state(preop_2_init);
         case init_2_init:
             if (state == module_state_init)
                 break;
@@ -95,20 +103,20 @@ int module_base::set_state(module_state_t state) {
         case init_2_safeop:
         case init_2_preop:
             // ====> init devices
-            set_state_init_2_preop();
+            try_set_state(init_2_preop);
 
             if (state == module_state_preop)
                 break;
         case preop_2_op:
         case preop_2_safeop:
             // ====> start receiving measurements
-            set_state_preop_2_safeop();
+            try_set_state(preop_2_safeop);
 
             if (state == module_state_safeop)
                 break;
         case safeop_2_op:
             // ====> start sending commands
-            set_state_safeop_2_op();
+            try_set_state(safeop_2_op);
             break;
         case op_2_op:
         case safeop_2_safeop:
