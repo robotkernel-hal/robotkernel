@@ -245,22 +245,22 @@ class module_base :
          */
         virtual int set_state(module_state_t state);
 
-        //! State transition from PREOP to SAFEOP
+        //! State transition from OP to SAFEOP
         virtual void set_state_op_2_safeop() {}
 
-        //! State transition from PREOP to SAFEOP
+        //! State transition from SAFEOP to PREOP
         virtual void set_state_safeop_2_preop() {}
 
-        //! State transition from PREOP to SAFEOP
+        //! State transition from PREOP to INIT
         virtual void set_state_preop_2_init() {}
 
-        //! State transition from PREOP to SAFEOP
+        //! State transition from INIT to PREOP
         virtual void set_state_init_2_preop() {}
 
         //! State transition from PREOP to SAFEOP
         virtual void set_state_preop_2_safeop() {}
 
-        //! State transition from PREOP to SAFEOP
+        //! State transition from SAFEOP to OP
         virtual void set_state_safeop_2_op() {}
 
         //! Get module state machine state.
