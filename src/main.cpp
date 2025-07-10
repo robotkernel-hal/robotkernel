@@ -26,6 +26,7 @@
 
 // public headers
 #include "robotkernel/config.h"
+#include "robotkernel/helpers.h"
 
 // private headers
 #include "kernel.h"
@@ -169,7 +170,7 @@ int main(int argc, char* argv[]) {
             }
 
             string power_up_arg = string(argv[i]);
-            vector<string> power_up_split = string_util::split_string(power_up_arg, "=", 1);
+            vector<string> power_up_split = robotkernel::string_split(power_up_arg, '=');
 
             power_up_map[power_up_split[0]] = decode_power_up_state(power_up_split[1]);
         }

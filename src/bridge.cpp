@@ -34,11 +34,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <string_util/string_util.h>
-
 using namespace std;
 using namespace robotkernel;
-using namespace string_util;
 
 //! bridge construction
 /*!

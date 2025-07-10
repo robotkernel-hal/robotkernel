@@ -43,9 +43,9 @@
 
 #include <map>
 #include <functional>
-#include <string_util/string_util.h>
 #include <typeindex>
 #include <typeinfo>
+#include <stdexcept>
 
 #ifdef __cplusplus
 #define EXPORT_C extern "C"
@@ -114,7 +114,7 @@ typedef const char* (*sp_get_sp_magic_t)(SERVICE_PROVIDER_HANDLE hdl);
         reinterpret_cast<struct spname ## _wrapper *>(hdl);            \
     std::shared_ptr<spclass> dev = wr->sp;                             \
     if (!dev)                                                          \
-        throw string_util::str_exception("["#spname"] invalid sp "     \
+        throw std::runtime_error("["#spname"] invalid sp "             \
                 "handle to <"#spclass" *>\n"); 
 
 #define SERVICE_PROVIDER_DEF(spname, spclass)                          \
@@ -126,12 +126,12 @@ EXPORT_C SERVICE_PROVIDER_HANDLE sp_register(const char* name) {       \
     struct spname ## _wrapper *wr;                                     \
     wr = new struct spname ## _wrapper();                              \
     if (!wr)                                                           \
-        throw string_util::str_exception(                              \
+        throw std::runtime_error(                                      \
                 "["#spname"] error allocating memory\n");              \
     wr->sp = std::make_shared<spclass>(name);                          \
     wr->sp->init();                                                    \
                                                                        \
-    return (SERVICE_PROVIDER_HANDLE)wr;                                          \
+    return (SERVICE_PROVIDER_HANDLE)wr;                                \
 }                                                                      \
                                                                        \
 EXPORT_C int sp_unregister(SERVICE_PROVIDER_HANDLE hdl) {              \

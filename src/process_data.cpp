@@ -26,12 +26,10 @@
 
 #include "kernel.h"
 #include "process_data.h"
-#include "string_util/string_util.h"
 #include "yaml-cpp/yaml.h"
 
 using namespace std;
 using namespace robotkernel;
-using namespace string_util;
 
 std::map<std::string, size_t> dt_to_len = {
     { "float",    4 },
@@ -104,7 +102,7 @@ process_data::~process_data() {
  */
 void process_data::push(sp_pd_provider_t& prov, bool do_trigger) {
     if ((provider == nullptr) || (provider->hash != prov->hash)) {
-        throw str_exception_tb("permission denied to push %s", id().c_str());
+        throw runtime_error(string_printf("permission denied to push %s", id().c_str()));
     }
 
     const auto& buf = next(prov);
@@ -166,8 +164,8 @@ void process_data::find_pd_offset_and_type(const std::string& field_name,
         std::string& type_str, pd_data_types& type, off_t& offset) {
     // need to find offset and type
     if (process_data_definition == "")
-        throw str_exception("process data \"%s\" has no description, "
-                "cannot determine pos offset!\n", id().c_str());
+        throw runtime_error(string_printf("process data \"%s\" has no description, "
+                "cannot determine pos offset!\n", id().c_str()));
 
     YAML::Node pdd_node = YAML::Load(process_data_definition);
 
@@ -186,14 +184,14 @@ void process_data::find_pd_offset_and_type(const std::string& field_name,
             }
 
             if (dt_to_len.find(act_dt) == dt_to_len.end())
-                throw str_exception("unsupported data type in pd description: %s\n", act_dt.c_str());
+                throw runtime_error(string_printf("unsupported data type in pd description: %s\n", act_dt.c_str()));
 
             offset += dt_to_len[act_dt];
         }
     }
 
-    throw str_exception("member \"%s\" not found in measurement process data description:\n%s\n",
-            field_name.c_str(), process_data_definition.c_str());
+    throw runtime_error(string_printf("member \"%s\" not found in measurement process data description:\n%s\n",
+            field_name.c_str(), process_data_definition.c_str()));
 }
 
 //! Find offset and type of given process data member.
@@ -208,7 +206,7 @@ void process_data::find_pd_offset_and_type(pd_entry_t& e) {
 void process_data::set_provider(sp_pd_provider_t& prov) { 
     if (    (provider != nullptr) && 
             (provider != prov)) {
-        throw str_exception_tb("cannot set provider for %s, already have one!", id().c_str());
+        throw runtime_error(string_printf("cannot set provider for %s, already have one!", id().c_str()));
     }
 
     provider = prov;
@@ -218,7 +216,7 @@ void process_data::set_provider(sp_pd_provider_t& prov) {
 //! reset data provider thread
 void process_data::reset_provider(sp_pd_provider_t& prov) {
     if (prov->hash != provider->hash) {
-        throw str_exception_tb("cannot reset provider for %s: you are not the provider!", id().c_str());
+        throw runtime_error(string_printf("cannot reset provider for %s: you are not the provider!", id().c_str()));
     }
 
     prov->hash = 0;
@@ -229,7 +227,7 @@ void process_data::reset_provider(sp_pd_provider_t& prov) {
 void process_data::set_consumer(sp_pd_consumer_t& cons) {
     if (    (consumer != nullptr) &&
             (consumer != cons))
-        throw str_exception_tb("cannot set consumer for %s: already have one!", id().c_str());
+        throw runtime_error(string_printf("cannot set consumer for %s: already have one!", id().c_str()));
 
     consumer = cons;
     cons->hash = std::hash<std::shared_ptr<robotkernel::pd_consumer> >{}(cons);
@@ -238,7 +236,7 @@ void process_data::set_consumer(sp_pd_consumer_t& cons) {
 //! reset main consumer thread
 void process_data::reset_consumer(sp_pd_consumer_t& cons) {
     if (cons->hash != consumer->hash)
-        throw str_exception_tb("cannot reset consumer for %s: you are not the consumer!", id().c_str());
+        throw runtime_error(string_printf("cannot reset consumer for %s: you are not the consumer!", id().c_str()));
 
     cons->hash = 0;
     consumer = nullptr;
@@ -331,8 +329,8 @@ void single_buffer::write(sp_pd_provider_t& prov, off_t offset, uint8_t *buf,
     process_data::write(prov, offset, buf, len, do_push, do_trigger);
 
     if ((offset + len) > length)
-        throw str_exception_tb("wanted to write to many bytes: %d > length %d\n",
-                (offset + len), length);
+        throw runtime_error(string_printf("wanted to write to many bytes: %d > length %d\n",
+                (offset + len), length));
 
     std::memcpy(&data[offset], buf, len);
 
@@ -355,8 +353,8 @@ void single_buffer::read(sp_pd_consumer_t& cons, off_t offset, uint8_t *buf,
     process_data::read(cons, offset, buf, len, do_pop, do_trigger);
 
     if ((offset + len) > length)
-        throw str_exception_tb("wanted to read to many bytes: %d > length %d\n",
-                (offset + len), length);
+        throw runtime_error(string_printf("wanted to read to many bytes: %d > length %d\n",
+                (offset + len), length));
 
     std::memcpy(buf, &data[offset], len);
 
@@ -450,8 +448,8 @@ void triple_buffer::write(sp_pd_provider_t& prov, off_t offset, uint8_t *buf,
     process_data::write(prov, offset, buf, len, do_push, do_trigger);
 
     if ((offset + len) > length)
-        throw str_exception_tb("wanted to write to many bytes: %d > length %d\n",
-                (offset + len), length);
+        throw runtime_error(string_printf("wanted to write to many bytes: %d > length %d\n",
+                (offset + len), length));
 
     auto& tmp_buf = back_buffer();
     std::memcpy(&tmp_buf[offset], buf, len);
@@ -477,8 +475,8 @@ void triple_buffer::read(sp_pd_consumer_t& cons, off_t offset, uint8_t *buf,
     process_data::read(cons, offset, buf, len, do_pop);
 
     if ((offset + len) > length)
-        throw str_exception_tb("wanted to read to many bytes: %d > length %d\n",
-                (offset + len), length);
+        throw runtime_error(string_printf("wanted to read to many bytes: %d > length %d\n",
+                (offset + len), length));
 
 
     if (do_pop) {
@@ -608,8 +606,8 @@ void pointer_buffer::write(sp_pd_provider_t& prov, off_t offset, uint8_t *buf,
     process_data::write(prov, offset, buf, len, do_push, do_trigger);
 
     if ((offset + len) > length)
-        throw str_exception_tb("wanted to write to many bytes: %d > length %d\n",
-                (offset + len), length);
+        throw runtime_error(string_printf("wanted to write to many bytes: %d > length %d\n",
+                (offset + len), length));
 
     std::memcpy(&ptr[offset], buf, len);
 
@@ -632,8 +630,8 @@ void pointer_buffer::read(sp_pd_consumer_t& cons, off_t offset, uint8_t *buf,
     process_data::read(cons, offset, buf, len, do_pop, do_trigger);
 
     if ((offset + len) > length)
-        throw str_exception_tb("wanted to read to many bytes: %d > length %d\n",
-                (offset + len), length);
+        throw runtime_error(string_printf("wanted to read to many bytes: %d > length %d\n",
+                (offset + len), length));
 
     std::memcpy(buf, &ptr[offset], len);
 

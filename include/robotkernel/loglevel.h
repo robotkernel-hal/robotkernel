@@ -27,10 +27,9 @@
 #ifndef ROBOTKERNEL__LOGLEVEL_H
 #define ROBOTKERNEL__LOGLEVEL_H
 
+#include <string>
+
 namespace robotkernel {
-#ifdef EMACS
-}
-#endif
 
 enum level { 
     error   = 1,
@@ -80,9 +79,6 @@ class loglevel {
         }
 };
 
-#ifdef EMACS
-{
-#endif
 }; // namespace robotkernel
 
 #endif // ROBOTKERNEL__LOGLEVEL_H

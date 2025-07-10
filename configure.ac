@@ -32,7 +32,6 @@ m4_ifdef([PKG_PROG_PKG_CONFIG], [PKG_PROG_PKG_CONFIG])
 m4_ifdef([PKG_INSTALLDIR], [PKG_INSTALLDIR], [pkgconfigdir='${libdir}/pkgconfig' AC_SUBST([pkgconfigdir])])
 
 PKG_CHECK_MODULES([LTTNG_UST], [lttng-ust], [enable_lttng=yes], [enable_lttng=no])
-PKG_CHECK_MODULES([LIBSTRING_UTIL], [libstring_util])
 PKG_CHECK_MODULES([YAML_CPP], [yaml-cpp], [], [AC_MSG_ERROR([yaml-cpp not found])])
 
 AM_CONDITIONAL([HAVE_LTTNG_UST], [test "$enable_lttng" == "yes"])

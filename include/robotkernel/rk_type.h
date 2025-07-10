@@ -32,13 +32,10 @@
 #include <typeindex>
 #include <map>
 #include <mutex>
-
-#include "string_util/string_util.h"
+#include <stdexcept>
+#include <vector>
 
 namespace robotkernel {
-#ifdef EMACS
-}
-#endif
 
 typedef std::map<uint8_t *, size_t> reference_map_t;
 
@@ -147,9 +144,9 @@ class rk_type {
         template<typename T>
             operator T() const {
                 if (__type != typeid(T)) {
-                    throw string_util::str_exception("Unsupported cast");
+                    throw std::runtime_error(std::string("Unsupported cast"));
                 } else if (__value == NULL) {
-                    throw string_util::str_exception("Uninitialized value!");
+                    throw std::runtime_error(std::string("Uninitialized value!"));
                 }
                 return *static_cast<T *>((void *) __value);
             }

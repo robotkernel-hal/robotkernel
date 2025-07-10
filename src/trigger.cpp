@@ -31,13 +31,10 @@
 // private headers
 #include "kernel.h"
 
-#include "string_util/string_util.h"
-
 #include <condition_variable>
 
 using namespace std;
 using namespace robotkernel;
-using namespace string_util;
 
 // construction
 trigger::trigger(const std::string& owner, const std::string& name, double rate) 
@@ -113,7 +110,7 @@ void trigger::wait(double timeout) {
     
     try {
         waiter->wait(timeout);
-    } catch (str_exception& e) {
+    } catch (runtime_error& e) {
         remove_trigger(waiter);
         throw e;
     }
@@ -129,7 +126,7 @@ void trigger::wait(double timeout) {
  * \param new_rate new trigger rate to set
  */
 void trigger::set_rate(double new_rate) {
-    throw str_exception("setting rate not permitted!");
+    throw runtime_error(string_printf("setting rate not permitted!"));
 }
 
 //! trigger all modules in list

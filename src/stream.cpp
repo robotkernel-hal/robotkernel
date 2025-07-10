@@ -30,18 +30,15 @@
 // private headers
 #include "kernel.h"
 
-#include "string_util/string_util.h"
-
 using namespace std;
 using namespace robotkernel;
-using namespace string_util;
 
 //! Set stream device baudrate
 /*!
  * \param[in] baudrate  New baudrate to set.
  */
 void serial_stream::set_baudrate(int baudrate) {
-    throw string_util::str_exception("setting baudrate not supported!");
+    throw runtime_error(string_printf("setting baudrate not supported!"));
 }
 
 //! Get stream device baudrate
@@ -49,7 +46,7 @@ void serial_stream::set_baudrate(int baudrate) {
  * \return Actual baudrate.
  */
 int serial_stream::get_baudrate() const {
-    throw string_util::str_exception("getting baudrate not supported!");
+    throw runtime_error(string_printf("getting baudrate not supported!"));
 }
         
 //! Set serial port settings
@@ -60,7 +57,7 @@ int serial_stream::get_baudrate() const {
  */
 void serial_stream::set_port_settings(const character_size_t& char_size, 
         const parity_t& par, const stopbits_t& stopbits) {
-    throw string_util::str_exception("set port settings not supported!");
+    throw runtime_error(string_printf("set port settings not supported!"));
 }
 
 //! Get serial port settings
@@ -71,6 +68,6 @@ void serial_stream::set_port_settings(const character_size_t& char_size,
  */
 void serial_stream::get_port_settings(character_size_t& char_size, 
         parity_t& par, stopbits_t& stopbits) const {
-    throw string_util::str_exception("get port settings not supported!");
+    throw runtime_error(string_printf("get port settings not supported!"));
 }
 

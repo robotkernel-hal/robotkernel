@@ -53,7 +53,6 @@
 using namespace std;
 using namespace std::placeholders;
 using namespace robotkernel;
-using namespace string_util;
 
 const char string_state_error[]   = "<ERROR>";
 const char string_state_init[]    = "<INIT>";
@@ -250,7 +249,7 @@ module::module(const YAML::Node& node)
             std::string tmp = get_as<std::string>(node, "depends");
 
             if (tmp == name)
-                throw str_exception("module %s depends on itself?\n", name.c_str());
+                throw runtime_error(string_printf("module %s depends on itself?\n", name.c_str()));
 
             depends.push_back(tmp); 
         } else if (node["depends"].Type() == YAML::NodeType::Sequence) {
@@ -259,7 +258,7 @@ module::module(const YAML::Node& node)
                 std::string tmp = it->as<std::string>();
 
                 if (tmp == name)
-                    throw str_exception("module %s depends on itself?\n", name.c_str());
+                    throw runtime_error(string_printf("module %s depends on itself?\n", name.c_str()));
 
                 depends.push_back(tmp); 
             }
@@ -271,7 +270,7 @@ module::module(const YAML::Node& node)
             std::string tmp = get_as<std::string>(node, "excludes");
 
             if (tmp == name)
-                throw str_exception("module %s excludes on itself?\n", name.c_str());
+                throw runtime_error(string_printf("module %s excludes on itself?\n", name.c_str()));
 
             excludes.push_back(tmp); 
         } else if (node["excludes"].Type() == YAML::NodeType::Sequence) {
@@ -280,7 +279,7 @@ module::module(const YAML::Node& node)
                 std::string tmp = it->as<std::string>();
 
                 if (tmp == name)
-                    throw str_exception("module %s excludes on itself?\n", name.c_str());
+                    throw runtime_error(string_printf("module %s excludes on itself?\n", name.c_str()));
 
                 excludes.push_back(tmp); 
             }
@@ -345,8 +344,8 @@ bool module::reconfigure() {
     }
 
     if (!mod_handle) {
-        throw str_exception("mod_handle of %s is NULL, can not proceed!\n"
-                "(does module export mod_configure() function?)", file_name.c_str());
+        throw runtime_error(string_printf("mod_handle of %s is NULL, can not proceed!\n"
+                "(does module export mod_configure() function?)", file_name.c_str()));
     }
 
     return configured();
@@ -384,7 +383,7 @@ module::~module() {
   */
 int module::set_state(module_state_t state) {
     if (!mod_handle)
-        throw str_exception("%s not configured\n", name.c_str());
+        throw runtime_error(string_printf("%s not configured\n", name.c_str()));
 
     if (!mod_set_state) {
         robotkernel::kernel::instance.log(error, "%s error: no mod_set_state function\n", name.c_str());
@@ -510,7 +509,7 @@ int module::set_state(module_state_t state) {
   */
 module_state_t module::get_state() {
     if (!mod_handle)
-        throw str_exception("%s not configured\n", name.c_str());
+        throw runtime_error(string_printf("%s not configured\n", name.c_str()));
 
     if (!mod_get_state) {
         robotkernel::kernel::instance.log(error, "%s error: no mod_get_state function\n", name.c_str()); 
@@ -525,7 +524,7 @@ module_state_t module::get_state() {
 */
 void module::tick() {
     if (!mod_handle)
-        throw str_exception("[%s] not configured\n", name.c_str());
+        throw runtime_error(string_printf("[%s] not configured\n", name.c_str()));
 
     if (!mod_tick)
         return;

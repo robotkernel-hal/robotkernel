@@ -31,6 +31,7 @@
 #include <stdint.h>
 #include <list>
 #include <stdio.h>
+#include <stdexcept>
 
 #include "robotkernel/trigger_base.h"
 #include "robotkernel/exceptions.h"
@@ -141,8 +142,8 @@ typedef void (*mod_tick_t)(MODULE_HANDLE hdl);
         reinterpret_cast<struct impl ## _wrapper *>(hdl);                           \
     std::shared_ptr<modclass> dev = wr->sp;                                         \
     if (!dev)                                                                       \
-        throw string_util::str_exception("["#impl"] invalid module "                \
-                "handle to <"#modclass" *>\n"); 
+        throw std::runtime_error(robotkernel::string_printf("["#impl"] "            \
+                    "invalid module handle to <"#modclass" *>\n")); 
 
 #define MODULE_DEF(impl, modclass)                                                  \
 struct impl ## _wrapper {                                                           \
@@ -177,8 +178,8 @@ EXPORT_C MODULE_HANDLE mod_configure(const char* name, const char* config) {    
                                                                                     \
     wr = new struct impl ## _wrapper();                                             \
     if (!wr)                                                                        \
-        throw string_util::str_exception(                                           \
-                "["#impl"] error allocating memory\n");                             \
+        throw std::runtime_error(                                                   \
+                robotkernel::string_printf("["#impl"] error allocating memory\n")); \
     wr->sp = std::make_shared<modclass>(name, doc);                                 \
     wr->sp->init();                                                                 \
                                                                                     \
@@ -222,16 +223,10 @@ class module_base :
          */
         virtual void init() {};
     
-//        //! Get robotkernel module
-//        /*!
-//         * \returns Shared pointer to our robotkernel module class.
-//         */
-//        robotkernel::sp_module_t get_module();
-
         //! Module trigger implementation.
         virtual void tick() {
-            throw string_util::str_exception("[%s|%s] trigger not implemented!\n",
-                    impl.c_str(), name.c_str());
+            throw std::runtime_error(robotkernel::string_printf("[%s|%s] trigger not implemented!\n",
+                    impl.c_str(), name.c_str()));
         }
 
         //*********************************************

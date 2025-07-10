@@ -35,17 +35,14 @@
 #include <atomic>
 #include <memory>
 #include <cstring>
+#include <stdexcept>
 
 #include "robotkernel/device.h"
 #include "robotkernel/trigger.h"
 #include "robotkernel/rk_type.h"
-
-#include "string_util/string_util.h"
+#include "robotkernel/helpers.h"
 
 namespace robotkernel {
-#ifdef EMACS
-}
-#endif
 
 // forward declarations
 class process_data;
@@ -222,7 +219,7 @@ class process_data :
          */
         virtual uint8_t* next(sp_pd_provider_t& prov) {
             if ((provider == nullptr) || (provider->hash != prov->hash)) {
-                throw str_exception_tb("permission denied to write to %s", id().c_str());
+                throw std::runtime_error(robotkernel::string_printf("permission denied to write to %s", id().c_str()));
             }
 
             return nullptr;
@@ -241,8 +238,8 @@ class process_data :
          */
         virtual uint8_t* pop(sp_pd_consumer_t& cons, bool do_trigger = true) {
             if ((consumer == nullptr) || (consumer->hash != cons->hash)) {
-                throw str_exception_tb("permission denied to pop %s: consumer_hash %d, your hash %d", 
-                        id().c_str(), consumer->hash, cons->hash);
+                throw std::runtime_error(robotkernel::string_printf("permission denied to pop %s: consumer_hash %d, your hash %d", 
+                        id().c_str(), consumer->hash, cons->hash));
             }
 
             return nullptr;
@@ -266,7 +263,7 @@ class process_data :
             size_t len, bool do_push = true, bool do_trigger = true) 
         {
             if ((provider == nullptr) || (provider->hash != prov->hash)) {
-                throw str_exception_tb("permission denied to write to %s", id().c_str());
+                throw std::runtime_error(robotkernel::string_printf("permission denied to write to %s", id().c_str()));
             }
         }
 
@@ -282,8 +279,8 @@ class process_data :
                 size_t len, bool do_pop = true, bool do_trigger = true) 
         {
             if (do_pop && ((consumer == nullptr) || (consumer->hash != cons->hash))) {
-                throw str_exception_tb("permission denied to pop %s: consumer_hash %d, your hash %d", 
-                        id().c_str(), consumer->hash, cons->hash);
+                throw std::runtime_error(robotkernel::string_printf("permission denied to pop %s: consumer_hash %d, your hash %d", 
+                        id().c_str(), consumer->hash, cons->hash));
             }
 
             pd_cookie++;
@@ -548,12 +545,12 @@ class pointer_buffer :
          * \param[in]   prov    PD Provider, must match set provider.
          * \param[in]   ptr     New address to process data.
          *
-         * \exception   str_exception_tb    Permission denied
+         * \exception   runtime_error  Permission denied
          */
         void set_ptr(sp_pd_provider_t& prov, uint8_t *ptr) {
             if ((provider == nullptr) || (provider->hash != prov->hash)) {
-                throw str_exception_tb("permission denied set pointer %s: provider_hash %d, your hash %d", 
-                        id().c_str(), provider->hash, prov->hash);
+                throw std::runtime_error(robotkernel::string_printf("permission denied set pointer %s: provider_hash %d, your hash %d", 
+                        id().c_str(), provider->hash, prov->hash));
             }
 
             this->ptr = ptr;
@@ -607,9 +604,6 @@ typedef std::shared_ptr<triple_buffer> sp_triple_buffer_t;
 typedef std::shared_ptr<pointer_buffer> sp_pointer_buffer_t;
 typedef std::map<std::string, sp_process_data_t> process_data_map_t;
 
-#ifdef EMACS
-{
-#endif
 } // namespace robotkernel
 
 #endif // ROBOTKERNEL__PROCESS_DATA_H

@@ -32,8 +32,6 @@
 #include "kernel.h"
 #include "so_file.h"
 
-#include "string_util/string_util.h"
-
 #include <sys/stat.h>
 #include <sys/types.h>
 #ifdef HAVE_LIBGEN_H
@@ -50,13 +48,12 @@
 
 using namespace std;
 using namespace robotkernel;
-using namespace string_util;
 
 string searchFile(string file_name, vector<const char*> &locations){
     for(auto libpathes : locations){
         if(!libpathes)
             continue;
-        vector<string> split = split_string(libpathes, ":");
+        vector<string> split = string_split(string(libpathes), ':');
         for (auto & el : split) {
             el.append("/").append(file_name);
             if (access(el.c_str(), R_OK) != -1) {
@@ -92,8 +89,8 @@ so_file::so_file(const YAML::Node& node) : config("") {
 
         ifstream t(config_file_name.c_str());
         if(t.fail()) // check failbit
-            throw str_exception("could not open config file of so_file %s: %s",
-                                file_name.c_str(), config_file_name.c_str());
+            throw runtime_error(string_printf("could not open config file of so_file %s: %s",
+                                file_name.c_str(), config_file_name.c_str()));
         stringstream buffer;
         buffer << t.rdbuf();
         config = buffer.str();
@@ -119,7 +116,7 @@ so_file::so_file(const YAML::Node& node) : config("") {
         return; //already loaded
 #endif
     if (!(so_handle = dlopen(file_name.c_str(), RTLD_LOCAL | RTLD_NOW | RTLD_DEEPBIND | RTLD_NODELETE)))
-        throw str_exception("%s dlopen signaled error opening so_file: %s\nCheck if file path is in ROBOTKERNEL_MODULE_PATH or LD_LIBRARY_PATH\n", file_name.c_str(), dlerror());
+        throw runtime_error(string_printf("%s dlopen signaled error opening so_file: %s\nCheck if file path is in ROBOTKERNEL_MODULE_PATH or LD_LIBRARY_PATH\n", file_name.c_str(), dlerror()));
 }
 
 //! so_file destruction

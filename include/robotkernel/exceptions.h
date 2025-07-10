@@ -37,8 +37,6 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-#include "string_util/string_util.h" // str_exception
-
 namespace robotkernel {
 
 //! exception_tracer class

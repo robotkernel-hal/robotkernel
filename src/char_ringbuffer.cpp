@@ -24,8 +24,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+// public headers
+#include "robotkernel/helpers.h"
+
 // private headers
 #include "char_ringbuffer.h"
+
+#include <string.h>
 
 using namespace std;
 using namespace robotkernel;
@@ -34,7 +39,7 @@ char_ringbuffer::char_ringbuffer(unsigned int size) {
     data = (char*) malloc(size);
 
     if(!data)
-        throw errno_exception_tb("could not get char_ringbuffer of size %d bytes\n", size);
+        throw runtime_error(string_printf("could not get char_ringbuffer of size %d bytes\n", size));
 
     memset(data, 0, size);
     this->size = size;

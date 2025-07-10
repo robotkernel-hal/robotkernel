@@ -37,6 +37,12 @@
 #endif
 
 #include <regex>
+#include <string>
+#include <cstdarg>
+#include <vector>
+#include <cstdio>
+#include <sstream>
+#include <iostream>
 
 using namespace std;
 using namespace robotkernel;
@@ -82,22 +88,38 @@ void robotkernel::parse_templates(const YAML::Node& config, std::list<YAML::Node
      }
 }
 
-std::string robotkernel::string_printf(const std::string fmt_str, ...) {
-    int final_n, n = ((int)fmt_str.size()) * 2; /* Reserve two times as much as the length of the fmt_str */
-    std::unique_ptr<char[]> formatted;
-    va_list ap;
-    while(1) {
-        formatted.reset(new char[n]); /* Wrap the plain char array into the unique_ptr */
-        strcpy(&formatted[0], fmt_str.c_str());
-        va_start(ap, fmt_str);
-        final_n = vsnprintf(&formatted[0], n, fmt_str.c_str(), ap);
-        va_end(ap);
-        if (final_n < 0 || final_n >= n)
-            n += abs(final_n - n + 1);
-        else
-            break;
+std::string robotkernel::string_printf(const char* format, ...) {
+    va_list args1;
+    va_start(args1, format);
+
+    // Copy args to get the size first
+    va_list args2;
+    va_copy(args2, args1);
+    int size = std::vsnprintf(nullptr, 0, format, args2);
+    va_end(args2);
+
+    if (size < 0) {
+        va_end(args1);
+        throw std::runtime_error("string_printf: vsnprintf encoding error");
     }
-    return std::string(formatted.get());
+
+    std::vector<char> buffer(size + 1);
+    std::vsnprintf(buffer.data(), buffer.size(), format, args1);
+    va_end(args1);
+
+    return std::string(buffer.data(), size);
+}
+
+std::vector<std::string> robotkernel::string_split(const std::string& str, const char delimiter) {
+    std::vector<std::string> result;
+    std::istringstream ss(str);
+    std::string token;
+
+    while (std::getline(ss, token, delimiter)) {
+        result.push_back(token);
+    }
+
+    return result;
 }
 
 void robotkernel::set_priority(int priority, int policy) {

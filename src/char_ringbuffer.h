@@ -25,22 +25,17 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#ifndef CHAR_RINGBUFFER_H
-#define CHAR_RINGBUFFER_H
+#ifndef ROBOTKERNEL__CHAR_RINGBUFFER_H
+#define ROBOTKERNEL__CHAR_RINGBUFFER_H
 
 #include <sstream>
 #include <mutex>
-
-#include <string_util/exceptions.h>
 
 #ifdef DEBUG
 #include <stdio.h>
 #endif
 
 namespace robotkernel {
-#ifdef EMACS
-}
-#endif
 
 class char_ringbuffer {
     private:
@@ -71,10 +66,7 @@ class char_ringbuffer {
         unsigned int get_data_len();
 };
 
-#ifdef EMACS
-{
-#endif
-};
+}; // namespace robotkernel
 
-#endif // CHAR_RINGBUFFER_H
+#endif // ROBOTKERNEL__CHAR_RINGBUFFER_H
 

@@ -31,6 +31,7 @@
 #include <stdint.h>
 #include <list>
 #include <stdio.h>
+#include <stdexcept>
 
 // public headers
 #include "robotkernel/log_base.h"
@@ -80,8 +81,8 @@ typedef void (*bridge_remove_service_t)(BRIDGE_HANDLE hdl, const robotkernel::se
     struct instance_name ## _wrapper *wr =                                                  \
         reinterpret_cast<struct instance_name ## _wrapper *>(hdl);                          \
     if (!wr->sp)                                                                            \
-        throw string_util::str_exception("["#bridgename"] invalid bridge "                  \
-                "handle to <"#bridgeclass" *>\n"); 
+        throw std::runtime_error(string("["#bridgename"] invalid bridge "                   \
+                "handle to <"#bridgeclass" *>\n")); 
 
 #define BRIDGE_DEF(bridgename, bridgeclass)                                                 \
 struct instance_name ## _wrapper {                                                          \
@@ -112,8 +113,8 @@ EXPORT_C BRIDGE_HANDLE bridge_configure(const char* name, const char* config) { 
                                                                                             \
     wr = new struct instance_name ## _wrapper();                                            \
     if (!wr)                                                                                \
-        throw string_util::str_exception(                                                   \
-                "["#bridgename"] error allocating memory\n");                               \
+        throw std::runtime_error(string(                                                    \
+                "["#bridgename"] error allocating memory\n"));                              \
     wr->sp = std::make_shared<bridgeclass>(name, doc);                                      \
     wr->sp->init();                                                                         \
                                                                                             \

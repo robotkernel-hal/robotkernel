@@ -30,6 +30,7 @@
 #include "robotkernel/device.h"
 #include "robotkernel/device_listener.h"
 #include "robotkernel/service.h"
+#include "robotkernel/helpers.h"
 
 namespace robotkernel {
 
@@ -97,8 +98,8 @@ template <typename T>
 inline std::shared_ptr<T> get_device(const std::string& dev_name) {
     std::shared_ptr<T> retval = std::dynamic_pointer_cast<T>(get_device(dev_name));
     if (!retval)
-        throw string_util::str_exception("device %s is not of type %s\n", 
-                dev_name.c_str(), typeid(T).name());
+        throw std::runtime_error(robotkernel::string_printf("device %s is not of type %s\n", 
+                dev_name.c_str(), typeid(T).name()));
 
     return retval;
 };

@@ -43,7 +43,6 @@
 
 using namespace std;
 using namespace robotkernel;
-using namespace string_util;
 
 //! service_provider construction
 /*!
@@ -98,7 +97,7 @@ service_provider::~service_provider() {
  */
 void service_provider::add_interface(sp_service_interface_t req) {
     if (!sp_handle)
-        throw str_exception("%s not configured!\n", name.c_str());
+        throw runtime_error(string_printf("%s not configured!\n", name.c_str()));
 
     if (!sp_add_interface) {
         robotkernel::kernel::instance.log(error, "%s error: no sp_add_interface function\n", name.c_str());
@@ -115,7 +114,7 @@ void service_provider::add_interface(sp_service_interface_t req) {
  */
 void service_provider::remove_interface(sp_service_interface_t req) {
     if (!sp_handle)
-        throw str_exception("%s not configured!\n", name.c_str());
+        throw runtime_error(string_printf("%s not configured!\n", name.c_str()));
 
     if (!sp_remove_interface) {
         robotkernel::kernel::instance.log(error, "%s error: no sp_remove_interface function\n", name.c_str());
@@ -131,7 +130,7 @@ void service_provider::remove_interface(sp_service_interface_t req) {
  */
 void service_provider::remove_module(std::string mod_name) {
     if (!sp_handle)
-        throw str_exception("%s not configured!\n", name.c_str());
+        throw runtime_error(string_printf("%s not configured!\n", name.c_str()));
 
     if (!sp_remove_module) {
         robotkernel::kernel::instance.log(error, "%s error: no sp_remove_module function\n", name.c_str());
@@ -147,10 +146,10 @@ void service_provider::remove_module(std::string mod_name) {
  */
 bool service_provider::test_interface(sp_service_interface_t req) {
     if (!sp_handle)
-        throw str_exception("%s not configured!\n", name.c_str());
+        throw runtime_error(string_printf("%s not configured!\n", name.c_str()));
 
     if (!sp_test_interface) {
-        throw str_exception("%s error: no sp_test_interface\n", name.c_str());
+        throw runtime_error(string_printf("%s error: no sp_test_interface\n", name.c_str()));
     }
 
     return sp_test_interface(sp_handle, req);

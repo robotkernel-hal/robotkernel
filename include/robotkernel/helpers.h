@@ -33,12 +33,11 @@
 #include <stdarg.h>  // For va_start, etc.
 #include <memory>    // For std::unique_ptr
 #include <pthread.h>
+#include <vector>
 
 #include <string>
 #include <thread>
-
-
-#include <string_util/string_util.h>
+#include <stdexcept>
 
 #include "robotkernel/exceptions.h"
 
@@ -55,11 +54,35 @@
      ((tvp)->tv_sec cmp (uvp)->tv_sec))
 
          
-#define get_symbol(name) {                                                      \
-    name = (name ## _t)dlsym(so_handle, #name);                                 \
-    if (!name)                                                                  \
-        throw str_exception("missing " #name " in %s\n", file_name.c_str());    \
+#define get_symbol(name) {                                                          \
+    name = (name ## _t)dlsym(so_handle, #name);                                     \
+    if (!name)                                                                      \
+        throw std::runtime_error(robotkernel::string_printf("missing " #name " in %s\n", file_name.c_str()));   \
 }
+
+#define get_config(member, dflt) \
+    (member) = get_as<typeof(member)>(config, # member, (typeof(member))dflt)
+
+
+namespace robotkernel {
+
+//! convert buffer to hex string
+std::string hex_string(const void *data, size_t len);
+
+YAML::Node fill_template(const std::string& config, const YAML::Node& instance);
+void parse_templates(const YAML::Node& config, std::list<YAML::Node>& instances);
+
+std::string string_printf(const char* format, ...);
+std::vector<std::string> string_split(const std::string& str, const char delimiter); 
+
+void set_priority(int priority, int policy = SCHED_FIFO);
+void set_affinity_mask(int affinity_mask);
+
+void set_thread_name(std::thread& tid, const std::string& thread_name);
+void set_thread_name(pthread_t tid, const std::string& thread_name);
+void set_thread_name(const std::string& thread_name);
+
+}; // namespace robotkernel
 
 template <typename type>
 type get_as(const YAML::Node& node, const std::string key) {
@@ -67,16 +90,16 @@ type get_as(const YAML::Node& node, const std::string key) {
         YAML::Emitter out;
         out << node;
 
-        throw string_util::str_exception("[config-error] key \"%s\" not found!\n\n%s\n", 
-                key.c_str(), out.c_str());
+        throw std::runtime_error(robotkernel::string_printf("[config-error] key \"%s\" not found!\n\n%s\n", 
+                key.c_str(), out.c_str()));
     }
 
     try {
         // gcc3.3 need this syntax for calling this template 
         return node[key].template as<type>();
     } catch(const std::exception& e) {
-        throw string_util::str_exception("[config-error] key \"%s\" is probably of " 
-                "wrong data-type:\n%s", key.c_str(), e.what());
+        throw std::runtime_error(robotkernel::string_printf("[config-error] key \"%s\" is probably of " 
+                "wrong data-type:\n%s", key.c_str(), e.what()));
     }
 }
 
@@ -89,8 +112,8 @@ type get_as(const YAML::Node& node, const std::string key, type dflt) {
         // gcc3.3 need this syntax for calling this template 
         return node[key].template as<type>();
     } catch(const std::exception& e) {
-        throw string_util::str_exception("[config-error] key \"%s\" is probably of "
-                "wrong data-type:\n%s", key.c_str(), e.what());
+        throw std::runtime_error(robotkernel::string_printf("[config-error] key \"%s\" is probably of "
+                "wrong data-type:\n%s", key.c_str(), e.what()));
     }
 }
 
@@ -124,32 +147,8 @@ match_map_exit:
         ss << "\'" << kv.first << "\', ";
     }
 
-    throw string_util::str_exception(ss.str().c_str());
+    throw std::runtime_error(ss.str());
 }
-
-#define get_config(member, dflt) \
-    (member) = get_as<typeof(member)>(config, # member, (typeof(member))dflt)
-
-
-namespace robotkernel {
-
-//! convert buffer to hex string
-std::string hex_string(const void *data, size_t len);
-
-YAML::Node fill_template(const std::string& config, const YAML::Node& instance);
-void parse_templates(const YAML::Node& config, std::list<YAML::Node>& instances);
-
-std::string string_printf(const std::string fmt_str, ...);
-
-void set_priority(int priority, int policy = SCHED_FIFO);
-void set_affinity_mask(int affinity_mask);
-
-void set_thread_name(std::thread& tid, const std::string& thread_name);
-void set_thread_name(pthread_t tid, const std::string& thread_name);
-void set_thread_name(const std::string& thread_name);
-
-
-}; // namespace robotkernel
 
 #endif // ROBOTKERNEL__MODULE_H
 

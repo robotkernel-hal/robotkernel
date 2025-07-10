@@ -31,12 +31,11 @@
 #include "kernel_worker.h"
 #include "kernel.h"
 
-using namespace string_util;
 using namespace robotkernel;
 using namespace std;
 
 kernel_worker::kernel_worker(int prio, int affinity_mask) :
-    runnable(prio, affinity_mask, format_string("kernel_worker.prio_%d."
+    runnable(prio, affinity_mask, string_printf("kernel_worker.prio_%d."
                 "affinity_mask_%d", prio, affinity_mask)),
     log_base("kernel_worker", "robotkernel", "")
 {

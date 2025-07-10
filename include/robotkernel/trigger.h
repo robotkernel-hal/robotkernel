@@ -29,6 +29,7 @@
 
 #include <string>
 #include <mutex>
+#include <stdexcept>
 
 // public headers
 #include "robotkernel/runnable.h"
@@ -36,12 +37,7 @@
 #include "robotkernel/trigger_base.h"
 #include "robotkernel/trigger_worker.h"
 
-#include <string_util/string_util.h>
-
 namespace robotkernel {
-#ifdef EMACS
-}
-#endif
 
 //! trigger waiter class
 class trigger_waiter : 
@@ -68,7 +64,7 @@ class trigger_waiter :
         void wait(double timeout, std::unique_lock<std::mutex>& lock) {
             if (cond.wait_for(lock, std::chrono::nanoseconds(
                             (uint64_t)(timeout * 1000000000))) == std::cv_status::timeout)
-                throw string_util::str_exception("timeout waiting for trigger");
+                throw std::runtime_error("timeout waiting for trigger");
         }
 };
 
@@ -146,9 +142,6 @@ class trigger :
 typedef std::shared_ptr<trigger> sp_trigger_t;
 typedef std::map<std::string, sp_trigger_t> trigger_map_t;
 
-#ifdef EMACS 
-{
-#endif
 } // namespace robotkernel
 
 #endif // ROBOTKERNEL__TRIGGER_H

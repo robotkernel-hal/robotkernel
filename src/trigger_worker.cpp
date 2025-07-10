@@ -30,11 +30,8 @@
 // private headers
 #include "kernel.h"
 
-#include "string_util/string_util.h"
-
 using namespace std;
 using namespace robotkernel;
-using namespace string_util;
 
 bool trigger_worker::worker_key::operator<(const worker_key& a) const {
     if (prio < a.prio)
@@ -56,7 +53,7 @@ bool trigger_worker::worker_key::operator<(const worker_key& a) const {
 }
 
 trigger_worker::trigger_worker(int prio, int affinity_mask, int divisor) :
-    runnable(prio, affinity_mask, format_string("trigger_worker.prio_%d."
+    runnable(prio, affinity_mask, string_printf("trigger_worker.prio_%d."
                 "affinity_mask_%d.divisor_%d", prio, affinity_mask, divisor)), 
     trigger_base(divisor) 
 {
@@ -80,7 +77,7 @@ void trigger_worker::add_trigger(sp_trigger_base_t trigger) {
     // push to module list
     for (const auto& t : triggers) {
         if (t == trigger) 
-            throw str_exception("there was a try to register a trigger twice!");
+            throw runtime_error(string_printf("there was a try to register a trigger twice!"));
     }
 
     std::unique_lock<std::mutex> lock(mtx);
