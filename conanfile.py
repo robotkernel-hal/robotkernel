@@ -14,5 +14,5 @@ class MainProject(ConanFile):
         self.run(f"sed 's/AC_INIT(.*/AC_INIT([robotkernel], [{self.version}], [{self.author}])/' -i configure.ac")
 
     def requirements(self):
-        #self.requires(f"{self.name}_ln_msgdef/{self.version}@{self.user}/{self.channel}")
+        self.requires(f"{self.name}_ln_msgdef/{self.version}@{self.user}/{self.channel}")
         self.requires("yaml-cpp/0.7.0@3rdparty/stable", transitive_headers=True, transitive_libs=True)
