@@ -233,7 +233,6 @@ Exit:
 //        kernel::instance.clnt->wait_for_service_requests(0);
 #endif // __VXWORKS__
 
-    printf("done ... returning now from main\n");
     return ret;
 }
 
