@@ -45,15 +45,26 @@ jobs:
           apt-get update
           apt-get install -y robotkernel-service-helper
 
-      - name: Build deb package
-        run: |
-          # Assuming you have debian/ directory with control files
-          debuild -us -uc
+      - name: Mark working directory as safe
+        run: git config --global --add safe.directory $GITHUB_WORKSPACE
 
-      - name: Ensure package is present
+      - name: update branch name
         run: |
-          echo "Files in workspace:"
-          find *
+          safe_branch=$(echo "${GITHUB_REF_NAME}" | tr '/' '-')
+          VERSION=$(dpkg-parsechangelog | sed -n 's/^Version: //p')
+          sed "s|PACKAGE_VERSION|$VERSION|" configure.ac.in > configure.ac
+        env:
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+          
+      - name: Prepare autotools
+        run: |
+          # Nur falls nicht schon vorhanden (optional)
+          autoreconf -fi
+
+      - name: Build .deb package
+        run: |
+          # baue mit dpkg-buildpackage (ohne signieren)
+          dpkg-buildpackage -us -uc -d
 
       - name: Collect .deb artifact
         run: |
