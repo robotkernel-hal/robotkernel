@@ -167,6 +167,7 @@ EXPORT_C module_state_t mod_get_state(MODULE_HANDLE hdl) {                      
                                                                                     \
 EXPORT_C int mod_unconfigure(MODULE_HANDLE hdl) {                                   \
     HDL_2_MODCLASS(hdl, impl, modclass)                                             \
+    wr->sp->log(robotkernel::info, #modclass " " PACKAGE_VERSION " destructed\n");  \
     wr->sp = nullptr;                                                               \
     delete wr;                                                                      \
     return 0;                                                                       \
@@ -182,6 +183,7 @@ EXPORT_C MODULE_HANDLE mod_configure(const char* name, const char* config) {    
                 robotkernel::string_printf("["#impl"] error allocating memory\n")); \
     wr->sp = std::make_shared<modclass>(name, doc);                                 \
     wr->sp->init();                                                                 \
+    wr->sp->log(robotkernel::info, #modclass " " PACKAGE_VERSION " instantiated\n");\
                                                                                     \
     return (MODULE_HANDLE)wr;                                                       \
 }
