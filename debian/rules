@@ -13,11 +13,11 @@ export DH_VERBOSE = 1
 # package maintainers to append LDFLAGS
 #export DEB_LDFLAGS_MAINT_APPEND = -Wl,--as-needed
 	
-export GIT_VERSION = $(shell git describe --long --dirty --tags)
-
-override_dh_autoreconf:
-	sed 's/AC_INIT(.*/AC_INIT([robotkernel], [${GIT_VERSION}], [Robert Burger <robert.burger@dlr.de>])/' -i configure.ac
-	dh_autoreconf
+#export GIT_VERSION = $(shell git describe --long --dirty --tags)
+#
+#override_dh_autoreconf:
+#	sed 's/AC_INIT(.*/AC_INIT([robotkernel], [${GIT_VERSION}], [Robert Burger <robert.burger@dlr.de>])/' -i configure.ac
+#	dh_autoreconf
 
 %:
 	dh $@
