@@ -31,9 +31,6 @@ jobs:
     container:
       image: ${{ matrix.image }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
       - name: Setup dependencies
         run: |
           apt-get update
@@ -44,6 +41,9 @@ jobs:
                                                  | bash
           apt-get update
           apt-get install -y robotkernel-service-helper
+
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Mark working directory as safe
         run: git config --global --add safe.directory $GITHUB_WORKSPACE
