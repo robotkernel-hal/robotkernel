@@ -34,7 +34,7 @@ jobs:
       - name: Setup dependencies
         run: |
           apt-get update
-          apt-get install -y build-essential devscripts debhelper autotools-dev autoconf-archive pkg-config fakeroot sed git tar gzip python3-pip python3-venv curl jq
+          apt-get install -y build-essential devscripts debhelper autotools-dev autoconf-archive pkg-config fakeroot sed git tar gzip python3-pip python3-venv curl jq libyaml-cpp-dev
 
           curl -u "robert-burger-xas1:{{apiKey}}" -1sLf \
                                                  'https://dl.cloudsmith.io/basic/robertburger/robotkernel/setup.deb.sh' \
