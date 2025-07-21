@@ -53,7 +53,7 @@ the robotkernel. The *module* will get it's configuration usually
 written in YAML. It should now do a state transition to the init state
 and do all it's initialization stuff.
 
-``` {.C++}
+```c++
 typedef MODULE_HANDLE (*mod_configure_t)(const char* name, const char* config);
 ```
 
@@ -63,7 +63,7 @@ On shutdown the *mod\_unconfigure* will be called. The *module* should
 now switch to the init state and should do all needed cleanup
 afterwards.
 
-``` {.C++}
+```c++
 typedef int (*mod_unconfigure_t)(MODULE_HANDLE hdl);
 ```
 
@@ -73,7 +73,7 @@ When a state transition is requested, *mod\_set\_state* will be called.
 The *module* has to perform all necessary operations to reach the
 requested state or signal an error.
 
-``` {.C++}
+```c++
 typedef int (*mod_set_state_t)(MODULE_HANDLE hdl, module_state_t state);
 ```
 
@@ -82,7 +82,7 @@ typedef int (*mod_set_state_t)(MODULE_HANDLE hdl, module_state_t state);
 *mod\_get\_state* will be called by the robotkernel to determine the
 *module*'s state
 
-``` {.C++}
+```c++
 typedef module_state_t (*mod_get_state_t)(MODULE_HANDLE hdl);
 ```
 
@@ -91,7 +91,7 @@ typedef module_state_t (*mod_get_state_t)(MODULE_HANDLE hdl);
 If using direct module-to-module synchronization, *mod\_tick* will be
 attached to an other modules trigger device.
 
-``` {.C++}
+```c++
 typedef void (*mod_tick_t)(MODULE_HANDLE hdl);
 ```
 
@@ -117,7 +117,7 @@ robotkernel. These are:
 the robotkernel. The *bridge* will get it's configuration usually
 written in YAML. It should now do all needed initialization stuff.
 
-``` {.C++}
+```c++
 typedef BRIDGE_HANDLE (*bridge_configure_t)(const char* name, const char* config);
 ```
 
@@ -126,7 +126,7 @@ typedef BRIDGE_HANDLE (*bridge_configure_t)(const char* name, const char* config
 On shutdown the *bridge\_unconfigure* will be called. The *bridge*
 should do all needed cleanup.
 
-``` {.C++}
+```c++
 typedef int (*bridge_unconfigure_t)(BRIDGE_HANDLE hdl);
 ```
 
@@ -138,7 +138,7 @@ these new services. This should include, translationi/generation of the
 the service definition to the middleware data description language and
 service registration to the middleware.
 
-``` {.C++}
+```c++
 typedef void (*bridge_add_service_t)(BRIDGE_HANDLE hdl, const robotkernel::service_t &svc);
 ```
 
@@ -147,7 +147,7 @@ typedef void (*bridge_add_service_t)(BRIDGE_HANDLE hdl, const robotkernel::servi
 If a service is removed from the robotkernel, the bridge should also
 unregister the service from the middleware.
 
-``` {.C++}
+```c++
 typedef void (*bridge_remove_service_t)(BRIDGE_HANDLE hdl, const robotkernel::service_t &svc);
 ```
 
@@ -180,7 +180,7 @@ device suffix. They are represented by a unique name concatenated from
 . The devices will be allocated by the owning module and then registered
 to the *robotkernel* with the add\_device call.
 
-``` {.C++}
+```c++
 void add_device(std::shared_ptr<device> dev);
 ```
 
@@ -188,7 +188,7 @@ Removing (Unregistering) devices from the robotkernel can either be
 done by removing single device or by removing all devices owned by a
 module.
 
-``` {.C++}
+```c++
 void remove_device(std::shared_ptr<device> dev);
 void remove_devices(const std::string& owner);
 ```
@@ -196,7 +196,7 @@ void remove_devices(const std::string& owner);
 To access a registered device from within a module, the device name has
 to be known.
 
-``` {.C++}
+```c++
 std::shared_ptr<device> get_device(const std::string& name);
 ```
 
@@ -218,7 +218,7 @@ the *stream* class. Because *stream* is derived from *device* it needs
 an owner name and a trigger name. The two byte stream functions *read*
 and *write* need to be implemented here.
 
-``` {.C++}
+```c++
 size_t read(void* buf, size_t bufsize);
 size_t write(void* buf, size_t bufsize);
 ```
@@ -226,7 +226,7 @@ size_t write(void* buf, size_t bufsize);
 Afterwards, the *stream* could be registered to the robotkernel by
 calling ''add\_device'.
 
-``` {.C++}
+```c++
 std::shared_ptr<derived> my_stream = std::make_shared<derived>();
 
 kernel& k = *kernel::get_instance();
@@ -253,7 +253,7 @@ derived from *device* it needs an owner name and a trigger name.
 Optionally a trigger rate could be specified. The owner of the trigger
 should now call *trigger\_modules* if the waiter should be notified.
 
-``` {.C++}
+```c++
 sp_trigger_t my_trigger = std::make_shared<trigger>(name, "posix_timer", rate);
 
 kernel& k = *kernel::get_instance();
@@ -269,7 +269,7 @@ while (1) {
 The waiting module should now retreave the trigger device from the
 robotkernel and registers its handler.
 
-``` {.C++}
+```c++
 class my_trigger_func : public trigger_base {
     public:
         ...
@@ -293,7 +293,7 @@ Service declaration
 A service usually consists of a callback function and a service
 definition.
 
-``` {.C++}
+```c++
 int service_set_state(const service_arglist_t& request, service_arglist_t& response);
 static const std::string service_definition_set_state;
 ```
@@ -304,7 +304,7 @@ Service registration
 Service need to be registered to the robotkernel. Therefore a module
 has to call the *add\_service* function.
 
-``` {.C++}
+```c++
 kernel& k = *kernel::get_instance();
 k.add_service(name, "set_state", service_definition_set_state, std::bind(&module::service_set_state, this, _1, _2));
 ```
@@ -316,7 +316,7 @@ Service definitions are simple YAML string. They describe the arguments
 passed to *request* and *response* fields of the service callback
 function.
 
-``` {.C++}
+```c++
 const std::string module::service_definition_set_state =
 "request:\n"
 "- string: state\n"
@@ -332,7 +332,7 @@ accessed with the array operator. The developer has to ensure, that the
 datatypes in the service definition match the types used in the callback
 function.
 
-``` {.C++}
+```c++
 int module::service_set_state(const service_arglist_t& request, service_arglist_t& response) {
     // request data
 #define SET_STATE_REQ_STATE     0
