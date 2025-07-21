@@ -9,8 +9,17 @@ Homepage: <insert the upstream URL, if relevant>
 #Vcs-Git: https://salsa.debian.org/debian/robotkernel.git
 Rules-Requires-Root: no
 
+Package: robotkernel-dev
+Section: libdevel
+Architecture: any
+Multi-Arch: same
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: <insert up to 60 chars description>
+ <insert long description, indented with spaces>
+
 Package: robotkernel
 Architecture: any
+Multi-Arch: same
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: <insert up to 60 chars description>
  <insert long description, indented with spaces>

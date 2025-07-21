@@ -1,5 +1,1352 @@
-robotkernel (5.0.0-1) unstable; urgency=medium
+robotkernel (6.0.0~pre1) unstable; urgency=low
 
-  * Initial release (Closes: #nnnn)  <nnnn is the bug number of your ITP>
+  * prepare: 6.0.0
 
- -- Robert Burger <robert.burger@dlr.de>  Wed, 31 May 2023 09:33:45 +0200
+ -- Robert Burger <robert.burger@dlr.de>  Thu, 8 May 2025 07:58:02 +0200
+
+robotkernel (5.0.50) unstable; urgency=low
+
+  * chore: removed printf
+  * fix: c_wrapper cleanup
+  * fix: cleaning up c_wrapper provider or consumer
+  * Merge pull request #33 from robotkernel/fix/check-module-cfg-is-mapping
+  * log_base: YAML::Node::IsDefined() returns true for Null nodes
+  * log_base: ensure module config is a yaml-mapping
+  * add: parsing of command line argument with \!arg config tag
+
+ -- Robert Burger <robert.burger@dlr.de>  Thu, 8 May 2025 07:58:02 +0200
+
+robotkernel (5.0.49) unstable; urgency=low
+
+  * Merge pull request #30 from robotkernel/release/5.0.49
+  * Merge branch 'master' into release/5.0.49
+  * change: only set prio and affinity if not 0
+  * fix: issue when doing 1 second interval printing missing cond signal
+  * fix: non existing include dir for msgdefs
+
+ -- Burger, Robert <robert.burger@dlr.de>  Fri, 17 May 2024 07:16:11 +0200
+
+robotkernel (5.0.48) unstable; urgency=low
+
+  * Merge pull request #29 from robotkernel/fix/transitive_deps
+  * fix: conan2 needs transitive dependencies
+
+ -- Mühlbauer, Maximilian Sebastian <Maximilian.Muehlbauer@dlr.de>  Fri, 1 Mar 2024 12:53:25 +0100
+
+robotkernel (5.0.47) unstable; urgency=low
+
+  * Merge pull request #27 from robotkernel/fix/conan2_version_ranges
+  * fix: conan2 version ranges
+
+ -- Mühlbauer, Maximilian Sebastian <Maximilian.Muehlbauer@dlr.de>  Tue, 30 Jan 2024 14:58:51 +0100
+
+robotkernel (5.0.46) unstable; urgency=low
+
+  * Merge pull request #26 from robotkernel/release/5.0.46
+  * Merge pull request #25 from robotkernel/feat/update_yaml_cpp
+  * chore(deps): update yaml-cpp to 0.7.0
+  * add: some log messages on add_module  and remove_module
+  * fix: adding module with existing module name
+
+ -- Mühlbauer, Maximilian Sebastian <Maximilian.Muehlbauer@dlr.de>  Thu, 18 Jan 2024 10:36:48 +0100
+
+robotkernel (5.0.45) unstable; urgency=low
+
+  * Merge pull request #24 from robotkernel/feat/conan2_compat
+  * feat: conan2-compatible msgdef dirs
+  * chore: format
+  * fix(rk test): add conanrun env
+  * chore(rmc build): use build profiles
+  * chore(test pkg): conan 2 syntax
+  * chore(conanfile): conan 2 syntax
+  * chore: enable conan v2 mode
+
+ -- Mühlbauer, Maximilian Sebastian <Maximilian.Muehlbauer@dlr.de>  Thu, 23 Nov 2023 08:32:00 +0100
+
+robotkernel (5.0.44) unstable; urgency=low
+
+  * extend: exception when cosuming process data
+  * fixed service definition location
+
+ -- Robert Burger <robert.burger@dlr.de>  Tue, 5 Sep 2023 06:16:46 +0200
+
+robotkernel (5.0.43) unstable; urgency=low
+
+  * updated robotkernel_service_helper dep
+  * added services namespace to generated service_definitions.h
+  * Merge branch 'master' into release/5.0.43
+  * Revert "rk_type conversion explicit now"
+  * rk_type conversion explicit now
+  * fixed signed warning
+
+ -- Robert Burger <robert.burger@dlr.de>  Fri, 4 Aug 2023 12:11:09 +0200
+
+robotkernel (5.0.42) unstable; urgency=low
+
+  * removed template parameter from trigger_collector, better to pass it as variable in constructor
+  * fixed const converters of rk_type
+  * add namespace to trigger_collector
+  * added trigger_collector from module_miro
+  * Merge branch 'master' into release/5.0.42
+  * Merge branch 'release/5.0.42' of rmc-github.robotic.dlr.de:robotkernel/robotkernel into release/5.0.42
+  * fix for get_instance in v2 case
+  * Merge pull request #22 from robotkernel/fix/service_helper_tool_req
+  * Merge branch 'master' into fix/service_helper_tool_req
+  * Merge branch 'master' into release/5.0.42
+  * added debian build stuff
+  * fixed version generation
+  * updated build configs for msg defs
+  * changed version generation
+  * fix string literal, return value of write
+  * fix: tool_require service_helper
+  * add kernel_v2 class to enable adding of datatype descriptions
+
+ -- Robert Burger <robert.burger@dlr.de>  Fri, 28 Jul 2023 12:13:08 +0200
+
+robotkernel (5.0.41) unstable; urgency=low
+
+  * fix: removed package_id as it is now part of conan_template
+
+ -- Robert Burger <robert.burger@dlr.de>  Fri, 27 Jan 2023 06:10:48 +0100
+
+robotkernel (5.0.40) unstable; urgency=low
+
+  * Merge branch 'master' into release/5.0.40
+  * fix: provider and consumer classes
+  * changed: pd provider consumer improvements
+  * Merge branch 'master' into release/5.0.39
+  * change: removed debug printf
+
+ -- Robert Burger <robert.burger@dlr.de>  Thu, 26 Jan 2023 16:57:15 +0100
+
+robotkernel (5.0.39) unstable; urgency=low
+
+  * Merge branch 'master' of rmc-github.robotic.dlr.de:robotkernel/robotkernel
+  * Merge pull request #20 from mueh-mm/patch-1
+  * feat: use full_package_mode instead of shared libs
+  * add: provider consumer classes in robotkernel
+  * add: excludes for modules
+  * add: ignore of generated doxygen folder
+  * fix: service defs of pd_injection
+  * Merge branch 'release/5.0.15'
+  * push on add_pd_injection service if no provider present
+  * easyier pd_entry construction
+  * changed back to c++11, fixed convert function to match old style
+  * changed to c++14
+  * removed pd injection hash, not needed
+
+ -- Robert Burger <robert.burger@dlr.de>  Thu, 26 Jan 2023 14:18:37 +0100
+
+robotkernel (5.0.38) unstable; urgency=low
+
+  * Merge pull request #17 from mueh-mm/patch-1
+  * fix(options): yaml-cpp must be shared
+
+ -- Burger, Robert <robert.burger@dlr.de>  Wed, 16 Nov 2022 10:22:54 +0100
+
+robotkernel (5.0.37) unstable; urgency=low
+
+  * FIX: setting thread name directly with pthread_self
+
+ -- root <you@example.com>  Wed, 30 Mar 2022 15:37:59 +0200
+
+robotkernel (5.0.36) unstable; urgency=low
+
+  * CHANGE: timeout decreased
+
+ -- Robert Burger <robert.burger@dlr.de>  Fri, 4 Mar 2022 10:02:59 +0100
+
+robotkernel (5.0.35) unstable; urgency=low
+
+  * FIX: message def pathes
+
+ -- Robert Burger <robert.burger@dlr.de>  Thu, 3 Feb 2022 09:55:44 +0100
+
+robotkernel (5.0.34) unstable; urgency=low
+
+  * FIX: message def pathes
+  * CLEANUP: service definition assignment
+  * CHANGE: try to generate service definition strings from yaml
+  * ADD: added service def folder
+
+ -- Robert Burger <robert.burger@dlr.de>  Tue, 1 Feb 2022 08:53:46 +0100
+
+robotkernel (5.0.33) unstable; urgency=low
+
+  * ADD: dummy test package for ln_msgdef
+  * CHANGE: ln msg def generation
+  * CHANGE: ln msg def generation
+
+ -- Robert Burger <robert.burger@dlr.de>  Thu, 27 Jan 2022 08:59:03 +0100
+
+robotkernel (5.0.32) unstable; urgency=low
+
+  * FIX: fixed ln path
+  * FIX: ln message path
+  * CHANGE: switched build order on jenkins
+  * CHANGE: generating seperate ln message def packet
+  * CHANGE: only using default builds, user should do other builds on demand
+  * TEST: more builds on jenkins
+  * TEST: more builds on jenkins
+  * TEST: more builds on jenkins
+  * TEST: more builds on jenkins
+  * TEST: more builds on jenkins
+  * TEST: more builds on jenkins
+  * TEST: more builds on jenkins
+  * TEST: more builds on jenkins
+  * TEST: more builds on jenkins
+
+ -- Robert Burger <robert.burger@dlr.de>  Fri, 3 Dec 2021 13:52:43 +0100
+
+robotkernel (5.0.31) unstable; urgency=low
+
+  * CHANGE: using new conan template with ln_helper
+  * FIX: module, bridge and service_provider must not match robotkernel name
+
+ -- Robert Burger <robert.burger@dlr.de>  Thu, 2 Dec 2021 16:57:42 +0100
+
+robotkernel (5.0.30) unstable; urgency=low
+
+  * CHANGE: name of service_definitions export file to match latest template
+
+ -- Robert Burger <robert.burger@dlr.de>  Thu, 2 Dec 2021 06:59:07 +0100
+
+robotkernel (5.0.29) unstable; urgency=low
+
+  * CHANGE: parsing name from config file, removing LN_PROGRAM_NAME from env
+  * CHANGE: next try config options
+  * FIX: library build
+  * ADD: version range for template
+  * CHANGE: using new python_requires
+  * TRY: moving option to rmc-build.yaml
+  * TRY: moving option to rmc-build.yaml
+  * TRY: moving option to rmc-build.yaml
+  * TRY: moving option to rmc-build.yaml
+  * CHANGE: template version
+  * CHANGE: generating message definitions with bridge_ln generator
+  * FIX: doxygen doc
+  * CHANGE: added deinit call to bridge_base
+  * FIX: destroying bridge shared pointer
+  * CHANGE: only join thread if not called from itself
+  * CHANGE: increased state check timeout
+  * FIX: switching module from error to init
+  * CHANGE: set state of module to 'INIT' before switching to 'BOOT'
+  * ADD: libSegfault linking
+  * ADD: runnable join
+
+ -- Robert Burger <robert.burger@dlr.de>  Wed, 1 Dec 2021 16:15:03 +0100
+
+robotkernel (5.0.28) unstable; urgency=low
+
+  * ADD: sp_module_base_t typedef
+
+ -- Robert Burger <robert.burger@dlr.de>  Wed, 24 Nov 2021 08:24:05 +0100
+
+robotkernel (5.0.27) unstable; urgency=low
+
+  * Merge pull request #14 from robotkernel/hotfix/use_range_for_stringutil
+  * fix: use version range for libstring_util
+
+ -- Burger, Robert <robert.burger@dlr.de>  Thu, 29 Jul 2021 11:03:11 +0200
+
+robotkernel (5.0.26) unstable; urgency=low
+
+  * MERGE branch 'master' into release/5.0.26
+  * ADD: env | grep prox tag in rkc files to evaluate environment variables
+  * FIX: removed wrong klog
+  * ADD: usage of power_up
+  * ADD: power up option from command line
+
+ -- Robert Burger <robert.burger@dlr.de>  Thu, 24 Jun 2021 06:42:15 +0200
+
+robotkernel (5.0.25) unstable; urgency=low
+
+  * FIX: relative config file path in include
+
+ -- Robert Burger <robert.burger@dlr.de>  Wed, 23 Jun 2021 09:14:51 +0200
+
+robotkernel (5.0.24) unstable; urgency=low
+
+  * FIX: recurse down if include file was loaded
+
+ -- Robert Burger <robert.burger@dlr.de>  Wed, 23 Jun 2021 09:00:26 +0200
+
+robotkernel (5.0.23) unstable; urgency=low
+
+  * FIX: include file path relative to base config
+
+ -- Robert Burger <robert.burger@dlr.de>  Wed, 23 Jun 2021 08:32:54 +0200
+
+robotkernel (5.0.22) unstable; urgency=low
+
+  * ADD: building on rkc_loader
+  * ADD: rkc_loader with !include statement
+
+ -- Robert Burger <robert.burger@dlr.de>  Tue, 22 Jun 2021 16:10:47 +0200
+
+robotkernel (5.0.21) unstable; urgency=low
+
+  * FIX: namespace in funcs
+
+ -- Robert Burger <robert.burger@dlr.de>  Wed, 13 Jan 2021 07:20:19 +0100
+
+robotkernel (5.0.20) unstable; urgency=low
+
+  * ADD: template helper
+
+ -- Robert Burger <robert.burger@dlr.de>  Tue, 12 Jan 2021 07:41:03 +0100
+
+robotkernel (5.0.19) unstable; urgency=low
+
+  * MERGE: branch 'master' of rmc-github.robotic.dlr.de:robotkernel/robotkernel
+  * ADD: funcs to get_data_type and length from string
+
+ -- Robert Burger <robert.burger@dlr.de>  Wed, 9 Dec 2020 13:43:26 +0100
+
+robotkernel (5.0.18) unstable; urgency=low
+
+  * added yaml helper match_map and buffer to hex string converter
+
+ -- Robert Burger <robert.burger@dlr.de>  Mon, 13 Jul 2020 15:08:37 +0200
+
+robotkernel (5.0.17) unstable; urgency=low
+
+  * Merge branch 'master' of rmc-github.robotic.dlr.de:robotkernel/robotkernel
+  * added c api to access process data
+
+ -- Robert Burger <robert.burger@dlr.de>  Thu, 2 Jul 2020 13:07:50 +0200
+
+robotkernel (5.0.16) unstable; urgency=low
+
+  * returning error message on not supporting pd injection
+  * reworked pd injection
+  * fixed response size
+  * fixed registering list_pd_injection service
+  * registered list_pd_injection service
+  * added list pd injection service
+  * added pd injection service
+  * working on pd injection services
+  * added struct for pd_offset_and_type
+
+ -- Robert Burger <robert.burger@dlr.de>  Tue, 2 Jun 2020 11:24:45 +0200
+
+robotkernel (5.0.15) unstable; urgency=low
+
+  * moved process data impl stuff
+  * added missing reference to offset
+  * added find pd offset and type function
+  * adding log message level based colors
+  * log output to module state machine
+  * style fix
+  * fixed gettid on debian
+  * fixed lttng check and conditional compile
+
+ -- Robert Burger <robert.burger@dlr.de>  Wed, 20 May 2020 06:29:08 +0200
+
+robotkernel (5.0.14) unstable; urgency=low
+
+  * verbose log message on trigger removal
+  * switching modules to init on load
+  * removed legacy
+  * trying defaults
+
+ -- Robert Burger <robert.burger@dlr.de>  Wed, 19 Feb 2020 10:10:28 +0100
+
+robotkernel (5.0.13) unstable; urgency=low
+
+  * fixed lttng log init
+
+ -- Robert Burger <robert.burger@dlr.de>  Mon, 9 Dec 2019 09:06:46 +0100
+
+robotkernel (5.0.12) unstable; urgency=low
+
+  * added missing tracepoint header
+  * added lttng ust tracepoints
+
+ -- Robert Burger <robert.burger@dlr.de>  Fri, 6 Dec 2019 09:48:02 +0100
+
+robotkernel (5.0.11) unstable; urgency=low
+
+  * doing verbose destruction
+
+ -- Robert Burger <robert.burger@dlr.de>  Tue, 26 Nov 2019 11:50:20 +0100
+
+robotkernel (5.0.10) unstable; urgency=low
+
+  * release log while printing log message to ensure other threads do not need to wait until printing is finished
+  * now using conan_template python_requires
+
+ -- Robert Burger <robert.burger@dlr.de>  Tue, 26 Nov 2019 07:12:56 +0100
+
+robotkernel (5.0.9) unstable; urgency=low
+
+  * added return value from main
+
+ -- Robert Burger <robert.burger@dlr.de>  Tue, 12 Nov 2019 06:34:53 +0100
+
+robotkernel (5.0.8) unstable; urgency=low
+
+  * added test-run
+  * added simple execute test
+
+ -- Robert Burger <robert.burger@dlr.de>  Mon, 11 Nov 2019 13:19:56 +0100
+
+robotkernel (5.0.7) unstable; urgency=low
+
+  * added set_port_settings call to serial_stream
+
+ -- Robert Burger <robert.burger@dlr.de>  Fri, 8 Nov 2019 07:25:12 +0100
+
+robotkernel (5.0.6) unstable; urgency=low
+
+  * added serial_stream device
+  * fixed compiler warnings
+  * reverted build archs
+  * build arch test
+
+ -- Robert Burger <robert.burger@dlr.de>  Thu, 7 Nov 2019 07:49:01 +0100
+
+robotkernel (5.0.5) unstable; urgency=low
+
+  * Merge branch 'release/5.0.5'
+  * Merge branch 'release/5.0.4' into release/5.0.5
+  * changed libstring_util to unstable to stable
+  * changed to default compiler on archs
+  * changed to new yaml-cpp version 0.6.2
+  * reduced build platforms to a minimum
+  * Merge branch 'release/5.0.5'
+  * Merge branch 'release/5.0.5' of rmc-github.robotic.dlr.de:robotkernel/robotkernel into release/5.0.5
+  * reduced build platforms to a minimum
+  * added architectures
+  * added architectures
+  * added architectures
+  * fixed jenkinsfile
+  * fixed jenkinsfile
+  * fixed jenkinsfile
+  * added architectures
+  * added architectures
+  * Merge branch 'master' into release/5.0.5
+  * Merge branch 'master' into release/5.0.4
+  * added tools include
+  * added software engineering quality management file
+  * build: updated build/ci files for cissy 1.0->2.0
+  * build: updated build/ci files for cissy 1.0->2.0
+  * build: updated build/ci files for cissy 1.0->2.0
+  * Merge pull request #10 from robotkernel/feat/osl15
+  * better string format, related to #12
+  * fixed bug #12
+  * added call_service call
+  * added more log output on setting/resetting pd provider/consumer
+  * throwing better exception on process data write/read/
+  * added volatile to pd_cookie
+  * removed lock of mtx in trigger_worker on tick
+  * fixed trigger waiter lock
+  * added logging to trace fd
+  * added missing string_util header
+  * added optional locking of trigger_waiter
+  * added optional locking of trigger_waiter
+  * added optional locking of trigger_waiter
+  * made trigger_worker accesible for others
+  * valgrind debug
+  * added more builds
+  * chore: added osl15 to target platforms
+  * adding license file, switching to new recipe
+  * added md names
+  * indent fixes
+  * removed not needed headers
+  * cleaned up bridge code
+  * solved race condition on add_device
+  * removed share folder, not needed any more
+  * updated jenkins file
+  * Merge branch 'master' into release/5.0.5
+  * fix: shared option for libstring_util
+  * removed archs
+  * added archs
+  * Merge branch 'master' into release/5.0.5
+  * re-added sled 32-bit
+  * removed 32-bit sled, not working with yaml a.t.m.
+  * added missing m4 makro
+  * fixed any target of rmc build
+  * fixed conanfile.py
+  * fixed any arch
+  * Merge branch 'master' of rmc-github.robotic.dlr.de:robotkernel/robotkernel
+  * added jenkins and conan
+  * chore: removed sled11 due to missing autoconf makro on system
+  * chore removed ubuntu12.04 due to missing c++11
+  * chore: using prerelease version of stringutil
+  * added archs
+  * chore: added build archs
+  * chore: preparations for release
+  * Create rmc-build.yaml
+  * updated jenkins file
+  * updated lib branch
+  * fixed jenkinsfile
+  * fixed jenkinsfile
+  * Merge branch 'master' into feat/conan
+  * fix some ci build fixes
+  * Merge pull request #8 from robotkernel/fix/dlopen_miss
+  * Update so_file.cpp
+  * removed buildbot
+  * Update so_file.cpp
+  * fix: module load respects LD_LIBRARY_PATH now
+  * fixed build files
+  * updated to current jenkins shared libaries
+  * updated yaml version and build targets
+  * chore: no more uploads for snapshots
+  * added default profiles
+  * chore: changed libstring_util channel to unstable
+  * feat: basic conan support
+  * prep 5.0.3
+  * fixed deregistering trigger switching modules back to preop
+  * added missing header to include build configuration
+
+ -- Robert Burger <robert.burger@dlr.de>  Wed, 23 Oct 2019 10:55:54 +0200
+
+robotkernel (5.0.2) unstable; urgency=low
+
+  * prep 5.0.2
+  * fixed setting affinity and prio on linux
+  * changed some debug levels
+  * Merge branch 'master' of rmc-github.robotic.dlr.de:robotkernel/robotkernel
+  * returning clk_device on process_data_info service
+  * fix: better version specification
+
+ -- Robert Burger <robert.burger@dlr.de>  Fri, 7 Sep 2018 08:56:11 +0200
+
+robotkernel (5.0.1) unstable; urgency=low
+
+  * prep 5.0.1
+  * fixed empty config string in emitting yaml, changed symbol import to local
+  * fixed rk version in ln_generate_includes
+
+ -- Robert Burger <robert.burger@dlr.de>  Mon, 9 Apr 2018 12:44:27 +0200
+
+robotkernel (5.0.0) unstable; urgency=low
+
+  * added doc images
+  * changes for service prov handling
+  * preparing for first non-beta release
+  * added pd_provider and pd_consumer base classes
+  * changes to pd provider consumer
+  * trying to handle pd consumer and provider
+  * inc yaml-cpp version
+  * fixed service names
+  * fixed log_base service prefix
+  * testing interface before creating new one
+  * fixed process data copying without pop
+  * cleaned up service providers
+  * modified service provider base to use device listener
+  * added device listener header
+  * working on device_listeners, added optional trigger device to process data
+  * added generate_ln_includes, new beta release
+  * n.t.
+  * added SUPPORTED_LANGUAGES
+  * inc version because of new libstring_util
+  * fixed version
+  * Merge branch 'master' into robotkernel-5
+  * removed tabs
+  * added recursive mutex on module map, removed include of config.h in header
+  * fixed install rule of lnc include file
+  * setting thread name on std::thread
+  * added __refsLock
+  * changed to std::mutex and std::thread
+  * changed to c++11 mutex and conds
+  * fixed headers
+  * added licecnse header
+  * fixed headers, removed unused ones
+  * added documentation
+  * first robotkernel-5 release
+  * whitespace fixes
+  * changed doc
+  * added xmi
+  * added uml doc
+  * removed pt.in
+  * fixed autoconf generation of files
+  * fix: new project release structure changes
+  * removed mod request
+  * removed old request code
+  * changed sizes
+  * Merge branch 'robotkernel-5' of rmc-github.robotic.dlr.de:robotkernel/robotkernel into robotkernel-5
+  * Update README.md
+  * added overview image
+  * Update README.md
+  * Update README.md
+  * make image png smaller
+  * added png
+  * Update README.md
+  * added state machine image
+  * Update README.md
+  * changed doc
+  * Update BUILD.md
+  * Update README.md
+  * Create BUILD.md
+  * fixed requires in pc-file
+  * fixed service definition to match yaml specs
+  * fix: separator in dependencies
+  * deps
+  * working on dependencies in pt an pc file
+  * small fix for set_name of runnable
+  * shutting down modules in two stages now
+  * set thread name also if thread was not startet untill now
+  * removed not needed verbose message
+  * added new_data function to check if new pd has been written to process_data object
+  * inc to beta2 version
+  * reworked shutdown, not switching directly to init state
+  * new beta1 version
+  * changed to beta version
+  * latest release commit
+  * added trigger waiter to do one time calls
+  * added info services for trigger, stream and service_interface
+  * process data classes (single, triple, pointer)
+  * indent
+  * added robotkernel.inc.lnc to ignores
+  * added switch to boot state
+  * links and node and rmpm stuff
+  * added pthread_setname_np check
+  * small fixes
+  * added -non-static linker flag check
+  * added uml file
+  * fixed thread_name size to 16 chars
+  * added rt_helper set_thread_name
+  * changed visibility of thread_name
+  * removed module read and write functions
+  * add get_stream calL
+  * added stream device base class
+  * added mlockall
+  * added load_module function for loading additional robotkernel modules
+  * removed debug message
+  * implemented triple buffering of process data
+  * fixed logmessage
+  * service name fixes
+  * some clean up
+  * added missing bridge symbols
+  * added missing files
+  * make ticks work again
+  * Merge branch 'robotkernel-5' of rmc-github.robotic.dlr.de:robotkernel/robotkernel into robotkernel-5
+  * fixed build
+  * renamed trigger() to tick()
+  * renamed trigger() to tick()
+  * removed trigger_slave_id
+  * Update README.md
+  * removed README
+  * removed module_base cpp file, not needed
+  * devices renamed
+  * devices renamed
+  * changes services key to pair of owner and name
+  * added new/missing files
+  * reworked devices, and bridges
+  * fixed removing trigger worker from triggers
+  * fixed removing trigger from worker, destructing worker if it has no trigger left
+  * creating shared_ptr from module classes, reworked trigger classes
+  * doing some cleanup
+  * making rate of trigger adjustable
+  * simply getting own robotkernel module class with get_module() in module_base
+  * removed unnecessary stuff
+  * new trigger devices seem to work with small example (posix_timer, jitter_measurement
+  * added new trigger registry
+  * added process_data information services
+  * fixed recursive endless loop in set_state
+  * latest changes
+  * sleeping on main, not wasting cpu time
+  * cleanup changes
+  * Merge branch 'robotkernel-5' of rmc-github.robotic.dlr.de:robotkernel/robotkernel into robotkernel-5
+  * added process data registry to robokernel
+  * added m4 deps
+  * merging some old changes
+  * added generated m4 files
+  * added boot transitions
+  * added handling of module_state_boot
+  * added silent-rules
+  * added transitions
+  * added m4 scripts
+  * changed requires in pc file!
+  * fixed pc file
+  * removed ~ header
+  * added flags to pkg-config file
+  * added all headers to install rule
+  * added install rule for loglevel.h
+  * fixed pc file
+  * removed scripts and autogen
+  * fixed build
+  * cleaned up project structure
+  * added test_slave for service providers
+  * fixed namespace of errno_exception_tb
+  * reworked service_provider calls
+  * reworked service_provider calls
+  * removed bridge_interface.h, now in bridge_base.h
+  * added service provider interface
+  * added documention for add_service_requester
+  * fixed service provider log name, fixed add/remove service requester fcns
+  * added mutex, deadlock now
+  * added mutex, deadlock now
+  * doing service provider handling
+  * derived interface from so_file
+  * removed boost dependecy
+  * saving argc and argv in kernel
+  * fixed bridge_ln build
+  * removed some more links and nodes
+  * removed ln
+  * removed cli bridge, now separate project
+  * cleanep up module, deriving from so_file class
+  * removed jsonrpc_bridge from robotkernel
+  * added bridge loading, cleaned up, some new classes
+  * Merge branch 'service_interface' of rmc-github.robotic.dlr.de:robotkernel/robotkernel into robotkernel-boost
+  * Merge branch 'service_interface' into robotkernel-boost
+  * added bridge
+  * Merge branch 'service_interface' of rmc-github.robotic.dlr.de:robotkernel/robotkernel into service_interface
+  * status commit
+  * addee std=c++11
+  * added descritpion for jsonrpc-bridge services, fixed kernel services
+  * fixed yaml-cpp-rmc flags, fixed service cleanup
+  * fixed cleanup of services
+  * added get_module, fixed module macros
+  * fixed stopping of log_thread
+  * changed module map to hold shared pointer
+  * merged robotkernel-boost
+  * added jsonrpc bridge
+  * sc
+  * renamed files interface to service_provider
+  * fixed for vector service type
+  * some changes
+  * fixed cmake buildscript
+  * CliBridge vectors and bugfixes
+  * changes vector type
+  * added basic cli bridge
+  * added missing files
+  * using c++11 now
+  * more services with boost
+  * service communication now done with argument vector instead of yaml messages
+  * added loglevel.h
+  * some changes for no_ln
+  * working on no_ln
+  * added ln_bridge
+  * working on test robotkernel services with yaml
+
+ -- Robert Burger <robert.burger@dlr.de>  Mon, 12 Mar 2018 06:54:14 +0100
+
+robotkernel (4.1.2) unstable; urgency=low
+
+  * updated scripts
+  * updated scripts
+  * fixed libstring_util version
+  * inc version
+  * changed generate_ln_includes version to select 4.1 robotkernel and modules
+
+ -- Robert Burger <robert.burger@dlr.de>  Mon, 25 Sep 2017 10:03:07 +0200
+
+robotkernel (4.1.1) unstable; urgency=low
+
+  * prep release 4.1.1
+  * Merge branch 'sara-develop'
+  * error msg fixes and DESTDIR
+  * fixed typos
+  * update modules config path
+  * request_cb() & get_module() can work with currently loading module
+  * added MOD_REQUEST_GET_CFG_PATH
+  * added get_name accessor to module
+
+ -- Robert Burger <robert.burger@dlr.de>  Fri, 9 Dec 2016 07:52:15 +0100
+
+robotkernel (4.1.0) unstable; urgency=low
+
+  * 'automated_commit'
+  * fixed message defs
+  * move message defs
+  * updated scripts manually
+  * updated scripts
+  * made members public
+  * initialized sync_logging flag with false
+  * fixed header copy rules in ptfile
+  * changed module_state_t
+  * fixed message definition namespaces
+  * moved sources and includes to src/main/cpp
+  * Merge branch 'master' of rmc-github.robotic.dlr.de:robotkernel/robotkernel
+  * 'scripts_updated'
+  * 'scripts_updated'
+  * 'scripts_updated'
+  * 'scripts_updated'
+  * 'replaced_with_default'
+  * 'scripts_updated'
+  * updated scripts
+  * updated scripts
+  * update scripts
+  * fixed pt file creation
+  * Trigger buildbot
+  * fixed buildbot badge for master
+  * merged RK4
+  * Merge branch 'master' of rmc-github.robotic.dlr.de:robotkernel/robotkernel
+  * added buildbot config
+  * added buildbot badge
+  * Update README
+  * added buildbot config file
+  * updated scripts
+  * Merge branch 'master' of rmc-github.robotic.dlr.de:robotkernel/robotkernel
+  * switch interface loading loglevel to verbose
+  * warn if interface is not found, do not dlopen("")
+  * warn if interface is not found, do not dlopen("")
+  * adding ext props
+  * udating scripts
+  * fixed problem with undefined LN_VERSION
+  * configuring dependencies with project.properties; fixed lttng problem on osl42; disabling lttng if tp file missing; updated scripts
+  * added message defs
+  * scripts_updated
+  * updated scripts
+  * "transforming"
+  * 'scripts_updated'
+  * added osl arch
+  * moving supported_archs to project.properties
+  * loading version and maintainer from properties file
+  * version now in one line
+  * 'scripts_updated'
+  * prepared project properties
+  * 'scripts_updated'
+  * 'scripts_updated'
+  * Merge branch 'master' of rmc-github.robotic.dlr.de:robotkernel/robotkernel
+  * Merge branch 'master' of rmc-github.robotic.dlr.de:robotkernel/robotkernel
+  * make runnable::tid,run_flag protected to allow for unblocking without immediate join
+  * Merge branch 'master' of rmc-github.robotic.dlr.de:robotkernel/robotkernel
+  * added mod_trigger_slave_id
+
+ -- Robert Burger <robert.burger@dlr.de>  Wed, 30 Nov 2016 10:28:19 +0100
+
+robotkernel (4.0.8) unstable; urgency=low
+
+  * Version increment
+  * added scripts
+  * udating scripts
+  * fixed problem with undefined LN_VERSION
+  * configuring dependencies with project.properties; fixed lttng problem on osl42; disabling lttng if tp file missing; updated scripts
+  * updated scripts
+  * "transforming"
+  * 'scripts_updated'
+  * added osl arch
+  * loading version and maintainer from properties file
+  * version now in one line
+  * 'scripts_updated'
+  * prepared project properties
+  * 'scripts_updated'
+  * 'scripts_updated'
+
+ -- Jan Cremer <jan.cremer@dlr.de>  Fri, 12 Aug 2016 10:04:07 +0200
+
+robotkernel (4.0.7) unstable; urgency=low
+
+  * udating scripts
+  * fixed problem with undefined LN_VERSION
+  * configuring dependencies with project.properties; fixed lttng problem on osl42; disabling lttng if tp file missing; updated scripts
+  * added message defs
+  * scripts_updated
+  * updated scripts
+  * "transforming"
+  * 'scripts_updated'
+  * added osl arch
+  * moving supported_archs to project.properties
+  * loading version and maintainer from properties file
+  * version now in one line
+  * 'scripts_updated'
+  * prepared project properties
+  * 'scripts_updated'
+  * 'scripts_updated'
+  * Merge branch 'master' of rmc-github.robotic.dlr.de:robotkernel/robotkernel
+  * make runnable::tid,run_flag protected to allow for unblocking without immediate join
+  * Merge branch 'master' of rmc-github.robotic.dlr.de:robotkernel/robotkernel
+  * include deps before module in need
+  * updated scripts
+  * Merge branch 'master' of rmc-github.robotic.dlr.de:robotkernel/robotkernel
+  * added new sync_logging cfg option
+  * visibly warn when mod_configure() is missing!
+  * Merge branch 'master' of rmc-github.robotic.dlr.de:robotkernel/robotkernel
+  * remove toplevel makefile to allow in-source-tree build
+  * fix compile vor yaml-cpp 0.5.1
+  * use head of scripts
+  * Merge branch 'master' of rmc-github.robotic.dlr.de:robotkernel/robotkernel
+  * ifdef for PKG_
+  * fixed configure.ac order
+
+ -- Jan Cremer <jan.cremer@dlr.de>  Wed, 10 Aug 2016 17:01:50 +0200
+
+robotkernel (4.0.6) unstable; urgency=low
+
+  * fixed yaml_version substition, prep 4.0.6
+
+ -- Robert Burger <robert.burger@dlr.de>  Mon, 21 Mar 2016 10:42:13 +0100
+
+robotkernel (4.0.5) unstable; urgency=low
+
+  * scripts commit
+  * fixed order in configure.ac
+  * prep 4.0.5
+  * added rk_bin
+  * added rk_bin
+  * added new request to shift next trigger
+  * fixed triggered by
+  * RMPM_ENV must be after AM_INIT_AUTOMAKE
+  * PKG_ macros not avaliable on suse machines
+  * use head of scripts
+  * try to added trigger requests
+  * added ln cflags to robotkernel.pc.in
+  * use head of scripts
+  * use libstring_util
+  * added .pc.in file
+  * added submodule scripts
+  * removed scripts from this repo
+  * setting state to init during module load
+  * return -1 for not implemented requests and print warning message
+
+ -- Robert Burger <robert.burger@dlr.de>  Mon, 21 Mar 2016 10:19:22 +0100
+
+robotkernel (4.0.4) unstable; urgency=low
+
+  * generating robotkernel.inc.lnc by configure
+  * fixed yaml version to 0.5.2, compatibility with existing modules
+  * fixed indenting
+  * Summary: better error message for not implemented request() method
+  * throw exception with field-name in get_as() if yaml throws an exception
+  * throw exception with field-name in get_as() if yaml throws an exception
+  * make gettid even more portable
+  * inc version
+  * inc ln version
+  * fixed bufpos
+  * have max time in cache
+  * gettid cleanups
+  * add rk_no_warnings define to disable warning window
+  * Summary: hightlight ERR and WARN lines
+  * Summary: catch exceptions thrown while trying to instanciate modules and rethrow them with name of module
+  * Summary: when reading config file of module check whether stream opening worked! fail()->bool
+  * Summary: caught exception in main() should produce error meessage not warning
+  * Summary: added line_highlight_regex for error messages, added warning_regex
+  * cache rmpm results
+  * cache rmpm results
+  * make clean target not fail
+  * reworked clean target to hopefully help migrate to new autocnf version
+  * make sure that build_all/all is first target in Makefile.suggested if really needed project can define a local-first-targets.mk which are named before build_all/all
+  * 
+  * fixed stat on file in local dir
+  * fixed pthread set affinity error msg
+  * also undef rkgui_path
+
+ -- Robert Burger <robert.burger@dlr.de>  Wed, 10 Feb 2016 10:21:14 +0000
+
+robotkernel (4.0.3) unstable; urgency=low
+
+  * small bug with set affinity mask
+  * support specifying version specifier in rmpm macro
+  * inc version
+
+ -- Robert Burger <robert.burger@dlr.de>  Tue, 13 Oct 2015 13:18:36 +0000
+
+robotkernel (4.0.2) unstable; urgency=low
+
+  * inc version
+  * fixed affinity parsing, fixed set_prio on not running thread
+
+ -- Robert Burger <robert.burger@dlr.de>  Fri, 2 Oct 2015 11:37:05 +0000
+
+robotkernel (4.0.1) unstable; urgency=low
+
+  * added interface_base constructor added getter and setters in runnable
+  * clean install
+  * implemented register configure_loglevel
+  * small fixes, prep 4.0.1
+  * fixed log messages
+  * fixed cmd_delay header for yamlcpp 0.5.2
+
+ -- Robert Burger <robert.burger@dlr.de>  Mon, 28 Sep 2015 07:45:29 +0000
+
+robotkernel (4.0.0) unstable; urgency=low
+
+  * added interface base prep 4.0.0
+  * switch to yaml-cpp 0.5.2 changed loglevel added loglevel to modules changing interface for creating rk_interface
+  * inc ln version
+  * loading of same modules and interfaces is only done once
+  * added ignorenores
+  * reworked loglevel's and prep 3.2.0
+
+ -- Robert Burger <robert.burger@dlr.de>  Tue, 15 Sep 2015 06:53:53 +0000
+
+robotkernel (3.1.20) unstable; urgency=low
+
+  * added module_base impl
+  * prep 3.1.20
+  * moved logfunc
+
+ -- Robert Burger <robert.burger@dlr.de>  Wed, 9 Sep 2015 05:30:00 +0000
+
+robotkernel (3.1.19) unstable; urgency=low
+
+  * loglevel fix
+
+ -- Robert Burger <robert.burger@dlr.de>  Tue, 8 Sep 2015 09:06:46 +0000
+
+robotkernel (3.1.18) unstable; urgency=low
+
+  * fixed logging
+
+ -- Robert Burger <robert.burger@dlr.de>  Tue, 8 Sep 2015 08:33:31 +0000
+
+robotkernel (3.1.17) unstable; urgency=low
+
+  * fixed namespace
+
+ -- Robert Burger <robert.burger@dlr.de>  Tue, 8 Sep 2015 08:15:38 +0000
+
+robotkernel (3.1.16) unstable; urgency=low
+
+  * added loglevel option to modules
+  * inc sercos version
+
+ -- Robert Burger <robert.burger@dlr.de>  Tue, 8 Sep 2015 07:59:39 +0000
+
+robotkernel (3.1.15) unstable; urgency=low
+
+  * prep 3.1.15
+
+ -- Robert Burger <robert.burger@dlr.de>  Mon, 7 Sep 2015 12:09:47 +0000
+
+robotkernel (3.1.14) unstable; urgency=low
+
+  * prep 3.1.14 with ln 0.7.5
+  * removed ln_base from scripts
+  * removed signal translator
+
+ -- Robert Burger <robert.burger@dlr.de>  Mon, 7 Sep 2015 05:35:12 +0000
+
+robotkernel (3.1.13) unstable; urgency=low
+
+  * prep 3.1.13
+  * 
+
+ -- Robert Burger <robert.burger@dlr.de>  Thu, 3 Sep 2015 12:22:50 +0000
+
+robotkernel (3.1.12) unstable; urgency=low
+
+  * prep 3.1.12
+  * add missing header
+
+ -- Robert Burger <robert.burger@dlr.de>  Thu, 3 Sep 2015 12:06:29 +0000
+
+robotkernel (3.1.11) unstable; urgency=low
+
+  * prep 3.1.11
+  * fixed cmd_delay header
+  * added m4 build rule
+
+ -- Robert Burger <robert.burger@dlr.de>  Thu, 3 Sep 2015 11:12:01 +0000
+
+robotkernel (3.1.10) unstable; urgency=low
+
+  * prep 3.1.10
+  * added virtual destructor to module_base
+  * kernel::logging method needs to catch case when there are no more empty logging pool objects and _log.get-pool_object() returns a NULL pointer
+  * module_base should initialize state member to init
+  * fixed path
+
+ -- Robert Burger <robert.burger@dlr.de>  Tue, 1 Sep 2015 06:59:37 +0000
+
+robotkernel (3.1.9) unstable; urgency=low
+
+  * removed debug messages
+  * prep 3.1.9
+  * fixed missing , in share/ln/robotkernel.inc.lnc
+  * added module::add_depends() to add a new dependency to an existing module
+  * fixed typo
+  * reverted robert's HOST_OPTION only m64/m32 try
+  * use local-release target together with ARCH= to select arch
+  * fixed rk_libpath lnm warning and cleaned up not-defined style
+  * fixed rk_debug lnm warning
+
+ -- Robert Burger <robert.burger@dlr.de>  Fri, 7 Aug 2015 04:45:55 +0000
+
+robotkernel (3.1.8) unstable; urgency=low
+
+  * prep 3.1.8
+  * added request to trigger_base
+  * fixed trigger_base
+  * fixes for stupid qnx compiler
+  * added module_base
+  * some work on code, added private constructors
+  * indent fixes
+  * added log level display to stdout
+  * fixed build for 32 and 64 bit linux on 64 bit linux
+  * moved comment
+  * fixed pathes
+  * extended RMPM_CHECK_MODULES m4 function to look for --with-<pkg>-domain=<new_domain> configure arguments
+  * added new build-single starget without -j for convenience, introduced CONFIGURE_ARGS, optionally include local-targets.mk into makefile
+
+ -- Robert Burger <robert.burger@dlr.de>  Tue, 4 Aug 2015 07:05:21 +0000
+
+robotkernel (3.1.7) unstable; urgency=low
+
+  * remove angstrom-arm arch
+  * use ln 0.6.8
+  * added target to call ./autogen.sh if there is no Makefile.in
+  * check for pthread_setname at configure time
+  * use latest ln version
+  * allow to detect qnx6.3 with -DQNX63, add build_only_all target to only install all archs (configure only if needed), build_all_seq to first configure all, then install all
+  * indent
+  * added with_realpath option to generate_ln_includes
+  * fixed deps
+  * add without_undef option
+  * prep 3.1.3
+  * prep 3.1.5
+  * added HAVE_BY_CFLAGS m4 function, and only search for rmpm packages with matching arch
+
+ -- Florian Schmidt <Florian.Schmidt@dlr.de>  Mon, 8 Jun 2015 07:39:02 +0000
+
+robotkernel (3.1.6) unstable; urgency=low
+
+  * updated to latest ln 0.6.6
+  * prep 3.1.6, readded angstrom-armv7-gcc4.7
+  * re-worked makefiles
+  * builds now with new mk
+  * new build
+  * fixed m4 flags
+  * moved rmpm.m4 to scripts/m4
+  * removed m4
+  * added example supported archs comment
+  * have ARCH_CFLAGS in rmpm.m4,
+  * added build_only_all_seq and configure_only_all_seq targets
+  * include local supported_archs.mk in Makefile.suggested
+  * added Makefile.suggested from lnrkinterface
+  * added ubuntu12.04-armhf-gcc4.x arch to rmpm.m4
+  * moved rmpm.m4 into subdir
+  * copied m4/rmpm.m4 to scripts external
+  * removed ptfile
+  * e14 bbb compile target ubuntu12.04-armhf-gcc4.x.env
+
+ -- Robert Burger <robert.burger@dlr.de>  Fri, 22 May 2015 06:48:18 +0000
+
+robotkernel (3.1.5) unstable; urgency=low
+
+  * prep 3.1.5
+  * build for ubuntu12.04-armhf-gcc4.x
+  * added support for ubuntu12.04-armhf-gcc4.x target
+  * added undef's
+  * improved interface not found error message
+  * added rk_term_timeout, rk_max_output_frequency to .inc.lnc
+  * merged changes from f_legs
+  * added arch file
+  * fixed yaml version
+  * prep 3.1.2
+  * added rk_use_template define
+
+ -- Florian Schmidt <Florian.Schmidt@dlr.de>  Mon, 27 Apr 2015 11:43:11 +0000
+
+robotkernel (3.1.4) unstable; urgency=low
+
+  * fixed for 3.1.4
+  * ln_generate args for arm in this scripts?
+  * fix pthread_setaffinity output, hack to list dir contents of module files to clear nfs cache (working on justin/face), use install -C to install header files to only overwrite them when they change
+  * whitespace cleanups
+
+ -- Robert Burger <robert.burger@dlr.de>  Thu, 19 Mar 2015 13:00:30 +0000
+
+robotkernel (3.1.3) unstable; urgency=low
+
+  * prep 3.1.3 build against new links_and_nodes 0.6.2
+  * improved error messages
+  * add robotkernel config option do_not_unload_modules: true|false to avoid unloading of module/interface .so files (for valgrind memleak debugging)
+  * added emacs .dir-locals.el file to specify indentation settings for robotkernel sources
+
+ -- Robert Burger <robert.burger@dlr.de>  Tue, 10 Mar 2015 06:58:29 +0000
+
+robotkernel (3.1.2) unstable; urgency=low
+
+  * prep 3.1.2
+  * use new ln 0.6.0 thread pool to handle ln service requests. pool name: main, default pool size 1 -> should be exactly the same behaviour as before. added new robotkernel toplevel yaml config field ln_thread_pool_size_main (has to be >=1)
+  * added data_generator_deps
+  * added ignore_files
+  * inc pkg version
+
+ -- Robert Burger <robert.burger@dlr.de>  Fri, 6 Mar 2015 13:17:02 +0000
+
+robotkernel (3.1.1) unstable; urgency=low
+
+  * readded GET_CMD_DELAY request
+  * updated version
+
+ -- Robert Burger <robert.burger@dlr.de>  Mon, 2 Feb 2015 08:50:23 +0000
+
+robotkernel (3.1.0) unstable; urgency=low
+
+  * removed interface request numbers and structs from module_intf.h -> will move to interfaces instead compiler warning fixes in log_thread prep 3.1.0
+  * incremented ln version
+  * generate_ln_includes reads .inc.lnc files to find # rk_depends: directive
+  * support optional include
+  * updated versions
+
+ -- Robert Burger <robert.burger@dlr.de>  Fri, 30 Jan 2015 08:23:34 +0000
+
+robotkernel (3.0.17) unstable; urgency=low
+
+  * added new mod_trigger_slave_id updated ln version to 0.5.5 prep 3.0.17
+  * use LN_BASE from user env if avaliable
+  * instead of [module] use [<NAME OF MODULE>]
+  * moved kernel::logging into .cpp, added log_thread::fix_modname_length to fix printing length of module name (default: 20, set to 0 to disable), added new rk yaml config option log_fix_modname_length to set log_thread::fix_modname_length
+  * fixed default log level and fixed reseetting loglevel via config_dump_log
+  * added rk_debug switch for robotkernel.inc.lnc and added deps for module_data_generator
+
+ -- Robert Burger <robert.burger@dlr.de>  Fri, 5 Dec 2014 08:28:34 +0000
+
+robotkernel (3.0.16) unstable; urgency=low
+
+  * prep 3.0.16
+
+ -- Robert Burger <robert.burger@dlr.de>  Tue, 11 Nov 2014 12:59:46 +0000
+
+robotkernel (3.0.15) unstable; urgency=low
+
+  * prep 3.0.15
+  * link against new ln version, bugfix of IOV_MAX in ln lib
+
+ -- Robert Burger <robert.burger@dlr.de>  Tue, 11 Nov 2014 10:37:14 +0000
+
+robotkernel (3.0.14) unstable; urgency=low
+
+  * prep 3.0.14
+  * completed new loglevels
+  * fixed va_list disaster
+
+ -- Robert Burger <robert.burger@dlr.de>  Thu, 23 Oct 2014 11:02:31 +0000
+
+robotkernel (3.0.13) unstable; urgency=low
+
+  * prep 3.0.13
+  * added debug levels
+  * updated package version
+  * possibility to specify rk logfile
+  * added pd-intf dependancy for new jitter measurement module
+  * updated version
+
+ -- Robert Burger <robert.burger@dlr.de>  Fri, 17 Oct 2014 12:06:58 +0000
+
+robotkernel (3.0.12) unstable; urgency=low
+
+  * new robotkernel version
+  * fixed ln svc respond pointing to already destroyed string_buffer memories
+  * added generate_ln_includes script
+  * new rk yaml config value max_dump_log_len to enable dump log from beginning on
+  * add set_log_level field to config_dump_log service
+  * fix runnable/run_wrapper pthread_setaffinity-error output
+  * added rk_derive_from to robotkernel.inc.lnc
+  * added rk_output_encoding to robotkernel.inc.lnc
+  * fixes because rmpm does not like our arm arch
+  * reworked get_ln_base.py to return LN_BASE env var when there is not pkgtool
+  * moved ln include file for robotkernel_gui
+
+ -- Robert Burger <robert.burger@dlr.de>  Tue, 7 Oct 2014 05:15:31 +0000
+
+robotkernel (3.0.11) unstable; urgency=low
+
+  * new release
+  * moved gui
+  * fixed log_thread starting, no more double singleton\nmore log output if module is not found\n
+
+ -- Robert Burger <robert.burger@dlr.de>  Thu, 18 Sep 2014 09:31:14 +0000
+
+robotkernel (3.0.10) unstable; urgency=low
+
+  * fixed depends
+  * fixed depends
+
+ -- Robert Burger <robert.burger@dlr.de>  Mon, 8 Sep 2014 10:57:47 +0000
+
+robotkernel (3.0.9) unstable; urgency=low
+
+  * new patch version, disable realtime signals
+  * fixed install directive
+  * fixed interface of canopen_protocol
+  * deactivate realtime singals, can now be used with signal_wait, signal_timedwait
+
+ -- Robert Burger <robert.burger@dlr.de>  Mon, 8 Sep 2014 09:32:38 +0000
+
+robotkernel (3.0.8) unstable; urgency=low
+
+  * bugfix release
+  * added -Wall
+  * return value added
+  * fixed init order
+  * added defines
+  * fixed destruction on vxworks
+  * fixed init order
+  * fixed init order
+  * indent fix
+  * should fix affinity on vxworks
+  * added ld_so_conf option to ln include file
+
+ -- Robert Burger <robert.burger@dlr.de>  Tue, 19 Aug 2014 10:56:54 +0000
+
+robotkernel (3.0.7) unstable; urgency=low
+
+  * bugfix release
+  * fixed mime-types
+  * install rule fix
+  * some gui message defs checks
+  * some gui message defs checks
+  * fixed ln include file
+  * added rk_libpath
+
+ -- Robert Burger <robert.burger@dlr.de>  Tue, 12 Aug 2014 08:52:42 +0000
+
+robotkernel (3.0.6) unstable; urgency=low
+
+  * fixed lnc file
+
+ -- Robert Burger <robert.burger@dlr.de>  Tue, 5 Aug 2014 11:30:30 +0000
+
+robotkernel (3.0.5) unstable; urgency=low
+
+  * bug fix release
+  * fixed include
+
+ -- Robert Burger <robert.burger@dlr.de>  Tue, 5 Aug 2014 07:41:10 +0000
+
+robotkernel (3.0.4) unstable; urgency=low
+
+  * prepare header fixed bugfix release
+  * reorganized project structure
+
+ -- Robert Burger <robert.burger@dlr.de>  Tue, 5 Aug 2014 07:36:02 +0000
+
+robotkernel (3.0.3) unstable; urgency=low
+
+  * renamed angstrom to rmpm scheme
+  * added armv7 env
+  * added get_ln_base.py
+
+ -- Robert Burger <robert.burger@dlr.de>  Tue, 5 Aug 2014 05:21:52 +0000
+
+robotkernel (3.0.2) unstable; urgency=low
+
+  * fixed depends
+  * fixed depends
+  * release patch 3.0.2
+  * changes ln inc files
+  * added yaml to depends
+  * added gereration of ptfile from configure
+  * added missing env file
+
+ -- Robert Burger <robert.burger@dlr.de>  Mon, 4 Aug 2014 07:58:24 +0000
+
+robotkernel (3.0.1) unstable; urgency=low
+
+  * fixes in build system
+  * bugfix release 3.0.1
+  * fixed ptfeil
+  * moved ln inc file to share
+  * removed model dir
+  * removed config dir
+  * added missing header to release
+
+ -- Robert Burger <robert.burger@dlr.de>  Thu, 31 Jul 2014 11:33:19 +0000
+
+robotkernel (3.0.0) unstable; urgency=low
+
+  * fixed return in read() and write()
+  * fixed ptfile
+  * added debug and non-debug build
+  * imported from: https://rmsvn01.robotic.dlr.de/repos/f_soft_src/robotkernel/trunk rev : 43477
+  * creating svn directory 'https://rmsvn01.robotic.dlr.de/software/robotkernel/src/robotkernel/trunk' [rmpm admintool (burger_r, 2014-07-31-11-03-10)]
+
+ -- Robert Burger <robert.burger@dlr.de>  Thu, 31 Jul 2014 09:21:05 +0000
+
