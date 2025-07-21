@@ -84,7 +84,18 @@ jobs:
         with:
           name: robotkernel-${{ steps.sanitize.outputs.sanitized_image }}.deb
           path: artifacts/${{ matrix.os }}/${{ matrix.version }}/*.deb
-      
+
+      # Upload your compiled asset to the release
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: |
+            artifacts/${{ matrix.os }}/${{ matrix.version }}/robotkernel_${VERSION}_amd64.deb
+            artifacts/${{ matrix.os }}/${{ matrix.version }}/robotkernel-dev_${VERSION}_amd64.deb
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Upload to Cloudsmith (${{ matrix.os }}/${{ matrix.version }})
         env:
           CLOUDSMITH_API_KEY: ${{ secrets.CLOUDSMITH_API_KEY }}
