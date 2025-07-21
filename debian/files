@@ -1,5 +1,0 @@
-robotkernel-dbgsym_6.0.0~pre1_amd64.deb debug optional automatic=yes
-robotkernel-dev-dbgsym_6.0.0~pre1_amd64.deb debug optional automatic=yes
-robotkernel-dev_6.0.0~pre1_amd64.deb libdevel optional
-robotkernel_6.0.0~pre1_amd64.buildinfo unknown optional
-robotkernel_6.0.0~pre1_amd64.deb unknown optional
