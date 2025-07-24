@@ -115,7 +115,7 @@ so_file::so_file(const YAML::Node& node) : config("") {
     if((so_handle = dlopen(file_name.c_str(), RTLD_LOCAL | RTLD_NOW | RTLD_DEEPBIND | RTLD_NOLOAD)))
         return; //already loaded
 #endif
-    if (!(so_handle = dlopen(file_name.c_str(), RTLD_LOCAL | RTLD_NOW | RTLD_DEEPBIND | RTLD_NODELETE)))
+    if (!(so_handle = dlopen(file_name.c_str(), RTLD_LOCAL | RTLD_NOW)))
         throw runtime_error(string_printf("%s dlopen signaled error opening so_file: %s\nCheck if file path is in ROBOTKERNEL_MODULE_PATH or LD_LIBRARY_PATH\n", file_name.c_str(), dlerror()));
 }
 
