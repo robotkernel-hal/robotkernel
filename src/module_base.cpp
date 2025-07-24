@@ -41,12 +41,6 @@ module_base::module_base(const std::string& impl, const std::string& name, const
     log_base(name, impl, "", node), name(name), state(module_state_init)
 { }
 
-//// Get robotkernel module
-//robotkernel::sp_module_t module_base::get_module() {
-//    robotkernel::kernel& k = *robotkernel::kernel::get_instance();
-//    return k.get_module(name);
-//}
-
 //! Set module state machine to defined state.
 /*!
  * \param[in] state     Requested state which will be tried to switch to.
