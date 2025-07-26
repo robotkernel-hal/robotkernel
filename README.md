@@ -1,21 +1,24 @@
-**robotkernel** is an easily configurable hardware abstraction
-framework. In most robotic system assembly of robotic hardware
-components is a challenging task. With
-[robotkernel](robotkernel "wikilink") the control engineer just has
-to write a bunch of simple and small configuration in
-[YAML](wp:YAML "wikilink").
+# robotkernel
 
-![robotkernel overview](rk_overview.png "robotkernel overview")
+[![Build and Publish Debian Package](https://github.com/robotkernel-hal/robotkernel/actions/workflows/build-deb.yaml/badge.svg)](https://github.com/robotkernel-hal/robotkernel/actions/workflows/build-deb.yaml)
+[![License: LGPL-V3](https://img.shields.io/badge/license-LGPL--V3-green.svg)](LICENSE)
+[![Linux](https://img.shields.io/badge/Linux-FCC624?logo=linux&logoColor=black)](#)
+[![Debian](https://img.shields.io/badge/Debian-A81D33?logo=debian&logoColor=fff)](#)
+[![Ubuntu](https://img.shields.io/badge/Ubuntu-E95420?logo=ubuntu&logoColor=white)](#)
 
-Components
-==========
+**`robotkernel`** is a modular real-time robotics framework for Linux-based control systems. It provides the infrastructure for loading, executing, and managing dynamically linked modules that communicate through shared memory and trigger-based scheduling. Designed for hard-real-time industrial use cases, `robotkernel` allows composition of complex automation pipelines from reusable components.
+
+---
+
+## Components
 
 Robotkernel is a program which dynamically loads other objects called
 components. There are different types of components, which are
 distinguished by it's functionality.
 
-Modules
--------
+---
+
+## Modules
 
 ![robotkernel module](rk_module.png "robotkernel module")
 
@@ -29,8 +32,30 @@ included here.
 Each robotkernel module has to implement the robotkernel state
 machine.
 
-![robotkernel state
-machine](rk_state_machine.png "robotkernel state machine")
+```mermaid
+stateDiagram-v2
+    [*] --> INIT : start
+    INIT --> PREOP : initialization done
+    PREOP --> SAFEOP : hardware ready, start cyclic operation
+    SAFEOP --> OP : enable full operation (commands allowed)
+    OP --> SAFEOP : disable commands, safe operation only
+    OP --> BOOT : maintenance requested
+    SAFEOP --> BOOT : maintenance requested
+    BOOT --> PREOP : maintenance done, restart communication
+    PREOP --> INIT : reset
+    SAFEOP --> INIT : reset
+    OP --> INIT : reset
+    BOOT --> INIT : reset
+
+    %% Error transitions
+    INIT --> ERROR : error detected
+    PREOP --> ERROR : error detected
+    SAFEOP --> ERROR : error detected
+    OP --> ERROR : error detected
+    BOOT --> ERROR : error detected
+
+    ERROR --> INIT : error resolved
+```
 
   State    short description                description
   -------- -------------------------------- ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -97,14 +122,12 @@ typedef void (*mod_tick_t)(MODULE_HANDLE hdl);
 
 provide process data, services, ....
 
-Bridges
--------
+---
+
+## Bridges
 
 act as inter-process communication bridge. usefull to provide
 communication with other applications e.g. links-and-nodes.
-
-![service brigde
-example](Robotkernel_multiple_service_bridge_example.png "service brigde example")
 
 ### Exported C-Api interface
 
@@ -151,11 +174,9 @@ unregister the service from the middleware.
 typedef void (*bridge_remove_service_t)(BRIDGE_HANDLE hdl, const robotkernel::service_t &svc);
 ```
 
-Service Providers
------------------
+--- 
 
-![robotkernel service
-provider](rk_service_provider.png "robotkernel service provider")
+## Service Providers
 
 They provide a set of common services to the user to gain the same
 expiriance for different attached hardware. Therefor a module has to
@@ -163,8 +184,9 @@ derive from the service providers *base* class and implement the service
 functions. Afterwards the derived class instances can be registered to
 the robotkernel by calling *add\_device*.
 
-Devices
-=======
+---
+
+## Devices
 
 Robotkernel devices are the internal representation of module
 resources. These devices may be *process data*, *stream* or *trigger*.
@@ -200,8 +222,7 @@ to be known.
 std::shared_ptr<device> get_device(const std::string& name);
 ```
 
-Process data
-------------
+### Process data
 
 A process data device is used to provide cyclic-realtime data to other
 **components**. It is derived from the *device* base class and can be
@@ -209,8 +230,7 @@ registered to the robotkernel. For a detailed description of
 robotkernel process data implementations please refer to
 [robotkernel/process\_data](robotkernel/process_data "wikilink").
 
-Streams
--------
+### Streams
 
 Streams are usually used to supply a byte stream to other
 **components**. To create a stream device a module has to derive from
@@ -243,8 +263,7 @@ while (1) {
 }       
 ```
 
-Triggers
---------
+### Triggers
 
 A trigger is very useful, if the synchonization of different
 **components** is needed. To create a trigger device either make an
@@ -282,13 +301,13 @@ sp_trigger_t my_trigger = k.get_trigger_device("timer.posix_timer.trigger");
 my_trigger->add_trigger(std::make_shared<my_trigger_func>(...));
 ```
 
-Services
-========
+---
+
+## Services
 
 For some kind of Remote-Procedure-Calls there are the acyclic services.
 
-Service declaration
--------------------
+### Service declaration
 
 A service usually consists of a callback function and a service
 definition.
@@ -298,8 +317,7 @@ int service_set_state(const service_arglist_t& request, service_arglist_t& respo
 static const std::string service_definition_set_state;
 ```
 
-Service registration
---------------------
+### Service registration
 
 Service need to be registered to the robotkernel. Therefore a module
 has to call the *add\_service* function.
@@ -309,8 +327,7 @@ kernel& k = *kernel::get_instance();
 k.add_service(name, "set_state", service_definition_set_state, std::bind(&module::service_set_state, this, _1, _2));
 ```
 
-Service definition
-------------------
+### Service definition
 
 Service definitions are simple YAML string. They describe the arguments
 passed to *request* and *response* fields of the service callback
@@ -324,8 +341,7 @@ const std::string module::service_definition_set_state =
 "- string: error_message\n";
 ```
 
-Service callback
-----------------
+### Service callback
 
 In the service callback the request and response fields can simply be
 accessed with the array operator. The developer has to ensure, that the
@@ -355,5 +371,3 @@ int module::service_set_state(const service_arglist_t& request, service_arglist_
     return 0;
 }
 ```
-
-<Category:Robotkernel> [!](Category:Robotkernel "wikilink")
