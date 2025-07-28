@@ -48,7 +48,6 @@ module_base::module_base(const std::string& impl, const std::string& name, const
  * \return success or failure
  */
 int module_base::set_state(module_state_t state) {
-    std::unique_lock<std::mutex> lock(state_mtx);
 
     // get transition
     uint32_t transition = GEN_STATE(this->state, state);
@@ -57,24 +56,33 @@ int module_base::set_state(module_state_t state) {
         case op_2_safeop:
         case op_2_preop:
         case op_2_init:
-        case op_2_boot:
+        case op_2_boot: {
             // ====> stop sending commands
+            std::unique_lock<std::mutex> lock(state_mtx);
             set_state_op_2_safeop();
+            this->state = module_state_safeop;
 
             if (state == module_state_safeop)
                 break;
+        }
         case safeop_2_preop:
         case safeop_2_init:
-        case safeop_2_boot:
+        case safeop_2_boot: {
             // ====> stop receiving measurements
+            std::unique_lock<std::mutex> lock(state_mtx);
             set_state_safeop_2_preop();
+            this->state = module_state_preop;
 
             if (state == module_state_preop)
                 break;
+        }
         case preop_2_init:
-        case preop_2_boot:
+        case preop_2_boot: {
             // ====> deinit devices
+            std::unique_lock<std::mutex> lock(state_mtx);
             set_state_preop_2_init();
+            this->state = module_state_init;
+        }
         case init_2_init:
             if (state == module_state_init)
                 break;
@@ -88,23 +96,32 @@ int module_base::set_state(module_state_t state) {
                 break;
         case init_2_op:
         case init_2_safeop:
-        case init_2_preop:
+        case init_2_preop: {
             // ====> init devices
+            std::unique_lock<std::mutex> lock(state_mtx);
             set_state_init_2_preop();
+            this->state = module_state_preop;
 
             if (state == module_state_preop)
                 break;
+        }
         case preop_2_op:
-        case preop_2_safeop:
+        case preop_2_safeop: {
             // ====> start receiving measurements
+            std::unique_lock<std::mutex> lock(state_mtx);
             set_state_preop_2_safeop();
+            this->state = module_state_safeop;
 
             if (state == module_state_safeop)
                 break;
-        case safeop_2_op:
+        }
+        case safeop_2_op: {
             // ====> start sending commands
+            std::unique_lock<std::mutex> lock(state_mtx);
             set_state_safeop_2_op();
+            this->state = module_state_op;
             break;
+        }
         case op_2_op:
         case safeop_2_safeop:
         case preop_2_preop:
