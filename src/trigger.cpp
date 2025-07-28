@@ -133,7 +133,7 @@ void trigger::set_rate(double new_rate) {
 void trigger::do_trigger() {
     std::unique_lock<std::mutex> lock(list_mtx);
 
-    for (auto& t : triggers) {
+    for (const auto& t : triggers) {
         if (((++t->cnt) % t->divisor) == 0) {
             t->cnt = 0;
 

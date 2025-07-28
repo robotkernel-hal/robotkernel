@@ -30,7 +30,6 @@
 
 // private headers
 #include "kernel.h"
-#include "kernel_worker.h"
 #include "service_provider.h"
 
 #include <sys/stat.h>
