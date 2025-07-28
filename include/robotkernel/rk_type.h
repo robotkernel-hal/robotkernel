@@ -49,20 +49,28 @@ class rk_type {
 
         std::type_index __type;     //!< data type for type conversions
         uint8_t *__value;           //!< data storage pointer
+        std::function<void(void*)> __value_deleter;
 
         void decrease_reference(uint8_t *ref) {
             if (!ref) {
                 return;
             }
 
-            std::unique_lock<std::mutex> lock(__refsLock);
+            {
+                std::unique_lock<std::mutex> lock(__refsLock);
 
-            if (__refs[ref] <= 1) {
+                reference_map_t::iterator r = __refs.find(ref);
+                if (r == __refs.end())
+                    return; // should not happen!
+
+                if (r->second > 1) {
+                    r->second --;
+                    return;
+                }
                 __refs.erase(ref);
-                delete ref;
-            } else {
-                __refs[ref] = __refs[ref] - 1;
             }
+            // need to do this without lock held!
+            __value_deleter(ref);
         }
 
         void increase_reference(uint8_t *ref) {
@@ -116,6 +124,7 @@ class rk_type {
         template<typename T>
             rk_type(const T &value) : __type(typeid(T)), __value(NULL) {
                 set_value((uint8_t *) new T);
+                __value_deleter = [](void* p) { delete static_cast<T*>(p); };
                 *((T *) __value) = value;
             }
 
@@ -125,6 +134,7 @@ class rk_type {
          */
         rk_type(const rk_type &obj) : __type(obj.__type), __value(NULL) {
             set_value(obj.__value);
+            __value_deleter = obj.__value_deleter;
         }
 
         //! assign operator
@@ -133,6 +143,7 @@ class rk_type {
          */
         rk_type &operator=(rk_type rhs) {
             set_value(rhs.__value);
+            __value_deleter = rhs.__value_deleter;
             __type = rhs.__type;
             return *this;
         }
