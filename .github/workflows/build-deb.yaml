@@ -108,7 +108,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: robotkernel-${{ steps.sanitize.outputs.sanitized_image }}.deb
-          path: artifacts/${{ matrix.os }}/${{ matrix.version }}/*.deb
+          path: artifacts/${{ matrix.os }}/${{ matrix.version }}/
 
       - name: Debug artifact files
         run: |
