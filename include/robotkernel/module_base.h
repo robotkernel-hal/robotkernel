@@ -33,7 +33,6 @@
 #include <stdio.h>
 #include <stdexcept>
 
-#include "robotkernel/trigger_base.h"
 #include "robotkernel/exceptions.h"
 #include "robotkernel/helpers.h"
 #include "robotkernel/log_base.h"
@@ -128,11 +127,6 @@ typedef int (*mod_set_state_t)(MODULE_HANDLE hdl, module_state_t state);
  */
 typedef module_state_t (*mod_get_state_t)(MODULE_HANDLE hdl);
 
-//! module tick callback
-/*!
- * \param hdl module handle
- */
-typedef void (*mod_tick_t)(MODULE_HANDLE hdl);
 
 // CPLUSPLUS Base Class
 #ifdef __cplusplus
@@ -149,11 +143,6 @@ typedef void (*mod_tick_t)(MODULE_HANDLE hdl);
 struct impl ## _wrapper {                                                           \
     std::shared_ptr<modclass> sp;                                                   \
 };                                                                                  \
-                                                                                    \
-EXPORT_C void mod_tick(MODULE_HANDLE hdl) {                                         \
-    HDL_2_MODCLASS(hdl, impl, modclass)                                             \
-    return dev->tick();                                                             \
-}                                                                                   \
                                                                                     \
 EXPORT_C size_t mod_set_state(MODULE_HANDLE hdl, module_state_t state) {            \
     HDL_2_MODCLASS(hdl, impl, modclass)                                             \
@@ -189,8 +178,7 @@ EXPORT_C MODULE_HANDLE mod_configure(const char* name, const char* config) {    
 namespace robotkernel {
 
 class module_base : 
-    public robotkernel::log_base,  
-    public robotkernel::trigger_base
+    public robotkernel::log_base
 {
     private:
         module_base();                  //!< prevent default construction
@@ -223,12 +211,6 @@ class module_base :
          */
         virtual void init() {};
     
-        //! Module trigger implementation.
-        virtual void tick() {
-            throw std::runtime_error(robotkernel::string_printf("[%s|%s] trigger not implemented!\n",
-                    impl.c_str(), name.c_str()));
-        }
-
         //*********************************************
         // STATE MACHINE FUNCTIONS
         //*********************************************

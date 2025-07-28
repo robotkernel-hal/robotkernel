@@ -56,7 +56,6 @@ librobotkernel_la_SOURCES = bridge.cpp				\
 					  robotkernel.cpp 				\
 					  module_base.cpp 			\
 					  kernel_c_wrapper.cpp      \
-					  kernel_worker.cpp       	\
 					  log_base.cpp 				\
 					  log_thread.cpp 			\
 					  module.cpp				\
