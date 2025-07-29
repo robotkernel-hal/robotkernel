@@ -156,6 +156,7 @@ EXPORT_C module_state_t mod_get_state(MODULE_HANDLE hdl) {                      
                                                                                     \
 EXPORT_C int mod_unconfigure(MODULE_HANDLE hdl) {                                   \
     HDL_2_MODCLASS(hdl, impl, modclass)                                             \
+    wr->sp->deinit();                                                               \
     wr->sp = nullptr;                                                               \
     delete wr;                                                                      \
     return 0;                                                                       \
@@ -210,6 +211,12 @@ class module_base :
          * usefull to call shared_from_this() at construction time
          */
         virtual void init() {};
+        
+        //! Optional de-initiazation method
+        /* 
+         * usefull to call shared_from_this() at construction time
+         */
+        virtual void deinit() {};
     
         //*********************************************
         // STATE MACHINE FUNCTIONS
