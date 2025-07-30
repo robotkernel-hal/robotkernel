@@ -170,13 +170,13 @@ void log_thread::run() {
             struct tm timeinfo;
             double timestamp = (double)obj->ts.tv_sec + (obj->ts.tv_nsec / 1e9);
             time_t seconds = (time_t)timestamp;
-            double mseconds = (timestamp - (double)seconds) * 1000.;
+            int mseconds = (timestamp - (double)seconds) * 1000;
             localtime_r(&seconds, &timeinfo);
             strftime(&tmp_buf[0], sizeof(tmp_buf), "%F %T", &timeinfo);
 
 
             int len = strlen(&tmp_buf[0]);
-            snprintf(&tmp_buf[len], sizeof(tmp_buf) - len, ".%03.0f ", mseconds);
+            snprintf(&tmp_buf[len], sizeof(tmp_buf) - len, ".%03d ", mseconds);
             len = strlen(&tmp_buf[0]);
             snprintf(&tmp_buf[len], sizeof(tmp_buf) - len, "%s %s", 
                     kernel::instance.ll_to_string(obj->lvl).c_str(), obj->buf);
