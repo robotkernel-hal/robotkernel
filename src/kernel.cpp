@@ -889,6 +889,11 @@ void kernel::add_device(sp_device_t req) {
 
     log(verbose, "registered device \"%s\"\n", map_index.c_str());
     device_map[map_index] = req;
+    
+    const auto& pd = std::dynamic_pointer_cast<process_data>(req);
+    if (pd != nullptr) {
+        add_device(pd->trigger_dev);
+    }
 
     for (const auto& kv : dl_map) 
         kv.second->notify_add_device(req);
@@ -897,6 +902,11 @@ void kernel::add_device(sp_device_t req) {
 // remove a named device
 void kernel::remove_device(sp_device_t req) {
     auto map_index = req->id();
+    
+    const auto& pd = std::dynamic_pointer_cast<process_data>(req);
+    if (pd != nullptr) {
+        remove_device(pd->trigger_dev);
+    }
 
     log(verbose, "removing device %s\n", map_index.c_str());
 
