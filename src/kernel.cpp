@@ -891,7 +891,7 @@ void kernel::add_device(sp_device_t req) {
     device_map[map_index] = req;
     
     const auto& pd = std::dynamic_pointer_cast<process_data>(req);
-    if (pd != nullptr) {
+    if ((pd != nullptr) && pd->is_trigger_dev_generated()) {
         add_device(pd->trigger_dev);
     }
 
@@ -904,7 +904,7 @@ void kernel::remove_device(sp_device_t req) {
     auto map_index = req->id();
     
     const auto& pd = std::dynamic_pointer_cast<process_data>(req);
-    if (pd != nullptr) {
+    if ((pd != nullptr) && pd->is_trigger_dev_generated()) {
         remove_device(pd->trigger_dev);
     }
 
