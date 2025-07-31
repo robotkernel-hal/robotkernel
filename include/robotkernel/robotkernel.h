@@ -104,6 +104,9 @@ inline std::shared_ptr<T> get_device(const std::string& dev_name) {
     return retval;
 };
 
+//! get robotkernel name
+extern const std::string name(void);
+
 }; // namespace robotkernel;
 
 #endif // ROBOTKERNEL_KERNEL_BASE_H

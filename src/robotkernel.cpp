@@ -103,3 +103,7 @@ std::shared_ptr<robotkernel::device> robotkernel::get_device(const std::string& 
     return robotkernel::kernel::instance.get_device<robotkernel::device>(dev_name);
 }
 
+//! get robotkernel name
+const std::string robotkernel::name(void) {
+    return robotkernel::kernel::instance.name;
+}
