@@ -14,12 +14,22 @@ Section: libdevel
 Architecture: any
 Multi-Arch: same
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: <insert up to 60 chars description>
- <insert long description, indented with spaces>
+Description: Modular real-time robotics framework.
+ robotkernel is a modular real-time robotics framework for Linux-based 
+ control systems. It provides the infrastructure for loading, executing, 
+ and managing dynamically linked modules that communicate through shared 
+ memory and trigger-based scheduling. Designed for hard-real-time industrial 
+ use cases, robotkernel allows composition of complex automation pipelines 
+ from reusable components.
 
 Package: robotkernel
 Architecture: any
 Multi-Arch: same
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: <insert up to 60 chars description>
- <insert long description, indented with spaces>
+Description: Modular real-time robotics framework.
+ robotkernel is a modular real-time robotics framework for Linux-based 
+ control systems. It provides the infrastructure for loading, executing, 
+ and managing dynamically linked modules that communicate through shared 
+ memory and trigger-based scheduling. Designed for hard-real-time industrial 
+ use cases, robotkernel allows composition of complex automation pipelines 
+ from reusable components.
