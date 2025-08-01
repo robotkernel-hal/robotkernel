@@ -26,7 +26,8 @@ jobs:
   build-deb:
     runs-on: ubuntu-latest
     env:
-      DEB_BUILD_OPTIONS: nocheck
+      DEB_BUILD_OPTIONS: "compress=gzip nocheck"
+      PKGNAME: "robotkernel"
     strategy:
       matrix:
         distro: [debian-12, debian-11, ubuntu-24.04, ubuntu-22.04]
@@ -52,11 +53,15 @@ jobs:
 
     steps:
       - name: Install build dependencies
+        shell: bash
         run: |
           apt-get update
           apt-get install -y build-essential devscripts debhelper autotools-dev autoconf-archive pkg-config fakeroot sed git tar gzip python3-pip python3-venv curl jq libyaml-cpp-dev
+          
+          CODENAME=$(lsb_release -sc)
+          curl -fsSL https://deb.burger-system.de/deb.burger-system.de.gpg | tee /usr/share/keyrings/deb.burger-system.de.gpg > /dev/null
+          echo "deb [arch=amd64 signed-by=/usr/share/keyrings/deb.burger-system.de.gpg] https://deb.burger-system.de/debian ${CODENAME} main" | tee /etc/apt/sources.list.d/burger-system.list > /dev/null
 
-          curl -1sLf 'https://dl.cloudsmith.io/basic/robertburger/robotkernel/setup.deb.sh' | bash
           apt-get update
           apt-get install -y robotkernel-service-helper
 
@@ -70,11 +75,8 @@ jobs:
 
       - name: update branch name and version
         run: |
-          safe_branch=$(echo "${GITHUB_REF_NAME}" | tr '/' '-')
           VERSION=$(dpkg-parsechangelog | sed -n 's/^Version: //p')
           sed "s|PACKAGE_VERSION|$VERSION|" configure.ac.in > configure.ac
-        env:
-          GITHUB_REF_NAME: ${{ github.ref_name }}
 
       - name: Build .deb package
         shell: bash
@@ -83,93 +85,110 @@ jobs:
           CODENAME=$(lsb_release -sc)
           DEBEMAIL="robert.burger@dlr.de"
           DEBFULLNAME="Robert Burger"
+          VERSION=$(dpkg-parsechangelog --show-field Version)
 
-          if ! dpkg-parsechangelog | grep -q "~${CODENAME}"; then
-            dch --local ~${CODENAME} "Build for ${CODENAME}";
+          # Check if version already contains codename suffix
+          if [[ "$VERSION" == *"~${CODENAME}"* || "$VERSION" == *"+${CODENAME}"* ]]; then
+            echo "Version already contains codename suffix, skipping dch."
+          else
+            # If there's already a ~ in version (like ~pre1), add +codename
+            if [[ "$VERSION" == *"~"* ]]; then
+              dch --local +${CODENAME} --distribution ${CODENAME} "Build for ${CODENAME}"
+            else
+              dch --local ~${CODENAME} --distribution ${CODENAME} "Build for ${CODENAME}"
+            fi
           fi
 
-          dpkg-buildpackage -us -uc -S
-          dpkg-buildpackage -us -uc -d
+          dpkg-buildpackage -us -uc -sa
 
-      - name: Collect .deb artifact
+      - name: Debug artifact files
         run: |
-          mkdir -p artifacts/${{ matrix.os }}/${{ matrix.version }}
-          mv ../robotkernel*.deb artifacts/${{ matrix.os }}/${{ matrix.version }}
-      
+          ls -l ../
+          
       - name: Set sanitized image name
         id: sanitize
         run: |
           version=$(dpkg-parsechangelog | sed -n 's/^Version: //p')
-          echo "sanitized_image=$(echo "${version}_amd64" | tr '/:' '--')" >> $GITHUB_OUTPUT
+          echo "sanitized_image=$(echo "${version}" | tr '/:' '--')" >> $GITHUB_OUTPUT
+            
+      - name: Upload to APT repository
+        env:
+          DEPLOY_TOKEN: ${{ secrets.BS_UPLOAD_KEY }}
+        shell: bash
+        run: |
+          DISTRO="${{ matrix.distro }}"
+          SANITIZED_IMAGE="${{ steps.sanitize.outputs.sanitized_image }}"
+
+          if [[ "$DISTRO" == "ubuntu-24.04" || "$DISTRO" == "ubuntu-22.04" ]]; then
+            OLD_EXT=".ddeb"
+            NEW_EXT=".deb"
+
+            OLD_FILE="${PKGNAME}-dbgsym_${SANITIZED_IMAGE}_amd64${OLD_EXT}"
+            NEW_FILE="${PKGNAME}-dbgsym_${SANITIZED_IMAGE}_amd64${NEW_EXT}"
+            CHANGES_FILE="${PKGNAME}_${SANITIZED_IMAGE}_amd64.changes"
+
+            mv "../$OLD_FILE" "../$NEW_FILE"
+            sed -i "s/${OLD_FILE}/${NEW_FILE}/g" "../$CHANGES_FILE"
+          fi
+          
+          DBG_FILE="../${PKGNAME}-dbgsym_${SANITIZED_IMAGE}_amd64.deb"
+          DEV_FILE="../${PKGNAME}-dev_${SANITIZED_IMAGE}_amd64.deb"
+          DEB_FILE="../${PKGNAME}_${SANITIZED_IMAGE}_amd64.deb"
+          CHANGES_FILE="../${PKGNAME}_${SANITIZED_IMAGE}_amd64.changes"
+          BUILDINFO_FILE="../${PKGNAME}_${SANITIZED_IMAGE}_amd64.buildinfo"
+          DSC_FILE="../${PKGNAME}_${SANITIZED_IMAGE}.dsc"
+          TAR_FILE="../${PKGNAME}_${SANITIZED_IMAGE}.tar.gz"
+
+          for f in "$DEB_FILE" "$DEV_FILE" "$DBG_FILE" "$CHANGES_FILE" "$BUILDINFO_FILE" "$DSC_FILE" "$TAR_FILE"; do
+            [[ -f "$f" ]] || { echo "Missing file: $f"; exit 1; }
+          done
+
+          curl -X POST https://deb.burger-system.de/upload \
+            -H "Authorization: Bearer $DEPLOY_TOKEN" \
+            -F "deb=@$DEB_FILE" \
+            -F "deb-dev=@$DEV_FILE" \
+            -F "dbgsym=@$DBG_FILE" \
+            -F "changes=@$CHANGES_FILE" \
+            -F "buildinfo=@$BUILDINFO_FILE" \
+            -F "dsc=@$DSC_FILE" \
+            -F "source=@$TAR_FILE"
+      
+      - name: Collect .deb artifact
+        run: |
+          mkdir -p artifacts/
+          rsync -av --exclude=${PKGNAME} ../ artifacts/
 
       - name: Upload .deb package artifact
         uses: actions/upload-artifact@v4
         with:
-          name: robotkernel-${{ steps.sanitize.outputs.sanitized_image }}
-          path: artifacts/${{ matrix.os }}/${{ matrix.version }}/
-
-      - name: Debug artifact files
-        run: |
-          ls -l ./artifacts/${{ matrix.os }}/${{ matrix.version }}/
+          name: ${{ env.PKGNAME }}-artifacts-${{ steps.sanitize.outputs.sanitized_image }}
+          path: artifacts/
 
       # Fetch the release upload URL dynamically on tag builds
-      - name: Get Release Upload URL
-        if: startsWith(github.ref, 'refs/tags/')
-        id: get_release
-        run: |
-          release_json=$(curl -sSL \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Accept: application/vnd.github.v3+json" \
-            "https://api.github.com/repos/${{ github.repository }}/releases/tags/${GITHUB_REF_NAME}")
-          upload_url=$(echo "$release_json" | jq -r '.upload_url' | sed -e "s/{?name,label}//")
-          echo "upload_url=$upload_url" >> $GITHUB_OUTPUT
-        env:
-          GITHUB_REF_NAME: ${{ github.ref_name }}
-
-      - name: Upload asset manually with curl
+      - name: Upload all artifacts to Release
         if: startsWith(github.ref, 'refs/tags/')
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          UPLOAD_URL: ${{ steps.get_release.outputs.upload_url }}
-          FILE_PATH: ./artifacts/${{ matrix.os }}/${{ matrix.version }}/robotkernel_${{ steps.sanitize.outputs.sanitized_image }}.deb
-          FILE_PATH_DEV: ./artifacts/${{ matrix.os }}/${{ matrix.version }}/robotkernel-dev_${{ steps.sanitize.outputs.sanitized_image }}.deb
-          FILE_NAME: robotkernel_${{ steps.sanitize.outputs.sanitized_image }}.deb
-          FILE_NAME_DEV: robotkernel-dev_${{ steps.sanitize.outputs.sanitized_image }}.deb
+          GITHUB_REF_NAME: ${{ github.ref_name }}
         run: |
-          echo "Uploading $FILE_PATH to $UPLOAD_URL?name=$FILE_NAME"
-          curl --fail -X POST \
+          release_json=$(curl -sSL \
             -H "Authorization: token $GITHUB_TOKEN" \
-            -H "Content-Type: application/vnd.debian.binary-package" \
-            --data-binary @"$FILE_PATH" \
-            "$UPLOAD_URL?name=$FILE_NAME"
-          
-          echo "Uploading $FILE_PATH_DEV to $UPLOAD_URL?name=$FILE_NAME_DEV"
-          curl --fail -X POST \
-            -H "Authorization: token $GITHUB_TOKEN" \
-            -H "Content-Type: application/vnd.debian.binary-package" \
-            --data-binary @"$FILE_PATH_DEV" \
-            "$UPLOAD_URL?name=$FILE_NAME_DEV"
-
-      - name: Upload to Cloudsmith (${{ matrix.os }}/${{ matrix.version }})
-        #if: startsWith(github.ref, 'refs/tags/')
-        env:
-          CLOUDSMITH_API_KEY: ${{ secrets.CLOUDSMITH_API_KEY }}
-        shell: bash
-        run: |
-          FILENAME="artifacts/${{ matrix.os }}/${{ matrix.version }}/robotkernel_${{ steps.sanitize.outputs.sanitized_image }}.deb"
-          FILENAME_DEV="artifacts/${{ matrix.os }}/${{ matrix.version }}/robotkernel-dev_${{ steps.sanitize.outputs.sanitized_image }}.deb"
-        
-          python3 -m venv cloudsmith
-          cd cloudsmith
-          source bin/activate
-
-          python3 -m pip install --upgrade pip
-          pip3 install cloudsmith-cli
-
-          cloudsmith push deb robertburger/robotkernel/${{ matrix.os }}/${{ matrix.version }} ../${FILENAME} \
-            --republish \
-            --api-key "$CLOUDSMITH_API_KEY"
-          
-          cloudsmith push deb robertburger/robotkernel/${{ matrix.os }}/${{ matrix.version }} ../${FILENAME_DEV} \
-            --republish \
-            --api-key "$CLOUDSMITH_API_KEY"
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/${{ github.repository }}/releases/tags/${GITHUB_REF_NAME}")
+      
+          upload_url=$(echo "$release_json" | jq -r '.upload_url' | sed -e "s/{?name,label}//")
+          echo "Release upload URL: $upload_url"
+      
+          if [ -d "./artifacts" ]; then
+            for file in ./artifacts/*; do
+              filename=$(basename "$file")
+              echo "Uploading $file as $filename"
+              curl --fail -X POST \
+                -H "Authorization: token $GITHUB_TOKEN" \
+                -H "Content-Type: application/octet-stream" \
+                --data-binary @"$file" \
+                "$upload_url?name=$filename"
+            done
+          else
+            echo "Artifacts directory not found, skipping upload."
+          fi
