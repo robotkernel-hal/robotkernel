@@ -56,7 +56,7 @@ jobs:
         shell: bash
         run: |
           apt-get update
-          apt-get install -y build-essential devscripts debhelper autotools-dev autoconf-archive pkg-config fakeroot sed git tar gzip python3-pip python3-venv curl jq libyaml-cpp-dev
+          apt-get install -y build-essential devscripts debhelper autoconf-archive autotools-dev pkg-config sed git tar gzip curl jq libyaml-cpp-dev rsync
           
           CODENAME=$(lsb_release -sc)
           curl -fsSL https://deb.burger-system.de/deb.burger-system.de.gpg | tee /usr/share/keyrings/deb.burger-system.de.gpg > /dev/null
