@@ -1,4 +1,4 @@
-robotkernel (6.0.0~pre3) unstable; urgency=low
+robotkernel (6.0.0) unstable; urgency=low
 
   * prepare: 6.0.0
   * update: debian description
