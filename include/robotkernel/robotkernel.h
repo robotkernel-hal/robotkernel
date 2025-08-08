@@ -30,6 +30,9 @@
 #include "robotkernel/device.h"
 #include "robotkernel/device_listener.h"
 #include "robotkernel/service.h"
+#include "robotkernel/trigger.h"
+#include "robotkernel/process_data.h"
+#include "robotkernel/stream.h"
 #include "robotkernel/helpers.h"
 
 namespace robotkernel {
@@ -108,6 +111,7 @@ inline std::shared_ptr<T> get_device(const std::string& dev_name) {
 extern const std::string name(void);
 
 }; // namespace robotkernel;
+        
 
 #endif // ROBOTKERNEL_KERNEL_BASE_H
 
