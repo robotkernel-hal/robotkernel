@@ -9,18 +9,19 @@
 /*
  * This file is part of robotkernel.
  *
- * robotkernel is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
+ * robotkernel is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ * 
  * robotkernel is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with robotkernel; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
 // public headers
@@ -29,7 +30,6 @@
 
 // private headers
 #include "kernel.h"
-#include "kernel_worker.h"
 #include "service_provider.h"
 
 #include <sys/stat.h>
@@ -42,7 +42,6 @@
 
 using namespace std;
 using namespace robotkernel;
-using namespace string_util;
 
 //! service_provider construction
 /*!
@@ -97,7 +96,7 @@ service_provider::~service_provider() {
  */
 void service_provider::add_interface(sp_service_interface_t req) {
     if (!sp_handle)
-        throw str_exception("%s not configured!\n", name.c_str());
+        throw runtime_error(string_printf("%s not configured!\n", name.c_str()));
 
     if (!sp_add_interface) {
         robotkernel::kernel::instance.log(error, "%s error: no sp_add_interface function\n", name.c_str());
@@ -114,7 +113,7 @@ void service_provider::add_interface(sp_service_interface_t req) {
  */
 void service_provider::remove_interface(sp_service_interface_t req) {
     if (!sp_handle)
-        throw str_exception("%s not configured!\n", name.c_str());
+        throw runtime_error(string_printf("%s not configured!\n", name.c_str()));
 
     if (!sp_remove_interface) {
         robotkernel::kernel::instance.log(error, "%s error: no sp_remove_interface function\n", name.c_str());
@@ -130,7 +129,7 @@ void service_provider::remove_interface(sp_service_interface_t req) {
  */
 void service_provider::remove_module(std::string mod_name) {
     if (!sp_handle)
-        throw str_exception("%s not configured!\n", name.c_str());
+        throw runtime_error(string_printf("%s not configured!\n", name.c_str()));
 
     if (!sp_remove_module) {
         robotkernel::kernel::instance.log(error, "%s error: no sp_remove_module function\n", name.c_str());
@@ -146,10 +145,10 @@ void service_provider::remove_module(std::string mod_name) {
  */
 bool service_provider::test_interface(sp_service_interface_t req) {
     if (!sp_handle)
-        throw str_exception("%s not configured!\n", name.c_str());
+        throw runtime_error(string_printf("%s not configured!\n", name.c_str()));
 
     if (!sp_test_interface) {
-        throw str_exception("%s error: no sp_test_interface\n", name.c_str());
+        throw runtime_error(string_printf("%s error: no sp_test_interface\n", name.c_str()));
     }
 
     return sp_test_interface(sp_handle, req);

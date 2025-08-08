@@ -9,18 +9,19 @@
 /*
  * This file is part of robotkernel.
  *
- * robotkernel is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
+ * robotkernel is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ * 
  * robotkernel is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with robotkernel; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
 // public headers
@@ -169,13 +170,13 @@ void log_thread::run() {
             struct tm timeinfo;
             double timestamp = (double)obj->ts.tv_sec + (obj->ts.tv_nsec / 1e9);
             time_t seconds = (time_t)timestamp;
-            double mseconds = (timestamp - (double)seconds) * 1000.;
+            int mseconds = (timestamp - (double)seconds) * 1000;
             localtime_r(&seconds, &timeinfo);
             strftime(&tmp_buf[0], sizeof(tmp_buf), "%F %T", &timeinfo);
 
 
             int len = strlen(&tmp_buf[0]);
-            snprintf(&tmp_buf[len], sizeof(tmp_buf) - len, ".%03.0f ", mseconds);
+            snprintf(&tmp_buf[len], sizeof(tmp_buf) - len, ".%03d ", mseconds);
             len = strlen(&tmp_buf[0]);
             snprintf(&tmp_buf[len], sizeof(tmp_buf) - len, "%s %s", 
                     kernel::instance.ll_to_string(obj->lvl).c_str(), obj->buf);

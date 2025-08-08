@@ -9,18 +9,19 @@
 /*
  * This file is part of robotkernel.
  *
- * robotkernel is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
+ * robotkernel is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ * 
  * robotkernel is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with robotkernel; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
 // public headers
@@ -29,11 +30,8 @@
 // private headers
 #include "kernel.h"
 
-#include "string_util/string_util.h"
-
 using namespace std;
 using namespace robotkernel;
-using namespace string_util;
 
 bool trigger_worker::worker_key::operator<(const worker_key& a) const {
     if (prio < a.prio)
@@ -55,7 +53,7 @@ bool trigger_worker::worker_key::operator<(const worker_key& a) const {
 }
 
 trigger_worker::trigger_worker(int prio, int affinity_mask, int divisor) :
-    runnable(prio, affinity_mask, format_string("trigger_worker.prio_%d."
+    runnable(prio, affinity_mask, string_printf("trigger_worker.prio_%d."
                 "affinity_mask_%d.divisor_%d", prio, affinity_mask, divisor)), 
     trigger_base(divisor) 
 {
@@ -79,7 +77,7 @@ void trigger_worker::add_trigger(sp_trigger_base_t trigger) {
     // push to module list
     for (const auto& t : triggers) {
         if (t == trigger) 
-            throw str_exception("there was a try to register a trigger twice!");
+            throw runtime_error(string_printf("there was a try to register a trigger twice!"));
     }
 
     std::unique_lock<std::mutex> lock(mtx);

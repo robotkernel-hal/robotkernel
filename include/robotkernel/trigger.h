@@ -9,18 +9,19 @@
 /*
  * This file is part of robotkernel.
  *
- * robotkernel is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
+ * robotkernel is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ * 
  * robotkernel is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with robotkernel; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
 #ifndef ROBOTKERNEL__TRIGGER_H
@@ -28,6 +29,7 @@
 
 #include <string>
 #include <mutex>
+#include <stdexcept>
 
 // public headers
 #include "robotkernel/runnable.h"
@@ -35,12 +37,7 @@
 #include "robotkernel/trigger_base.h"
 #include "robotkernel/trigger_worker.h"
 
-#include <string_util/string_util.h>
-
 namespace robotkernel {
-#ifdef EMACS
-}
-#endif
 
 //! trigger waiter class
 class trigger_waiter : 
@@ -67,7 +64,7 @@ class trigger_waiter :
         void wait(double timeout, std::unique_lock<std::mutex>& lock) {
             if (cond.wait_for(lock, std::chrono::nanoseconds(
                             (uint64_t)(timeout * 1000000000))) == std::cv_status::timeout)
-                throw string_util::str_exception("timeout waiting for trigger");
+                throw std::runtime_error("timeout waiting for trigger");
         }
 };
 
@@ -145,9 +142,6 @@ class trigger :
 typedef std::shared_ptr<trigger> sp_trigger_t;
 typedef std::map<std::string, sp_trigger_t> trigger_map_t;
 
-#ifdef EMACS 
-{
-#endif
 } // namespace robotkernel
 
 #endif // ROBOTKERNEL__TRIGGER_H

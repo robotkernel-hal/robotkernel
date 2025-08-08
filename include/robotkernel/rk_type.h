@@ -10,18 +10,19 @@
 /*
  * This file is part of robotkernel.
  *
- * robotkernel is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
+ * robotkernel is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ * 
  * robotkernel is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with robotkernel; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
 #ifndef ROBOTKERNEL__RK_TYPE_H
@@ -31,13 +32,10 @@
 #include <typeindex>
 #include <map>
 #include <mutex>
-
-#include "string_util/string_util.h"
+#include <stdexcept>
+#include <vector>
 
 namespace robotkernel {
-#ifdef EMACS
-}
-#endif
 
 typedef std::map<uint8_t *, size_t> reference_map_t;
 
@@ -51,20 +49,28 @@ class rk_type {
 
         std::type_index __type;     //!< data type for type conversions
         uint8_t *__value;           //!< data storage pointer
+        std::function<void(void*)> __value_deleter;
 
         void decrease_reference(uint8_t *ref) {
             if (!ref) {
                 return;
             }
 
-            std::unique_lock<std::mutex> lock(__refsLock);
+            {
+                std::unique_lock<std::mutex> lock(__refsLock);
 
-            if (__refs[ref] <= 1) {
+                reference_map_t::iterator r = __refs.find(ref);
+                if (r == __refs.end())
+                    return; // should not happen!
+
+                if (r->second > 1) {
+                    r->second --;
+                    return;
+                }
                 __refs.erase(ref);
-                delete ref;
-            } else {
-                __refs[ref] = __refs[ref] - 1;
             }
+            // need to do this without lock held!
+            __value_deleter(ref);
         }
 
         void increase_reference(uint8_t *ref) {
@@ -118,6 +124,7 @@ class rk_type {
         template<typename T>
             rk_type(const T &value) : __type(typeid(T)), __value(NULL) {
                 set_value((uint8_t *) new T);
+                __value_deleter = [](void* p) { delete static_cast<T*>(p); };
                 *((T *) __value) = value;
             }
 
@@ -127,6 +134,7 @@ class rk_type {
          */
         rk_type(const rk_type &obj) : __type(obj.__type), __value(NULL) {
             set_value(obj.__value);
+            __value_deleter = obj.__value_deleter;
         }
 
         //! assign operator
@@ -135,6 +143,7 @@ class rk_type {
          */
         rk_type &operator=(rk_type rhs) {
             set_value(rhs.__value);
+            __value_deleter = rhs.__value_deleter;
             __type = rhs.__type;
             return *this;
         }
@@ -146,9 +155,9 @@ class rk_type {
         template<typename T>
             operator T() const {
                 if (__type != typeid(T)) {
-                    throw string_util::str_exception("Unsupported cast");
+                    throw std::runtime_error(std::string("Unsupported cast"));
                 } else if (__value == NULL) {
-                    throw string_util::str_exception("Uninitialized value!");
+                    throw std::runtime_error(std::string("Uninitialized value!"));
                 }
                 return *static_cast<T *>((void *) __value);
             }

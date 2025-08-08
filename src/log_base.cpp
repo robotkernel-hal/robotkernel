@@ -9,21 +9,20 @@
 /*
  * This file is part of robotkernel.
  *
- * robotkernel is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
+ * robotkernel is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ * 
  * robotkernel is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with robotkernel; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-
-#include <string_util/string_util.h>
 
 // public headers
 #include "robotkernel/log_base.h"
@@ -43,7 +42,6 @@
 using namespace std;
 using namespace std::placeholders;
 using namespace robotkernel;
-using namespace string_util;
 
 //! construction
 /*!
@@ -68,8 +66,8 @@ log_base::log_base(const std::string& name, const std::string& impl,
     // search for loglevel
     if (node.IsDefined() && !node.IsNull()) {
         if (!node.IsMap())
-            throw str_exception("module `config` needs to be a yaml-mapping! -- you provided:\n```yaml\n%s\n```",
-                                YAML::Dump(node).c_str());
+            throw runtime_error(string_printf("module `config` needs to be a yaml-mapping! -- you provided:\n```yaml\n%s\n```",
+                                YAML::Dump(node).c_str()));
         if (node["loglevel"]) {
             ll = info;
             std::string ll_string = get_as<std::string>(node, "loglevel", "");

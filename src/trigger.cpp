@@ -9,18 +9,19 @@
 /*
  * This file is part of robotkernel.
  *
- * robotkernel is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
+ * robotkernel is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ * 
  * robotkernel is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with robotkernel; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
 // public headers
@@ -30,13 +31,10 @@
 // private headers
 #include "kernel.h"
 
-#include "string_util/string_util.h"
-
 #include <condition_variable>
 
 using namespace std;
 using namespace robotkernel;
-using namespace string_util;
 
 // construction
 trigger::trigger(const std::string& owner, const std::string& name, double rate) 
@@ -112,7 +110,7 @@ void trigger::wait(double timeout) {
     
     try {
         waiter->wait(timeout);
-    } catch (str_exception& e) {
+    } catch (runtime_error& e) {
         remove_trigger(waiter);
         throw e;
     }
@@ -128,14 +126,14 @@ void trigger::wait(double timeout) {
  * \param new_rate new trigger rate to set
  */
 void trigger::set_rate(double new_rate) {
-    throw str_exception("setting rate not permitted!");
+    throw runtime_error(string_printf("setting rate not permitted!"));
 }
 
 //! trigger all modules in list
 void trigger::do_trigger() {
     std::unique_lock<std::mutex> lock(list_mtx);
 
-    for (auto& t : triggers) {
+    for (const auto& t : triggers) {
         if (((++t->cnt) % t->divisor) == 0) {
             t->cnt = 0;
 

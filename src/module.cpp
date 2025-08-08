@@ -9,30 +9,29 @@
 /*
  * This file is part of robotkernel.
  *
- * robotkernel is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
+ * robotkernel is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ * 
  * robotkernel is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with robotkernel; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
 // public headers 
 #include "robotkernel/exceptions.h"
 #include "robotkernel/helpers.h"
-#include "robotkernel/trigger.h"
 #include "robotkernel/service_definitions.h"
 
 // private headers 
 #include "kernel.h"
 #include "module.h"
-#include "kernel_worker.h"
 
 #include <sys/stat.h>
 #include <dlfcn.h>
@@ -52,7 +51,6 @@
 using namespace std;
 using namespace std::placeholders;
 using namespace robotkernel;
-using namespace string_util;
 
 const char string_state_error[]   = "<ERROR>";
 const char string_state_init[]    = "<INIT>";
@@ -128,59 +126,6 @@ module_state_t string_to_state(const char* state_ptr) {
     return module_state_init;
 }
 
-//! generate new trigger object
-/*!
- * \param node configuration node
- */
-module::external_trigger::external_trigger(const YAML::Node& node) {
-    dev_name       = get_as<string>(node, "dev_name");
-    prio           = 0;
-    affinity_mask  = 0;
-    divisor        = get_as<int>(node, "divisor", 1);
-    direct_mode    = get_as<bool>(node, "direct_mode", false);
-
-    if (node["prio"]) {
-        prio = get_as<int>(node, "prio");
-    }
-
-    if(node["affinity"]) {
-        const YAML::Node& affinity = node["affinity"];
-        if (affinity.Type() == YAML::NodeType::Scalar)
-            affinity_mask = (1 << affinity.as<int>());
-        else if (affinity.Type() == YAML::NodeType::Sequence)
-            for (YAML::const_iterator it = affinity.begin(); it != affinity.end(); ++it)
-                affinity_mask |= (1 << it->as<int>());
-    }
-}
-
-YAML::Emitter& operator<<(YAML::Emitter& out, const module::external_trigger& t) {
-    out << YAML::BeginMap;
-    out << YAML::Key << "dev_name" << YAML::Value << t.dev_name;
-
-    if (t.direct_mode)
-        out << YAML::Key << "direct_mode" << YAML::Value << t.direct_mode;
-    else {
-        if (t.prio)
-            out << YAML::Key << "prio"     << YAML::Value << t.prio;
-        if (t.affinity_mask) {
-            out << YAML::Key << "affinity" << YAML::Value;
-
-            out << YAML::Flow;
-            out << YAML::BeginSeq;
-            for (int i = 0; i < 32; ++i)
-                if (t.affinity_mask & (1 << i))
-                    out << i;
-            out << YAML::EndSeq;
-        }
-    }
-
-    if (t.divisor != 1)
-        out << YAML::Key << "divisor"  << YAML::Value << t.divisor;
-    out << YAML::EndMap;
-
-    return out;
-}
-
 YAML::Emitter& operator<<(YAML::Emitter& out, const robotkernel::module& mdl) {
     out << YAML::BeginMap;
     out << YAML::Key << "name" << YAML::Value << mdl.name;
@@ -192,17 +137,6 @@ YAML::Emitter& operator<<(YAML::Emitter& out, const robotkernel::module& mdl) {
         out << YAML::Value << node;
     }
 
-    if (!mdl.triggers.empty()) {
-        out << YAML::Key << "trigger";
-        out << YAML::Value << YAML::BeginSeq;
-
-        for (module::trigger_list_t::const_iterator it = mdl.triggers.begin(); 
-                it != mdl.triggers.end(); ++it)
-            out << **it;
-
-        out << YAML::EndSeq;
-    }
-
     if (!mdl.depends.empty()) {
         out << YAML::Key << "depends" << YAML::Value;
         out << YAML::Flow << YAML::BeginSeq;
@@ -211,6 +145,8 @@ YAML::Emitter& operator<<(YAML::Emitter& out, const robotkernel::module& mdl) {
             out << *it;
         out << YAML::EndSeq;
     }
+
+    // TODO excludes
 
     out << YAML::EndMap;
     return out;
@@ -227,29 +163,12 @@ module::module(const YAML::Node& node)
 
     currently_loading_module = this;
     
-    if (node["trigger"]) {
-        for (YAML::const_iterator it = node["trigger"].begin(); 
-                it != node["trigger"].end(); ++it) {
-            try {
-                external_trigger *trigger = new external_trigger(*it);
-                triggers.push_back(trigger);
-            } catch (YAML::Exception& e) {
-                YAML::Emitter t;
-                t << node["trigger"];
-                robotkernel::kernel::instance.log(error, "%s exception creating external trigger: %s\n"
-                        "got config string: \n====\n%s\n====\n",
-                        name.c_str(), e.what(), t.c_str());
-                throw;
-            }
-        }
-    }
-
     if (node["depends"]) {
         if (node["depends"].Type() == YAML::NodeType::Scalar) {
             std::string tmp = get_as<std::string>(node, "depends");
 
             if (tmp == name)
-                throw str_exception("module %s depends on itself?\n", name.c_str());
+                throw runtime_error(string_printf("module %s depends on itself?\n", name.c_str()));
 
             depends.push_back(tmp); 
         } else if (node["depends"].Type() == YAML::NodeType::Sequence) {
@@ -258,7 +177,7 @@ module::module(const YAML::Node& node)
                 std::string tmp = it->as<std::string>();
 
                 if (tmp == name)
-                    throw str_exception("module %s depends on itself?\n", name.c_str());
+                    throw runtime_error(string_printf("module %s depends on itself?\n", name.c_str()));
 
                 depends.push_back(tmp); 
             }
@@ -270,7 +189,7 @@ module::module(const YAML::Node& node)
             std::string tmp = get_as<std::string>(node, "excludes");
 
             if (tmp == name)
-                throw str_exception("module %s excludes on itself?\n", name.c_str());
+                throw runtime_error(string_printf("module %s excludes on itself?\n", name.c_str()));
 
             excludes.push_back(tmp); 
         } else if (node["excludes"].Type() == YAML::NodeType::Sequence) {
@@ -279,7 +198,7 @@ module::module(const YAML::Node& node)
                 std::string tmp = it->as<std::string>();
 
                 if (tmp == name)
-                    throw str_exception("module %s excludes on itself?\n", name.c_str());
+                    throw runtime_error(string_printf("module %s excludes on itself?\n", name.c_str()));
 
                 excludes.push_back(tmp); 
             }
@@ -309,7 +228,6 @@ void module::_init() {
     mod_unconfigure         = (mod_unconfigure_t)       dlsym(so_handle, "mod_unconfigure");
     mod_set_state           = (mod_set_state_t)         dlsym(so_handle, "mod_set_state");
     mod_get_state           = (mod_get_state_t)         dlsym(so_handle, "mod_get_state");
-    mod_tick                = (mod_tick_t)              dlsym(so_handle, "mod_tick");
 
     if (!mod_configure)
         robotkernel::kernel::instance.log(warning, "missing mod_configure in %s\n", file_name.c_str());;
@@ -319,8 +237,6 @@ void module::_init() {
         robotkernel::kernel::instance.log(verbose, "missing mod_set_state in %s\n", file_name.c_str());
     if (!mod_get_state)
         robotkernel::kernel::instance.log(verbose, "missing mod_get_state in %s\n", file_name.c_str());
-    if (!mod_tick)
-        robotkernel::kernel::instance.log(verbose, "missing mod_tick in %s\n", file_name.c_str());
 
     // try to configure
     reconfigure();
@@ -344,8 +260,8 @@ bool module::reconfigure() {
     }
 
     if (!mod_handle) {
-        throw str_exception("mod_handle of %s is NULL, can not proceed!\n"
-                "(does module export mod_configure() function?)", file_name.c_str());
+        throw runtime_error(string_printf("mod_handle of %s is NULL, can not proceed!\n"
+                "(does module export mod_configure() function?)", file_name.c_str()));
     }
 
     return configured();
@@ -357,13 +273,6 @@ bool module::reconfigure() {
   */
 module::~module() {
     robotkernel::kernel::instance.log(verbose, "%s destructing %s\n", name.c_str(), file_name.c_str());
-
-    while (!triggers.empty()) {
-        external_trigger *trigger = triggers.front();
-        triggers.pop_front();
-
-        delete trigger;
-    }
 
     // unconfigure module first
     if (mod_handle && mod_unconfigure) {
@@ -383,7 +292,7 @@ module::~module() {
   */
 int module::set_state(module_state_t state) {
     if (!mod_handle)
-        throw str_exception("%s not configured\n", name.c_str());
+        throw runtime_error(string_printf("%s not configured\n", name.c_str()));
 
     if (!mod_set_state) {
         robotkernel::kernel::instance.log(error, "%s error: no mod_set_state function\n", name.c_str());
@@ -426,16 +335,8 @@ int module::set_state(module_state_t state) {
         case safeop_2_preop:
         case safeop_2_init:
         case safeop_2_boot:
-            // ====> stop receiving measurements, unregistering triggers
+            // ====> stop receiving measurements
             set_state__check(module_state_preop);
-
-            for (const auto& et : triggers) {
-                robotkernel::kernel::instance.log(info, "%s removing module trigger %s\n",
-                        name.c_str(), et->dev_name.c_str());
-                
-                auto t_dev = kernel::instance.get_device<trigger>(et->dev_name);
-                t_dev->remove_trigger(shared_from_this());
-            } 
             
             if (state == module_state_preop)
                 break;
@@ -470,16 +371,7 @@ int module::set_state(module_state_t state) {
                 break;
         case preop_2_op:
         case preop_2_safeop:
-            // ====> start receiving measurements, registering triggers
-            for (const auto& et : triggers) {
-                robotkernel::kernel::instance.log(info, "%s adding module trigger \"%s\"\n",
-                        name.c_str(), et->dev_name.c_str());
-                
-                auto t_dev = kernel::instance.get_device<trigger>(et->dev_name);
-                divisor = et->divisor;
-                t_dev->add_trigger(shared_from_this(), et->direct_mode, et->prio, et->affinity_mask);
-            }
-            
+            // ====> start receiving measurements
             set_state__check(module_state_safeop);
 
             if (state == module_state_safeop)
@@ -509,7 +401,7 @@ int module::set_state(module_state_t state) {
   */
 module_state_t module::get_state() {
     if (!mod_handle)
-        throw str_exception("%s not configured\n", name.c_str());
+        throw runtime_error(string_printf("%s not configured\n", name.c_str()));
 
     if (!mod_get_state) {
         robotkernel::kernel::instance.log(error, "%s error: no mod_get_state function\n", name.c_str()); 
@@ -518,20 +410,6 @@ module_state_t module::get_state() {
 
     return mod_get_state(mod_handle); 
 }
-
-//! trigger module 
-/*!
-*/
-void module::tick() {
-    if (!mod_handle)
-        throw str_exception("[%s] not configured\n", name.c_str());
-
-    if (!mod_tick)
-        return;
-
-    (*mod_tick)(mod_handle);
-}
-
 
 //! set module state
 /*!

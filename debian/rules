@@ -1,8 +1,7 @@
 #!/usr/bin/make -f
 # See debhelper(7) (uncomment to enable)
 # output every command that modifies files on the build system.
-export DH_VERBOSE = 1
-
+# export DH_VERBOSE = 1
 
 # see FEATURE AREAS in dpkg-buildflags(1)
 #export DEB_BUILD_MAINT_OPTIONS = hardening=+all
@@ -13,15 +12,11 @@ export DH_VERBOSE = 1
 # package maintainers to append LDFLAGS
 #export DEB_LDFLAGS_MAINT_APPEND = -Wl,--as-needed
 	
-export GIT_VERSION = $(shell git describe --long --dirty --tags)
-
-override_dh_autoreconf:
-	sed 's/AC_INIT(.*/AC_INIT([robotkernel], [${GIT_VERSION}], [Robert Burger <robert.burger@dlr.de>])/' -i configure.ac
-	dh_autoreconf
-
 %:
 	dh $@
 
+override_dh_builddeb:
+	dh_builddeb -- -Zgzip
 
 # dh_make generated override targets
 # This is example for Cmake (See https://bugs.debian.org/641051 )

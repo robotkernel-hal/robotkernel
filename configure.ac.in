@@ -7,7 +7,7 @@ AC_PREREQ([2.63])
 # Robotkernel Version and Maintainer are extracted from project.properties file, change
 # them there if needed
 #
-AC_INIT([robotkernel], m4_esyscmd_s([git describe --long --dirty --tags]), [Robert Burger <robert.burger@dlr.de>])
+AC_INIT([robotkernel], [PACKAGE_VERSION], [Robert Burger <robert.burger@dlr.de>])
 
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADERS([include/robotkernel/config.h])
@@ -30,9 +30,10 @@ AC_PROG_LIBTOOL
 AC_PROG_INSTALL
 m4_ifdef([PKG_PROG_PKG_CONFIG], [PKG_PROG_PKG_CONFIG])
 m4_ifdef([PKG_INSTALLDIR], [PKG_INSTALLDIR], [pkgconfigdir='${libdir}/pkgconfig' AC_SUBST([pkgconfigdir])])
+AC_PATH_PROG(SERVICE_GENERATE, service_generate)
+AS_IF([test "$SERVICE_GENERATE" = ""], [AC_MSG_ERROR(["service_generate not found. Install robotkernel-service-helper!"])], [])
 
 PKG_CHECK_MODULES([LTTNG_UST], [lttng-ust], [enable_lttng=yes], [enable_lttng=no])
-PKG_CHECK_MODULES([LIBSTRING_UTIL], [libstring_util])
 PKG_CHECK_MODULES([YAML_CPP], [yaml-cpp], [], [AC_MSG_ERROR([yaml-cpp not found])])
 
 AM_CONDITIONAL([HAVE_LTTNG_UST], [test "$enable_lttng" == "yes"])

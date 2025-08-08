@@ -1,0 +1,194 @@
+name: Build and Publish Debian Package
+
+on:
+  push:
+
+jobs:
+  create_release:
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }}
+          release_name: Release ${{ github.ref_name }}
+          body: Automated release for tag ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+
+  build-deb:
+    runs-on: ubuntu-latest
+    env:
+      DEB_BUILD_OPTIONS: "compress=gzip nocheck"
+      PKGNAME: "robotkernel"
+    strategy:
+      matrix:
+        distro: [debian-12, debian-11, ubuntu-24.04, ubuntu-22.04]
+        include:
+          - distro: debian-12
+            image: debian:12
+            os: debian
+            version: bookworm
+          - distro: debian-11
+            image: debian:11
+            os: debian
+            version: bullseye
+          - distro: ubuntu-24.04
+            image: ubuntu:24.04
+            os: ubuntu
+            version: noble
+          - distro: ubuntu-22.04
+            image: ubuntu:22.04
+            os: ubuntu
+            version: jammy
+    container:
+      image: ${{ matrix.image }}
+
+    steps:
+      - name: Install build dependencies
+        shell: bash
+        run: |
+          apt-get update
+          apt-get install -y build-essential devscripts debhelper autoconf-archive autotools-dev pkg-config sed git tar gzip curl jq libyaml-cpp-dev rsync
+          
+          curl -fsSL https://deb.burger-system.de/setup.sh | bash > /dev/null
+          apt-get update
+          apt-get install -y robotkernel-service-helper
+
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Mark working directory as safe
+        run: git config --global --add safe.directory $GITHUB_WORKSPACE
+
+      - name: update branch name and version
+        run: |
+          VERSION=$(dpkg-parsechangelog | sed -n 's/^Version: //p')
+          sed "s|PACKAGE_VERSION|$VERSION|" configure.ac.in > configure.ac
+
+      - name: Build .deb package
+        shell: bash
+        run: |
+          # baue mit dpkg-buildpackage (ohne signieren)
+          export DEBEMAIL="robert.burger@dlr.de"
+          export DEBFULLNAME="Robert Burger"
+          CODENAME=$(lsb_release -sc)
+          VERSION=$(dpkg-parsechangelog --show-field Version)
+          PRE_VERSION="pre${GITHUB_RUN_NUMBER}"
+
+          # Check if version already contains codename suffix
+          if [[ "$VERSION" == *"~${CODENAME}"* || "$VERSION" == *"+${CODENAME}"* ]]; then
+            echo "Version already contains codename suffix, skipping dch."
+          else
+            if [[ ! $GITHUB_REF =~ ^refs/tags/ ]]; then
+              # Not a tag, so add ~pre<x>
+              FULL_VERSION="${VERSION}~${PRE_VERSION}-1~${CODENAME}-pre"
+              dch -b --newversion "${FULL_VERSION}" --distribution "${CODENAME}-pre" "Pre-release for ${CODENAME}-pre"
+            else
+              FULL_VERSION="${VERSION}-1~${CODENAME}"
+              dch --newversion "${FULL_VERSION}" --distribution "${CODENAME}" "Pre-release for ${CODENAME}"
+            fi
+          fi
+
+          dpkg-buildpackage -us -uc -sa
+
+      - name: Debug artifact files
+        run: |
+          ls -l ../
+          
+      - name: Set sanitized image name
+        id: sanitize
+        run: |
+          version=$(dpkg-parsechangelog | sed -n 's/^Version: //p')
+          echo "sanitized_image=$(echo "${version}" | tr '/:' '--')" >> $GITHUB_OUTPUT
+            
+      - name: Upload to APT repository
+        env:
+          DEPLOY_TOKEN: ${{ secrets.BS_UPLOAD_KEY }}
+        shell: bash
+        run: |
+          DISTRO="${{ matrix.distro }}"
+          SANITIZED_IMAGE="${{ steps.sanitize.outputs.sanitized_image }}"
+
+          if [[ "$DISTRO" == "ubuntu-24.04" || "$DISTRO" == "ubuntu-22.04" ]]; then
+            OLD_EXT=".ddeb"
+            NEW_EXT=".deb"
+
+            OLD_FILE="${PKGNAME}-dbgsym_${SANITIZED_IMAGE}_amd64${OLD_EXT}"
+            NEW_FILE="${PKGNAME}-dbgsym_${SANITIZED_IMAGE}_amd64${NEW_EXT}"
+            CHANGES_FILE="${PKGNAME}_${SANITIZED_IMAGE}_amd64.changes"
+
+            mv "../$OLD_FILE" "../$NEW_FILE"
+            sed -i "s/${OLD_FILE}/${NEW_FILE}/g" "../$CHANGES_FILE"
+          fi
+          
+          DBG_FILE="../${PKGNAME}-dbgsym_${SANITIZED_IMAGE}_amd64.deb"
+          DEV_FILE="../${PKGNAME}-dev_${SANITIZED_IMAGE}_amd64.deb"
+          DEB_FILE="../${PKGNAME}_${SANITIZED_IMAGE}_amd64.deb"
+          CHANGES_FILE="../${PKGNAME}_${SANITIZED_IMAGE}_amd64.changes"
+          BUILDINFO_FILE="../${PKGNAME}_${SANITIZED_IMAGE}_amd64.buildinfo"
+          DSC_FILE="../${PKGNAME}_${SANITIZED_IMAGE}.dsc"
+          TAR_FILE="../${PKGNAME}_${SANITIZED_IMAGE}.tar.gz"
+
+          for f in "$DEB_FILE" "$DEV_FILE" "$DBG_FILE" "$CHANGES_FILE" "$BUILDINFO_FILE" "$DSC_FILE" "$TAR_FILE"; do
+            [[ -f "$f" ]] || { echo "Missing file: $f"; exit 1; }
+          done
+
+          curl -X POST https://deb.burger-system.de/upload \
+            -H "Authorization: Bearer $DEPLOY_TOKEN" \
+            -F "deb=@$DEB_FILE" \
+            -F "deb-dev=@$DEV_FILE" \
+            -F "dbgsym=@$DBG_FILE" \
+            -F "changes=@$CHANGES_FILE" \
+            -F "buildinfo=@$BUILDINFO_FILE" \
+            -F "dsc=@$DSC_FILE" \
+            -F "source=@$TAR_FILE"
+      
+      - name: Collect .deb artifact
+        run: |
+          mkdir -p artifacts/
+          rsync -av --exclude=${PKGNAME} ../ artifacts/
+
+      - name: Upload .deb package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.PKGNAME }}-artifacts-${{ steps.sanitize.outputs.sanitized_image }}
+          path: artifacts/
+
+      # Fetch the release upload URL dynamically on tag builds
+      - name: Upload all artifacts to Release
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+        run: |
+          release_json=$(curl -sSL \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/${{ github.repository }}/releases/tags/${GITHUB_REF_NAME}")
+      
+          upload_url=$(echo "$release_json" | jq -r '.upload_url' | sed -e "s/{?name,label}//")
+          echo "Release upload URL: $upload_url"
+      
+          if [ -d "./artifacts" ]; then
+            for file in ./artifacts/*; do
+              filename=$(basename "$file")
+              echo "Uploading $file as $filename"
+              curl --fail -X POST \
+                -H "Authorization: token $GITHUB_TOKEN" \
+                -H "Content-Type: application/octet-stream" \
+                --data-binary @"$file" \
+                "$upload_url?name=$filename"
+            done
+          else
+            echo "Artifacts directory not found, skipping upload."
+          fi

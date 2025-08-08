@@ -9,18 +9,19 @@
 /*
  * This file is part of robotkernel.
  *
- * robotkernel is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
+ * robotkernel is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ * 
  * robotkernel is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with robotkernel; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
 #ifndef ROBOTKERNEL__KERNEL_H
@@ -29,6 +30,7 @@
 #include <string>
 #include <mutex>
 #include <functional>
+#include <stdexcept>
 
 #include <robotkernel/device_listener.h>
 #include <robotkernel/exceptions.h>
@@ -425,12 +427,12 @@ class kernel :
 template <typename T>
 inline std::shared_ptr<T> kernel::get_device(const std::string& dev_name) {
     if (device_map.find(dev_name) == device_map.end()) 
-        throw string_util::str_exception("device %s not found\n", dev_name.c_str());
+        throw std::runtime_error(robotkernel::string_printf("device %s not found\n", dev_name.c_str()));
 
     std::shared_ptr<T> retval = std::dynamic_pointer_cast<T>(device_map[dev_name]);
     if (!retval)
-        throw string_util::str_exception("device %s is not of type %s\n", 
-                dev_name.c_str(), typeid(T).name());
+        throw std::runtime_error(robotkernel::string_printf("device %s is not of type %s\n", 
+                dev_name.c_str(), typeid(T).name()));
 
     return retval;
 };

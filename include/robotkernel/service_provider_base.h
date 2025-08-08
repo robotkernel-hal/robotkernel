@@ -9,18 +9,19 @@
 /*
  * This file is part of robotkernel.
  *
- * robotkernel is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
+ * robotkernel is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ * 
  * robotkernel is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with robotkernel; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
 #ifndef ROBOTKERNEL_INTERFACE_BASE_H
@@ -42,9 +43,9 @@
 
 #include <map>
 #include <functional>
-#include <string_util/string_util.h>
 #include <typeindex>
 #include <typeinfo>
+#include <stdexcept>
 
 #ifdef __cplusplus
 #define EXPORT_C extern "C"
@@ -113,7 +114,7 @@ typedef const char* (*sp_get_sp_magic_t)(SERVICE_PROVIDER_HANDLE hdl);
         reinterpret_cast<struct spname ## _wrapper *>(hdl);            \
     std::shared_ptr<spclass> dev = wr->sp;                             \
     if (!dev)                                                          \
-        throw string_util::str_exception("["#spname"] invalid sp "     \
+        throw std::runtime_error("["#spname"] invalid sp "             \
                 "handle to <"#spclass" *>\n"); 
 
 #define SERVICE_PROVIDER_DEF(spname, spclass)                          \
@@ -125,12 +126,12 @@ EXPORT_C SERVICE_PROVIDER_HANDLE sp_register(const char* name) {       \
     struct spname ## _wrapper *wr;                                     \
     wr = new struct spname ## _wrapper();                              \
     if (!wr)                                                           \
-        throw string_util::str_exception(                              \
+        throw std::runtime_error(                                      \
                 "["#spname"] error allocating memory\n");              \
     wr->sp = std::make_shared<spclass>(name);                          \
     wr->sp->init();                                                    \
                                                                        \
-    return (SERVICE_PROVIDER_HANDLE)wr;                                          \
+    return (SERVICE_PROVIDER_HANDLE)wr;                                \
 }                                                                      \
                                                                        \
 EXPORT_C int sp_unregister(SERVICE_PROVIDER_HANDLE hdl) {              \

@@ -9,18 +9,19 @@
 /*
  * This file is part of robotkernel.
  *
- * robotkernel is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
+ * robotkernel is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ * 
  * robotkernel is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with robotkernel; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
 #ifndef ROBOTKERNEL_MODULE_BASE_H
@@ -30,8 +31,8 @@
 #include <stdint.h>
 #include <list>
 #include <stdio.h>
+#include <stdexcept>
 
-#include "robotkernel/trigger_base.h"
 #include "robotkernel/exceptions.h"
 #include "robotkernel/helpers.h"
 #include "robotkernel/log_base.h"
@@ -126,11 +127,6 @@ typedef int (*mod_set_state_t)(MODULE_HANDLE hdl, module_state_t state);
  */
 typedef module_state_t (*mod_get_state_t)(MODULE_HANDLE hdl);
 
-//! module tick callback
-/*!
- * \param hdl module handle
- */
-typedef void (*mod_tick_t)(MODULE_HANDLE hdl);
 
 // CPLUSPLUS Base Class
 #ifdef __cplusplus
@@ -140,18 +136,13 @@ typedef void (*mod_tick_t)(MODULE_HANDLE hdl);
         reinterpret_cast<struct impl ## _wrapper *>(hdl);                           \
     std::shared_ptr<modclass> dev = wr->sp;                                         \
     if (!dev)                                                                       \
-        throw string_util::str_exception("["#impl"] invalid module "                \
-                "handle to <"#modclass" *>\n"); 
+        throw std::runtime_error(robotkernel::string_printf("["#impl"] "            \
+                    "invalid module handle to <"#modclass" *>\n")); 
 
 #define MODULE_DEF(impl, modclass)                                                  \
 struct impl ## _wrapper {                                                           \
     std::shared_ptr<modclass> sp;                                                   \
 };                                                                                  \
-                                                                                    \
-EXPORT_C void mod_tick(MODULE_HANDLE hdl) {                                         \
-    HDL_2_MODCLASS(hdl, impl, modclass)                                             \
-    return dev->tick();                                                             \
-}                                                                                   \
                                                                                     \
 EXPORT_C size_t mod_set_state(MODULE_HANDLE hdl, module_state_t state) {            \
     HDL_2_MODCLASS(hdl, impl, modclass)                                             \
@@ -165,6 +156,7 @@ EXPORT_C module_state_t mod_get_state(MODULE_HANDLE hdl) {                      
                                                                                     \
 EXPORT_C int mod_unconfigure(MODULE_HANDLE hdl) {                                   \
     HDL_2_MODCLASS(hdl, impl, modclass)                                             \
+    wr->sp->deinit();                                                               \
     wr->sp = nullptr;                                                               \
     delete wr;                                                                      \
     return 0;                                                                       \
@@ -176,8 +168,8 @@ EXPORT_C MODULE_HANDLE mod_configure(const char* name, const char* config) {    
                                                                                     \
     wr = new struct impl ## _wrapper();                                             \
     if (!wr)                                                                        \
-        throw string_util::str_exception(                                           \
-                "["#impl"] error allocating memory\n");                             \
+        throw std::runtime_error(                                                   \
+                robotkernel::string_printf("["#impl"] error allocating memory\n")); \
     wr->sp = std::make_shared<modclass>(name, doc);                                 \
     wr->sp->init();                                                                 \
                                                                                     \
@@ -187,8 +179,7 @@ EXPORT_C MODULE_HANDLE mod_configure(const char* name, const char* config) {    
 namespace robotkernel {
 
 class module_base : 
-    public robotkernel::log_base,  
-    public robotkernel::trigger_base
+    public robotkernel::log_base
 {
     private:
         module_base();                  //!< prevent default construction
@@ -220,19 +211,13 @@ class module_base :
          * usefull to call shared_from_this() at construction time
          */
         virtual void init() {};
+        
+        //! Optional de-initiazation method
+        /* 
+         * usefull to call shared_from_this() at construction time
+         */
+        virtual void deinit() {};
     
-//        //! Get robotkernel module
-//        /*!
-//         * \returns Shared pointer to our robotkernel module class.
-//         */
-//        robotkernel::sp_module_t get_module();
-
-        //! Module trigger implementation.
-        virtual void tick() {
-            throw string_util::str_exception("[%s|%s] trigger not implemented!\n",
-                    impl.c_str(), name.c_str());
-        }
-
         //*********************************************
         // STATE MACHINE FUNCTIONS
         //*********************************************

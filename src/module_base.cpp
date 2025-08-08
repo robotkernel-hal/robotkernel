@@ -9,18 +9,19 @@
 /*
  * This file is part of robotkernel.
  *
- * robotkernel is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
+ * robotkernel is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ * 
  * robotkernel is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with robotkernel; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
 // public headers
@@ -40,12 +41,6 @@ module_base::module_base(const std::string& impl, const std::string& name, const
     log_base(name, impl, "", node), name(name), state(module_state_init)
 { }
 
-//// Get robotkernel module
-//robotkernel::sp_module_t module_base::get_module() {
-//    robotkernel::kernel& k = *robotkernel::kernel::get_instance();
-//    return k.get_module(name);
-//}
-
 //! Set module state machine to defined state.
 /*!
  * \param[in] state     Requested state which will be tried to switch to.
@@ -53,7 +48,6 @@ module_base::module_base(const std::string& impl, const std::string& name, const
  * \return success or failure
  */
 int module_base::set_state(module_state_t state) {
-    std::unique_lock<std::mutex> lock(state_mtx);
 
     // get transition
     uint32_t transition = GEN_STATE(this->state, state);
@@ -70,24 +64,33 @@ int module_base::set_state(module_state_t state) {
         case op_2_safeop:
         case op_2_preop:
         case op_2_init:
-        case op_2_boot:
+        case op_2_boot: {
             // ====> stop sending commands
+            std::unique_lock<std::mutex> lock(state_mtx);
             try_set_state(op_2_safeop);
+            this->state = module_state_safeop;
 
             if (state == module_state_safeop)
                 break;
+        }
         case safeop_2_preop:
         case safeop_2_init:
-        case safeop_2_boot:
+        case safeop_2_boot: {
             // ====> stop receiving measurements
+            std::unique_lock<std::mutex> lock(state_mtx);
             try_set_state(safeop_2_preop);
+            this->state = module_state_preop;
 
             if (state == module_state_preop)
                 break;
+        }
         case preop_2_init:
-        case preop_2_boot:
+        case preop_2_boot: {
             // ====> deinit devices
+            std::unique_lock<std::mutex> lock(state_mtx);
             try_set_state(preop_2_init);
+            this->state = module_state_init;
+        }
         case init_2_init:
             if (state == module_state_init)
                 break;
@@ -101,23 +104,32 @@ int module_base::set_state(module_state_t state) {
                 break;
         case init_2_op:
         case init_2_safeop:
-        case init_2_preop:
+        case init_2_preop: {
             // ====> init devices
+            std::unique_lock<std::mutex> lock(state_mtx);
             try_set_state(init_2_preop);
+            this->state = module_state_preop;
 
             if (state == module_state_preop)
                 break;
+        }
         case preop_2_op:
-        case preop_2_safeop:
+        case preop_2_safeop: {
             // ====> start receiving measurements
+            std::unique_lock<std::mutex> lock(state_mtx);
             try_set_state(preop_2_safeop);
+            this->state = module_state_safeop;
 
             if (state == module_state_safeop)
                 break;
-        case safeop_2_op:
+        }
+        case safeop_2_op: {
             // ====> start sending commands
+            std::unique_lock<std::mutex> lock(state_mtx);
             try_set_state(safeop_2_op);
+            this->state = module_state_op;
             break;
+        }
         case op_2_op:
         case safeop_2_safeop:
         case preop_2_preop:

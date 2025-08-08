@@ -56,7 +56,6 @@ librobotkernel_la_SOURCES = bridge.cpp				\
 					  robotkernel.cpp 				\
 					  module_base.cpp 			\
 					  kernel_c_wrapper.cpp      \
-					  kernel_worker.cpp       	\
 					  log_base.cpp 				\
 					  log_thread.cpp 			\
 					  module.cpp				\
@@ -74,7 +73,7 @@ librobotkernel_la_SOURCES = bridge.cpp				\
 librobotkernel_la_CXXFLAGS = -Wno-unused-local-typedefs 					\
 					   -I$(top_builddir)/include 		\
 					   -I$(srcdir) 						\
-					   @YAML_CPP_CFLAGS@ @LIBSTRING_UTIL_CFLAGS@ 
+					   @YAML_CPP_CFLAGS@ 
 
 librobotkernel_la_LDFLAGS=-static
 
@@ -111,10 +110,10 @@ robotkernel_SOURCES = main.cpp
 robotkernel_CXXFLAGS = -Wno-unused-local-typedefs 					\
 					   -I$(top_builddir)/include 		\
 					   -I$(srcdir) 						\
-					   @YAML_CPP_CFLAGS@ @LIBSTRING_UTIL_CFLAGS@ 
+					   @YAML_CPP_CFLAGS@ 
 
 robotkernel_LDFLAGS = -Wl,-export-dynamic -Bdynamic -Wl,--whole-archive,.libs/librobotkernel.a,--no-whole-archive
-robotkernel_LDADD = librobotkernel.la @PTHREAD_LIBS@ @YAML_CPP_LIBS@ @LIBSTRING_UTIL_LIBS@
+robotkernel_LDADD = librobotkernel.la @PTHREAD_LIBS@ @YAML_CPP_LIBS@ 
 
 if HAVE_LTTNG_UST
 robotkernel_CXXFLAGS += @LTTNG_UST_CFLAGS@

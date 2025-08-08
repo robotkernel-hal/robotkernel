@@ -9,26 +9,25 @@
 /*
  * This file is part of robotkernel.
  *
- * robotkernel is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
+ * robotkernel is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ * 
  * robotkernel is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with robotkernel; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
 #include <sys/stat.h>
 #include "rkc_loader.h"
 #include "kernel.h"
-#include "string_util/string_util.h"
 
-using namespace string_util;
 using namespace robotkernel;
 using namespace std;
 
@@ -62,7 +61,7 @@ void parse_node(YAML::Node e, const std::string& config_file_path) {
     
                 char *real_config_file = realpath(fn.c_str(), NULL);
                 if (!real_config_file)
-                    throw str_exception("supplied config file \"%s\" not found!", fn.c_str());
+                    throw runtime_error(string_printf("supplied config file \"%s\" not found!", fn.c_str()));
                 string file, new_config_file_path;
                 split_file_name(string(real_config_file), new_config_file_path, file);
                 
@@ -71,7 +70,7 @@ void parse_node(YAML::Node e, const std::string& config_file_path) {
                 struct stat buffer;   
                 int ret = stat(fn.c_str(), &buffer);
                 if(ret != 0) { // check failbit
-                    throw str_exception("could not open config file: %s", fn.c_str());
+                    throw runtime_error(string_printf("could not open config file: %s", fn.c_str()));
                 }
                 
                 e = YAML::LoadFile(fn);
@@ -81,8 +80,8 @@ void parse_node(YAML::Node e, const std::string& config_file_path) {
                 char* env_var = getenv(env_var_name.c_str());
 
                 if (nullptr == env_var) {
-                    throw str_exception("environment variable \"%s\" does not exist or is empty!", 
-                            env_var_name.c_str());
+                    throw runtime_error(string_printf("environment variable \"%s\" does not exist or is empty!", 
+                            env_var_name.c_str()));
                 }
 
                 e = YAML::Load(string(env_var));
@@ -90,7 +89,7 @@ void parse_node(YAML::Node e, const std::string& config_file_path) {
             } else if (e.Tag() == "!arg") {
                 string arg_name = e.as<string>();
                 if (arg_map.find(arg_name) == arg_map.end()) {
-                    throw str_exception("no argument name \"%s\" provided to robotkernel!", arg_name.c_str());
+                    throw runtime_error(string_printf("no argument name \"%s\" provided to robotkernel!", arg_name.c_str()));
                 }
 
                 e = YAML::Load(arg_map[arg_name]);

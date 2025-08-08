@@ -9,25 +9,25 @@
 /*
  * This file is part of robotkernel.
  *
- * robotkernel is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
+ * robotkernel is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ * 
  * robotkernel is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with robotkernel; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
 #include <sys/mman.h>
 #include <fstream>
 #include <iostream>
 #include <algorithm>
-#include <string_util/string_util.h>
 
 // public headers
 #include "robotkernel/helpers.h"
@@ -47,7 +47,6 @@
 using namespace std;
 using namespace std::placeholders;
 using namespace robotkernel;
-using namespace string_util;
 
 YAML::Node tmp = YAML::Clone(YAML::Node("dieses clone steht hier damit es vom "
             "linker beim statischen linken mit eingepackt wird"));
@@ -77,8 +76,8 @@ loglevel& loglevel::operator=(const std::string& ll_string) {
     else if (ll_string == "verbose")
         value = verbose;
     else
-        throw str_exception("wrong loglevel value \"%s\"",
-                ll_string.c_str());
+        throw runtime_error(string_printf("wrong loglevel value \"%s\"",
+                ll_string.c_str()));
 
     return *this;
 }
@@ -123,8 +122,8 @@ int kernel::set_state(std::string mod_name, module_state_t state,
         std::list<std::string> caller) {
     module_map_t::const_iterator it = module_map.find(mod_name);
     if (it == module_map.end())
-        throw str_exception("[robotkernel] set_state: module %s not "
-                "found!\n", mod_name.c_str());
+        throw runtime_error(string_printf("[robotkernel] set_state: module %s not "
+                "found!\n", mod_name.c_str()));
 
     sp_module_t mdl = it->second;
     if (mdl->get_state() == state)
@@ -206,8 +205,8 @@ int kernel::set_state(std::string mod_name, module_state_t state,
 
     if (mdl->set_state(state) == -1)
         // throw exception
-        throw str_exception("[robotkernel] ERROR: failed to switch module %s"
-                " to state %s!", mod_name.c_str(), state_to_string(state));
+        throw runtime_error(string_printf("[robotkernel] ERROR: failed to switch module %s"
+                " to state %s!", mod_name.c_str(), state_to_string(state)));
 
     return mdl->get_state();
 }
@@ -220,7 +219,7 @@ int kernel::set_state(std::string mod_name, module_state_t state,
 module_state_t kernel::get_state(std::string mod_name) {
     module_map_t::const_iterator it = module_map.find(mod_name);
     if (it == module_map.end())
-        throw str_exception("[robotkernel] get_state: module %s not found!\n", mod_name.c_str());
+        throw runtime_error(string_printf("[robotkernel] get_state: module %s not found!\n", mod_name.c_str()));
 
     log(verbose, "getting state of module %s\n",
             mod_name.c_str());
@@ -248,7 +247,7 @@ void kernel::call_service(const std::string& name,
         return;
     }
         
-    throw str_exception("service \"%s\" not found!\n", name.c_str());
+    throw runtime_error(string_printf("service \"%s\" not found!\n", name.c_str()));
 }
 
 //! call a robotkernel service
@@ -263,7 +262,7 @@ void kernel::call_service(const std::string& owner, const std::string& name,
     
     service_map_t::iterator it;
     if ((it = services.find(std::make_pair(owner, name))) == services.end()) {
-        throw str_exception("service \"%s.%s\" not found!\n", owner.c_str(), name.c_str());
+        throw runtime_error(string_printf("service \"%s.%s\" not found!\n", owner.c_str(), name.c_str()));
     }
     
     for (const auto& kv : bridge_map)
@@ -449,8 +448,8 @@ void kernel::add_datatype_desc(const std::string& name, const std::string& desc)
 
     if (dtm_it != datatypes_map.end()) {
         if ((*dtm_it).second.compare(desc) != 0) {
-            throw str_exception("registering datatype %s was not successfull, already found "
-                    "with different content!", name.c_str());
+            throw runtime_error(string_printf("registering datatype %s was not successfull, already found "
+                    "with different content!", name.c_str()));
         }
 
         return; // description is the same as alread in.
@@ -471,7 +470,7 @@ const std::string kernel::get_datatype_desc(const std::string&name) {
     datatypes_map_t::iterator dtm_it = datatypes_map.find(name);
 
     if (dtm_it == datatypes_map.end()) {
-        throw str_exception("getting datatype %s was not successfull, not found!", name.c_str());
+        throw runtime_error(string_printf("getting datatype %s was not successfull, not found!", name.c_str()));
     }
 
     return dtm_it->second;
@@ -494,8 +493,8 @@ void kernel::config(std::string config_file, int argc, char *argv[]) {
     char *real_exec_file = realpath("/proc/self/exe", NULL);
     string file;
     if (!real_exec_file)
-        throw str_exception("supplied exec file \"%s\" not found: %s", argv[0], 
-                strerror(errno));
+        throw runtime_error(string_printf("supplied exec file \"%s\" not found: %s", argv[0], 
+                strerror(errno)));
 
     split_file_name(string(real_exec_file), exec_file_path, file);
     log(verbose, "got exec path %s\n", exec_file_path.c_str());
@@ -543,7 +542,7 @@ void kernel::config(std::string config_file, int argc, char *argv[]) {
 
     char *real_config_file = realpath(config_file.c_str(), NULL);
     if (!real_config_file)
-        throw str_exception("supplied config file \"%s\" not found!", config_file.c_str());
+        throw runtime_error(string_printf("supplied config file \"%s\" not found!", config_file.c_str()));
 
     split_file_name(string(real_config_file), config_file_path, file);
 
@@ -575,7 +574,7 @@ void kernel::config(std::string config_file, int argc, char *argv[]) {
     if (do_log_to_trace_fd()) {
         trace_fd = open("/sys/kernel/debug/tracing/trace_marker", O_WRONLY);
         if (trace_fd == -1) 
-            throw errno_exception_tb("cannot open trace_marker\n");
+            throw runtime_error("cannot open trace_marker\n");
     }
     
     log_to_lttng_ust = get_as<bool>(doc, "log_to_lttng_ust", false);
@@ -604,18 +603,18 @@ void kernel::config(std::string config_file, int argc, char *argv[]) {
             mdl = make_shared<module>(*it);
         }
         catch(const exception& e) {
-            throw str_exception("exception while instantiating module %s:\n%s",
+            throw runtime_error(string_printf("exception while instantiating module %s:\n%s",
                                 get_as<string>(*it, "name", "<no name specified>").c_str(),
-                                e.what());
+                                e.what()));
         }
         if (!mdl->configured()) {
             string name = mdl->get_name();
-            throw str_exception("[robotkernel] module %s not configured!\n", name.c_str());
+            throw runtime_error(string_printf("[robotkernel] module %s not configured!\n", name.c_str()));
         }
 
         if (mdl->get_name() == _name){
             string name = mdl->get_name();
-            throw str_exception("[robotkernel] module name \"%s\" matches robotkernel name\n", name.c_str());
+            throw runtime_error(string_printf("[robotkernel] module name \"%s\" matches robotkernel name\n", name.c_str()));
         }
 
         {
@@ -623,7 +622,7 @@ void kernel::config(std::string config_file, int argc, char *argv[]) {
 
             if (module_map.find(mdl->get_name()) != module_map.end()) {
                 string name = mdl->get_name();
-                throw str_exception("[robotkernel] duplicate module name: %s\n", name.c_str());
+                throw runtime_error(string_printf("[robotkernel] duplicate module name: %s\n", name.c_str()));
             }
         }
 
@@ -641,19 +640,19 @@ void kernel::config(std::string config_file, int argc, char *argv[]) {
             brdg = make_shared<bridge>(*it);
         }
         catch(const exception& e) {
-            throw str_exception("exception while instantiating bridge %s:\n%s",
+            throw runtime_error(string_printf("exception while instantiating bridge %s:\n%s",
                                 get_as<string>(*it, "name", "<no name specified>").c_str(),
-                                e.what());
+                                e.what()));
         }
 
         if (brdg->name == _name){
             string name = brdg->name;
-            throw str_exception("[robotkernel] bridge name \"%s\" matches robotkernel name\n", name.c_str());
+            throw runtime_error(string_printf("[robotkernel] bridge name \"%s\" matches robotkernel name\n", name.c_str()));
         }
 
         if (bridge_map.find(brdg->name) != bridge_map.end()) {
-            throw str_exception("[robotkernel] duplicate module name: %s\n", 
-                    brdg->name.c_str());
+            throw runtime_error(string_printf("[robotkernel] duplicate module name: %s\n", 
+                    brdg->name.c_str()));
         }
 
         // add to module map
@@ -671,19 +670,19 @@ void kernel::config(std::string config_file, int argc, char *argv[]) {
             sp = make_shared<service_provider>(*it);
         }
         catch(const exception& e) {
-            throw str_exception("exception while instantiating service_provider %s:\n%s",
+            throw runtime_error(string_printf("exception while instantiating service_provider %s:\n%s",
                                 get_as<string>(*it, "name", "<no name specified>").c_str(),
-                                e.what());
+                                e.what()));
         }
 
         if (sp->name == _name){
             string name = sp->name;
-            throw str_exception("[robotkernel] service_provider name \"%s\" matches robotkernel name\n", name.c_str());
+            throw runtime_error(string_printf("[robotkernel] service_provider name \"%s\" matches robotkernel name\n", name.c_str()));
         }
 
         if (service_provider_map.find(sp->name) != service_provider_map.end()) {
-            throw str_exception("[robotkernel] duplicate module name: %s\n", 
-                    sp->name.c_str());
+            throw runtime_error(string_printf("[robotkernel] duplicate module name: %s\n", 
+                    sp->name.c_str()));
         }
 
         // add to module map
@@ -786,7 +785,7 @@ bool kernel::state_check(std::string mod_name, module_state_t state) {
 
     module_map_t::const_iterator it = module_map.find(mod_name);
     if (it == module_map.end())
-        throw str_exception("[robotkernel] state_check: module %s not found!\n", mod_name.c_str());
+        throw runtime_error(string_printf("[robotkernel] state_check: module %s not found!\n", mod_name.c_str()));
 
     sp_module_t mdl = it->second;
     return (mdl->get_state() == state);
@@ -815,8 +814,8 @@ bool kernel::state_check() {
 sp_module_t kernel::get_module(const std::string& mod_name) {
     module_map_t::const_iterator it = module_map.find(mod_name);
     if (it == module_map.end())
-        throw str_exception("[robotkernel] get_module: module %s not found!\n", 
-                mod_name.c_str());
+        throw runtime_error(string_printf("[robotkernel] get_module: module %s not found!\n", 
+                mod_name.c_str()));
 
     return it->second;
 }
@@ -831,8 +830,8 @@ int kernel::state_change(const char *mod_name, module_state_t new_state) {
     return 0;
     module_map_t::const_iterator it = module_map.find(mod_name);
     if (it == module_map.end())
-        throw str_exception("[robotkernel] state_change: module %s not "
-                "found!\n", mod_name);
+        throw runtime_error(string_printf("[robotkernel] state_change: module %s not "
+                "found!\n", mod_name));
 
     module_state_t current_state = it->second->get_state();
     if (new_state == current_state)
@@ -890,6 +889,11 @@ void kernel::add_device(sp_device_t req) {
 
     log(verbose, "registered device \"%s\"\n", map_index.c_str());
     device_map[map_index] = req;
+    
+    const auto& pd = std::dynamic_pointer_cast<process_data>(req);
+    if ((pd != nullptr) && pd->is_trigger_dev_generated()) {
+        add_device(pd->trigger_dev);
+    }
 
     for (const auto& kv : dl_map) 
         kv.second->notify_add_device(req);
@@ -898,6 +902,11 @@ void kernel::add_device(sp_device_t req) {
 // remove a named device
 void kernel::remove_device(sp_device_t req) {
     auto map_index = req->id();
+    
+    const auto& pd = std::dynamic_pointer_cast<process_data>(req);
+    if ((pd != nullptr) && pd->is_trigger_dev_generated()) {
+        remove_device(pd->trigger_dev);
+    }
 
     log(verbose, "removing device %s\n", map_index.c_str());
 
@@ -931,13 +940,13 @@ void kernel::load_module(const YAML::Node& config) {
     string name = get_as<string>(config, "name");
 
     if (module_map.find(name) != module_map.end()) {
-        throw str_exception("[robotkernel] duplicate module name: %s\n", name.c_str());
+        throw runtime_error(string_printf("[robotkernel] duplicate module name: %s\n", name.c_str()));
     }
 
     sp_module_t mdl = make_shared<module>(config);
 
     if (!mdl->configured()) {
-        throw str_exception("[robotkernel] module %s not configured!\n", name.c_str());
+        throw runtime_error(string_printf("[robotkernel] module %s not configured!\n", name.c_str()));
     }
 
     // add to module map
@@ -983,13 +992,7 @@ void kernel::svc_config_dump_log(
     else loglevel_to_string(info);
     else loglevel_to_string(verbose);
 
-    if(req.set_loglevel.size()) {
-        py_value *pval = eval_full(req.set_loglevel);
-        py_string *pstring = dynamic_cast<py_string *>(pval);
-
-        if (pstring) 
-            ll = string(*pstring);
-    }
+    ll = req.set_loglevel;
 }
 
 //! svc_add_module
@@ -1031,8 +1034,8 @@ void kernel::svc_remove_module(
         std::unique_lock<std::recursive_mutex> lock(module_map_mtx);
         module_map_t::iterator it = module_map.find(req.mod_name);
         if (it == module_map.end())
-            throw str_exception("[robotkernel] module %s not found!\n", 
-                    req.mod_name.c_str());
+            throw runtime_error(string_printf("[robotkernel] module %s not found!\n", 
+                    req.mod_name.c_str()));
 
         sp_module_t mdl = it->second;
         set_state(mdl->get_name(), module_state_init);
@@ -1087,8 +1090,8 @@ void kernel::svc_reconfigure_module(
         module_map_t::iterator it = module_map.find(req.mod_name);
         if (it == module_map.end()) {
             module_map_mtx.unlock();
-            throw str_exception("[robotkernel] module %s not found!\n", 
-                    req.mod_name.c_str());
+            throw runtime_error(string_printf("[robotkernel] module %s not found!\n", 
+                    req.mod_name.c_str()));
         }
 
         sp_module_t mdl = it->second;
@@ -1154,10 +1157,10 @@ void kernel::svc_process_data_info(
             resp.length    = pd->length;
         } else 
             resp.error_message = 
-                format_string("device with name \"%s\" is not a process data device!", req.name.c_str());
+                string_printf("device with name \"%s\" is not a process data device!", req.name.c_str());
     } else
         resp.error_message = 
-            format_string("process data device with name \"%s\" not found!", req.name.c_str());
+            string_printf("process data device with name \"%s\" not found!", req.name.c_str());
 }
 
 //! svc_trigger_info
@@ -1182,10 +1185,10 @@ void kernel::svc_trigger_info(
             resp.rate      = dev->get_rate();
         } else 
             resp.error_message = 
-                format_string("device with name \"%s\" is not a trigger device!", req.name.c_str());
+                string_printf("device with name \"%s\" is not a trigger device!", req.name.c_str());
     } else
         resp.error_message = 
-            format_string("device with name \"%s\" not found!", req.name.c_str());
+            string_printf("device with name \"%s\" not found!", req.name.c_str());
 }
 
 //! svc_stream_info
@@ -1208,10 +1211,10 @@ void kernel::svc_stream_info(
             resp.owner     = dev->owner;
         } else 
             resp.error_message = 
-                format_string("device with name \"%s\" is not a stream device!", req.name.c_str());
+                string_printf("device with name \"%s\" is not a stream device!", req.name.c_str());
     } else
         resp.error_message = 
-            format_string("device with name \"%s\" not found!", req.name.c_str());
+            string_printf("device with name \"%s\" not found!", req.name.c_str());
 }
 
 //! svc_service_interface_info
@@ -1234,10 +1237,10 @@ void kernel::svc_service_interface_info(
             resp.owner     = dev->owner;
         } else 
             resp.error_message = 
-                format_string("device with name \"%s\" is not a service_interface device!", req.name.c_str());
+                string_printf("device with name \"%s\" is not a service_interface device!", req.name.c_str());
     } else
         resp.error_message = 
-            format_string("device with name \"%s\" not found!", req.name.c_str());
+            string_printf("device with name \"%s\" not found!", req.name.c_str());
 }
 
 //! svc_add_pd_injection
@@ -1262,7 +1265,7 @@ void kernel::svc_add_pd_injection(
             pd_entry_t e(pd, req.field_name, req.value, req.bitmask);
             retval->add_injection(e);
         } else {
-            resp.error_message = format_string("pd device %s does not support injection!", req.pd_dev.c_str());
+            resp.error_message = string_printf("pd device %s does not support injection!", req.pd_dev.c_str());
         }
     } catch (std::exception& exc) {
         resp.error_message = exc.what();

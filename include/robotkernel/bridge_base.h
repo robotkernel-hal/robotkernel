@@ -9,18 +9,19 @@
 /*
  * This file is part of robotkernel.
  *
- * robotkernel is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
+ * robotkernel is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ * 
  * robotkernel is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with robotkernel; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
 #ifndef ROBOTKERNEL_BRIDGE_BASE_H
@@ -30,6 +31,7 @@
 #include <stdint.h>
 #include <list>
 #include <stdio.h>
+#include <stdexcept>
 
 // public headers
 #include "robotkernel/log_base.h"
@@ -79,8 +81,8 @@ typedef void (*bridge_remove_service_t)(BRIDGE_HANDLE hdl, const robotkernel::se
     struct instance_name ## _wrapper *wr =                                                  \
         reinterpret_cast<struct instance_name ## _wrapper *>(hdl);                          \
     if (!wr->sp)                                                                            \
-        throw string_util::str_exception("["#bridgename"] invalid bridge "                  \
-                "handle to <"#bridgeclass" *>\n"); 
+        throw std::runtime_error(string("["#bridgename"] invalid bridge "                   \
+                "handle to <"#bridgeclass" *>\n")); 
 
 #define BRIDGE_DEF(bridgename, bridgeclass)                                                 \
 struct instance_name ## _wrapper {                                                          \
@@ -111,8 +113,8 @@ EXPORT_C BRIDGE_HANDLE bridge_configure(const char* name, const char* config) { 
                                                                                             \
     wr = new struct instance_name ## _wrapper();                                            \
     if (!wr)                                                                                \
-        throw string_util::str_exception(                                                   \
-                "["#bridgename"] error allocating memory\n");                               \
+        throw std::runtime_error(string(                                                    \
+                "["#bridgename"] error allocating memory\n"));                              \
     wr->sp = std::make_shared<bridgeclass>(name, doc);                                      \
     wr->sp->init();                                                                         \
                                                                                             \

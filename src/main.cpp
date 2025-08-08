@@ -9,22 +9,24 @@
 /*
  * This file is part of robotkernel.
  *
- * robotkernel is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
+ * robotkernel is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ * 
  * robotkernel is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with robotkernel; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
 // public headers
 #include "robotkernel/config.h"
+#include "robotkernel/helpers.h"
 
 // private headers
 #include "kernel.h"
@@ -168,7 +170,7 @@ int main(int argc, char* argv[]) {
             }
 
             string power_up_arg = string(argv[i]);
-            vector<string> power_up_split = string_util::split_string(power_up_arg, "=", 1);
+            vector<string> power_up_split = robotkernel::string_split(power_up_arg, '=');
 
             power_up_map[power_up_split[0]] = decode_power_up_state(power_up_split[1]);
         }
@@ -231,7 +233,6 @@ Exit:
 //        kernel::instance.clnt->wait_for_service_requests(0);
 #endif // __VXWORKS__
 
-    printf("done ... returning now from main\n");
     return ret;
 }
 

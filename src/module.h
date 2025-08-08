@@ -9,18 +9,19 @@
 /*
  * This file is part of robotkernel.
  *
- * robotkernel is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
+ * robotkernel is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ * 
  * robotkernel is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with robotkernel; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
 #ifndef ROBOTKERNEL__MODULE_H
@@ -32,7 +33,6 @@
 // public headers
 #include "robotkernel/service.h"
 #include "robotkernel/module_base.h"
-#include "robotkernel/trigger_base.h"
 
 // private headers
 #include "so_file.h"
@@ -48,11 +48,6 @@ module_state_t decode_power_up_state(std::string tmp_power_up);
 YAML::Emitter& operator<<(YAML::Emitter& out, const robotkernel::module& mdl);
 
 namespace robotkernel {
-#ifdef EMACS
-}
-#endif
-
-class kernel_worker;
 
 //! module class
 /*!
@@ -60,8 +55,7 @@ class kernel_worker;
  */
 class module :
     public std::enable_shared_from_this<module>,
-    public robotkernel::so_file,
-    public robotkernel::trigger_base
+    public robotkernel::so_file
 {
     private:
         module();
@@ -69,33 +63,6 @@ class module :
         module& operator=(const module&);  // prevent assignment
 
     public:
-        //! external module trigger
-        class external_trigger {
-            private:
-                external_trigger();
-                //! prevent copy-construction
-                external_trigger(const external_trigger&);
-                //! prevent assignment
-                external_trigger& operator=(const external_trigger&);
-
-            public:
-                std::string dev_name;  //! name of trigger device
-                int prio;              //! trigger priority
-                int affinity_mask;     //! trigger affinity mask
-                int divisor;           //! trigger divisor
-
-                bool direct_mode;      //! direct or threaded
-                int  direct_cnt;       //! direct mode counter
-                module *direct_mdl;    //! direct mode module pointer
-
-                //! generate new trigger object
-                /*!
-                 * \param node configuration node
-                 */
-                external_trigger(const YAML::Node& node);
-        };
-
-        typedef std::list<external_trigger *> trigger_list_t; //! trigger list
         typedef std::list<std::string> depend_list_t;         //! dependency list
         typedef std::list<std::string> exclude_list_t;         //! dependency list
         
@@ -138,11 +105,6 @@ class module :
           \return current module state
           */
         module_state_t get_state();
-
-        //! trigger module
-        /*!
-        */
-        void tick();
 
         std::string get_name();                         //!< return module name
         const depend_list_t& get_depends();             //!< return dependency list
@@ -193,7 +155,6 @@ class module :
 
         depend_list_t depends;          //! module dependecy list
         exclude_list_t excludes;        //! module exclude list
-        trigger_list_t triggers;        //! module trigger list
 
     private:
         std::string name;               //! module name
@@ -209,7 +170,6 @@ class module :
         mod_unconfigure_t       mod_unconfigure;
         mod_set_state_t         mod_set_state;
         mod_get_state_t         mod_get_state;
-        mod_tick_t              mod_tick;
 };
 
 //! return module name
@@ -272,9 +232,6 @@ inline void module::remove_excludes(std::string other_module) {
 typedef std::shared_ptr<module> sp_module_t;
 typedef std::map<std::string, sp_module_t> module_map_t;
 
-#ifdef EMACS
-{
-#endif
 } // namespace robotkernel
 
 #endif // ROBOTKERNEL__MODULE_H
