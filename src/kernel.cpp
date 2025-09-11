@@ -796,7 +796,7 @@ bool kernel::state_check() {
 
     for (auto& kv : module_map) {
         module_state_t state = kv.second->get_state();
-        if (state == module_state_error) {
+        if (state & module_state_error) {
             log(error, "module %s signaled error, switching "
                     "to init\n", kv.first.c_str());
             set_state(kv.first.c_str(), module_state_init);

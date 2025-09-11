@@ -57,7 +57,7 @@ const static uint16_t module_state_error    = 0x8000;
 typedef uint16_t module_state_t;
 
 #define GEN_STATE(from, to) \
-    ((uint32_t)from << 16 | to)
+    ((uint32_t)(from & ~module_state_error) << 16 | to)
 
 #define DEFINE_STATE(from, to) \
     const static uint32_t from ## _2_ ## to = GEN_STATE(module_state_ ## from, module_state_ ## to)
@@ -253,6 +253,11 @@ class module_base :
          * \return Current state.
          */
         virtual module_state_t get_state() { return state; }
+
+    protected:
+        void set_error(void) { state |= module_state_error; }
+        void reset_error(void) { state &= ~module_state_error; }
+        bool is_error(void) { return (state & module_state_error); }
 };
 
 typedef std::shared_ptr<module_base> sp_module_base_t;
