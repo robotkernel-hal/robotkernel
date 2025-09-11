@@ -9,22 +9,8 @@ includedir = $(prefix)/include/robotkernel
 headerdir = $(top_builddir)/include/robotkernel
 gen_headerdir = $(top_builddir)/include/robotkernel
 
-
-#				  $(headerdir)/bridge.h
-#				  $(headerdir)/kernel.h
-#				  $(headerdir)/kernel_worker.h
-#				  $(headerdir)/log_thread.h
-#				  $(headerdir)/module.h
-#				  $(headerdir)/service_provider.h
-#				  $(headerdir)/so_file.h
-#				  $(headerdir)/char_ringbuffer.h
-#				  $(headerdir)/dump_log.h
-#				  $(headerdir)/module_intf.h
-#				$(headerdir)/bridge_intf.h 
-
 bin_PROGRAMS = robotkernel
-include_HEADERS = $(headerdir)/bridge_base.h	\
-				  $(headerdir)/config.h.in \
+include_HEADERS = $(headerdir)/bridge_base.h \
 				  $(headerdir)/device.h \
 				  $(headerdir)/device_listener.h \
 				  $(headerdir)/exceptions.h \
@@ -45,34 +31,33 @@ include_HEADERS = $(headerdir)/bridge_base.h	\
 				  $(headerdir)/trigger_base.h \
 				  $(headerdir)/trigger.h \
 				  $(headerdir)/trigger_collector.h \
-				  $(headerdir)/trigger_worker.h \
-				  $(gen_headerdir)/config.h
+				  $(headerdir)/trigger_worker.h
 
-librobotkernel_la_SOURCES = bridge.cpp				\
-					  char_ringbuffer.cpp 		\
-					  dump_log.cpp 				\
-					  exceptions.cpp 			\
-					  kernel.cpp 				\
-					  robotkernel.cpp 				\
-					  module_base.cpp 			\
-					  kernel_c_wrapper.cpp      \
-					  log_base.cpp 				\
-					  log_thread.cpp 			\
-					  module.cpp				\
-					  process_data.cpp			\
-					  rk_type.cpp				\
-					  runnable.cpp 				\
-					  service_provider.cpp 		\
-					  so_file.cpp 				\
-					  stream.cpp                \
-					  trigger.cpp               \
-					  trigger_worker.cpp        \
-					  helpers.cpp				\
+librobotkernel_la_SOURCES = bridge.cpp \
+					  char_ringbuffer.cpp \
+					  dump_log.cpp \
+					  exceptions.cpp \
+					  kernel.cpp \
+					  robotkernel.cpp \
+					  module_base.cpp \
+					  kernel_c_wrapper.cpp \
+					  log_base.cpp \
+					  log_thread.cpp \
+					  module.cpp \
+					  process_data.cpp \
+					  rk_type.cpp \
+					  runnable.cpp \
+					  service_provider.cpp \
+					  so_file.cpp \
+					  stream.cpp \
+					  trigger.cpp \
+					  trigger_worker.cpp \
+					  helpers.cpp \
 					  rkc_loader.cpp
 
-librobotkernel_la_CXXFLAGS = -Wno-unused-local-typedefs 					\
-					   -I$(top_builddir)/include 		\
-					   -I$(srcdir) 						\
+librobotkernel_la_CXXFLAGS = -Wno-unused-local-typedefs \
+					   -I$(top_builddir)/include \
+					   -I$(srcdir) \
 					   @YAML_CPP_CFLAGS@ 
 
 librobotkernel_la_LDFLAGS=-static
@@ -107,9 +92,9 @@ $(top_builddir)/include/robotkernel/service_definitions.h: Makefile $(SERVICE_DE
 
 robotkernel_SOURCES = main.cpp
 
-robotkernel_CXXFLAGS = -Wno-unused-local-typedefs 					\
-					   -I$(top_builddir)/include 		\
-					   -I$(srcdir) 						\
+robotkernel_CXXFLAGS = -Wno-unused-local-typedefs \
+					   -I$(top_builddir)/include \
+					   -I$(srcdir) \
 					   @YAML_CPP_CFLAGS@ 
 
 robotkernel_LDFLAGS = -Wl,-export-dynamic -Bdynamic -Wl,--whole-archive,.libs/librobotkernel.a,--no-whole-archive
