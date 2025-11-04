@@ -298,7 +298,6 @@ class process_data :
         //!< set main consumer thread, only thread allowed to pop
         void set_consumer(robotkernel::sp_pd_consumer_t& cons);
 
-        
         //! reset main consumer thread
         void reset_consumer(sp_pd_consumer_t& cons);
 
