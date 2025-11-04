@@ -6,7 +6,7 @@ from conan import ConanFile
 class TestTestConan(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
 
-    def build_requirements(self):
+    def requirements(self):
         self.requires(self.tested_reference_str)
 
     def test(self):
