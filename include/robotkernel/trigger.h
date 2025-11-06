@@ -105,8 +105,22 @@ class trigger :
          * \param divisor rate divisor
          * \return trigger object to newly inserted callback
          */
-        void add_trigger(sp_trigger_base_t trigger, bool direct_mode=true,
-                int worker_prio=0, int worker_affinity=0);
+        void add_trigger(sp_trigger_base_t trigger) {
+            add_trigger(
+                    trigger, 
+                    trigger->direct_mode, 
+                    trigger->worker_prio, 
+                    trigger->worker_affinity);
+        }
+
+        //! add a trigger callback function
+        /*!
+         * \param cb trigger callback
+         * \param divisor rate divisor
+         * \return trigger object to newly inserted callback
+         */
+        void add_trigger(sp_trigger_base_t trigger, bool direct_mode,
+                int worker_prio, int worker_affinity);
 
         //! remove a trigger callback function
         /*!

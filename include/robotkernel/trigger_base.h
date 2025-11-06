@@ -31,6 +31,10 @@
 #include <memory>
 #include <list>
 
+#include <yaml-cpp/yaml.h>
+
+#include "robotkernel/helpers.h"
+
 namespace robotkernel {
 
 //! trigger_base
@@ -40,10 +44,22 @@ namespace robotkernel {
  */
 class trigger_base {
     public:
-        int divisor;        //!< trigger every ""divisor"" step
-        int cnt;            //!< internal step counter
+        int divisor = 1;                    //!< trigger every ""divisor"" step
+        int cnt = 0;                        //!< internal step counter
+        bool direct_mode = true;
+        int worker_prio = 0;
+        int worker_affinity = 0xFFFFFFFF;
 
-        trigger_base(int divisor=1) : divisor(divisor), cnt(0) {};
+        trigger_base(int divisor=1) : 
+            divisor(divisor)
+        {};
+
+        trigger_base(const YAML::Node& node) {
+            divisor = get_as<int>(node, "divisor", 1);
+            direct_mode = get_as<bool>(node, "direct_mode", true);
+            worker_prio = get_as<int>(node, "worker_prio", 0);
+            worker_affinity = get_as<int>(node, "worker_affinity", 0xFFFFFFFF);
+        }
     
         //! trigger function
         virtual void tick() = 0;
