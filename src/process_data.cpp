@@ -305,13 +305,8 @@ uint8_t* single_buffer::peek() {
 /*
  * \param[in] hash      hash value, get it with set_consumer!
  */
-uint8_t* single_buffer::pop(sp_pd_consumer_t& cons, bool do_trigger) {
+uint8_t* single_buffer::pop(sp_pd_consumer_t& cons) {
     (void)process_data::pop(cons); 
-
-    if (do_trigger) {
-        trigger_dev->do_trigger();
-    }
-
     return (uint8_t *)&data[0];
 }
 
@@ -348,19 +343,15 @@ void single_buffer::write(sp_pd_provider_t& prov, off_t offset, uint8_t *buf,
  * \param[in] do_pop    Pop the buffer and consume it.
  */
 void single_buffer::read(sp_pd_consumer_t& cons, off_t offset, uint8_t *buf, 
-        size_t len, bool do_pop, bool do_trigger) 
+        size_t len, bool do_pop) 
 {
-    process_data::read(cons, offset, buf, len, do_pop, do_trigger);
+    process_data::read(cons, offset, buf, len, do_pop);
 
     if ((offset + len) > length)
         throw runtime_error(string_printf("wanted to read to many bytes: %d > length %d\n",
                 (offset + len), length));
 
     std::memcpy(buf, &data[offset], len);
-
-    if (do_trigger) {
-        trigger_dev->do_trigger();
-    }
 }
 
 //! construction
@@ -406,17 +397,12 @@ uint8_t* triple_buffer::peek() {
 /* 
  * \param[in] hash      hash value, get it with set_consumer!
  */
-uint8_t* triple_buffer::pop(sp_pd_consumer_t& cons, bool do_trigger) {
+uint8_t* triple_buffer::pop(sp_pd_consumer_t& cons) {
     (void)process_data::pop(cons);
 
     swap_front();
 
     auto& tmp_buf = front_buffer();
-
-    if (do_trigger) {
-        trigger_dev->do_trigger();
-    }
-
     return (uint8_t *)&tmp_buf[0];
 }
 
@@ -470,7 +456,7 @@ void triple_buffer::write(sp_pd_provider_t& prov, off_t offset, uint8_t *buf,
  * \param[in] do_pop    Pop the buffer and consume it.
  */
 void triple_buffer::read(sp_pd_consumer_t& cons, off_t offset, uint8_t *buf, 
-        size_t len, bool do_pop, bool do_trigger) 
+        size_t len, bool do_pop) 
 {
     process_data::read(cons, offset, buf, len, do_pop);
 
@@ -485,10 +471,6 @@ void triple_buffer::read(sp_pd_consumer_t& cons, off_t offset, uint8_t *buf,
 
     auto& tmp_buf = front_buffer();
     std::memcpy(buf, &tmp_buf[offset], len);
-
-    if (do_trigger) {
-        trigger_dev->do_trigger();
-    }
 }
 
 //! Returns true if new data has been written
@@ -582,13 +564,8 @@ uint8_t* pointer_buffer::peek() {
 /*
  * \param[in] hash      hash value, get it with set_consumer!
  */
-uint8_t* pointer_buffer::pop(sp_pd_consumer_t& cons, bool do_trigger) {
-    (void)process_data::pop(cons, do_trigger);
-
-    if (do_trigger) {
-        trigger_dev->do_trigger();
-    }
-
+uint8_t* pointer_buffer::pop(sp_pd_consumer_t& cons) {
+    (void)process_data::pop(cons);
     return ptr;
 }
 
@@ -625,18 +602,14 @@ void pointer_buffer::write(sp_pd_provider_t& prov, off_t offset, uint8_t *buf,
  * \param[in] do_pop    Pop the buffer and consume it.
  */
 void pointer_buffer::read(sp_pd_consumer_t& cons, off_t offset, uint8_t *buf, 
-        size_t len, bool do_pop, bool do_trigger) 
+        size_t len, bool do_pop) 
 {
-    process_data::read(cons, offset, buf, len, do_pop, do_trigger);
+    process_data::read(cons, offset, buf, len, do_pop);
 
     if ((offset + len) > length)
         throw runtime_error(string_printf("wanted to read to many bytes: %d > length %d\n",
                 (offset + len), length));
 
     std::memcpy(buf, &ptr[offset], len);
-
-    if (do_trigger) {
-        trigger_dev->do_trigger();
-    }
 }
 
