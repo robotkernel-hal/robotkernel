@@ -557,6 +557,22 @@ class pointer_buffer :
             this->ptr = ptr;
         }
 
+        //! Set pointer to a new address.
+        /*!
+         * \param[in]   cons    PD Consumer, must match set consumer.
+         * \param[in]   ptr     New address to process data.
+         *
+         * \exception   runtime_error  Permission denied
+         */
+        void set_ptr(sp_pd_consumer_t& cons, uint8_t *ptr) {
+            if ((consumer == nullptr) || (consumer->hash != cons->hash)) {
+                throw std::runtime_error(robotkernel::string_printf("permission denied set pointer %s: consumer_hash %d, your hash %d", 
+                        id().c_str(), consumer->hash, cons->hash));
+            }
+
+            this->ptr = ptr;
+        }
+
         //! Get a pointer to the a data buffer which we can write next, has to be
         //  completed with calling \link push \endlink
         /*
