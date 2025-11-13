@@ -109,6 +109,9 @@ inline std::shared_ptr<T> get_device(const std::string& dev_name) {
 
 //! get robotkernel name
 extern const std::string name(void);
+extern const std::string config_file(void);
+extern const std::string config_file_path(void);
+extern const std::string exec_file_path(void);
 
 }; // namespace robotkernel;
         

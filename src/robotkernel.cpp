@@ -107,3 +107,16 @@ std::shared_ptr<robotkernel::device> robotkernel::get_device(const std::string& 
 const std::string robotkernel::name(void) {
     return robotkernel::kernel::instance.name;
 }
+
+const std::string config_file(void) {
+    return robotkernel::kernel::instance.config_file;
+}
+
+const std::string config_file_path(void) {
+    return robotkernel::kernel::instance.config_file_path;
+}
+
+const std::string exec_file_path(void) {
+    return robotkernel::kernel::instance.exec_file_path;
+}
+
