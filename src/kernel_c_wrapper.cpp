@@ -91,9 +91,9 @@ pdhandle kernel_c_get_pd_handle(const char *pd_name, int consumer) {
     pd_wrapper *hdl = nullptr;
 
     if (consumer) {
-        hdl = new pd_wrapper_provider(pd_dev);
-    } else {
         hdl = new pd_wrapper_consumer(pd_dev);
+    } else {
+        hdl = new pd_wrapper_provider(pd_dev);
     }
 
     return (pdhandle)hdl;
