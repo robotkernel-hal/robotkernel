@@ -69,7 +69,7 @@ class trigger_base :
             dev_name = get_as<std::string>(node, "dev_name");
         }
 
-        ~trigger_base() { relase(); }
+        ~trigger_base() { release(); }
     
         //! trigger function
         virtual void tick() = 0;
