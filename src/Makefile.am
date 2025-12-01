@@ -51,6 +51,7 @@ librobotkernel_la_SOURCES = bridge.cpp \
 					  so_file.cpp \
 					  stream.cpp \
 					  trigger.cpp \
+					  trigger_base.cpp \
 					  trigger_worker.cpp \
 					  helpers.cpp \
 					  rkc_loader.cpp

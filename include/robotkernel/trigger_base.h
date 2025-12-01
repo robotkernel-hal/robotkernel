@@ -37,18 +37,24 @@
 
 namespace robotkernel {
 
+class trigger;
+
 //! trigger_base
 /*
  * derive from this class if you want to get 
  * triggered by a trigger_device
  */
-class trigger_base {
+class trigger_base :
+    public std::enable_shared_from_this<trigger_base>
+{
     public:
         int divisor = 1;                    //!< trigger every ""divisor"" step
         int cnt = 0;                        //!< internal step counter
         bool direct_mode = true;
         int worker_prio = 0;
         int worker_affinity = 0xFFFFFFFF;
+        std::string dev_name = "";
+        std::shared_ptr<robotkernel::trigger> dev = nullptr;
 
         trigger_base(int divisor=1) : 
             divisor(divisor)
@@ -59,10 +65,20 @@ class trigger_base {
             direct_mode = get_as<bool>(node, "direct_mode", true);
             worker_prio = get_as<int>(node, "worker_prio", 0);
             worker_affinity = get_as<int>(node, "worker_affinity", 0xFFFFFFFF);
+            dev_name = get_as<std::string>(node, "dev_name");
         }
     
         //! trigger function
         virtual void tick() = 0;
+
+        /*! @brief Get trigger device from robotkernel and register us
+         * as trigger.
+         */
+        void aquire(void);
+
+        /*! @brief Remove us as trigger devce.
+         */
+        void release(void);
 };
 
 typedef std::shared_ptr<trigger_base> sp_trigger_base_t;
