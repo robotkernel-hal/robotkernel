@@ -30,6 +30,7 @@
 #include <string>
 #include <memory>
 #include <list>
+#include <functional>
 
 #include <yaml-cpp/yaml.h>
 
@@ -67,6 +68,8 @@ class trigger_base :
             worker_affinity = get_as<int>(node, "worker_affinity", 0xFFFFFFFF);
             dev_name = get_as<std::string>(node, "dev_name");
         }
+
+        ~trigger_base() { relase(); }
     
         //! trigger function
         virtual void tick() = 0;
@@ -83,6 +86,20 @@ class trigger_base :
 
 typedef std::shared_ptr<trigger_base> sp_trigger_base_t;
 typedef std::list<sp_trigger_base_t> trigger_list_t;
+
+class triggerable : 
+    public trigger_base
+{
+    private:
+        std::function<void(void)> cb;
+
+    public:
+        triggerable(const YAML::Node& node, std::function<void(void)> cb) :
+            trigger_base(node), cb(cb) {}
+         
+        //! trigger function
+        virtual void tick() override { cb(); }
+};
 
 }; // namespace robotkernel;
 
