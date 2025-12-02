@@ -46,7 +46,7 @@ class trigger;
  * triggered by a trigger_device
  */
 class trigger_base :
-    public std::enable_shared_from_this<trigger_base>
+    public virtual shared_base
 {
     public:
         int divisor = 1;                    //!< trigger every ""divisor"" step

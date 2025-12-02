@@ -82,6 +82,21 @@ void set_thread_name(std::thread& tid, const std::string& thread_name);
 void set_thread_name(pthread_t tid, const std::string& thread_name);
 void set_thread_name(const std::string& thread_name);
 
+class shared_base : public std::enable_shared_from_this<shared_base> {
+    public:
+        virtual ~shared_base() = default;
+
+        template<typename T>
+            std::shared_ptr<T> shared_from_this_as() {
+                return std::dynamic_pointer_cast<T>(shared_from_this());
+            }
+
+        template<typename T>
+            std::shared_ptr<const T> shared_from_this_as() const {
+                return std::dynamic_pointer_cast<const T>(shared_from_this());
+            }
+};
+
 }; // namespace robotkernel
 
 template <typename type>

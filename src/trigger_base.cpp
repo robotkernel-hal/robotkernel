@@ -30,17 +30,18 @@
 #include "robotkernel/trigger_base.h"
 
 using namespace robotkernel;
+using namespace std;
 
 /* Get trigger device from robotkernel and register us as trigger. */
 void trigger_base::aquire(void) {
     dev = robotkernel::get_device<robotkernel::trigger>(dev_name);
-    dev->add_trigger(shared_from_this());
+    dev->add_trigger(shared_from_this_as<trigger_base>());
 }
 
 /* Remove us as trigger devce. */
 void trigger_base::release(void) {
     if (dev) {
-        dev->remove_trigger(shared_from_this());
+        dev->remove_trigger(shared_from_this_as<trigger_base>());
         dev = nullptr;    
     }
 }
