@@ -58,7 +58,7 @@ int module_base::set_state(module_state_t state) {
     } catch (std::exception& e) { \
         log(error, "caught exception during " #transition ": %s\n", e.what()); \
         set_error(); \
-        return state; \
+        return this->state; \
     }
 
     switch (transition) {
