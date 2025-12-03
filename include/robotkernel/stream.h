@@ -29,11 +29,9 @@
 
 #include <string>
 #include "robotkernel/device.h"
+#include "robotkernel/trigger.h"
 
 namespace robotkernel {
-#ifdef EMACS
-}
-#endif
 
 class stream :
     public device
@@ -51,7 +49,10 @@ class stream :
         stream(
                 const std::string& owner, 
                 const std::string& name)
-            : device(owner, name, "stream") {}
+            : device(owner, name, "stream") 
+        {
+            trigger_dev = std::make_shared<robotkernel::trigger>(owner, name);
+        }
 
         //! destruction
         virtual ~stream() {};
@@ -73,6 +74,12 @@ class stream :
          * \return Size of written bytes.
          */
         virtual size_t write(void* buf, size_t bufsize) = 0;
+        
+        //! Trigger our trigger device.
+        void trigger(void) { trigger_dev->do_trigger(); }
+
+    public: 
+        std::shared_ptr<robotkernel::trigger> trigger_dev;
 };
 
 class serial_stream : 
@@ -145,9 +152,6 @@ class serial_stream :
 typedef std::shared_ptr<stream> sp_stream_t;
 typedef std::map<std::string, sp_stream_t> stream_map_t;
 
-#ifdef EMACS 
-{
-#endif
 } // namespace robotkernel
 
 #endif // ROBOTKERNEL__STREAM_H
