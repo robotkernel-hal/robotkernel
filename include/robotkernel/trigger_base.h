@@ -66,7 +66,7 @@ class trigger_base :
             direct_mode = get_as<bool>(node, "direct_mode", true);
             worker_prio = get_as<int>(node, "worker_prio", 0);
             worker_affinity = get_as<int>(node, "worker_affinity", 0xFFFFFFFF);
-            dev_name = get_as<std::string>(node, "dev_name");
+            dev_name = get_as<std::string>(node, "dev_name", "");
         }
 
         ~trigger_base() { release(); }
