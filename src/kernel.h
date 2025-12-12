@@ -1,5 +1,11 @@
 //! robotkernel kernel
 /*!
+ * @brief This file defines the `kernel` class, which is the core component of the robotkernel.
+ *
+ * The `kernel` class manages modules, services, devices, and other resources required for the robotkernel to function.
+ * It provides interfaces for adding, removing, and configuring modules, as well as for registering and calling services.
+ * The `kernel` class also handles device management, including adding, removing, and retrieving devices.
+ *
  * (C) Robert Burger <robert.burger@dlr.de>
  */
 
@@ -53,6 +59,12 @@
 
 namespace robotkernel {
 
+/*!
+ * @brief The main kernel class for the robotkernel system.
+ *
+ * This class manages modules, services, devices, and other core functionalities.
+ * It inherits from several service base classes to provide a comprehensive set of services.
+ */
 class kernel :
     public log_base,
     public services::robotkernel::kernel::svc_base_config_dump_log,
@@ -71,7 +83,10 @@ class kernel :
     public services::robotkernel::kernel::svc_base_list_pd_injections
 {
     public:
-        //! kernel singleton instance
+        /*! @brief The singleton instance of the kernel.
+         *
+         *  This allows global access to the kernel's functionality.
+         */
         static kernel instance;
 
     private:
@@ -79,13 +94,13 @@ class kernel :
         kernel(const kernel &);             // prevent copy-construction
         kernel &operator=(const kernel &);  // prevent assignment
 
-        loglevel                    ll;                         //!< robotkernel global loglevel
-        bridge_map_t                bridge_map;                 //!< bridges map
-        service_provider_map_t      service_provider_map;       //!< service_providers map
-        module_map_t                module_map;                 //!< modules map
-        std::recursive_mutex        module_map_mtx;             //!< module map lock
-        service_map_t               services;                   //!< service list
-        device_listener_map_t       dl_map;                     //!< device listeners
+        loglevel                    ll;                         /*!< @brief robotkernel global loglevel */
+        bridge_map_t                bridge_map;                 /*!< @brief Map of bridges, used for inter-module communication. */
+        service_provider_map_t      service_provider_map;       /*!< @brief Map of service providers. */
+        module_map_t                module_map;                 /*!< @brief Map of loaded modules. */
+        std::recursive_mutex        module_map_mtx;             /*!< @brief Mutex to protect access to the module map. */
+        service_map_t               services;                   /*!< @brief List of registered services. */
+        device_listener_map_t       dl_map;                     /*!< @brief Map of device listeners. */
 
         typedef std::map<std::string, std::string> datatypes_map_t;
         datatypes_map_t datatypes_map;
@@ -96,50 +111,66 @@ class kernel :
         bool log_to_trace_fd = false;
 
     protected:
-        //! construction
+        /*! @brief Default constructor (protected to enforce singleton pattern).*/
         kernel();
 
-        //! destruction
+        /*! @brief Default destructor.*/
         ~kernel();
 
     public:
-        int main_argc;      //!< robotkernel's main argument counter
-        char **main_argv;   //!< robotkernel's main arguments
+        int main_argc;      /*!< @brief robotkernel's main argument counter */
+        char **main_argv;   /*!< @brief robotkernel's main arguments */
 
-        //! holds all registered process data
+        /*! @brief Holds all registered process data. */
         process_data_map_t process_data_map;
 
+        /*! @brief Returns a boolean indicating whether logging to the trace file descriptor is enabled.
+         *  @return true if logging to trace fd is enabled, false otherwise.
+         */
         bool do_log_to_trace_fd() { return log_to_trace_fd; }
 
-        //! log object to trace fd
+        /*! @brief Logs a formatted string to the trace file descriptor.
+         *
+         *  @param[in] fmt The format string, similar to printf.
+         *  @param[in] ... Variable arguments to be formatted.
+         */
         void trace_write(const char *fmt, ...);
+
+        /*! @brief Logs a log pool object to the trace file descriptor.
+         *
+         *  @param[in] obj Pointer to the log pool object to be written.
+         */
         void trace_write(const struct log_thread::log_pool_object *obj);
 
-        //! call a robotkernel service
-        /*!
-         * \param[in]  name          Name of service to call.
-         * \param[in]  req           Service request parameters.
-         * \param[out] resp          Service response parameters.
+        /*! @brief Calls a robotkernel service.
+         *
+         *  This method allows invoking a service registered within the robotkernel.
+         *  @param[in]  name          Name of service to call.
+         *  @param[in]  req           Service request parameters.
+         *  @param[out] resp          Service response parameters.
          */
         void call_service(const std::string& name, 
                 const service_arglist_t& req, service_arglist_t& resp);
 
-        //! call a robotkernel service
-        /*!
-         * \param[in]  owner         Owner of service to call.
-         * \param[in]  name          Name of service to call.
-         * \param[in]  req           Service request parameters.
-         * \param[out] resp          Service response parameters.
+        /*! @brief Calls a robotkernel service, specifying the owner.
+         *
+         *  This overloaded method allows invoking a service registered within the robotkernel,
+         *  specifying the owner of the service.
+         *  @param[in]  owner         Owner of service to call.
+         *  @param[in]  name          Name of service to call.
+         *  @param[in]  req           Service request parameters.
+         *  @param[out] resp          Service response parameters.
          */
         void call_service(const std::string& owner, const std::string& name, 
                 const service_arglist_t& req, service_arglist_t& resp);
 
-        //! add service to kernel
-        /*!
-         * \param owner service owner
-         * \param name service name
-         * \param service_definition service definition
-         * \param callback service callback
+        /*! @brief Adds a service to the kernel.
+         *
+         *  This method registers a new service within the robotkernel, making it available for other modules to call.
+         *  @param[in] owner service owner
+         *  @param[in] name service name
+         *  @param[in] service_definition service definition
+         *  @param[in] callback service callback
          */
         void add_service(
                 const std::string &owner,
@@ -147,115 +178,121 @@ class kernel :
                 const std::string &service_definition,
                 service_callback_t callback);
 
-        //! remove on service given by name
-        /*!
-         * \param[in] owner     Owner of service.
-         * \param[in] name      Name of service.
+        /*! @brief Removes a service from the kernel.
+         *
+         *  This method unregisters a service from the robotkernel, making it unavailable for other modules to call.
+         *  @param[in] owner     Owner of service.
+         *  @param[in] name      Name of service.
          */
         void remove_service(const std::string& owner, const std::string& name);
 
-        //! remove all services from owner
-        /*!
-         * \param owner service owner
+        /*! @brief Removes all services owned by a specific owner.
+         *
+         *  This method unregisters all services associated with a given owner from the robotkernel.
+         *  @param[in] owner service owner
          */
         void remove_services(const std::string &owner);
         
-        //! adds a device listener
-        /*
-         * \param[in] dl    device listener to add. this device listener
+        /*! @brief Adds a device listener.
+         *
+         *  This method registers a device listener, which will be notified when new devices are added to the kernel.
+         *  @param[in] dl    device listener to add. this device listener
          *                  will be notified whenever a new device is added.
          */
         void add_device_listener(sp_device_listener_t dl);
         
-        //! remove a device listener
-        /*
-         * \param[in] dl    device listener to reomve. this device listener
+        /*! @brief Removes a device listener.
+         *
+         *  This method unregisters a device listener, preventing it from receiving notifications when new devices are added.
+         *  @param[in] dl    device listener to reomve. this device listener
          *                  will no longer be notified when a new device is added.
          */
         void remove_device_listener(sp_device_listener_t dl);
 
-        //! add a named device
-        /*
-         * \param req device to add
+        /*! @brief Adds a named device.
+         *
+         *  This method registers a new device with the kernel, making it available for use by other modules.
+         *  @param[in] req device to add
          */
         void add_device(sp_device_t req);
 
-        //! remove a named device
-        /*!
-         * \param req device to remove
+        /*! @brief Removes a named device.
+         *
+         *  This method unregisters a device from the kernel, making it unavailable for use by other modules.
+         *  @param[in] req device to remove
          */
         void remove_device(sp_device_t req);
 
-        //! remove all devices from owner
-        /*!
-         * \param[in] owner unique owner string
+        /*! @brief Removes all devices owned by a specific owner.
+         *
+         *  This method unregisters all devices associated with a given owner from the robotkernel.
+         *  @param[in] owner unique owner string
          */
         void remove_devices(const std::string& owner);
 
-        //! get a device by name
-        /*!
-         * \param dev_name device name
-         * \return device
+        /*! @brief Gets a device by its name.
+         *  @param[in] dev_name device name
+         *  @return device
          */
         template <typename T>
         std::shared_ptr<T> get_device(const std::string& dev_name);
         
-        //! Register a new datatype description
-        /*!
-         * \param[in]   name        Datatype name.
-         * \param[in]   desc        Datatype description.
+        /*! @brief Registers a new datatype description.
+         *  @param[in]   name        Datatype name.
+         *  @param[in]   desc        Datatype description.
          *
-         * \throw Exception if datatype was already found.
+         *  @throw Exception if datatype was already found.
          */
         void add_datatype_desc(const std::string& name, const std::string& desc);
 
-        //! get a registered datatype
-        /*!
-         * \param[in]   name        Datatype name.
+        /*! @brief Gets a registered datatype description.
+         *  @param[in]   name        Datatype name.
          *
-         * \throw Exception if datatype is not found.
+         *  @throw Exception if datatype is not found.
          *
-         * \return String containing datatype description.
+         *  @return String containing datatype description.
          */
         const std::string get_datatype_desc(const std::string&name);
 
-        //! construction
-        /*!
-         * \param configfile config file name
+        /*! @brief Configures the kernel from a configuration file.
+         *  @param[in] configfile config file name
          */
         void config(std::string config_file, int argc, char *argv[]);
 
-        //! powering up modules
+        /*! @brief Powers up all modules.
+         *  @return success
+         */
         bool power_up();
 
-        //! powering down modules
+        /*! @brief Powers down all modules.
+         */
         void power_down();
 
-        //! set state of module
-        /*!
-         * \param mod_name name of module
-         * \param state new module state
-         * \return state
+        /*! @brief Sets the state of a module.
+         *  @param[in] mod_name name of module
+         *  @param[in] state new module state
+         *  @return state
          */
         int set_state(std::string mod_name, module_state_t state, 
                 std::list<std::string> caller=std::list<std::string>());
 
-        //! return module state
-        /*!
-         * \param mod_name name of module which state to return
-         * \return module state
+        /*! @brief Returns the state of a module.
+         *  @param[in] mod_name name of module which state to return
+         *  @return module state
          */
         module_state_t get_state(std::string mod_name);
 
-        //! checks if all modules are at requested state
-        /*!
-         * \param mod_name module name to check
-         * \param state requested state
+        /*! @brief Checks if a module is in the requested state.
+         *  @param[in] mod_name module name to check
+         *  @param[in] state requested state
          *
-         * \return true if we are in right  state
+         *  @return true if we are in right  state
          */
         bool state_check(std::string mod_name, module_state_t state);
 
+        /*! @brief Checks if all modules are in their target states.
+         *  @return true if all modules are in their target states.
+         */
         bool state_check();
 
         // config file name
@@ -263,24 +300,21 @@ class kernel :
         std::string config_file_path;
         std::string exec_file_path;
 
-        //! module state change
-        /*!
-         * \param mod_name module name which changed state
-         * \param new_state new state of module
-         * \retun success
+        /*! @brief Handles a module state change.
+         *  @param[in] mod_name module name which changed state
+         *  @param[in] new_state new state of module
+         *  @retun success
          */
         int state_change(const char *mod_name, module_state_t new_state);
 
-        //! get module
-        /*!
-         * \param mod_name name of module
-         * \return shared pointer to module
+        /*! @brief Gets a module by its name.
+         *  @param[in] mod_name name of module
+         *  @return shared pointer to module
          */
         sp_module_t get_module(const std::string& mod_name);
 
-        //! loads additional modules
-        /*!
-         * \param[in] config    New module configuration.
+        /*! @brief Loads additional modules from a configuration.
+         *  @param[in] config    New module configuration.
          */
         void load_module(const YAML::Node& config);
 
@@ -296,134 +330,123 @@ class kernel :
         static std::string ll_to_string(loglevel ll);
 
 
-        //! svc_get_dump_log
-        /*!
-         * \param[in]   req     Service request data.
-         * \param[out]  resp    Service response data.
+        /*! @brief Service implementation for getting the dump log.
+         *  @param[in]   req     Service request data.
+         *  @param[out]  resp    Service response data.
          */
         void svc_get_dump_log(
             const struct services::robotkernel::kernel::svc_req_get_dump_log& req, 
             struct services::robotkernel::kernel::svc_resp_get_dump_log& resp) override;
         
-        //! svc_config_dump_log
-        /*!
-         * \param[in]   req     Service request data.
-         * \param[out]  resp    Service response data.
+        /*! @brief Service implementation for configuring the dump log.
+         *  @param[in]   req     Service request data.
+         *  @param[out]  resp    Service response data.
          */
         void svc_config_dump_log(
             const struct services::robotkernel::kernel::svc_req_config_dump_log& req, 
             struct services::robotkernel::kernel::svc_resp_config_dump_log& resp) override;
     
-        //! svc_add_module
-        /*!
-         * \param[in]   req     Service request data.
-         * \param[out]  resp    Service response data.
+        /*! @brief Service implementation for adding a module.
+         *  @param[in]   req     Service request data.
+         *  @param[out]  resp    Service response data.
          */
         void svc_add_module(
             const struct services::robotkernel::kernel::svc_req_add_module& req, 
             struct services::robotkernel::kernel::svc_resp_add_module& resp) override;
         
-        //! svc_remove_module
-        /*!
-         * \param[in]   req     Service request data.
-         * \param[out]  resp    Service response data.
+        /*! @brief Service implementation for removing a module.
+         *  @param[in]   req     Service request data.
+         *  @param[out]  resp    Service response data.
          */
         void svc_remove_module(
             const struct services::robotkernel::kernel::svc_req_remove_module& req, 
             struct services::robotkernel::kernel::svc_resp_remove_module& resp) override;
 
-        //! svc_module_list
-        /*!
-         * \param[in]   req     Service request data.
-         * \param[out]  resp    Service response data.
+        /*! @brief Service implementation for listing modules.
+         *  @param[in]   req     Service request data.
+         *  @param[out]  resp    Service response data.
          */
         void svc_module_list(
             const struct services::robotkernel::kernel::svc_req_module_list& req, 
             struct services::robotkernel::kernel::svc_resp_module_list& resp) override;
 
-        //! svc_reconfigure_module
-        /*!
-         * \param[in]   req     Service request data.
-         * \param[out]  resp    Service response data.
+        /*! @brief Service implementation for reconfiguring a module.
+         *  @param[in]   req     Service request data.
+         *  @param[out]  resp    Service response data.
          */
         void svc_reconfigure_module(
             const struct services::robotkernel::kernel::svc_req_reconfigure_module& req, 
             struct services::robotkernel::kernel::svc_resp_reconfigure_module& resp) override;
 
-        //! svc_list_devices
-        /*!
-         * \param[in]   req     Service request data.
-         * \param[out]  resp    Service response data.
+        /*! @brief Service implementation for listing devices.
+         *  @param[in]   req     Service request data.
+         *  @param[out]  resp    Service response data.
          */
         void svc_list_devices(
             const struct services::robotkernel::kernel::svc_req_list_devices& req, 
             struct services::robotkernel::kernel::svc_resp_list_devices& resp) override;
 
-        //! svc_process_data_info
-        /*!
-         * \param[in]   req     Service request data.
-         * \param[out]  resp    Service response data.
+        /*! @brief Service implementation for providing process data information.
+         *  @param[in]   req     Service request data.
+         *  @param[out]  resp    Service response data.
          */
         void svc_process_data_info(
             const struct services::robotkernel::kernel::svc_req_process_data_info& req, 
             struct services::robotkernel::kernel::svc_resp_process_data_info& resp) override;
         
-        //! svc_trigger_info
-        /*!
-         * \param[in]   req     Service request data.
-         * \param[out]  resp    Service response data.
+        /*! @brief Service implementation for providing trigger information.
+         *  @param[in]   req     Service request data.
+         *  @param[out]  resp    Service response data.
          */
         void svc_trigger_info(
             const struct services::robotkernel::kernel::svc_req_trigger_info& req, 
             struct services::robotkernel::kernel::svc_resp_trigger_info& resp) override;
         
-        //! svc_stream_info
-        /*!
-         * \param[in]   req     Service request data.
-         * \param[out]  resp    Service response data.
+        /*! @brief Service implementation for providing stream information.
+         *  @param[in]   req     Service request data.
+         *  @param[out]  resp    Service response data.
          */
         void svc_stream_info(
             const struct services::robotkernel::kernel::svc_req_stream_info& req, 
             struct services::robotkernel::kernel::svc_resp_stream_info& resp) override;
 
-        //! svc_service_interface_info
-        /*!
-         * \param[in]   req     Service request data.
-         * \param[out]  resp    Service response data.
+        /*! @brief Service implementation for providing service interface information.
+         *  @param[in]   req     Service request data.
+         *  @param[out]  resp    Service response data.
          */
         void svc_service_interface_info(
             const struct services::robotkernel::kernel::svc_req_service_interface_info& req, 
             struct services::robotkernel::kernel::svc_resp_service_interface_info& resp) override;
         
-        //! svc_add_pd_injection
-        /*!
-         * \param[in]   req     Service request data.
-         * \param[out]  resp    Service response data.
+        /*! @brief Service implementation for adding process data injection.
+         *  @param[in]   req     Service request data.
+         *  @param[out]  resp    Service response data.
          */
         void svc_add_pd_injection(
             const struct services::robotkernel::kernel::svc_req_add_pd_injection& req, 
             struct services::robotkernel::kernel::svc_resp_add_pd_injection& resp) override;
 
-        //! svc_del_pd_injection
-        /*!
-         * \param[in]   req     Service request data.
-         * \param[out]  resp    Service response data.
+        /*! @brief Service implementation for deleting process data injection.
+         *  @param[in]   req     Service request data.
+         *  @param[out]  resp    Service response data.
          */
         void svc_del_pd_injection(
             const struct services::robotkernel::kernel::svc_req_del_pd_injection& req, 
             struct services::robotkernel::kernel::svc_resp_del_pd_injection& resp) override;
 
-        //! svc_list_pd_injections
-        /*!
-         * \param[in]   req     Service request data.
-         * \param[out]  resp    Service response data.
+        /*! @brief Service implementation for listing process data injections.
+         *  @param[in]   req     Service request data.
+         *  @param[out]  resp    Service response data.
          */
         void svc_list_pd_injections(
             const struct services::robotkernel::kernel::svc_req_list_pd_injections& req, 
             struct services::robotkernel::kernel::svc_resp_list_pd_injections& resp) override;
 };
         
-// get a device by name
+/*! @brief Gets a device by name.
+ *  @param[in] dev_name name of the device
+ *  @return shared pointer to the device
+ */
 template <typename T>
 inline std::shared_ptr<T> kernel::get_device(const std::string& dev_name) {
     if (device_map.find(dev_name) == device_map.end()) 
@@ -440,4 +463,3 @@ inline std::shared_ptr<T> kernel::get_device(const std::string& dev_name) {
 } // namespace robotkernel
 
 #endif // ROBOTKERNEL__KERNEL_H
-
