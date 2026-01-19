@@ -38,6 +38,7 @@
 #include <string>
 #include <thread>
 #include <stdexcept>
+#include <dlfcn.h>
 
 #include "robotkernel/exceptions.h"
 
@@ -54,17 +55,17 @@
      ((tvp)->tv_sec cmp (uvp)->tv_sec))
 
          
-#define get_symbol(name) {                                                          \
-    name = (name ## _t)dlsym(so_handle, #name);                                     \
-    if (!name)                                                                      \
-        throw std::runtime_error(robotkernel::string_printf("missing " #name " in %s\n", file_name.c_str()));   \
-}
-
-#define get_config(member, dflt) \
-    (member) = get_as<typeof(member)>(config, # member, (typeof(member))dflt)
-
 
 namespace robotkernel {
+
+/*! @brief Getting symbols from loaded shared object file handle. */
+template <typename T>
+void get_symbol(T& out, void* so_handle, const std::string& symbol_name) {
+    out = reinterpret_cast<T>(dlsym(so_handle, symbol_name.c_str()));
+    if (!out) {
+        throw std::runtime_error("Missing symbol: " + symbol_name);
+    }
+}
 
 //! convert buffer to hex string
 std::string hex_string(const void *data, size_t len);

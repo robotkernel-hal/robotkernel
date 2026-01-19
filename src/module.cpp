@@ -224,19 +224,10 @@ module::module(const YAML::Node& node)
 }
         
 void module::_init() {
-    mod_configure           = (mod_configure_t)         dlsym(so_handle, "mod_configure");
-    mod_unconfigure         = (mod_unconfigure_t)       dlsym(so_handle, "mod_unconfigure");
-    mod_set_state           = (mod_set_state_t)         dlsym(so_handle, "mod_set_state");
-    mod_get_state           = (mod_get_state_t)         dlsym(so_handle, "mod_get_state");
-
-    if (!mod_configure)
-        robotkernel::kernel::instance.log(warning, "missing mod_configure in %s\n", file_name.c_str());;
-    if (!mod_unconfigure)
-        robotkernel::kernel::instance.log(verbose, "missing mod_unconfigure in %s\n", file_name.c_str());
-    if (!mod_set_state)
-        robotkernel::kernel::instance.log(verbose, "missing mod_set_state in %s\n", file_name.c_str());
-    if (!mod_get_state)
-        robotkernel::kernel::instance.log(verbose, "missing mod_get_state in %s\n", file_name.c_str());
+    get_symbol(mod_configure, so_handle, "mod_configure");
+    get_symbol(mod_unconfigure, so_handle, "mod_unconfigure");
+    get_symbol(mod_set_state, so_handle, "mod_set_state");
+    get_symbol(mod_get_state, so_handle, "mod_get_state");
 
     // try to configure
     reconfigure();

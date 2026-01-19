@@ -50,25 +50,12 @@ using namespace robotkernel;
 service_provider::service_provider(const YAML::Node& node) : so_file(node) {
     name = get_as<string>(node, "name");
 
-    sp_register         = (sp_register_t)  dlsym(so_handle, "sp_register");
-    sp_unregister       = (sp_unregister_t)dlsym(so_handle, "sp_unregister");
-    sp_add_interface    = (sp_add_interface_t)dlsym(so_handle, "sp_add_interface");
-    sp_remove_interface = (sp_remove_interface_t)dlsym(so_handle, "sp_remove_interface");
-    sp_remove_module    = (sp_remove_module_t)dlsym(so_handle, "sp_remove_module");
-    sp_test_interface   = (sp_test_interface_t)dlsym(so_handle, "sp_test_interface");
-
-    if (!sp_register)
-        robotkernel::kernel::instance.log(verbose, "missing sp_register in %s\n", file_name.c_str());
-    if (!sp_unregister)
-        robotkernel::kernel::instance.log(verbose, "missing sp_unregister in %s\n", file_name.c_str());
-    if (!sp_add_interface)
-        robotkernel::kernel::instance.log(verbose, "missing sp_add_interface in %s\n", file_name.c_str());
-    if (!sp_remove_interface)
-        robotkernel::kernel::instance.log(verbose, "missing sp_remove_interface in %s\n", file_name.c_str());
-    if (!sp_remove_module)
-        robotkernel::kernel::instance.log(verbose, "missing sp_remove_module in %s\n", file_name.c_str());
-    if (!sp_test_interface)
-        robotkernel::kernel::instance.log(verbose, "missing sp_test_interface in %s\n", file_name.c_str());
+    get_symbol(sp_register, so_handle, "sp_register");
+    get_symbol(sp_unregister, so_handle, "sp_unregister");
+    get_symbol(sp_add_interface, so_handle, "sp_add_interface");
+    get_symbol(sp_remove_interface, so_handle, "sp_remove_interface");
+    get_symbol(sp_remove_module, so_handle, "sp_remove_module");
+    get_symbol(sp_test_interface, so_handle, "sp_test_interface");
 
     // try to configure
     if (sp_register) {

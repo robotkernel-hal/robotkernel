@@ -46,10 +46,10 @@ bridge::bridge(const YAML::Node& node) : so_file(node)
 {
     name = get_as<string>(node, "name");
 
-    get_symbol(bridge_configure);
-    get_symbol(bridge_unconfigure);
-    get_symbol(bridge_add_service);
-    get_symbol(bridge_remove_service);
+    get_symbol(bridge_configure, so_handle, string("bridge_configure"));
+    get_symbol(bridge_unconfigure, so_handle, string("bridge_unconfigure"));
+    get_symbol(bridge_add_service, so_handle, string("bridge_add_service"));
+    get_symbol(bridge_remove_service, so_handle, string("bridge_remove_service"));
 
     // try to configure
     bridge_handle = bridge_configure(name.c_str(), config.c_str());
