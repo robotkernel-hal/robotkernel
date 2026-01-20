@@ -227,6 +227,8 @@ int main(int argc, char* argv[]) {
 Exit:
     robotkernel::kernel::instance.log(info, "exiting\n");
 
+    robotkernel::kernel::instance.power_down();
+
 #ifdef __VXWORKS__
     // on vxworks we have to call select once to do magic cleanup
 //    if (kernel::instance.clnt)
