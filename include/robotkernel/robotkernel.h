@@ -101,8 +101,8 @@ template <typename T>
 inline std::shared_ptr<T> get_device(const std::string& dev_name) {
     std::shared_ptr<T> retval = std::dynamic_pointer_cast<T>(get_device(dev_name));
     if (!retval)
-        throw std::runtime_error(robotkernel::string_printf("device %s is not of type %s\n", 
-                dev_name.c_str(), typeid(T).name()));
+        throw std::runtime_error(robotkernel::helpers::string_printf(
+                    "device %s is not of type %s\n", dev_name.c_str(), typeid(T).name()));
 
     return retval;
 };

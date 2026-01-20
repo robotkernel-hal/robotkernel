@@ -28,8 +28,9 @@
 #include "rkc_loader.h"
 #include "kernel.h"
 
-using namespace robotkernel;
 using namespace std;
+using namespace robotkernel;
+using namespace robotkernel::helpers;
 
 static std::map<std::string, std::string> arg_map;
 

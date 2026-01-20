@@ -46,6 +46,7 @@
         
 using namespace std;
 using namespace robotkernel;
+using namespace robotkernel::helpers;
 
 //! construction with yaml node
 /*!

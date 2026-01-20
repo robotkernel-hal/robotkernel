@@ -34,6 +34,7 @@
 
 using namespace std;
 using namespace robotkernel;
+using namespace robotkernel::helpers;
 
 char_ringbuffer::char_ringbuffer(unsigned int size) {
     data = (char*) malloc(size);

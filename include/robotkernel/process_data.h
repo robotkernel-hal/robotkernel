@@ -219,7 +219,8 @@ class process_data :
          */
         virtual uint8_t* next(sp_pd_provider_t& prov) {
             if ((provider == nullptr) || (provider->hash != prov->hash)) {
-                throw std::runtime_error(robotkernel::string_printf("permission denied to write to %s", id().c_str()));
+                throw std::runtime_error(robotkernel::helpers::string_printf(
+                            "permission denied to write to %s", id().c_str()));
             }
 
             return nullptr;
@@ -238,8 +239,9 @@ class process_data :
          */
         virtual uint8_t* pop(sp_pd_consumer_t& cons) {
             if ((consumer == nullptr) || (consumer->hash != cons->hash)) {
-                throw std::runtime_error(robotkernel::string_printf("permission denied to pop %s: consumer_hash %d, your hash %d", 
-                        id().c_str(), consumer->hash, cons->hash));
+                throw std::runtime_error(robotkernel::helpers::string_printf(
+                            "permission denied to pop %s: consumer_hash %zu, your hash %zu", 
+                            id().c_str(), consumer->hash, cons->hash));
             }
 
             return nullptr;
@@ -263,7 +265,8 @@ class process_data :
             size_t len, bool do_push = true, bool do_trigger = true) 
         {
             if ((provider == nullptr) || (provider->hash != prov->hash)) {
-                throw std::runtime_error(robotkernel::string_printf("permission denied to write to %s", id().c_str()));
+                throw std::runtime_error(robotkernel::helpers::string_printf(
+                            "permission denied to write to %s", id().c_str()));
             }
         }
 
@@ -279,8 +282,9 @@ class process_data :
                 size_t len, bool do_pop = true) 
         {
             if (do_pop && ((consumer == nullptr) || (consumer->hash != cons->hash))) {
-                throw std::runtime_error(robotkernel::string_printf("permission denied to pop %s: consumer_hash %d, your hash %d", 
-                        id().c_str(), consumer->hash, cons->hash));
+                throw std::runtime_error(robotkernel::helpers::string_printf(
+                            "permission denied to pop %s: consumer_hash %zu, your hash %zu", 
+                            id().c_str(), consumer->hash, cons->hash));
             }
 
             pd_cookie++;
@@ -550,8 +554,9 @@ class pointer_buffer :
          */
         void set_ptr(sp_pd_provider_t& prov, uint8_t *ptr) {
             if ((provider == nullptr) || (provider->hash != prov->hash)) {
-                throw std::runtime_error(robotkernel::string_printf("permission denied set pointer %s: provider_hash %d, your hash %d", 
-                        id().c_str(), provider->hash, prov->hash));
+                throw std::runtime_error(robotkernel::helpers::string_printf(
+                            "permission denied set pointer %s: provider_hash %zu, your hash %zu", 
+                            id().c_str(), provider->hash, prov->hash));
             }
 
             this->ptr = ptr;
@@ -566,8 +571,9 @@ class pointer_buffer :
          */
         void set_ptr(sp_pd_consumer_t& cons, uint8_t *ptr) {
             if ((consumer == nullptr) || (consumer->hash != cons->hash)) {
-                throw std::runtime_error(robotkernel::string_printf("permission denied set pointer %s: consumer_hash %d, your hash %d", 
-                        id().c_str(), consumer->hash, cons->hash));
+                throw std::runtime_error(robotkernel::helpers::string_printf(
+                            "permission denied set pointer %s: consumer_hash %zu, your hash %zu", 
+                            id().c_str(), consumer->hash, cons->hash));
             }
 
             this->ptr = ptr;

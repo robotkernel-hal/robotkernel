@@ -450,12 +450,13 @@ class kernel :
 template <typename T>
 inline std::shared_ptr<T> kernel::get_device(const std::string& dev_name) {
     if (device_map.find(dev_name) == device_map.end()) 
-        throw std::runtime_error(robotkernel::string_printf("device %s not found\n", dev_name.c_str()));
+        throw std::runtime_error(robotkernel::helpers::string_printf(
+                    "device %s not found\n", dev_name.c_str()));
 
     std::shared_ptr<T> retval = std::dynamic_pointer_cast<T>(device_map[dev_name]);
     if (!retval)
-        throw std::runtime_error(robotkernel::string_printf("device %s is not of type %s\n", 
-                dev_name.c_str(), typeid(T).name()));
+        throw std::runtime_error(robotkernel::helpers::string_printf(
+                    "device %s is not of type %s\n", dev_name.c_str(), typeid(T).name()));
 
     return retval;
 };

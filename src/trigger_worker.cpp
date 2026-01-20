@@ -32,6 +32,7 @@
 
 using namespace std;
 using namespace robotkernel;
+using namespace robotkernel::helpers;
 
 bool trigger_worker::worker_key::operator<(const worker_key& a) const {
     if (prio < a.prio)

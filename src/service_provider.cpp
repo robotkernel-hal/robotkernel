@@ -42,6 +42,7 @@
 
 using namespace std;
 using namespace robotkernel;
+using namespace robotkernel::helpers;
 
 //! service_provider construction
 /*!

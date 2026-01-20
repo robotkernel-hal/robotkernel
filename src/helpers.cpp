@@ -46,8 +46,25 @@
 
 using namespace std;
 using namespace robotkernel;
+using namespace robotkernel::helpers;
 
-YAML::Node robotkernel::fill_template(const std::string& config, const YAML::Node& instance) {
+//! convert buffer to hex string
+std::string robotkernel::helpers::hex_string(const void *data, size_t len) {
+    char hex_buf[4];
+    std::stringstream ss;
+    
+    for (size_t i = 0; i < len; ++i) {
+        uint8_t c = ((uint8_t*) data)[i];
+        snprintf(hex_buf, sizeof(hex_buf), "%02X ", c);
+        ss << hex_buf;
+    }
+
+    ss << "\n";
+
+    return ss.str();
+}
+
+YAML::Node robotkernel::helpers::fill_template(const std::string& config, const YAML::Node& instance) {
     std::string inst_config = config;
     
     for (const auto& kv : instance) {
@@ -63,7 +80,7 @@ YAML::Node robotkernel::fill_template(const std::string& config, const YAML::Nod
     return YAML::Load(inst_config);
 }
 
-void robotkernel::parse_templates(const YAML::Node& config, std::list<YAML::Node>& instances) {
+void robotkernel::helpers::parse_templates(const YAML::Node& config, std::list<YAML::Node>& instances) {
      std::map<std::string, std::string> class_map;
  
      for (const auto& cls : config["classes"]) {
@@ -88,7 +105,7 @@ void robotkernel::parse_templates(const YAML::Node& config, std::list<YAML::Node
      }
 }
 
-std::string robotkernel::string_printf(const char* format, ...) {
+std::string robotkernel::helpers::string_printf(const char* format, ...) {
     va_list args1;
     va_start(args1, format);
 
@@ -110,7 +127,7 @@ std::string robotkernel::string_printf(const char* format, ...) {
     return std::string(buffer.data(), size);
 }
 
-std::vector<std::string> robotkernel::string_split(const std::string& str, const char delimiter) {
+std::vector<std::string> robotkernel::helpers::string_split(const std::string& str, const char delimiter) {
     std::vector<std::string> result;
     std::istringstream ss(str);
     std::string token;
@@ -122,19 +139,22 @@ std::vector<std::string> robotkernel::string_split(const std::string& str, const
     return result;
 }
 
-void robotkernel::set_priority(int priority, int policy) {
+void robotkernel::helpers::set_priority(int priority, int policy) {
     if (!priority)
         return;
+
     struct sched_param param;
     robotkernel::kernel::instance.log(info, "setting thread priority to %d, policy %d\n", priority, policy);
 
     param.sched_priority = priority;
-    if (pthread_setschedparam(pthread_self(), policy, &param) != 0)
-        robotkernel::kernel::instance.log(warning, "setPriority: pthread_setschedparam(0x%x, %d, %d): %s\n",
-                pthread_self(), policy, priority, strerror(errno));
+    if (pthread_setschedparam(pthread_self(), policy, &param) != 0) {
+        throw runtime_error(robotkernel::helpers::string_printf(
+                    "setPriority: pthread_setschedparam(0x%x, %d, %d): %s\n",
+                    pthread_self(), policy, priority, strerror(errno)));
+    }
 }
 
-void robotkernel::set_affinity_mask(int affinity_mask) {
+void robotkernel::helpers::set_affinity_mask(int affinity_mask) {
     if (!affinity_mask)
         return;
 #ifdef __VXWORKS__
@@ -151,17 +171,19 @@ void robotkernel::set_affinity_mask(int affinity_mask) {
     robotkernel::kernel::instance.log(info, "setting cpu affinity mask %#x\n", affinity_mask);
 
     int ret = pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuset);
-    if (ret != 0)
-        robotkernel::kernel::instance.log(warning, "setAffinityMask: pthread_setaffinity(%p, %#x): %d %s\n", 
-                (void *) pthread_self(), affinity_mask, ret, strerror(ret));
+    if (ret != 0) {
+        throw runtime_error(robotkernel::helpers::string_printf(
+                    "setAffinityMask: pthread_setaffinity(%p, %#x): %d %s\n", 
+                    (void *) pthread_self(), affinity_mask, ret, strerror(ret)));
+    }
 #endif
 }
 
-void robotkernel::set_thread_name(std::thread& tid, const std::string& thread_name) {
+void robotkernel::helpers::set_thread_name(std::thread& tid, const std::string& thread_name) {
     set_thread_name(tid.native_handle(), thread_name);
 }
 
-void robotkernel::set_thread_name(pthread_t tid, const std::string& thread_name) {
+void robotkernel::helpers::set_thread_name(pthread_t tid, const std::string& thread_name) {
     char buffer[17];
     snprintf(buffer, 16, "%s", thread_name.c_str());
 
@@ -172,7 +194,7 @@ void robotkernel::set_thread_name(pthread_t tid, const std::string& thread_name)
 #endif
 }
 
-void robotkernel::set_thread_name(const std::string& thread_name) {
+void robotkernel::helpers::set_thread_name(const std::string& thread_name) {
 #if defined(HAVE_PTHREAD_SETNAME_NP_3) || defined(HAVE_PTHREAD_SETNAME_NP_2)
     set_thread_name(pthread_self(), thread_name);
 #elif defined(HAVE_PTHREAD_SETNAME_NP_1)

@@ -136,7 +136,7 @@ typedef module_state_t (*mod_get_state_t)(MODULE_HANDLE hdl);
         reinterpret_cast<struct impl ## _wrapper *>(hdl);                           \
     std::shared_ptr<modclass> dev = wr->sp;                                         \
     if (!dev)                                                                       \
-        throw std::runtime_error(robotkernel::string_printf("["#impl"] "            \
+        throw std::runtime_error(robotkernel::helpers::string_printf("["#impl"] "   \
                     "invalid module handle to <"#modclass" *>\n")); 
 
 #define MODULE_DEF(impl, modclass)                                                  \
@@ -169,7 +169,8 @@ EXPORT_C MODULE_HANDLE mod_configure(const char* name, const char* config) {    
     wr = new struct impl ## _wrapper();                                             \
     if (!wr)                                                                        \
         throw std::runtime_error(                                                   \
-                robotkernel::string_printf("["#impl"] error allocating memory\n")); \
+                robotkernel::helpers::string_printf(                                \
+                "["#impl"] error allocating memory\n"));                            \
     wr->sp = std::make_shared<modclass>(name, doc);                                 \
     wr->sp->init();                                                                 \
                                                                                     \

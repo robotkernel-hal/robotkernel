@@ -42,6 +42,7 @@
 using namespace std;
 using namespace std::placeholders;
 using namespace robotkernel;
+using namespace robotkernel::helpers;
 
 //! construction
 /*!

@@ -48,6 +48,7 @@ class trigger;
 class trigger_base :
     public virtual shared_base
 {
+
     public:
         int divisor = 1;                    //!< trigger every ""divisor"" step
         int cnt = 0;                        //!< internal step counter
@@ -62,6 +63,8 @@ class trigger_base :
         {};
 
         trigger_base(const YAML::Node& node) {
+            using robotkernel::helpers::get_as;
+
             divisor = get_as<int>(node, "divisor", 1);
             direct_mode = get_as<bool>(node, "direct_mode", true);
             worker_prio = get_as<int>(node, "worker_prio", 0);

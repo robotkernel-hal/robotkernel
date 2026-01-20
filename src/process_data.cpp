@@ -30,6 +30,7 @@
 
 using namespace std;
 using namespace robotkernel;
+using namespace robotkernel::helpers;
 
 std::map<std::string, size_t> dt_to_len = {
     { "float",    4 },

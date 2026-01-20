@@ -48,6 +48,7 @@
 
 using namespace std;
 using namespace robotkernel;
+using namespace robotkernel::helpers;
 
 string searchFile(string file_name, vector<const char*> &locations){
     for(auto libpathes : locations){

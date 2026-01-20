@@ -35,6 +35,7 @@
 
 using namespace std;
 using namespace robotkernel;
+using namespace robotkernel::helpers;
 
 // construction
 trigger::trigger(const std::string& owner, const std::string& name, double rate) 

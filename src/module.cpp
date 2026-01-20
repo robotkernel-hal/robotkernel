@@ -51,6 +51,7 @@
 using namespace std;
 using namespace std::placeholders;
 using namespace robotkernel;
+using namespace robotkernel::helpers;
 
 const char string_state_error[]   = "<ERROR>";
 const char string_state_init[]    = "<INIT>";

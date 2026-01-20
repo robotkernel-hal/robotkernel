@@ -170,7 +170,7 @@ int main(int argc, char* argv[]) {
             }
 
             string power_up_arg = string(argv[i]);
-            vector<string> power_up_split = robotkernel::string_split(power_up_arg, '=');
+            vector<string> power_up_split = robotkernel::helpers::string_split(power_up_arg, '=');
 
             power_up_map[power_up_split[0]] = decode_power_up_state(power_up_split[1]);
         }

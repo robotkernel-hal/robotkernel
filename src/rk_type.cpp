@@ -32,6 +32,8 @@
 using namespace std;
 
 namespace robotkernel {
+using robotkernel::helpers::string_printf;
+
     reference_map_t rk_type::__refs;
     std::mutex      rk_type::__refsLock;
 
