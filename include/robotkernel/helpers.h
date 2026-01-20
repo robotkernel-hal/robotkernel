@@ -145,8 +145,8 @@ inline void timespec_add(timespec& ts, time_t sec, long nsec)
     ts.tv_nsec += nsec;
     ts.tv_sec  += sec;
 
-    if (ts.tv_nsec >= 1'000'000'000L) {
-        ts.tv_nsec -= 1'000'000'000L;
+    if (ts.tv_nsec >= 1000000000L) {
+        ts.tv_nsec -= 1000000000L;
         ts.tv_sec++;
     }
 }
@@ -182,11 +182,16 @@ inline bool timespec_cmp(const timespec& lhs, const timespec& rhs, Compare cmp)
 /**
  * @brief Convenience functions for common comparisons.
  */
-inline bool timespec_eq(const timespec& a, const timespec& b) { return timespec_cmp(a, b, std::equal_to<>{}); }
-inline bool timespec_lt(const timespec& a, const timespec& b) { return timespec_cmp(a, b, std::less<>{}); }
-inline bool timespec_le(const timespec& a, const timespec& b) { return timespec_cmp(a, b, std::less_equal<>{}); }
-inline bool timespec_gt(const timespec& a, const timespec& b) { return timespec_cmp(a, b, std::greater<>{}); }
-inline bool timespec_ge(const timespec& a, const timespec& b) { return timespec_cmp(a, b, std::greater_equal<>{}); }
+inline bool timespec_eq(const timespec& a, const timespec& b)
+{ return timespec_cmp(a, b, [](auto lhs, auto rhs){ return lhs == rhs; }); }
+inline bool timespec_lt(const timespec& a, const timespec& b)
+{ return timespec_cmp(a, b, [](auto lhs, auto rhs){ return lhs < rhs; }); }
+inline bool timespec_le(const timespec& a, const timespec& b)
+{ return timespec_cmp(a, b, [](auto lhs, auto rhs){ return lhs <= rhs; }); }
+inline bool timespec_gt(const timespec& a, const timespec& b)
+{ return timespec_cmp(a, b, [](auto lhs, auto rhs){ return lhs > rhs; }); }
+inline bool timespec_ge(const timespec& a, const timespec& b)
+{ return timespec_cmp(a, b, [](auto lhs, auto rhs){ return lhs >= rhs; }); }
 
 /**
  * @brief Resolve a symbol from a shared object and assign it to a variable.
