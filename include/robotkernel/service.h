@@ -36,27 +36,44 @@
 #include "robotkernel/rk_type.h"
 
 typedef void (*get_sd_t)(std::list<std::string>& sd_list);
-
 namespace robotkernel {
-#ifdef EMACS
-}
-#endif
 
 typedef std::vector<rk_type> service_arglist_t;
 typedef std::function<int(const service_arglist_t&, service_arglist_t&)> service_callback_t;
 
+ /**
+  * @struct service_t
+  * @brief A struct representing a service.
+  */
 typedef struct service {
+    /**
+     * @var owner
+     * @brief The owner of the service.
+     */
     std::string owner;
+
+    /**
+     * @var name
+     * @brief The name of the service.
+     */
     std::string name;
+
+    /**
+     * @var service_definition
+     * @brief A description of the service.
+     */
     std::string service_definition;
+
+    /**
+     * @var callback
+     * @brief A callback function associated with the service.
+     */
     service_callback_t callback;
 } service_t;
 
+
 typedef std::map<std::pair<std::string, std::string>, service_t *> service_map_t;
 
-#ifdef EMACS
-{
-#endif
 } // namespace robotkernel
 
 #endif // ROBOTKERNEL__SERVICE_H
