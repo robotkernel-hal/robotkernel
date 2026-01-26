@@ -34,10 +34,8 @@ using namespace std;
 
 /* Get trigger device from robotkernel and register us as trigger. */
 void trigger_base::aquire(void) {
-    if (dev_name != "") {
-        dev = robotkernel::get_device<robotkernel::trigger>(dev_name);
-        dev->add_trigger(shared_from_this_as<trigger_base>());
-    }
+    dev = robotkernel::get_device<robotkernel::trigger>(dev_name);
+    dev->add_trigger(shared_from_this_as<trigger_base>());
 }
 
 /* Remove us as trigger devce. */
