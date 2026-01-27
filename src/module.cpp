@@ -140,11 +140,12 @@ YAML::Emitter& operator<<(YAML::Emitter& out, const robotkernel::module& mdl) {
 
     if (!mdl.depends.empty()) {
         out << YAML::Key << "depends" << YAML::Value;
-        out << YAML::Flow << YAML::BeginSeq;
+        out << YAML::Flow << YAML::BeginMap;
         for (module::depend_list_t::const_iterator it = mdl.depends.begin(); 
-                it != mdl.depends.end(); ++it)
-            out << *it;
-        out << YAML::EndSeq;
+                it != mdl.depends.end(); ++it) {
+            out << YAML::Key << it->first << YAML::Value << it->second;
+        }
+        out << YAML::EndMap;
     }
 
     // TODO excludes
@@ -171,16 +172,28 @@ module::module(const YAML::Node& node)
             if (tmp == name)
                 throw runtime_error(string_printf("module %s depends on itself?\n", name.c_str()));
 
-            depends.push_back(tmp); 
+            depends.push_back(make_pair(tmp, module_state_op)); 
         } else if (node["depends"].Type() == YAML::NodeType::Sequence) {
             for (YAML::const_iterator it = node["depends"].begin();
-                    it != node["depends"].end(); ++it) {
+                    it != node["depends"].end(); ++it) 
+            {
                 std::string tmp = it->as<std::string>();
 
                 if (tmp == name)
                     throw runtime_error(string_printf("module %s depends on itself?\n", name.c_str()));
 
-                depends.push_back(tmp); 
+                depends.push_back(make_pair(tmp, module_state_op)); 
+            }
+        } else if (node["depends"].Type() == YAML::NodeType::Map) {
+            for (const auto& it : node["depends"]) {
+                string d_mod_name = it.first.as<string>();
+                string d_target_state_string = it.second.as<string>();
+                auto d_target_state = decode_power_up_state(d_target_state_string);
+
+                if (d_mod_name == name)
+                    throw runtime_error(string_printf("module %s depends on itself?\n", name.c_str()));
+
+                depends.push_back(make_pair(d_mod_name, d_target_state)); 
             }
         }
     }

@@ -135,7 +135,10 @@ int kernel::set_state(std::string mod_name, module_state_t state,
     }
 
     // iterate through dependencies
-    for (const auto& d_mod_name : mdl->get_depends()) {
+    for (const auto& dep : mdl->get_depends()) {
+        auto& d_mod_name = dep.first;
+        auto& d_target_state = dep.second;
+
         if (std::find(caller.begin(), caller.end(), d_mod_name) != caller.end())
             continue; // do not recurse any further
 
@@ -152,11 +155,11 @@ int kernel::set_state(std::string mod_name, module_state_t state,
         }
 
         if ((dep_mod_state < state) || (dep_mod_state == module_state_boot)) {
-            log(info, "powering up %s module dependencies %s\n",
-                    mod_name.c_str(), d_mod_name.c_str());
+            log(info, "powering up %s module dependencies %s to it's target state %s\n",
+                    mod_name.c_str(), d_mod_name.c_str(), state_to_string(d_target_state));
 
             caller.push_back(mod_name);
-            set_state(d_mod_name, state, caller);
+            set_state(d_mod_name, d_target_state, caller);
         }
     }
 
@@ -168,7 +171,9 @@ int kernel::set_state(std::string mod_name, module_state_t state,
             continue;
 
         // iterate through dependencies
-        for (const auto& d_mod_name : mdl2->get_depends()) {
+        for (const auto& dep : mdl2->get_depends()) {
+            auto& d_mod_name = dep.first;
+
             if (std::find(caller.begin(), caller.end(), d_mod_name) != caller.end())
                 continue; // do not recurse any further
             if (d_mod_name != mod_name)

@@ -63,7 +63,7 @@ class module :
         module& operator=(const module&);  // prevent assignment
 
     public:
-        typedef std::list<std::string> depend_list_t;         //! dependency list
+        typedef std::list<std::pair<std::string, uint16_t> > depend_list_t;         //! dependency list
         typedef std::list<std::string> exclude_list_t;         //! dependency list
         
         //! module construction
@@ -109,7 +109,7 @@ class module :
         std::string get_name();                         //!< return module name
         const depend_list_t& get_depends();             //!< return dependency list
         const module_state_t get_power_up();            //!< return power up state
-        void add_depends(std::string other_module);     //!< add new dependency
+        void add_depends(std::string other_module, uint16_t target_state = module_state_op); //!< add new dependency
         void remove_depends(std::string other_module);  //!< remove dependency
 
         //! set module state
@@ -182,15 +182,15 @@ inline const module::depend_list_t& module::get_depends() {
     return depends;
 }
 //! add new dependency
-inline void module::add_depends(std::string other_module) {
-    depends.push_back(other_module);
+inline void module::add_depends(std::string other_module, uint16_t target_state) {
+    depends.push_back(std::make_pair(other_module, target_state));
 }
 
 inline void module::remove_depends(std::string other_module) {
     for(depend_list_t::iterator i = depends.begin();
             i != depends.end(); ) {
 
-        if(*i == other_module) {
+        if(i->first == other_module) {
             depends.erase(i);
             i = depends.begin();
             continue;
