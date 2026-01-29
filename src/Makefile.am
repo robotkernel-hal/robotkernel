@@ -22,6 +22,7 @@ include_HEADERS = $(headerdir)/bridge_base.h \
 				  $(headerdir)/module_base.h \
 				  $(headerdir)/process_data.h \
 				  $(headerdir)/rk_type.h \
+				  $(headerdir)/rkc_loader.h \
 				  $(headerdir)/runnable.h \
 				  $(headerdir)/service.h \
 				  $(headerdir)/service_definitions.h \

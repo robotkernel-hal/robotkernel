@@ -181,6 +181,10 @@ int main(int argc, char* argv[]) {
         goto Exit;
     }
 
+#if (HAVE_LTTNG_UST == 1)
+    robotkernel::kernel::instance.log(info, "Built with LTTNG logging support!\n");
+#endif
+
     try {
         kernel::instance.config(config_file, argc, argv);        
 
