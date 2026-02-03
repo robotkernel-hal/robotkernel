@@ -293,11 +293,27 @@ class process_data :
         //! Returns true if new data has been written
         virtual bool new_data() { return true; }
 
+        //! Create and set a new provider, return handle.
+        sp_pd_provider_t create_provider(const std::string& provider_name) {
+            sp_pd_provider_t retval = nullptr; 
+            retval = std::make_shared<pd_provider>(provider_name);
+            set_provider(retval);
+            return retval;
+        }
+
         //! set data provider thread, only thread allowed to write and push
         void set_provider(robotkernel::sp_pd_provider_t& prov);
 
         //! reset data provider thread
         void reset_provider(sp_pd_provider_t& prov);
+        
+        //! Create an set a new consumer, return handle.
+        sp_pd_consumer_t create_consumer(const std::string& consumer_name) {
+            sp_pd_consumer_t retval = nullptr; 
+            retval = std::make_shared<pd_consumer>(consumer_name);
+            set_consumer(retval);
+            return retval;
+        }
 
         //!< set main consumer thread, only thread allowed to pop
         void set_consumer(robotkernel::sp_pd_consumer_t& cons);
