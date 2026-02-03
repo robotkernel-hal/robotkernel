@@ -165,29 +165,34 @@ int kernel::set_state(std::string mod_name, module_state_t state,
 
     // check if other module depend on this one
     for (auto& kv : module_map) {
+        auto mdl2_mod_name = kv.first;
         sp_module_t mdl2 = kv.second;
-        if (mdl2->get_name() == mod_name)
+
+        if (mdl2_mod_name == mod_name)
             // skip this one
             continue;
+
+        if (std::find(caller.begin(), caller.end(), mdl2_mod_name) != caller.end())
+            continue; // do not recurse any further
 
         // iterate through dependencies
         for (const auto& dep : mdl2->get_depends()) {
             auto& d_mod_name = dep.first;
+            auto& d_target_state = dep.second;
 
-            if (std::find(caller.begin(), caller.end(), d_mod_name) != caller.end())
-                continue; // do not recurse any further
             if (d_mod_name != mod_name)
                 continue; // not dependent to us
 
-            if (get_state(mdl2->get_name()) > state) {
+            if (state < d_target_state) {
                 log(info, "%s depends on %s -> setting state to init\n",
-                        mdl2->get_name().c_str(), mod_name.c_str());
-                caller.push_back(mod_name);
-                set_state(mdl2->get_name(), module_state_init, caller);
+                        mdl2_mod_name.c_str(), mod_name.c_str());
+
+                caller.push_back(mdl2_mod_name);
+                set_state(mdl2_mod_name, module_state_init, caller);
                 break;
             } else
                 log(verbose, "%s depend on %s but is always in a lower"
-                        " state\n", mdl2->get_name().c_str(), mod_name.c_str());
+                        " state\n", mdl2_mod_name.c_str(), mod_name.c_str());
         }
     }
 
