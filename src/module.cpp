@@ -64,11 +64,6 @@ module* currently_loading_module = NULL;
 
 namespace robotkernel {
 
-// assign generated service definitions
-const std::string module::service_definition_set_state  = services::robotkernel_module_set_state_service_definition;
-const std::string module::service_definition_get_state  = services::robotkernel_module_get_state_service_definition;
-const std::string module::service_definition_get_config = services::robotkernel_module_get_config_service_definition;
-
 void split_file_name(const string& str, string& path, string& file);
 
 module_state_t decode_power_up_state(std::string tmp_power_up) {
@@ -226,15 +221,9 @@ module::module(const YAML::Node& node)
 
     currently_loading_module = NULL;
 
-    kernel::instance.add_service(name, "set_state",
-            service_definition_set_state,
-            std::bind(&module::service_set_state, this, _1, _2));
-    kernel::instance.add_service(name, "get_state",
-            service_definition_get_state,
-            std::bind(&module::service_get_state, this, _1, _2));
-    kernel::instance.add_service(name, "get_config",
-            service_definition_get_config,
-            std::bind(&module::service_get_config, this, _1, _2));
+    add_svc_set_state(name, "set_state");
+    add_svc_get_state(name, "get_state");
+    add_svc_get_config(name, "get_config");
 }
         
 void module::_init() {
@@ -415,80 +404,56 @@ module_state_t module::get_state() {
 
     return mod_get_state(mod_handle); 
 }
-
-//! set module state
+        
+//! svc_set_state
 /*!
- * \param request service request data
- * \parma response service response data
- * \return success
+ * \param[in]   req     Service request data.
+ * \param[out]  resp    Service response data.
  */
-int module::service_set_state(const service_arglist_t& request, 
-        service_arglist_t& response) {
-    // request data
-#define SET_STATE_REQ_STATE     0
-    string state = request[SET_STATE_REQ_STATE];
-
-    // response data
-    string error_message;
-
+void module::svc_set_state(
+        const struct services::robotkernel::module::svc_req_set_state& req, 
+        struct services::robotkernel::module::svc_resp_set_state& resp) 
+{
     try {      
-        kernel::instance.set_state(name, string_to_state(state.c_str()));
+        if (req.ignore_depends) {
+            robotkernel::kernel::instance.log(warning, "%s warning: ingoring depends\n", name.c_str()); 
+            set_state(string_to_state(req.state.c_str()));
+        } else {
+            kernel::instance.set_state(name, string_to_state(req.state.c_str()));
+        }
     } catch (const exception& e) {
-        error_message = e.what();
+        resp.error_message = e.what();
     }
-
-#define SET_STATE_RESP_ERROR_MESSAGE    0
-    response.resize(1);
-    response[SET_STATE_RESP_ERROR_MESSAGE] = error_message;
-
-    return 0;
 }
-
-//! get module state
+        
+//! svc_get_state
 /*!
- * \param request service request data
- * \parma response service response data
- * \return success
+ * \param[in]   req     Service request data.
+ * \param[out]  resp    Service response data.
  */
-int module::service_get_state(const service_arglist_t& request, 
-        service_arglist_t& response) {
-    
-    // response data
-    string state = "";
-    string error_message = "";
-
+void module::svc_get_state(
+        const struct services::robotkernel::module::svc_req_get_state& req, 
+        struct services::robotkernel::module::svc_resp_get_state& resp)
+{
     try {      
         module_state_t act_state = kernel::instance.get_state(name);
-        state = state_to_string(act_state);
+        resp.state = state_to_string(act_state);
     } catch (const exception& e) {
-        error_message = e.what();
+        resp.error_message = e.what();
     }
-
-#define GET_STATE_RESP_STATE            0
-#define GET_STATE_RESP_ERROR_MESSAGE    1
-    response.resize(2);
-    response[GET_STATE_RESP_STATE]          = state;
-    response[GET_STATE_RESP_ERROR_MESSAGE]  = error_message;
-
-    return 0;
 }
 
-//! get module config
+//! svc_get_config
 /*!
- * \param request service request data
- * \parma response service response data
- * \return success
+ * \param[in]   req     Service request data.
+ * \param[out]  resp    Service response data.
  */
-int module::service_get_config(const service_arglist_t& request, 
-        service_arglist_t& response) {
+void module::svc_get_config(
+        const struct services::robotkernel::module::svc_req_get_config& req, 
+        struct services::robotkernel::module::svc_resp_get_config& resp)
+{
     YAML::Emitter out;
     out << *this;
-
-#define GET_CONFIG_RESP_CONFIG  0
-    response.resize(1);
-    response[GET_CONFIG_RESP_CONFIG] = string(out.c_str());
-
-    return 0;
+    resp.config = string(out.c_str());
 }
-
 

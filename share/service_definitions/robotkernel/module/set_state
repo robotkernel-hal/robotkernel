@@ -1,6 +1,7 @@
 name: robotkernel/module/set_state
 request:
 - string: state
+- bool: ignore_depends
 response:
 - string: error_message
 

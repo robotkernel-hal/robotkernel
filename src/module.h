@@ -32,6 +32,7 @@
 
 // public headers
 #include "robotkernel/service.h"
+#include "robotkernel/service_definitions.h"
 #include "robotkernel/module_base.h"
 
 // private headers
@@ -55,6 +56,9 @@ namespace robotkernel {
  */
 class module :
     public std::enable_shared_from_this<module>,
+    public services::robotkernel::module::svc_base_set_state,
+    public services::robotkernel::module::svc_base_get_state,
+    public services::robotkernel::module::svc_base_get_config,
     public robotkernel::so_file
 {
     private:
@@ -112,35 +116,32 @@ class module :
         void add_depends(std::string other_module, uint16_t target_state = module_state_op); //!< add new dependency
         void remove_depends(std::string other_module);  //!< remove dependency
 
-        //! set module state
+        //! svc_set_state
         /*!
-         * \param request service request data
-         * \parma response service response data
-         * \return success
+         * \param[in]   req     Service request data.
+         * \param[out]  resp    Service response data.
          */
-        int service_set_state(const service_arglist_t& request,
-                service_arglist_t& response);
-        static const std::string service_definition_set_state;
+        virtual void svc_set_state(
+            const struct services::robotkernel::module::svc_req_set_state& req, 
+            struct services::robotkernel::module::svc_resp_set_state& resp) override;
 
-        //! get module state
+        //! svc_get_state
         /*!
-         * \param request service request data
-         * \parma response service response data
-         * \return success
+         * \param[in]   req     Service request data.
+         * \param[out]  resp    Service response data.
          */
-        int service_get_state(const service_arglist_t& request,
-                service_arglist_t& response);
-        static const std::string service_definition_get_state;
+        virtual void svc_get_state(
+            const struct services::robotkernel::module::svc_req_get_state& req, 
+            struct services::robotkernel::module::svc_resp_get_state& resp) override;
 
-        //! get module config
+        //! svc_get_config
         /*!
-         * \param request service request data
-         * \parma response service response data
-         * \return success
+         * \param[in]   req     Service request data.
+         * \param[out]  resp    Service response data.
          */
-        int service_get_config(const service_arglist_t& request,
-                service_arglist_t& response);
-        static const std::string service_definition_get_config;
+        virtual void svc_get_config(
+            const struct services::robotkernel::module::svc_req_get_config& req, 
+            struct services::robotkernel::module::svc_resp_get_config& resp) override;
 
         void set_power_up(module_state_t power_up_state) {
             power_up = power_up_state;
