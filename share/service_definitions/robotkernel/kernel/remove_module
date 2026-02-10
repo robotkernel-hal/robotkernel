@@ -1,7 +1,5 @@
 name: robotkernel/kernel/remove_module
 request:
-- string: mod_name
+- { name: name, type: string }
 response:
-- string: error_message
-
-
+- { name: error_message, type: string, default: "no error" }

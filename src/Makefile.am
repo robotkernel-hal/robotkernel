@@ -21,7 +21,6 @@ include_HEADERS = $(headerdir)/bridge_base.h \
 				  $(headerdir)/loglevel.h \
 				  $(headerdir)/module_base.h \
 				  $(headerdir)/process_data.h \
-				  $(headerdir)/rk_type.h \
 				  $(headerdir)/rkc_loader.h \
 				  $(headerdir)/runnable.h \
 				  $(headerdir)/service.h \
@@ -46,7 +45,6 @@ librobotkernel_la_SOURCES = bridge.cpp \
 					  log_thread.cpp \
 					  module.cpp \
 					  process_data.cpp \
-					  rk_type.cpp \
 					  runnable.cpp \
 					  service_provider.cpp \
 					  so_file.cpp \

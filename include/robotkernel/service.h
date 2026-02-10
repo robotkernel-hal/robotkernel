@@ -33,13 +33,12 @@
 #include <list>
 #include <functional>
 
-#include "robotkernel/rk_type.h"
+#include <yaml-cpp/yaml.h>
 
 typedef void (*get_sd_t)(std::list<std::string>& sd_list);
 namespace robotkernel {
 
-typedef std::vector<rk_type> service_arglist_t;
-typedef std::function<int(const service_arglist_t&, service_arglist_t&)> service_callback_t;
+typedef std::function<int(const YAML::Node& req, YAML::Node& resp)> service_callback_t;
 
  /**
   * @struct service_t

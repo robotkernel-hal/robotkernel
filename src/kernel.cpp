@@ -245,19 +245,19 @@ module_state_t kernel::get_state(std::string mod_name) {
  * \param[in]  req           Service request parameters.
  * \param[out] resp          Service response parameters.
  */
-void kernel::call_service(const std::string& name, 
-        const service_arglist_t& req, service_arglist_t& resp) {
+void kernel::call_service(const std::string& name, const YAML::Node& req, YAML::Node& resp)
+{
     for (auto& kv : services) {
         string svc_name = kv.first.first + "." + kv.first.second;
 
         if (svc_name != name) 
             continue;
-    
+
         service_t *svc = kv.second;
         svc->callback(req, resp);
         return;
     }
-        
+
     throw runtime_error(string_printf("service \"%s\" not found!\n", name.c_str()));
 }
 
@@ -268,14 +268,13 @@ void kernel::call_service(const std::string& name,
  * \param[in]  req           Service request parameters.
  * \param[out] resp          Service response parameters.
  */
-void kernel::call_service(const std::string& owner, const std::string& name, 
-        const service_arglist_t& req, service_arglist_t& resp) {
-    
+void kernel::call_service(const std::string& owner, const std::string& name, const YAML::Node& req, YAML::Node& resp)
+{
     service_map_t::iterator it;
     if ((it = services.find(std::make_pair(owner, name))) == services.end()) {
         throw runtime_error(string_printf("service \"%s.%s\" not found!\n", owner.c_str(), name.c_str()));
     }
-    
+
     for (const auto& kv : bridge_map)
         kv.second->remove_service(*(it->second));
 
@@ -1040,20 +1039,20 @@ void kernel::svc_remove_module(
         struct services::robotkernel::kernel::svc_resp_remove_module& resp)
 {
     try {
-        log(info, "removing module \"%s\"\n", req.mod_name.c_str());
+        log(info, "removing module \"%s\"\n", req.name.c_str());
 
         std::unique_lock<std::recursive_mutex> lock(module_map_mtx);
-        module_map_t::iterator it = module_map.find(req.mod_name);
+        module_map_t::iterator it = module_map.find(req.name);
         if (it == module_map.end())
             throw runtime_error(string_printf("[robotkernel] module %s not found!\n", 
-                    req.mod_name.c_str()));
+                    req.name.c_str()));
 
         sp_module_t mdl = it->second;
         set_state(mdl->get_name(), module_state_init);
 
         module_map.erase(it);
 
-        log(info, "module \"%s\" removed\n", req.mod_name.c_str());
+        log(info, "module \"%s\" removed\n", req.name.c_str());
     } catch (exception& e) {
         resp.error_message = e.what();
         log(error, "error removing module \"%s\": %s\n", resp.error_message.c_str());
@@ -1098,18 +1097,18 @@ void kernel::svc_reconfigure_module(
     try {
         module_map_mtx.lock();
 
-        module_map_t::iterator it = module_map.find(req.mod_name);
+        module_map_t::iterator it = module_map.find(req.name);
         if (it == module_map.end()) {
             module_map_mtx.unlock();
             throw runtime_error(string_printf("[robotkernel] module %s not found!\n", 
-                    req.mod_name.c_str()));
+                    req.name.c_str()));
         }
 
         sp_module_t mdl = it->second;
 
         module_map_mtx.unlock();
 
-        if (get_state(req.mod_name) != module_state_init)
+        if (get_state(req.name) != module_state_init)
             set_state(mdl->get_name(), module_state_init);
 
         mdl->reconfigure();
@@ -1139,8 +1138,6 @@ void kernel::svc_list_devices(
     for (const auto& kv : device_map) {
         resp.devices.push_back(kv.first);
     }
-
-    resp.error_message = "";
 }
 
 //! svc_process_data_info

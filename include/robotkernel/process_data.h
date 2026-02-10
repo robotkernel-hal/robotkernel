@@ -39,7 +39,6 @@
 
 #include "robotkernel/device.h"
 #include "robotkernel/trigger.h"
-#include "robotkernel/rk_type.h"
 #include "robotkernel/helpers.h"
 
 namespace robotkernel {

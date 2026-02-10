@@ -1,6 +1,4 @@
 name: robotkernel/kernel/module_list
 response:
-- vector/string: modules
-- string: error_message
-
-
+- { name: modules, type: string, array: true }
+- { name: error_message, type: string, default: "no error" }

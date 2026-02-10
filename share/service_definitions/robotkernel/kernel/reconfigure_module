@@ -1,6 +1,6 @@
 name: robotkernel/kernel/reconfigure_module
 request:
-- string: mod_name
+- { name: name, type: string }
 response:
-- uint64_t: state
-- string: error_message
+- { name: state, type: uint64_t }
+- { name: error_message, type: string, default: "no error" }

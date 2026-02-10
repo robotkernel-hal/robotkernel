@@ -1,4 +1,4 @@
 name: robotkernel/module/get_state
 response:
-- string: state
-- string: error_message
+- { name: state, type: string }
+- { name: error_message, type: string, default: "no error" }

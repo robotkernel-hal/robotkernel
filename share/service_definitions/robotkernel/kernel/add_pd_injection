@@ -1,8 +1,8 @@
 name: robotkernel/kernel/add_pd_injection
 request:
-- string: pd_dev
-- string: field_name
-- string: value
-- string: bitmask
+- { name: pd_dev, type: string }
+- { name: field_name, type: string }
+- { name: value, type: string }
+- { name: bitmask, type: string }
 response:
-- string: error_message
+- { name: error_message, type: string, default: "no error" }

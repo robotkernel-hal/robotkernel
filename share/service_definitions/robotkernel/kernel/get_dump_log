@@ -1,3 +1,4 @@
 name: robotkernel/kernel/get_dump_log
 response:
-- string: log
+- { name: log, type: string }
+- { name: error_message, type: string, default: "no error" }

@@ -42,7 +42,6 @@
 #include <robotkernel/exceptions.h>
 #include <robotkernel/loglevel.h>
 #include <robotkernel/process_data.h>
-#include <robotkernel/rk_type.h>
 #include <robotkernel/service.h>
 #include <robotkernel/service_interface.h>
 #include <robotkernel/service_definitions.h>
@@ -149,8 +148,7 @@ class kernel :
          *  @param[in]  req           Service request parameters.
          *  @param[out] resp          Service response parameters.
          */
-        void call_service(const std::string& name, 
-                const service_arglist_t& req, service_arglist_t& resp);
+        void call_service(const std::string& name, const YAML::Node& req, YAML::Node& resp);
 
         /*! @brief Calls a robotkernel service, specifying the owner.
          *
@@ -161,8 +159,7 @@ class kernel :
          *  @param[in]  req           Service request parameters.
          *  @param[out] resp          Service response parameters.
          */
-        void call_service(const std::string& owner, const std::string& name, 
-                const service_arglist_t& req, service_arglist_t& resp);
+        void call_service(const std::string& owner, const std::string& name, const YAML::Node& req, YAML::Node& resp);
 
         /*! @brief Adds a service to the kernel.
          *
@@ -192,7 +189,7 @@ class kernel :
          *  @param[in] owner service owner
          */
         void remove_services(const std::string &owner);
-        
+
         /*! @brief Adds a device listener.
          *
          *  This method registers a device listener, which will be notified when new devices are added to the kernel.
@@ -200,7 +197,7 @@ class kernel :
          *                  will be notified whenever a new device is added.
          */
         void add_device_listener(sp_device_listener_t dl);
-        
+
         /*! @brief Removes a device listener.
          *
          *  This method unregisters a device listener, preventing it from receiving notifications when new devices are added.

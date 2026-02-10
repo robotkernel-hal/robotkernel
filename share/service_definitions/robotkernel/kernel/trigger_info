@@ -1,8 +1,7 @@
 name: robotkernel/kernel/trigger_info
 request:
-- string: name
+- { name: name, type: string }
 response:
-- string: owner
-- double: rate
-- string: error_message
-
+- { name: owner, type: string }
+- { name: rate, type: double }
+- { name: error_message, type: string, default: "no error" }

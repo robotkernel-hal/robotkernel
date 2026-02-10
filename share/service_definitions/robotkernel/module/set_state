@@ -1,8 +1,8 @@
 name: robotkernel/module/set_state
 request:
-- string: state
-- bool: ignore_depends
+- { name: state, type: string, default: init }
+- { name: ignore_depends, type: bool, default: false }
 response:
-- string: error_message
+- { name: error_message, type: string, default: "no error" }
 
 
