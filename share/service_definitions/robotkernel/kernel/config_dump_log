@@ -1,8 +1,9 @@
-name: robotkernel/kernel/config_dump_log
-request:
-- { name: max_len, type: uint32_t, default: 1024 }
-- { name: do_ust, type: bool, default: false }
-- { name: set_loglevel, type: string, default: "info" }
-response:
-- { name: current_loglevel, type: string }
-- { name: error_message, type: string, default: "no error" }
+services:
+  - name: robotkernel/kernel/config_dump_log
+    request:
+      - { name: max_len, type: uint32_t, default: 1024 }
+      - { name: do_ust, type: bool, default: false }
+      - { name: set_loglevel, type: string, default: "info" }
+    response:
+      - { name: current_loglevel, type: string }
+      - { name: error_message, type: string, default: "no error" }

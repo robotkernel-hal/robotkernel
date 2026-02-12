@@ -1,8 +1,9 @@
-name: robotkernel/module/set_state
-request:
-- { name: state, type: string, default: init }
-- { name: ignore_depends, type: bool, default: false }
-response:
-- { name: error_message, type: string, default: "no error" }
+services:
+  - name: robotkernel/module/set_state
+    request:
+      - { name: state, type: string, default: init }
+      - { name: ignore_depends, type: bool, default: false }
+    response:
+      - { name: error_message, type: string, default: "no error" }
 
 

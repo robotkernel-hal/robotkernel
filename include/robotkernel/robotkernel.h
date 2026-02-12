@@ -52,6 +52,16 @@
 
 namespace robotkernel {
 
+/*! @brief Registers a new datatype description.
+ *  @param[in]   name        Datatype name.
+ *  @param[in]   desc        Datatype description.
+ *
+ *  @throw Exception if datatype was already found.
+ */
+extern void add_datatype_desc(
+        const std::string& name,
+        const std::string& definition);
+
 /**
  * @brief Add a service to the robotkernel runtime.
  *

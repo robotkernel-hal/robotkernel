@@ -1,4 +1,5 @@
-name: robotkernel/kernel/list_devices
-response:
-- { name: devices, type: string, array: true }
-- { name: error_message, type: string, default: "no error" }
+services:
+  - name: robotkernel/kernel/list_devices
+    response:
+      - { name: devices, type: string, array: true }
+      - { name: error_message, type: string, default: "no error" }

@@ -30,6 +30,20 @@
 // private headers
 #include "kernel.h"
 
+
+/*! @brief Registers a new datatype description.
+ *  @param[in]   name        Datatype name.
+ *  @param[in]   desc        Datatype description.
+ *
+ *  @throw Exception if datatype was already found.
+ */
+void robotkernel::add_datatype_desc(
+        const std::string& name,
+        const std::string& definition)
+{
+    return robotkernel::kernel::instance.add_datatype_desc(name, definition);
+}
+
 //! add service to kernel
 /*!
  * \param owner service owner

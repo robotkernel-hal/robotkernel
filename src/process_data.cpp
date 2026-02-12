@@ -38,9 +38,11 @@ std::map<std::string, size_t> dt_to_len = {
     { "uint8_t",  1 },
     { "uint16_t", 2 },
     { "uint32_t", 4 },
+    { "uint64_t", 8 },
     { "int8_t",   1 },
     { "int16_t",  2 },
     { "int32_t",  4 },
+    { "int64_t",  8 },
 };
 
 std::map<std::string, pd_data_types> pd_dt_map = {
@@ -49,9 +51,11 @@ std::map<std::string, pd_data_types> pd_dt_map = {
     { "uint8_t",  PD_DT_UINT8  },
     { "uint16_t", PD_DT_UINT16 },
     { "uint32_t", PD_DT_UINT32 },
+    { "uint64_t", PD_DT_UINT64 },
     { "int8_t",   PD_DT_INT8   },
     { "int16_t",  PD_DT_INT16  },
     { "int32_t",  PD_DT_INT32  },
+    { "int64_t",  PD_DT_INT64  },
 };
     
 //! construct and initialize pd_entry

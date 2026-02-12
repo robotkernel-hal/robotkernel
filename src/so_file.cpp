@@ -112,6 +112,8 @@ so_file::so_file(const YAML::Node& node) : config("") {
         file_name = searchFile(file_name, locations);
     }
 
+    kernel::instance.log(info, "loading \"%s\"\n", file_name.c_str());
+
 #ifndef __VXWORKS__
     if((so_handle = dlopen(file_name.c_str(), RTLD_LOCAL | RTLD_NOW | RTLD_DEEPBIND | RTLD_NOLOAD)))
         return; //already loaded
