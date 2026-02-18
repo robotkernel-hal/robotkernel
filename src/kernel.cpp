@@ -911,6 +911,11 @@ void kernel::add_device(sp_device_t req) {
         
 // remove a named device
 void kernel::remove_device(sp_device_t req) {
+    if (!req) {
+        log(warning, "tried to remove nullptr device!\n");
+        return;
+    }
+
     auto map_index = req->id();
     
     const auto& pd = std::dynamic_pointer_cast<process_data>(req);

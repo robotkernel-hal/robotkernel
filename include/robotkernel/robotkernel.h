@@ -62,6 +62,15 @@ extern void add_datatype_desc(
         const std::string& name,
         const std::string& definition);
 
+/*! @brief Gets a registered datatype description.
+ *  @param[in]   name        Datatype name.
+ *
+ *  @throw Exception if datatype is not found.
+ *
+ *  @return String containing datatype description.
+ */
+extern const std::string get_datatype_desc(const std::string&name);
+
 /**
  * @brief Add a service to the robotkernel runtime.
  *

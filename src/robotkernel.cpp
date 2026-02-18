@@ -44,6 +44,17 @@ void robotkernel::add_datatype_desc(
     return robotkernel::kernel::instance.add_datatype_desc(name, definition);
 }
 
+/*! @brief Gets a registered datatype description.
+ *  @param[in]   name        Datatype name.
+ *
+ *  @throw Exception if datatype is not found.
+ *
+ *  @return String containing datatype description.
+ */
+const std::string robotkernel::get_datatype_desc(const std::string&name) {
+    return robotkernel::kernel::instance.get_datatype_desc(name);
+}
+
 //! add service to kernel
 /*!
  * \param owner service owner
