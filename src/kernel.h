@@ -104,6 +104,9 @@ class kernel :
         typedef std::map<std::string, std::string> datatypes_map_t;
         datatypes_map_t datatypes_map;
 
+        typedef std::map<std::string, std::string> service_definitions_map_t;
+        service_definitions_map_t service_definitions_map;
+
         device_map_t device_map;
 
         int trace_fd = 0;
@@ -234,22 +237,39 @@ class kernel :
         template <typename T>
         std::shared_ptr<T> get_device(const std::string& dev_name);
         
-        /*! @brief Registers a new datatype description.
+        /*! @brief Registers a new datatype definition.
          *  @param[in]   name        Datatype name.
-         *  @param[in]   desc        Datatype description.
+         *  @param[in]   desc        Datatype definition.
          *
          *  @throw Exception if datatype was already found.
          */
-        void add_datatype_desc(const std::string& name, const std::string& desc);
+        void add_datatype_definition(const std::string& name, const std::string& desc);
 
-        /*! @brief Gets a registered datatype description.
+        /*! @brief Gets a registered datatype definition.
          *  @param[in]   name        Datatype name.
          *
          *  @throw Exception if datatype is not found.
          *
-         *  @return String containing datatype description.
+         *  @return String containing datatype definition.
          */
-        const std::string get_datatype_desc(const std::string&name);
+        const std::string get_datatype_definition(const std::string&name);
+
+        /*! @brief Registers a new service definition.
+         *  @param[in]   name        Service name.
+         *  @param[in]   desc        Service definition.
+         *
+         *  @throw Exception if service was already found.
+         */
+        void add_service_definition(const std::string& name, const std::string& desc);
+
+        /*! @brief Gets a registered service definition.
+         *  @param[in]   name        Service name.
+         *
+         *  @throw Exception if service is not found.
+         *
+         *  @return String containing service definition.
+         */
+        const std::string get_service_definition(const std::string&name);
 
         /*! @brief Configures the kernel from a configuration file.
          *  @param[in] configfile config file name

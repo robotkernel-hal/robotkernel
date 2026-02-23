@@ -52,24 +52,43 @@
 
 namespace robotkernel {
 
-/*! @brief Registers a new datatype description.
+/*! @brief Registers a new datatype definition.
  *  @param[in]   name        Datatype name.
- *  @param[in]   desc        Datatype description.
+ *  @param[in]   desc        Datatype definition.
  *
  *  @throw Exception if datatype was already found.
  */
-extern void add_datatype_desc(
+extern void add_datatype_definition(
         const std::string& name,
         const std::string& definition);
 
-/*! @brief Gets a registered datatype description.
+/*! @brief Gets a registered datatype definition.
  *  @param[in]   name        Datatype name.
  *
  *  @throw Exception if datatype is not found.
  *
- *  @return String containing datatype description.
+ *  @return String containing datatype definition.
  */
-extern const std::string get_datatype_desc(const std::string&name);
+extern const std::string get_datatype_definition(const std::string&name);
+
+/*! @brief Registers a new service definition.
+ *  @param[in]   name        Service definition name.
+ *  @param[in]   desc        Service definition.
+ *
+ *  @throw Exception if service was already found with different content.
+ */
+extern void add_service_definition(
+        const std::string& name,
+        const std::string& definition);
+
+/*! @brief Gets a registered service definition.
+ *  @param[in]   name        Service name.
+ *
+ *  @throw Exception if service is not found.
+ *
+ *  @return String containing service definition.
+ */
+extern const std::string get_service_definition(const std::string&name);
 
 /**
  * @brief Add a service to the robotkernel runtime.
@@ -85,7 +104,7 @@ extern const std::string get_datatype_desc(const std::string&name);
  *        Unique name for this service under the given owner.
  *
  * @param service_definition
- *        YAML or textual definition of the service interface.
+ *        Name of service definition.
  *
  * @param callback
  *        Function invoked when the service is called.

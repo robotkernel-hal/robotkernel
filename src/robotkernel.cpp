@@ -30,29 +30,53 @@
 // private headers
 #include "kernel.h"
 
-
-/*! @brief Registers a new datatype description.
+/*! @brief Registers a new datatype definition.
  *  @param[in]   name        Datatype name.
- *  @param[in]   desc        Datatype description.
+ *  @param[in]   desc        Datatype definition.
  *
  *  @throw Exception if datatype was already found.
  */
-void robotkernel::add_datatype_desc(
+void robotkernel::add_datatype_definition(
         const std::string& name,
         const std::string& definition)
 {
-    return robotkernel::kernel::instance.add_datatype_desc(name, definition);
+    return robotkernel::kernel::instance.add_datatype_definition(name, definition);
 }
 
-/*! @brief Gets a registered datatype description.
+/*! @brief Gets a registered datatype definition.
  *  @param[in]   name        Datatype name.
  *
  *  @throw Exception if datatype is not found.
  *
- *  @return String containing datatype description.
+ *  @return String containing datatype definition.
  */
-const std::string robotkernel::get_datatype_desc(const std::string&name) {
-    return robotkernel::kernel::instance.get_datatype_desc(name);
+const std::string robotkernel::get_datatype_definition(const std::string&name) {
+    return robotkernel::kernel::instance.get_datatype_definition(name);
+}
+
+
+/*! @brief Registers a new service definition.
+ *  @param[in]   name        Service definition name.
+ *  @param[in]   desc        Service definition.
+ *
+ *  @throw Exception if service was already found with different content.
+ */
+void robotkernel::add_service_definition(
+        const std::string& name,
+        const std::string& definition)
+{
+    return robotkernel::kernel::instance.add_service_definition(name, definition);
+}
+
+/*! @brief Gets a registered service definition.
+ *  @param[in]   name        Service name.
+ *
+ *  @throw Exception if service is not found.
+ *
+ *  @return String containing service definition.
+ */
+const std::string robotkernel::get_service_definition(const std::string&name) {
+    return robotkernel::kernel::instance.get_service_definition(name);
 }
 
 //! add service to kernel

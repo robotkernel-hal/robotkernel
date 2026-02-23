@@ -446,26 +446,26 @@ kernel::~kernel() {
     dump_log_free();
 }
 
-//! Register a new datatype description
+//! Register a new datatype definition
 /*!
  * \param[in]   name        Datatype name.
- * \param[in]   desc        Datatype description.
+ * \param[in]   definition  Datatype definition.
  *
  * \throw Exception if datatype was already found.
  */
-void kernel::add_datatype_desc(const std::string& name, const std::string& desc) {
+void kernel::add_datatype_definition(const std::string& name, const std::string& definition) {
     datatypes_map_t::iterator dtm_it = datatypes_map.find(name);
 
     if (dtm_it != datatypes_map.end()) {
-        if ((*dtm_it).second.compare(desc) != 0) {
+        if ((*dtm_it).second.compare(definition) != 0) {
             throw runtime_error(string_printf("registering datatype %s was not successfull, already found "
                     "with different content!", name.c_str()));
         }
 
-        return; // description is the same as alread in.
+        return; // definition is the same as alread in.
     }
 
-    datatypes_map[name] = desc;
+    datatypes_map[name] = definition;
 }
 
 //! get a registered datatype
@@ -474,13 +474,53 @@ void kernel::add_datatype_desc(const std::string& name, const std::string& desc)
  *
  * \throw Exception if datatype is not found.
  *
- * \return String containing datatype description.
+ * \return String containing datatype definition.
  */
-const std::string kernel::get_datatype_desc(const std::string&name) {
+const std::string kernel::get_datatype_definition(const std::string&name) {
     datatypes_map_t::iterator dtm_it = datatypes_map.find(name);
 
     if (dtm_it == datatypes_map.end()) {
         throw runtime_error(string_printf("getting datatype %s was not successfull, not found!", name.c_str()));
+    }
+
+    return dtm_it->second;
+}
+
+//! Register a new service definition
+/*!
+ * \param[in]   name        Service name.
+ * \param[in]   definition        Service definition.
+ *
+ * \throw Exception if service was already found.
+ */
+void kernel::add_service_definition(const std::string& name, const std::string& definition) {
+    service_definitions_map_t::iterator dtm_it = service_definitions_map.find(name);
+
+    if (dtm_it != service_definitions_map.end()) {
+        if ((*dtm_it).second.compare(definition) != 0) {
+            throw runtime_error(string_printf("registering service defintion %s was not successfull, already found "
+                    "with different content!", name.c_str()));
+        }
+
+        return; // definition is the same as alread in.
+    }
+
+    service_definitions_map[name] = definition;
+}
+
+//! get a registered service
+/*!
+ * \param[in]   name        Service name.
+ *
+ * \throw Exception if service is not found.
+ *
+ * \return String containing service definition.
+ */
+const std::string kernel::get_service_definition(const std::string&name) {
+    service_definitions_map_t::iterator dtm_it = service_definitions_map.find(name);
+
+    if (dtm_it == service_definitions_map.end()) {
+        throw runtime_error(string_printf("getting service %s was not successfull, not found!", name.c_str()));
     }
 
     return dtm_it->second;
