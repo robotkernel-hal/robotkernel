@@ -1,12 +1,12 @@
 services:
   - name: robotkernel/kernel/process_data_info
     request:
-      - { name: name, type: string }
+      name: { type: string }
     response:
-      - { name: owner, type: string }
-      - { name: definition, type: string }
-      - { name: clk_device, type: string }
-      - { name: length, type: string }
-      - { name: provider, type: string }
-      - { name: consumer, type: string }
-      - { name: error_message, type: string, default: "no error" }
+      owner: { type: string }
+      definition: { type: string }
+      clk_device: { type: string }
+      length: { type: string }
+      provider: { type: string }
+      consumer: { type: string }
+      error_message: { type: string, default: "no error" }

@@ -1,5 +1,5 @@
 services:
   - name: robotkernel/kernel/list_devices
     response:
-      - { name: devices, type: string, array: true }
-      - { name: error_message, type: string, default: "no error" }
+      devices: { type: string, array: true }
+      error_message: { type: string, default: "no error" }

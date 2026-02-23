@@ -1,6 +1,6 @@
 services:
   - name: robotkernel/kernel/add_module
     request:
-      - { name: config, type: string }
+      config: { type: string }
     response:
-      - { name: error_message, type: string, default: "no error" }
+      error_message: { type: string, default: "no error" }

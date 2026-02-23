@@ -1,4 +1,4 @@
 services:
   - name: robotkernel/module/get_config
     response:
-      - { name: config, type: string, default: "no error" }
+      config: { type: string, default: "no error" }

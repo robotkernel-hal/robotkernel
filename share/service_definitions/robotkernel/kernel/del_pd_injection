@@ -1,7 +1,7 @@
 services:
   - name: robotkernel/kernel/del_pd_injection
     request:
-      - { name: pd_dev, type: string }
-      - { name: field_name, type: string }
+      pd_dev: { type: string }
+      field_name: { type: string }
     response:
-      - { name: error_message, type: string, default: "no error" }
+      error_message: { type: string, default: "no error" }

@@ -1,5 +1,5 @@
 services:
   - name: robotkernel/kernel/module_list
     response:
-      - { name: modules, type: string, array: true }
-      - { name: error_message, type: string, default: "no error" }
+      modules: { type: string, array: true }
+      error_message: { type: string, default: "no error" }

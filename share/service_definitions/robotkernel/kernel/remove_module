@@ -1,6 +1,6 @@
 services:
   - name: robotkernel/kernel/remove_module
     request:
-      - { name: name, type: string }
+      name: { type: string }
     response:
-      - { name: error_message, type: string, default: "no error" }
+      error_message: { type: string, default: "no error" }

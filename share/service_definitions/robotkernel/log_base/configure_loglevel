@@ -1,8 +1,8 @@
 services:
   - name: robotkernel/log_base/configure_loglevel
     request:
-      - { name: set_loglevel, type: string, default: "info" }
+      set_loglevel: { type: string, default: "info" }
     response:
-      - { name: current_loglevel, type: string }
-      - { name: error_message, type: string, default: "no error" }
+      current_loglevel: { type: string }
+      error_message: { type: string, default: "no error" }
 

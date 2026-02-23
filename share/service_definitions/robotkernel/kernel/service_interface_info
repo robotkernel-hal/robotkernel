@@ -1,7 +1,7 @@
 services:
   - name: robotkernel/kernel/service_interface_info
     request:
-      - { name: name, type: string }
+      name: { type: string }
     response:
-      - { name: owner, type: string }
-      - { name: error_message, type: string, default: "no error" }
+      owner: { type: string }
+      error_message: { type: string, default: "no error" }

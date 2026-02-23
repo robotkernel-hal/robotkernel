@@ -1,8 +1,8 @@
 services:
   - name: robotkernel/kernel/trigger_info
     request:
-      - { name: name, type: string }
+      name: { type: string }
     response:
-      - { name: owner, type: string }
-      - { name: rate, type: double }
-      - { name: error_message, type: string, default: "no error" }
+      owner: { type: string }
+      rate: { type: double }
+      error_message: { type: string, default: "no error" }
