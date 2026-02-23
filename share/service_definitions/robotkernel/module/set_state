@@ -1,5 +1,5 @@
 services:
-  - name: robotkernel/module/set_state
+  robotkernel/module/set_state:
     request:
       state: { type: string, default: init }
       ignore_depends: { type: bool, default: false }

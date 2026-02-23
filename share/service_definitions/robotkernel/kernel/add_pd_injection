@@ -1,5 +1,5 @@
 services:
-  - name: robotkernel/kernel/add_pd_injection
+  robotkernel/kernel/add_pd_injection:
     request:
       pd_dev: { type: string }
       field_name: { type: string }

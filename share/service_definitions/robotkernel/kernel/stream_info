@@ -1,5 +1,5 @@
 services:
-  - name: robotkernel/kernel/stream_info
+  robotkernel/kernel/stream_info:
     request:
       name: { type: string }
     response:

@@ -1,5 +1,5 @@
 services:
-  - name: robotkernel/kernel/service_interface_info
+  robotkernel/kernel/service_interface_info:
     request:
       name: { type: string }
     response:

@@ -1,5 +1,5 @@
 services:
-  - name: robotkernel/kernel/add_module
+  robotkernel/kernel/add_module:
     request:
       config: { type: string }
     response:

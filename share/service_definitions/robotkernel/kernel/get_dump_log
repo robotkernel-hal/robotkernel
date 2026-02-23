@@ -1,5 +1,5 @@
 services:
-  - name: robotkernel/kernel/get_dump_log
+  robotkernel/kernel/get_dump_log:
     response:
       log: { type: string }
       error_message: { type: string, default: "no error" }

@@ -1,5 +1,5 @@
 services:
-  - name: robotkernel/kernel/reconfigure_module
+  robotkernel/kernel/reconfigure_module:
     request:
       name: { type: string }
     response:

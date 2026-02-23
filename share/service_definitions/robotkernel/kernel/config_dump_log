@@ -1,5 +1,5 @@
 services:
-  - name: robotkernel/kernel/config_dump_log
+  robotkernel/kernel/config_dump_log:
     request:
       max_len: { type: uint32_t, default: 1024 }
       do_ust: { type: bool, default: false }

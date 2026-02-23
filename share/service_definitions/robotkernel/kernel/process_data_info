@@ -1,5 +1,5 @@
 services:
-  - name: robotkernel/kernel/process_data_info
+  robotkernel/kernel/process_data_info:
     request:
       name: { type: string }
     response:

@@ -1,5 +1,5 @@
 services:
-  - name: robotkernel/kernel/trigger_info
+  robotkernel/kernel/trigger_info:
     request:
       name: { type: string }
     response:

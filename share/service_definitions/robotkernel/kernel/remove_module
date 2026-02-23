@@ -1,5 +1,5 @@
 services:
-  - name: robotkernel/kernel/remove_module
+  robotkernel/kernel/remove_module:
     request:
       name: { type: string }
     response:

@@ -1,5 +1,5 @@
 services:
-  - name: robotkernel/log_base/configure_loglevel
+  robotkernel/log_base/configure_loglevel:
     request:
       set_loglevel: { type: string, default: "info" }
     response:

@@ -1,5 +1,5 @@
 services:
-  - name: robotkernel/module/get_state
+  robotkernel/module/get_state:
     response:
       state: { type: string }
       error_message: { type: string, default: "no error" }

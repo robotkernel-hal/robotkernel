@@ -1,5 +1,5 @@
 services:
-  - name: robotkernel/kernel/list_pd_injections
+  robotkernel/kernel/list_pd_injections:
     response:
       pd_dev: { type: string, array: true }
       field_name: { type: string, array: true }
