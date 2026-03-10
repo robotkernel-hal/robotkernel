@@ -86,7 +86,7 @@ SERVICE_DEFINITIONS = robotkernel/module/set_state	\
 $(top_builddir)/include/robotkernel/service_definitions.h: Makefile $(SERVICE_DEFINITIONS)
 	install -d $(top_builddir)/include/robotkernel
 	@echo creating $@
-	service_generate --add_namespace services --indir $(top_srcdir)/share/service_definitions --out $@ $(SERVICE_DEFINITIONS)
+	rk_generate --add_namespace services --indir $(top_srcdir)/share/service_definitions --out $@ $(SERVICE_DEFINITIONS)
 	touch $@
 
 
