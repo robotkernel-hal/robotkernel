@@ -486,6 +486,30 @@ const std::string kernel::get_datatype_definition(const std::string&name) {
     return dtm_it->second;
 }
 
+//! Remove a datatype definition
+/*!
+ * \param[in]   name        Datatype name.
+ */
+void kernel::remove_datatype_definition(const std::string& name) {
+    bool used = false;
+
+    for (const auto& dev : device_map) {
+        auto pddev = dynamic_pointer_cast<process_data>(dev.second);
+        if (pddev) {
+            if (pddev->process_data_definition == name) {
+                used = true;
+                break;
+            }
+        }
+    }
+
+    if (used) {
+        log(verbose, "cannot remove datatype definition \"%s\", still in use.\n", name.c_str());
+    } else {
+        datatypes_map.erase(name);
+    }
+}
+
 //! Register a new service definition
 /*!
  * \param[in]   name        Service name.

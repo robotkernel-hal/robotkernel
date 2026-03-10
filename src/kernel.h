@@ -254,6 +254,12 @@ class kernel :
          */
         const std::string get_datatype_definition(const std::string&name);
 
+        //! Remove a datatype definition
+        /*!
+         * \param[in]   name        Datatype name.
+         */
+        void remove_datatype_definition(const std::string& name);
+
         /*! @brief Registers a new service definition.
          *  @param[in]   name        Service name.
          *  @param[in]   desc        Service definition.

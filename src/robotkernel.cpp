@@ -54,6 +54,13 @@ const std::string robotkernel::get_datatype_definition(const std::string&name) {
     return robotkernel::kernel::instance.get_datatype_definition(name);
 }
 
+/*! @brief Remove a datatype definition.
+ *  @param[in]   name        Datatype name.
+ */
+extern void robotkernel::remove_datatype_definition(
+        const std::string& name) {
+    return robotkernel::kernel::instance.remove_datatype_definition(name);
+}
 
 /*! @brief Registers a new service definition.
  *  @param[in]   name        Service definition name.

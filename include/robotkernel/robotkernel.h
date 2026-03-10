@@ -71,6 +71,12 @@ extern void add_datatype_definition(
  */
 extern const std::string get_datatype_definition(const std::string&name);
 
+/*! @brief Remove a datatype definition.
+ *  @param[in]   name        Datatype name.
+ */
+extern void remove_datatype_definition(
+        const std::string& name);
+
 /*! @brief Registers a new service definition.
  *  @param[in]   name        Service definition name.
  *  @param[in]   desc        Service definition.
