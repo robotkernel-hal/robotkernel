@@ -62,6 +62,39 @@ extern void robotkernel::remove_datatype_definition(
     return robotkernel::kernel::instance.remove_datatype_definition(name);
 }
 
+/*! @brief Registers a new pd definition.
+ *  @param[in]   name        Service definition name.
+ *  @param[in]   desc        Service definition.
+ *
+ *  @throw Exception if pd was already found with different content.
+ */
+void robotkernel::add_pd_definition(
+        const std::string& name,
+        const std::string& definition)
+{
+    return robotkernel::kernel::instance.add_pd_definition(name, definition);
+}
+
+/*! @brief Gets a registered pd definition.
+ *  @param[in]   name        Service name.
+ *
+ *  @throw Exception if pd is not found.
+ *
+ *  @return String containing pd definition.
+ */
+const std::string robotkernel::get_pd_definition(const std::string&name) {
+    return robotkernel::kernel::instance.get_pd_definition(name);
+}
+
+/*! @brief Remove a pd definition.
+ *  @param[in]   name        Service definition name.
+ */
+void robotkernel::remove_pd_definition(
+        const std::string& name)
+{
+    return robotkernel::kernel::instance.remove_pd_definition(name);
+}
+
 /*! @brief Registers a new service definition.
  *  @param[in]   name        Service definition name.
  *  @param[in]   desc        Service definition.
