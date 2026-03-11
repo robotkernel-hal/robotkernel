@@ -172,31 +172,31 @@ void process_data::find_pd_offset_and_type(const std::string& field_name,
         throw runtime_error(string_printf("process data \"%s\" has no description, "
                 "cannot determine pos offset!\n", id().c_str()));
 
-    YAML::Node pdd_node = YAML::Load(process_data_definition);
+    auto def = robotkernel::get_pd_definition(process_data_definition);
+    YAML::Node pdd_node = YAML::Load(def);
 
     offset = 0;
 
-    for (const auto& list_el : pdd_node) {
-        for (const auto& kv : list_el) {
-            string act_dt = kv.first.as<string>();
-            string act_name = kv.second.as<string>();
+    for (const auto& kv : pdd_node) {
+        string act_name = kv.first.as<string>();
+        auto act_node = kv.second;
+        string act_type_str = get_as<string>(act_node, "type");
 
-            if (act_name == field_name) {
-                type_str = act_dt;
-                type = pd_dt_map[act_dt];
+        if (act_name == field_name) {
+            type_str = act_type_str;
+            type = pd_dt_map[type_str];
 
-                return;
-            }
-
-            if (dt_to_len.find(act_dt) == dt_to_len.end())
-                throw runtime_error(string_printf("unsupported data type in pd description: %s\n", act_dt.c_str()));
-
-            offset += dt_to_len[act_dt];
+            return;
         }
+
+        if (dt_to_len.find(act_type_str) == dt_to_len.end())
+            throw runtime_error(string_printf("unsupported data type in pd description: %s\n", act_type_str.c_str()));
+
+        offset += dt_to_len[act_type_str];
     }
 
     throw runtime_error(string_printf("member \"%s\" not found in measurement process data description:\n%s\n",
-            field_name.c_str(), process_data_definition.c_str()));
+            field_name.c_str(), def.c_str()));
 }
 
 //! Find offset and type of given process data member.
