@@ -379,21 +379,24 @@ kernel::kernel() :
 kernel::~kernel() {
     log(info, "destructing...\n");
     
-    remove_svc_get_dump_log();
-    remove_svc_config_dump_log();
-    remove_svc_module_list();
-    remove_svc_reconfigure_module();
-    remove_svc_add_module();
-    remove_svc_remove_module();
-    remove_svc_list_devices();
-    remove_svc_process_data_info();
-    remove_svc_trigger_info();
-    remove_svc_stream_info();
-    remove_svc_service_interface_info();
-    remove_svc_add_pd_injection();
-    remove_svc_del_pd_injection();
-    remove_svc_list_pd_injections();
-    remove_svc_configure_loglevel();
+    try {
+        remove_svc_get_dump_log();
+        remove_svc_config_dump_log();
+        remove_svc_module_list();
+        remove_svc_reconfigure_module();
+        remove_svc_add_module();
+        remove_svc_remove_module();
+        remove_svc_list_devices();
+        remove_svc_process_data_info();
+        remove_svc_trigger_info();
+        remove_svc_stream_info();
+        remove_svc_service_interface_info();
+        remove_svc_add_pd_injection();
+        remove_svc_del_pd_injection();
+        remove_svc_list_pd_injections();
+        remove_svc_configure_loglevel();
+    } catch (std::exception& e) {
+    }
 
     log(info, "removing modules\n");
 
