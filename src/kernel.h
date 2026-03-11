@@ -101,11 +101,10 @@ class kernel :
         service_map_t               services;                   /*!< @brief List of registered services. */
         device_listener_map_t       dl_map;                     /*!< @brief Map of device listeners. */
 
-        typedef std::map<std::string, std::string> datatypes_map_t;
-        datatypes_map_t datatypes_map;
-
-        typedef std::map<std::string, std::string> service_definitions_map_t;
-        service_definitions_map_t service_definitions_map;
+        typedef std::map<std::string, std::string> string_map_t;
+        string_map_t datatypes_map;
+        string_map_t service_definitions_map;
+        string_map_t pd_definitions_map;
 
         device_map_t device_map;
 
@@ -237,6 +236,29 @@ class kernel :
         template <typename T>
         std::shared_ptr<T> get_device(const std::string& dev_name);
         
+        /*! @brief Registers a new pd definition.
+         *  @param[in]   name        Datatype name.
+         *  @param[in]   desc        Datatype definition.
+         *
+         *  @throw Exception if pd was already found.
+         */
+        void add_pd_definition(const std::string& name, const std::string& desc);
+
+        /*! @brief Gets a registered pd definition.
+         *  @param[in]   name        Datatype name.
+         *
+         *  @throw Exception if pd is not found.
+         *
+         *  @return String containing pd definition.
+         */
+        const std::string get_pd_definition(const std::string&name);
+
+        //! Remove a pd definition
+        /*!
+         * \param[in]   name        Datatype name.
+         */
+        void remove_pd_definition(const std::string& name);
+
         /*! @brief Registers a new datatype definition.
          *  @param[in]   name        Datatype name.
          *  @param[in]   desc        Datatype definition.

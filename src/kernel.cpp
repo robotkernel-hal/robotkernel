@@ -446,6 +446,70 @@ kernel::~kernel() {
     dump_log_free();
 }
 
+//! Register a new pd definition
+/*!
+ * \param[in]   name        Datatype name.
+ * \param[in]   definition  Datatype definition.
+ *
+ * \throw Exception if pd was already found.
+ */
+void kernel::add_pd_definition(const std::string& name, const std::string& definition) {
+    auto pdm_it = pd_definitions_map.find(name);
+
+    if (pdm_it != pd_definitions_map.end()) {
+        if ((*pdm_it).second.compare(definition) != 0) {
+            throw runtime_error(string_printf("registering pd definition %s was not successfull, already found "
+                    "with different content!", name.c_str()));
+        }
+
+        return; // definition is the same as alread in.
+    }
+
+    pd_definitions_map[name] = definition;
+}
+
+//! get a registered pd
+/*!
+ * \param[in]   name        Datatype name.
+ *
+ * \throw Exception if pd is not found.
+ *
+ * \return String containing pd definition.
+ */
+const std::string kernel::get_pd_definition(const std::string&name) {
+    auto pdm_it = pd_definitions_map.find(name);
+
+    if (pdm_it == pd_definitions_map.end()) {
+        throw runtime_error(string_printf("getting pd definition %s was not successfull, not found!", name.c_str()));
+    }
+
+    return pdm_it->second;
+}
+
+//! Remove a pd definition
+/*!
+ * \param[in]   name        Datatype name.
+ */
+void kernel::remove_pd_definition(const std::string& name) {
+    bool used = false;
+
+    for (const auto& dev : device_map) {
+        auto pddev = dynamic_pointer_cast<process_data>(dev.second);
+        if (pddev) {
+            if (pddev->process_data_definition == name) {
+                used = true;
+                break;
+            }
+        }
+    }
+
+    if (used) {
+        log(verbose, "cannot remove pd definition \"%s\", still in use.\n", name.c_str());
+    } else {
+        pd_definitions_map.erase(name);
+    }
+}
+
 //! Register a new datatype definition
 /*!
  * \param[in]   name        Datatype name.
@@ -454,7 +518,7 @@ kernel::~kernel() {
  * \throw Exception if datatype was already found.
  */
 void kernel::add_datatype_definition(const std::string& name, const std::string& definition) {
-    datatypes_map_t::iterator dtm_it = datatypes_map.find(name);
+    auto dtm_it = datatypes_map.find(name);
 
     if (dtm_it != datatypes_map.end()) {
         if ((*dtm_it).second.compare(definition) != 0) {
@@ -477,7 +541,7 @@ void kernel::add_datatype_definition(const std::string& name, const std::string&
  * \return String containing datatype definition.
  */
 const std::string kernel::get_datatype_definition(const std::string&name) {
-    datatypes_map_t::iterator dtm_it = datatypes_map.find(name);
+    auto dtm_it = datatypes_map.find(name);
 
     if (dtm_it == datatypes_map.end()) {
         throw runtime_error(string_printf("getting datatype %s was not successfull, not found!", name.c_str()));
@@ -493,13 +557,33 @@ const std::string kernel::get_datatype_definition(const std::string&name) {
 void kernel::remove_datatype_definition(const std::string& name) {
     bool used = false;
 
-    for (const auto& dev : device_map) {
-        auto pddev = dynamic_pointer_cast<process_data>(dev.second);
-        if (pddev) {
-            if (pddev->process_data_definition == name) {
-                used = true;
-                break;
+    auto check_node = [&](const YAML::Node& node) -> bool {
+        for (const auto& child : node) {
+            if (child.first.as<string>() == name) {
+                // still used by process data definition
+                return true;
             }
+        }
+
+        return false;
+    };
+
+    for (const auto& kv : pd_definitions_map) {
+        used = check_node(YAML::Load(kv.second));
+        if (used) break;
+    }
+
+    for (const auto& kv : service_definitions_map) {
+        auto node = YAML::Load(kv.second);
+
+        if (node["request"]) {
+            used = check_node(node["request"]);
+            if (used) break;
+        }
+
+        if (node["response"]) {
+            used = check_node(node["response"]);
+            if (used) break;
         }
     }
 
@@ -518,7 +602,7 @@ void kernel::remove_datatype_definition(const std::string& name) {
  * \throw Exception if service was already found.
  */
 void kernel::add_service_definition(const std::string& name, const std::string& definition) {
-    service_definitions_map_t::iterator dtm_it = service_definitions_map.find(name);
+    auto dtm_it = service_definitions_map.find(name);
 
     if (dtm_it != service_definitions_map.end()) {
         if ((*dtm_it).second.compare(definition) != 0) {
@@ -541,7 +625,7 @@ void kernel::add_service_definition(const std::string& name, const std::string& 
  * \return String containing service definition.
  */
 const std::string kernel::get_service_definition(const std::string&name) {
-    service_definitions_map_t::iterator dtm_it = service_definitions_map.find(name);
+    auto dtm_it = service_definitions_map.find(name);
 
     if (dtm_it == service_definitions_map.end()) {
         throw runtime_error(string_printf("getting service %s was not successfull, not found!", name.c_str()));
