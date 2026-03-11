@@ -86,6 +86,15 @@ const std::string robotkernel::get_service_definition(const std::string&name) {
     return robotkernel::kernel::instance.get_service_definition(name);
 }
 
+/*! @brief Remove a service definition.
+ *  @param[in]   name        Service definition name.
+ */
+void robotkernel::remove_service_definition(
+        const std::string& name)
+{
+    return robotkernel::kernel::instance.remove_service_definition(name);
+}
+
 //! add service to kernel
 /*!
  * \param owner service owner

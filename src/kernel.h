@@ -277,6 +277,11 @@ class kernel :
          */
         const std::string get_service_definition(const std::string&name);
 
+        /*! @brief Remove a service definition.
+         *  @param[in]   name        Service name.
+         */
+        void remove_service_definition(const std::string& name);
+
         /*! @brief Configures the kernel from a configuration file.
          *  @param[in] configfile config file name
          */

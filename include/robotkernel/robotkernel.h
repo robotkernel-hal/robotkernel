@@ -96,6 +96,12 @@ extern void add_service_definition(
  */
 extern const std::string get_service_definition(const std::string&name);
 
+/*! @brief Remove a service definition.
+ *  @param[in]   name        Service definition name.
+ */
+extern void remove_service_definition(
+        const std::string& name);
+
 /**
  * @brief Add a service to the robotkernel runtime.
  *

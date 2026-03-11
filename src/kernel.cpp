@@ -549,6 +549,26 @@ const std::string kernel::get_service_definition(const std::string&name) {
 
     return dtm_it->second;
 }
+        
+/*! @brief Remove a service definition.
+ *  @param[in]   name        Service name.
+ */
+void kernel::remove_service_definition(const std::string& name) {
+    bool used = false;
+
+    for (const auto& svc : services) {
+        if (svc.second->service_definition == name) {
+            used = true;
+            break;
+        }
+    }
+
+    if (used) {
+        log(verbose, "cannot remove service definition \"%s\", still in use.\n", name.c_str());
+    } else {
+        service_definitions_map.erase(name);
+    }
+}
 
 #ifdef __VXWORKS__
 #define realpath(a, b) strdup(a)
