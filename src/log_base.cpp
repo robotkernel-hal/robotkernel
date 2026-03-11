@@ -93,7 +93,11 @@ log_base::log_base(const std::string& name, const std::string& impl,
 
 //! destruction
 log_base::~log_base() {
-    remove_svc_configure_loglevel();
+    log(verbose, "removing log base \"%s.%s\"\n", name.c_str(), impl.c_str());
+    try {
+        remove_svc_configure_loglevel();
+    } catch (std::exception& e) {
+    }
 }
 
 //! svc_configure_loglevel

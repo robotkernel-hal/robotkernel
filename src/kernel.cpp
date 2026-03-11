@@ -378,6 +378,22 @@ kernel::kernel() :
 //! destruction
 kernel::~kernel() {
     log(info, "destructing...\n");
+    
+    remove_svc_get_dump_log();
+    remove_svc_config_dump_log();
+    remove_svc_module_list();
+    remove_svc_reconfigure_module();
+    remove_svc_add_module();
+    remove_svc_remove_module();
+    remove_svc_list_devices();
+    remove_svc_process_data_info();
+    remove_svc_trigger_info();
+    remove_svc_stream_info();
+    remove_svc_service_interface_info();
+    remove_svc_add_pd_injection();
+    remove_svc_del_pd_injection();
+    remove_svc_list_pd_injections();
+    remove_svc_configure_loglevel();
 
     log(info, "removing modules\n");
 
@@ -503,9 +519,7 @@ void kernel::remove_pd_definition(const std::string& name) {
         }
     }
 
-    if (used) {
-        log(verbose, "cannot remove pd definition \"%s\", still in use.\n", name.c_str());
-    } else {
+    if (!used) {
         pd_definitions_map.erase(name);
     }
 }
@@ -587,9 +601,7 @@ void kernel::remove_datatype_definition(const std::string& name) {
         }
     }
 
-    if (used) {
-        log(verbose, "cannot remove datatype definition \"%s\", still in use.\n", name.c_str());
-    } else {
+    if (!used) {
         datatypes_map.erase(name);
     }
 }
@@ -638,19 +650,21 @@ const std::string kernel::get_service_definition(const std::string&name) {
  *  @param[in]   name        Service name.
  */
 void kernel::remove_service_definition(const std::string& name) {
-    bool used = false;
-
-    for (const auto& svc : services) {
-        if (svc.second->service_definition == name) {
-            used = true;
-            break;
-        }
-    }
-
-    if (used) {
-        log(verbose, "cannot remove service definition \"%s\", still in use.\n", name.c_str());
+    if (service_definitions_map.find(name) == service_definitions_map.end()) {
+        throw runtime_error(string_printf("tried to remove service definition \"%s\" -> not found!", name.c_str()));
     } else {
-        service_definitions_map.erase(name);
+        bool used = false;
+
+        for (const auto& svc : services) {
+            if (svc.second->service_definition == name) {
+                used = true;
+                break;
+            }
+        }
+
+        if (!used) {
+            service_definitions_map.erase(name);
+        }
     }
 }
 
