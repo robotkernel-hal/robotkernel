@@ -149,8 +149,8 @@ void robotkernel::helpers::set_priority(int priority, int policy) {
     param.sched_priority = priority;
     if (pthread_setschedparam(pthread_self(), policy, &param) != 0) {
         throw runtime_error(robotkernel::helpers::string_printf(
-                    "setPriority: pthread_setschedparam(0x%x, %d, %d): %s\n",
-                    pthread_self(), policy, priority, strerror(errno)));
+                    "setPriority: pthread_setschedparam(%p, %d, %d): %s\n",
+                    (void *) pthread_self(), policy, priority, strerror(errno)));
     }
 }
 

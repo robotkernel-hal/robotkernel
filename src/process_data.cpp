@@ -329,7 +329,7 @@ void single_buffer::write(sp_pd_provider_t& prov, off_t offset, uint8_t *buf,
     process_data::write(prov, offset, buf, len, do_push, do_trigger);
 
     if ((offset + len) > length)
-        throw runtime_error(string_printf("wanted to write to many bytes: %d > length %d\n",
+        throw runtime_error(string_printf("wanted to write to many bytes: %zu > length %zu\n",
                 (offset + len), length));
 
     std::memcpy(&data[offset], buf, len);
@@ -353,7 +353,7 @@ void single_buffer::read(sp_pd_consumer_t& cons, off_t offset, uint8_t *buf,
     process_data::read(cons, offset, buf, len, do_pop);
 
     if ((offset + len) > length)
-        throw runtime_error(string_printf("wanted to read to many bytes: %d > length %d\n",
+        throw runtime_error(string_printf("wanted to read to many bytes: %zu > length %zu\n",
                 (offset + len), length));
 
     std::memcpy(buf, &data[offset], len);
@@ -439,7 +439,7 @@ void triple_buffer::write(sp_pd_provider_t& prov, off_t offset, uint8_t *buf,
     process_data::write(prov, offset, buf, len, do_push, do_trigger);
 
     if ((offset + len) > length)
-        throw runtime_error(string_printf("wanted to write to many bytes: %d > length %d\n",
+        throw runtime_error(string_printf("wanted to write to many bytes: %zu > length %zu\n",
                 (offset + len), length));
 
     auto& tmp_buf = back_buffer();
@@ -466,7 +466,7 @@ void triple_buffer::read(sp_pd_consumer_t& cons, off_t offset, uint8_t *buf,
     process_data::read(cons, offset, buf, len, do_pop);
 
     if ((offset + len) > length)
-        throw runtime_error(string_printf("wanted to read to many bytes: %d > length %d\n",
+        throw runtime_error(string_printf("wanted to read to many bytes: %zu > length %zu\n",
                 (offset + len), length));
 
 
@@ -588,7 +588,7 @@ void pointer_buffer::write(sp_pd_provider_t& prov, off_t offset, uint8_t *buf,
     process_data::write(prov, offset, buf, len, do_push, do_trigger);
 
     if ((offset + len) > length)
-        throw runtime_error(string_printf("wanted to write to many bytes: %d > length %d\n",
+        throw runtime_error(string_printf("wanted to write to many bytes: %zu > length %zu\n",
                 (offset + len), length));
 
     std::memcpy(&ptr[offset], buf, len);
@@ -612,7 +612,7 @@ void pointer_buffer::read(sp_pd_consumer_t& cons, off_t offset, uint8_t *buf,
     process_data::read(cons, offset, buf, len, do_pop);
 
     if ((offset + len) > length)
-        throw runtime_error(string_printf("wanted to read to many bytes: %d > length %d\n",
+        throw runtime_error(string_printf("wanted to read to many bytes: %zu > length %zu\n",
                 (offset + len), length));
 
     std::memcpy(buf, &ptr[offset], len);
