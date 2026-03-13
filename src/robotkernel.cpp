@@ -128,6 +128,27 @@ void robotkernel::remove_service_definition(
     return robotkernel::kernel::instance.remove_service_definition(name);
 }
 
+/**
+ * @brief Calls a robotkernel service.
+ *
+ *  This method allows invoking a service registered within the robotkernel.
+ *  @param[in]  name
+ *              Name of service to call.
+ *
+ *  @param[in]  req           
+ *              Service request parameters.
+ *
+ *  @param[out] resp          
+ *              Service response parameters.
+ */
+void robotkernel::call_service(
+        const std::string& name, 
+        const YAML::Node& req, 
+        YAML::Node& resp)
+{
+    return robotkernel::kernel::instance.call_service(name, req, resp);
+}
+
 //! add service to kernel
 /*!
  * \param owner service owner

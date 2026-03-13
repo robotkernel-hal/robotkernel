@@ -169,6 +169,24 @@ extern void remove_service(
     const std::string &name);
 
 /**
+ * @brief Calls a robotkernel service.
+ *
+ *  This method allows invoking a service registered within the robotkernel.
+ *  @param[in]  name
+ *              Name of service to call.
+ *
+ *  @param[in]  req           
+ *              Service request parameters.
+ *
+ *  @param[out] resp          
+ *              Service response parameters.
+ */
+extern void call_service(
+        const std::string& name, 
+        const YAML::Node& req, 
+        YAML::Node& resp);
+
+/**
  * @brief Register a device listener.
  *
  * Adds a listener that will receive notifications when devices
