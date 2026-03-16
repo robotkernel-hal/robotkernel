@@ -123,9 +123,6 @@ class kernel :
         int main_argc;      /*!< @brief robotkernel's main argument counter */
         char **main_argv;   /*!< @brief robotkernel's main arguments */
 
-        /*! @brief Holds all registered process data. */
-        process_data_map_t process_data_map;
-
         /*! @brief Returns a boolean indicating whether logging to the trace file descriptor is enabled.
          *  @return true if logging to trace fd is enabled, false otherwise.
          */

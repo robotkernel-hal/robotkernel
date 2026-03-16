@@ -641,7 +641,6 @@ typedef std::shared_ptr<process_data> sp_process_data_t;
 typedef std::shared_ptr<single_buffer> sp_single_buffer_t;
 typedef std::shared_ptr<triple_buffer> sp_triple_buffer_t;
 typedef std::shared_ptr<pointer_buffer> sp_pointer_buffer_t;
-typedef std::map<std::string, sp_process_data_t> process_data_map_t;
 
 } // namespace robotkernel
 

@@ -462,15 +462,6 @@ kernel::~kernel() {
         service_map.erase(slit);
     }
 
-
-    // remove process data
-    log(verbose, "removing process data\n");
-    std::map<std::string, sp_process_data_t>::iterator pdit;
-    while ((pdit = process_data_map.begin()) != process_data_map.end()) {
-        log(verbose, "    process_data %d\n", pdit->first.c_str());
-        process_data_map.erase(pdit);
-    }
-
     log(info, "clean up finished\n");
     dump_log_free();
 }
