@@ -99,15 +99,15 @@ class kernel :
         module_map_t                module_map;                 /*!< @brief Map of loaded modules. */
         std::recursive_mutex        module_map_mtx;             /*!< @brief Mutex to protect access to the module map. */
         service_map_t               service_map;                /*!< @brief Map of registered services. */
-        std::recursive_mutex        service_map_mtx;            /*!< @brief Mutex to protect access to the module map. */
+        std::recursive_mutex        service_map_mtx;            /*!< @brief Mutex to protect access to the service map. */
         device_listener_map_t       dl_map;                     /*!< @brief Map of device listeners. */
+        std::recursive_mutex        device_map_mtx;             /*!< @brief Mutex to protect access to the device map. */
+        device_map_t                device_map;                 /*!< @brief Map of the devices. */
 
         typedef std::map<std::string, std::string> string_map_t;
         string_map_t datatypes_map;
         string_map_t service_definitions_map;
         string_map_t pd_definitions_map;
-
-        device_map_t device_map;
 
         int trace_fd = 0;
         bool log_to_trace_fd = false;
@@ -500,6 +500,8 @@ class kernel :
  */
 template <typename T>
 inline std::shared_ptr<T> kernel::get_device(const std::string& dev_name) {
+    std::unique_lock<std::recursive_mutex> lock(device_map_mtx);
+
     if (device_map.find(dev_name) == device_map.end()) 
         throw std::runtime_error(robotkernel::helpers::string_printf(
                     "device %s not found\n", dev_name.c_str()));

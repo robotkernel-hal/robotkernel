@@ -303,6 +303,7 @@ void kernel::add_service(
                 owner.c_str(), name.c_str(), service_definition.c_str());
         return;
     }
+    log(warning, "debug: add_service %s.%s\n", owner.c_str(), name.c_str());
 
     log(verbose, "adding service owner \"%s\", name \"%s\", service_definition:\n%s\n", 
             owner.c_str(), name.c_str(), service_definition.c_str());
@@ -329,6 +330,8 @@ void kernel::remove_service(const std::string& owner, const std::string& name) {
     if ((it = service_map.find(std::make_pair(owner, name))) == service_map.end())
         return; // service not found
     
+    log(warning, "debug: remove_service %s.%s\n", owner.c_str(), name.c_str());
+
     for (const auto& kv : bridge_map)
         kv.second->remove_service(*(it->second));
 
@@ -519,6 +522,7 @@ const std::string kernel::get_pd_definition(const std::string&name) {
 void kernel::remove_pd_definition(const std::string& name) {
     bool used = false;
 
+    std::unique_lock<std::recursive_mutex> lock(device_map_mtx);
     for (const auto& dev : device_map) {
         auto pddev = dynamic_pointer_cast<process_data>(dev.second);
         if (pddev) {
@@ -1062,6 +1066,7 @@ void kernel::add_device_listener(sp_device_listener_t dl) {
 
     dl_map[key] = dl;
    
+    std::unique_lock<std::recursive_mutex> lock(device_map_mtx);
     for (const auto& kv : device_map)
         dl->notify_add_device(kv.second);
 }
@@ -1076,6 +1081,7 @@ void kernel::remove_device_listener(sp_device_listener_t dl) {
         return;
     }
 
+    std::unique_lock<std::recursive_mutex> lock(device_map_mtx);
     for (const auto& kv : device_map)
         dl_map[key]->notify_remove_device(kv.second);
 
@@ -1086,6 +1092,7 @@ void kernel::remove_device_listener(sp_device_listener_t dl) {
 // add a named device
 void kernel::add_device(sp_device_t req) {
     auto map_index = req->id();
+    std::unique_lock<std::recursive_mutex> lock(device_map_mtx);
     if (device_map.find(map_index) != device_map.end()) {
         log(warning, "duplicate regiser of device \"%s\", ignoring new device!\n", map_index.c_str());
         return; // already in
@@ -1122,6 +1129,7 @@ void kernel::remove_device(sp_device_t req) {
     for (const auto& kv : dl_map) 
         kv.second->notify_remove_device(req);
 
+    std::unique_lock<std::recursive_mutex> lock(device_map_mtx);
     auto it = device_map.find(map_index);
     if (it == device_map.end())
         return; // no device with name found
@@ -1132,6 +1140,7 @@ void kernel::remove_device(sp_device_t req) {
 
 // remove all devices from owner
 void kernel::remove_devices(const std::string& owner) {
+    std::unique_lock<std::recursive_mutex> lock(device_map_mtx);
     for (auto it = device_map.begin(); it != device_map.end(); ) {
         if (it->second->owner == owner) {
             log(verbose, "removing device %s\n", it->second->id().c_str());
@@ -1334,6 +1343,7 @@ void kernel::svc_list_devices(
         const struct services::robotkernel::kernel::svc_req_list_devices& req, 
         struct services::robotkernel::kernel::svc_resp_list_devices& resp) 
 {
+    std::unique_lock<std::recursive_mutex> lock(device_map_mtx);
     for (const auto& kv : device_map) {
         resp.devices.push_back(kv.first);
     }
@@ -1350,6 +1360,7 @@ void kernel::svc_process_data_info(
 {
     resp.error_message = "";
 
+    std::unique_lock<std::recursive_mutex> lock(device_map_mtx);
     if (device_map.find(req.name) != device_map.end()) {
         const auto& pd = std::dynamic_pointer_cast<process_data>(device_map[req.name]);
 
@@ -1384,6 +1395,7 @@ void kernel::svc_trigger_info(
     resp.rate = 0.;
     resp.error_message = "";
 
+    std::unique_lock<std::recursive_mutex> lock(device_map_mtx);
     if (device_map.find(req.name) != device_map.end()) {
         const auto& dev = std::dynamic_pointer_cast<trigger>(device_map[req.name]);
 
@@ -1411,6 +1423,7 @@ void kernel::svc_stream_info(
     resp.owner = "";
     resp.error_message = "";
 
+    std::unique_lock<std::recursive_mutex> lock(device_map_mtx);
     if (device_map.find(req.name) != device_map.end()) {
         const auto& dev = std::dynamic_pointer_cast<stream>(device_map[req.name]);
 
@@ -1437,6 +1450,7 @@ void kernel::svc_service_interface_info(
     resp.owner = "";
     resp.error_message = "";
 
+    std::unique_lock<std::recursive_mutex> lock(device_map_mtx);
     if (device_map.find(req.name) != device_map.end()) {
         const auto& dev = std::dynamic_pointer_cast<service_interface>(device_map[req.name]);
 
@@ -1516,6 +1530,7 @@ void kernel::svc_list_pd_injections(
 {
     resp.error_message = "";
 
+    std::unique_lock<std::recursive_mutex> lock(device_map_mtx);
     for (const auto& kv : device_map) {
         std::shared_ptr<pd_injection_base> retval = 
             std::dynamic_pointer_cast<pd_injection_base>(kv.second);
