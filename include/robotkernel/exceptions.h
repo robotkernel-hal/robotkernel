@@ -134,7 +134,15 @@ class signal_translator {
  * Inherits backtrace capture and provides a message via `what()`.
  */
 class segmentation_fault_exception : public exception_tracer, public std::exception {
+    private:
+        std::string _msg;
+
     public:
+        segmentation_fault_exception() {
+            _msg = "segmentation fault exception: " + 
+                _backtrace; 
+        }
+
         virtual ~segmentation_fault_exception() throw() {};
 
         /// The POSIX signal number for segmentation faults.
@@ -148,9 +156,7 @@ class segmentation_fault_exception : public exception_tracer, public std::except
          * @return Pointer to an internal C-string.
          */
         virtual const char* what() const throw() { 
-            std::string msg = "segmentation fault exception: " + 
-                _backtrace; 
-            return msg.c_str();
+            return _msg.c_str();
         };
 };
 
