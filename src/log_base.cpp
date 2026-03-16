@@ -121,7 +121,8 @@ void log_base::log(loglevel lvl, const char *format, ...) {
     if ((obj = robotkernel::kernel::instance.rk_log.get_pool_object()) != NULL) {
         // only ifempty log pool avaliable!
         obj->lvl = lvl;
-        int bufpos = snprintf(obj->buf+bufpos, sizeof(obj->buf)-bufpos, "[%s|%s] ", 
+        int bufpos = 0;
+        bufpos += snprintf(obj->buf+bufpos, sizeof(obj->buf)-bufpos, "[%s|%s] ", 
             name.c_str(), impl.c_str());
 
         // format argument list    
