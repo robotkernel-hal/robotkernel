@@ -152,7 +152,7 @@ class trigger_base : public virtual shared_base
          * callback to it. The owning device pointer (`dev`) may be set
          * as part of registration. :contentReference[oaicite:7]{index=7}
          */
-        void aquire(void);
+        void acquire(void);
     
         /**
          * @brief Unregister this callback from the trigger device.
