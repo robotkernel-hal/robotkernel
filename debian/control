@@ -2,7 +2,7 @@ Source: robotkernel
 Section: unknown
 Priority: optional
 Maintainer: Robert Burger <robert.burger@dlr.de>
-Build-Depends: debhelper-compat (= 13), robotkernel-service-helper (>= 0.0.1)
+Build-Depends: debhelper-compat (= 13), robotkernel-generator (>= 0.0.1)
 Standards-Version: 4.5.1
 Homepage: https://www.burger-system.de/robotkernel
 Vcs-Browser: https://github.com/robotkernel-hal/robotkernel.git
