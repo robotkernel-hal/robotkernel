@@ -247,7 +247,8 @@ module_state_t kernel::get_state(std::string mod_name) {
  */
 void kernel::call_service(const std::string& name, const YAML::Node& req, YAML::Node& resp)
 {
-    for (auto& kv : services) {
+    std::unique_lock<std::recursive_mutex> lock(service_map_mtx);
+    for (auto& kv : service_map) {
         string svc_name = kv.first.first + "." + kv.first.second;
 
         if (svc_name != name) 
@@ -270,8 +271,9 @@ void kernel::call_service(const std::string& name, const YAML::Node& req, YAML::
  */
 void kernel::call_service(const std::string& owner, const std::string& name, const YAML::Node& req, YAML::Node& resp)
 {
+    std::unique_lock<std::recursive_mutex> lock(service_map_mtx);
     service_map_t::iterator it;
-    if ((it = services.find(std::make_pair(owner, name))) == services.end()) {
+    if ((it = service_map.find(std::make_pair(owner, name))) == service_map.end()) {
         throw runtime_error(string_printf("service \"%s.%s\" not found!\n", owner.c_str(), name.c_str()));
     }
 
@@ -295,7 +297,8 @@ void kernel::add_service(
         const std::string& service_definition, 
         service_callback_t callback) {
     
-    if (services.find(std::make_pair(owner, name)) != services.end()) {
+    std::unique_lock<std::recursive_mutex> lock(service_map_mtx);
+    if (service_map.find(std::make_pair(owner, name)) != service_map.end()) {
         log(warning, "SKIPPING service (already in) owner \"%s\", name \"%s\", service_definition:\n%s\n", 
                 owner.c_str(), name.c_str(), service_definition.c_str());
         return;
@@ -309,7 +312,7 @@ void kernel::add_service(
     svc->name               = name;
     svc->service_definition = service_definition;
     svc->callback           = callback;
-    services[std::make_pair(owner, name)] = svc;
+    service_map[std::make_pair(owner, name)] = svc;
 
     for (const auto& kv : bridge_map)
         kv.second->add_service(*svc);
@@ -321,15 +324,16 @@ void kernel::add_service(
  * \param[in] name      Name of service.
  */
 void kernel::remove_service(const std::string& owner, const std::string& name) {
+    std::unique_lock<std::recursive_mutex> lock(service_map_mtx);
     service_map_t::iterator it;
-    if ((it = services.find(std::make_pair(owner, name))) == services.end())
+    if ((it = service_map.find(std::make_pair(owner, name))) == service_map.end())
         return; // service not found
     
     for (const auto& kv : bridge_map)
         kv.second->remove_service(*(it->second));
 
     delete it->second;
-    services.erase(it);
+    service_map.erase(it);
 }
 
 //! remove all services from owner
@@ -343,8 +347,9 @@ void kernel::remove_services(const std::string& owner) {
         it->second->remove_module(owner);
     }
 
-    for (service_map_t::iterator it = services.begin(); 
-            it != services.end(); ) {
+    std::unique_lock<std::recursive_mutex> lock(service_map_mtx);
+    for (service_map_t::iterator it = service_map.begin(); 
+            it != service_map.end(); ) {
         const auto& svc = *(it->second);
 
         if (svc.owner != owner) {
@@ -359,7 +364,7 @@ void kernel::remove_services(const std::string& owner) {
 
 
         delete it->second;
-        it = services.erase(it);
+        it = service_map.erase(it);
     }
 }
 
@@ -439,8 +444,10 @@ kernel::~kernel() {
 
     // remove services
     log(verbose, "removing services\n");
+    
+    std::unique_lock<std::recursive_mutex> lock(service_map_mtx);
     service_map_t::iterator slit;
-    while ((slit = services.begin()) != services.end()) {
+    while ((slit = service_map.begin()) != service_map.end()) {
         const auto& svc = *(slit->second);
 
         log(verbose, "    service %s.%s\n", svc.owner.c_str(), svc.name.c_str());
@@ -449,7 +456,7 @@ kernel::~kernel() {
             kv.second->remove_service(svc);
 
         delete slit->second;
-        services.erase(slit);
+        service_map.erase(slit);
     }
 
 
@@ -658,7 +665,8 @@ void kernel::remove_service_definition(const std::string& name) {
     } else {
         bool used = false;
 
-        for (const auto& svc : services) {
+        std::unique_lock<std::recursive_mutex> lock(service_map_mtx);
+        for (const auto& svc : service_map) {
             if (svc.second->service_definition == name) {
                 used = true;
                 break;
@@ -854,7 +862,8 @@ void kernel::config(std::string config_file, int argc, char *argv[]) {
         log(verbose, "adding [%s]\n", brdg->name.c_str());
         bridge_map[brdg->name] = brdg;
 
-        for (const auto& kv : services)
+        std::unique_lock<std::recursive_mutex> lock(service_map_mtx);
+        for (const auto& kv : service_map)
             brdg->add_service(*(kv.second));
     }
     

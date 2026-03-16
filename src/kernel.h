@@ -98,7 +98,8 @@ class kernel :
         service_provider_map_t      service_provider_map;       /*!< @brief Map of service providers. */
         module_map_t                module_map;                 /*!< @brief Map of loaded modules. */
         std::recursive_mutex        module_map_mtx;             /*!< @brief Mutex to protect access to the module map. */
-        service_map_t               services;                   /*!< @brief List of registered services. */
+        service_map_t               service_map;                /*!< @brief Map of registered services. */
+        std::recursive_mutex        service_map_mtx;            /*!< @brief Mutex to protect access to the module map. */
         device_listener_map_t       dl_map;                     /*!< @brief Map of device listeners. */
 
         typedef std::map<std::string, std::string> string_map_t;
