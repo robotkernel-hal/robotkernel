@@ -527,7 +527,7 @@ void triple_buffer::swap_back() {
 
     do {
         new_indices = 
-            ((old_indices & written_mask) | written_mask)   | 
+            (written_mask)                                  | 
             ((old_indices & front_buffer_mask))             |
             ((old_indices & back_buffer_mask) << 2)         |
             ((old_indices & flip_buffer_mask) >> 2);
