@@ -93,7 +93,6 @@ class kernel :
         kernel(const kernel &);             // prevent copy-construction
         kernel &operator=(const kernel &);  // prevent assignment
 
-        loglevel                    ll;                         /*!< @brief robotkernel global loglevel */
         bridge_map_t                bridge_map;                 /*!< @brief Map of bridges, used for inter-module communication. */
         service_provider_map_t      service_provider_map;       /*!< @brief Map of service providers. */
         module_map_t                module_map;                 /*!< @brief Map of loaded modules. */
