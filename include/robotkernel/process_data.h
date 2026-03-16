@@ -180,9 +180,6 @@ class pd_injection_base
          * \param[in]   field_name  Entry to inject.
          */
         void del_injection(const std::string& field_name) {
-            if (pd_injections.find(field_name) != pd_injections.end())
-                return;
-
             pd_injections.erase(field_name);
         }
 
