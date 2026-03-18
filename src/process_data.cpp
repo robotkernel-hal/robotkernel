@@ -254,24 +254,16 @@ void process_data::reset_consumer(sp_pd_consumer_t& cons) {
  * \param[in]       len     Length of buffer.
  */
 void pd_injection_base::inject_val(const pd_entry_t& e, uint8_t* buf, size_t len) {
-    switch (e.type) {
-#define CASE_PD_DT(dt_enum, dtype)                                   \
-        case dt_enum: {                                              \
-            *(dtype *)(&buf[e.offset]) = *(dtype *)(&e.value[0]); \
-            break;                                                   \
-        }
+    if (!buf || len == 0) return;
 
-        CASE_PD_DT(PD_DT_FLOAT, float)
-        CASE_PD_DT(PD_DT_DOUBLE, double)
-        CASE_PD_DT(PD_DT_UINT8, uint8_t)
-        CASE_PD_DT(PD_DT_UINT16, uint16_t)
-        CASE_PD_DT(PD_DT_UINT32, uint32_t)
-        CASE_PD_DT(PD_DT_INT8, int8_t)
-        CASE_PD_DT(PD_DT_INT16, int16_t)
-        CASE_PD_DT(PD_DT_INT32, int32_t)
+    auto it = dt_to_len.find(e.type_str);
+    if (it == dt_to_len.end()) return;
 
-#undef CASE_PD_DT
-    }
+    size_t size = it->second;
+    if (e.offset + size > len) return;
+
+    // One-liner: memcpy into the buffer
+    std::memcpy(&buf[e.offset], e.value.data(), size);
 }
 
 //! construction
