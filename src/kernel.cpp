@@ -303,8 +303,6 @@ void kernel::add_service(
                 owner.c_str(), name.c_str(), service_definition.c_str());
         return;
     }
-    log(warning, "debug: add_service %s.%s\n", owner.c_str(), name.c_str());
-
     log(verbose, "adding service owner \"%s\", name \"%s\", service_definition:\n%s\n", 
             owner.c_str(), name.c_str(), service_definition.c_str());
 
@@ -330,8 +328,6 @@ void kernel::remove_service(const std::string& owner, const std::string& name) {
     if ((it = service_map.find(std::make_pair(owner, name))) == service_map.end())
         return; // service not found
     
-    log(warning, "debug: remove_service %s.%s\n", owner.c_str(), name.c_str());
-
     for (const auto& kv : bridge_map)
         kv.second->remove_service(*(it->second));
 
