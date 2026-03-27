@@ -153,7 +153,10 @@ class trigger : public device
         std::mutex list_mtx;
     
         /// Map of registered trigger callbacks.
-        trigger_list_t triggers;
+        ///
+        /// Sorted by priority so that we can do a simple
+        /// priority scheduling.
+        std::map<int, trigger_list_t> triggers;
     
         /// Worker threads for handling callbacks.
         trigger_workers_t workers;
