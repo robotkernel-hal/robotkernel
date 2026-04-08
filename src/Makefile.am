@@ -5,7 +5,7 @@ lib_LTLIBRARIES = librobotkernel.la
 BUILT_SOURCES = $(top_builddir)/include/robotkernel/service_definitions.h
 CLEANFILES = $(top_builddir)/include/robotkernel/service_definitions.h
 
-includedir = $(prefix)/include
+includedir = $(prefix)/include/robotkernel
 headerdir = $(top_srcdir)/include/robotkernel
 gen_headerdir = $(top_builddir)/include/robotkernel
 
