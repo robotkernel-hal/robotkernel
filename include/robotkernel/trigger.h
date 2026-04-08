@@ -160,6 +160,10 @@ class trigger : public device
     
         /// Worker threads for handling callbacks.
         trigger_workers_t workers;
+
+        /// Times
+        const std::chrono::time_point<std::chrono::high_resolution_clock> system_time_offset;
+        std::chrono::time_point<std::chrono::high_resolution_clock> last_trigger_time;
     
     protected:
         /// Trigger rate in Hz (events per second).
@@ -179,7 +183,53 @@ class trigger : public device
     
         /// Virtual destructor.
         virtual ~trigger();
-    
+
+        /**
+         * @brief Return elapsed time since trigger creation.
+         *
+         * @return Elapsed time as duration.
+         */
+        std::chrono::high_resolution_clock::duration get_elapsed_time(void) const {
+            auto current_time = std::chrono::high_resolution_clock::now();
+            return (current_time - system_time_offset);
+        }
+
+        /**
+         * @brief Return elapsed time in nanoseconds since trigger creation.
+         *
+         * @return Elapsed time as nanoseconds.
+         */
+        std::chrono::nanoseconds get_elapsed_nanoseconds(void) const {
+            return std::chrono::duration_cast<std::chrono::nanoseconds>(get_elapsed_time());
+        }
+
+        /**
+         * @brief Return last trigger time.
+         *
+         * @return Last trigger time as duration.
+         */
+        std::chrono::high_resolution_clock::duration get_last_trigger_time(void) const {
+            return (last_trigger_time - system_time_offset);
+        }
+
+        /**
+         * @brief Return last trigger time in nanoseconds.
+         *
+         * @return Last trigger time as nanoseconds.
+         */
+        std::chrono::nanoseconds get_last_trigger_nanoseconds(void) const {
+            return std::chrono::duration_cast<std::chrono::nanoseconds>(get_last_trigger_time());
+        }
+
+        /**
+         * @brief Return system time offset.
+         *
+         * @return Return system time offset of trigger creation
+         */
+        std::chrono::time_point<std::chrono::high_resolution_clock> get_system_time_offset(void) const {
+            return system_time_offset;
+        }
+
         /**
          * @brief Add a trigger callback.
          *

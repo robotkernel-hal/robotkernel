@@ -39,7 +39,7 @@ using namespace robotkernel::helpers;
 
 // construction
 trigger::trigger(const std::string& owner, const std::string& name, double rate) 
-    : device(owner, name, "trigger"), rate(rate)
+    : device(owner, name, "trigger"), system_time_offset(std::chrono::high_resolution_clock::now()), rate(rate)
 {
 }
 
@@ -132,6 +132,8 @@ void trigger::set_rate(double new_rate) {
 
 //! trigger all modules in list
 void trigger::do_trigger() {
+    last_trigger_time = std::chrono::high_resolution_clock::now();
+
     std::unique_lock<std::mutex> lock(list_mtx);
 
     // Iterate from highest priority to lowest (reverse iterator)
