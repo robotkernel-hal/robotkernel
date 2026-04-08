@@ -68,14 +68,14 @@ void trigger::add_trigger(sp_trigger_base_t trigger,
     std::unique_lock<std::mutex> lock(list_mtx);
 
     if (direct_mode) {
-        triggers.push_back(trigger);
+        triggers[worker_prio].push_back(trigger);
         return;
     }
 
     if (workers.find(k) == workers.end()) {
         // create new worker thread
         workers[k] = make_shared<trigger_worker>(worker_prio, worker_affinity, trigger->divisor);
-        triggers.push_back(workers[k]);
+        triggers[worker_prio].push_back(workers[k]);
     }
 
     workers[k]->add_trigger(trigger);
@@ -88,7 +88,7 @@ void trigger::add_trigger(sp_trigger_base_t trigger,
 void trigger::remove_trigger(sp_trigger_base_t trigger) {
     std::unique_lock<std::mutex> lock(list_mtx);
 
-    triggers.remove(trigger);
+    triggers[trigger->worker_prio].remove(trigger);
 
     for (auto it = workers.begin(); it != workers.end(); ) {
         it->second->remove_trigger(trigger);
@@ -96,7 +96,7 @@ void trigger::remove_trigger(sp_trigger_base_t trigger) {
 
         if (!act_it->second->size()) {
             auto w = act_it->second;
-            triggers.remove(w);
+            triggers[trigger->worker_prio].remove(w);
             workers.erase(act_it);
         }
     }
@@ -134,11 +134,16 @@ void trigger::set_rate(double new_rate) {
 void trigger::do_trigger() {
     std::unique_lock<std::mutex> lock(list_mtx);
 
-    for (const auto& t : triggers) {
-        if (((++t->cnt) % t->divisor) == 0) {
-            t->cnt = 0;
+    // Iterate from highest priority to lowest (reverse iterator)
+    for (auto it = triggers.rbegin(); it != triggers.rend(); ++it) {
+        auto& tlist = it->second;
 
-            t->tick();
+        for (const auto& t : tlist) {
+            if (((++t->cnt) % t->divisor) == 0) {
+                t->cnt = 0;
+
+                t->tick();
+            }
         }
     }
 }

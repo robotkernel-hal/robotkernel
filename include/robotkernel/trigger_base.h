@@ -85,7 +85,7 @@ class trigger_base : public virtual shared_base
          */
         bool direct_mode = true;
     
-        /// Priority for worker thread execution.
+        /// Priority for worker thread execution or priority scheduling.
         int worker_prio = 0;
     
         /// CPU affinity mask for worker thread execution.
