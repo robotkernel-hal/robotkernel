@@ -25,7 +25,7 @@
  */
 
 #include <sys/stat.h>
-#include "rkc_loader.h"
+#include "robotkernel/rkc_loader.h"
 #include "kernel.h"
 
 using namespace std;

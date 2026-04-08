@@ -35,10 +35,10 @@
 #include "robotkernel/bridge_base.h"
 #include "robotkernel/config.h"
 #include "robotkernel/service_definitions.h"
+#include "robotkernel/rkc_loader.h"
 
 // private headers
 #include "kernel.h"
-#include "rkc_loader.h"
 
 #include "yaml-cpp/yaml.h"
 #include "sys/stat.h"

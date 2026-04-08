@@ -5,8 +5,8 @@ lib_LTLIBRARIES = librobotkernel.la
 BUILT_SOURCES = $(top_builddir)/include/robotkernel/service_definitions.h
 CLEANFILES = $(top_builddir)/include/robotkernel/service_definitions.h
 
-includedir = $(prefix)/include/robotkernel
-headerdir = $(top_builddir)/include/robotkernel
+includedir = $(prefix)/include
+headerdir = $(top_srcdir)/include/robotkernel
 gen_headerdir = $(top_builddir)/include/robotkernel
 
 bin_PROGRAMS = robotkernel
@@ -24,7 +24,7 @@ include_HEADERS = $(headerdir)/bridge_base.h \
 				  $(headerdir)/rkc_loader.h \
 				  $(headerdir)/runnable.h \
 				  $(headerdir)/service.h \
-				  $(headerdir)/service_definitions.h \
+				  $(gen_headerdir)/service_definitions.h \
 				  $(headerdir)/service_provider_base.h \
 				  $(headerdir)/service_interface.h \
 				  $(headerdir)/stream.h \
@@ -56,6 +56,7 @@ librobotkernel_la_SOURCES = bridge.cpp \
 					  rkc_loader.cpp
 
 librobotkernel_la_CXXFLAGS = -Wno-unused-local-typedefs \
+					   -I$(top_srcdir)/include \
 					   -I$(top_builddir)/include \
 					   -I$(srcdir) \
 					   @YAML_CPP_CFLAGS@ 
@@ -93,6 +94,7 @@ $(top_builddir)/include/robotkernel/service_definitions.h: Makefile $(SERVICE_DE
 robotkernel_SOURCES = main.cpp
 
 robotkernel_CXXFLAGS = -Wno-unused-local-typedefs \
+					   -I$(top_srcdir)/include \
 					   -I$(top_builddir)/include \
 					   -I$(srcdir) \
 					   @YAML_CPP_CFLAGS@ 
