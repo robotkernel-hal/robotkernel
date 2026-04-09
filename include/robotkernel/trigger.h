@@ -165,6 +165,9 @@ class trigger : public device
         const std::chrono::time_point<std::chrono::high_resolution_clock> system_time_offset;
         std::chrono::time_point<std::chrono::high_resolution_clock> last_trigger_time;
     
+        uint64_t initial_rate_nanoseconds = 0lu;
+        uint64_t virtual_time_nanoseconds = 0lu;
+
     protected:
         /// Trigger rate in Hz (events per second).
         double rate;
@@ -183,6 +186,15 @@ class trigger : public device
     
         /// Virtual destructor.
         virtual ~trigger();
+
+        /** 
+         * @brief Return virtual time in nanoseconds.
+         *
+         * @return Elapsed virtual time in nanoseconds.
+         */
+        uint64_t get_virtual_time_nanoseconds(void) const {
+            return virtual_time_nanoseconds;
+        }
 
         /**
          * @brief Return elapsed time since trigger creation.
