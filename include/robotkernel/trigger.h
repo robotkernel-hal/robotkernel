@@ -162,7 +162,7 @@ class trigger : public device
         trigger_workers_t workers;
 
         /// Times
-        const std::chrono::time_point<std::chrono::high_resolution_clock> system_time_offset;
+        std::chrono::time_point<std::chrono::high_resolution_clock> system_time_offset;
         std::chrono::time_point<std::chrono::high_resolution_clock> last_trigger_time;
     
         uint64_t initial_rate_nanoseconds = 0lu;
@@ -186,6 +186,13 @@ class trigger : public device
     
         /// Virtual destructor.
         virtual ~trigger();
+
+        /** 
+         * @brief Set current system time offset to current time.
+         */
+        void reset_system_time_offset(void) {
+            system_time_offset = std::chrono::high_resolution_clock::now();
+        }
 
         /** 
          * @brief Return initial rate in nanoseconds.
