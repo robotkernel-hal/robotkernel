@@ -39,7 +39,7 @@ using namespace robotkernel::helpers;
 
 // construction
 trigger::trigger(const std::string& owner, const std::string& name, double rate) 
-    : device(owner, name, "trigger"), system_time_offset(std::chrono::high_resolution_clock::now()), rate(rate), initial_rate_nanoseconds(1./rate)
+    : device(owner, name, "trigger"), system_time_offset(std::chrono::high_resolution_clock::now()), rate(rate), initial_rate_nanoseconds((1./rate) * 1E9)
 {
 }
 

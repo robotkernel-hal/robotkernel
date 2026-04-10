@@ -188,6 +188,15 @@ class trigger : public device
         virtual ~trigger();
 
         /** 
+         * @brief Return initial rate in nanoseconds.
+         *
+         * @return Initial rate in nanoseconds.
+         */
+        uint64_t get_initial_rate_nanoseconds(void) const {
+            return initial_rate_nanoseconds;
+        }
+
+        /** 
          * @brief Return virtual time in nanoseconds.
          *
          * @return Elapsed virtual time in nanoseconds.
