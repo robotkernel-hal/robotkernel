@@ -74,6 +74,9 @@ class trigger_base : public virtual shared_base
         /// Trigger divisor: number of ticks before invoking this callback.
         int divisor = 1;
     
+        /// Trigger cycle shift, must be between [0,divisor[
+        unsigned int cycle_shift = 0;
+
         /// Internal counter updated by trigger device.
         int cnt = 0;
     
@@ -104,8 +107,8 @@ class trigger_base : public virtual shared_base
          * @param divisor
          *        Number of base trigger ticks between invocations. Default 1. :contentReference[oaicite:3]{index=3}
          */
-        trigger_base(int divisor = 1)
-            : divisor(divisor)
+        trigger_base(int divisor = 1, unsigned int cycle_shift = 0)
+            : divisor(divisor), cycle_shift(cycle_shift)
         {
         }
     
@@ -126,10 +129,15 @@ class trigger_base : public virtual shared_base
         {
             using robotkernel::helpers::get_as;
             divisor = get_as<int>(node, "divisor", 1);
+            cycle_shift = get_as<int>(node, "cycle_shift", 0);
             direct_mode = get_as<bool>(node, "direct_mode", true);
             worker_prio = get_as<int>(node, "worker_prio", 0);
             worker_affinity = get_as<int>(node, "worker_affinity", 0xFFFFFFFF);
             dev_name = get_as<std::string>(node, "dev_name", "");
+
+            if (cycle_shift >= divisor) {
+                cycle_shift = divisor - 1;
+            }
         }
     
         /**

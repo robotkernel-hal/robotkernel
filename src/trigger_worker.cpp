@@ -49,18 +49,24 @@ bool trigger_worker::worker_key::operator<(const worker_key& a) const {
         return true;
     if (divisor > a.divisor)
         return false;
+    
+    if (cycle_shift < a.cycle_shift)
+        return true;
+    if (cycle_shift > a.cycle_shift)
+        return false;
 
-    return (int) divisor < (int)a.divisor;
+    return (int) cycle_shift < (int)a.cycle_shift;
 }
 
-trigger_worker::trigger_worker(int prio, int affinity_mask, int divisor) :
+trigger_worker::trigger_worker(int prio, int affinity_mask, int divisor, unsigned int cycle_shift) :
     runnable(prio, affinity_mask, string_printf("trigger_worker.prio_%d."
-                "affinity_mask_%d.divisor_%d", prio, affinity_mask, divisor)), 
-    trigger_base(divisor) 
+                "affinity_mask_%d.divisor_%d.cycle_shift_%d", prio, affinity_mask, divisor, cycle_shift)), 
+    trigger_base(divisor, cycle_shift) 
 {
     // start worker thread
     start();
-    kernel::instance.log(info, "[trigger_worker] created with prio %d\n", prio);
+    kernel::instance.log(info, "[trigger_worker] created (prio %d, affinity mask %d, divisor %d, cycle_shift %u)\n", 
+            prio, affinity_mask, divisor, cycle_shift);
 };
         
 //! destruction

@@ -93,6 +93,7 @@ class trigger_worker : public robotkernel::runnable,
             int prio;      ///< Thread priority
             int affinity;  ///< CPU affinity mask
             int divisor;   ///< Scheduling divisor (unused)
+            unsigned int cycle_shift; ///< Scheduling cycle shift
             
             /**
              * @brief Compare two keys for ordering in maps.
@@ -117,7 +118,8 @@ class trigger_worker : public robotkernel::runnable,
          */
         trigger_worker(int prio = 60,
                        int affinity_mask = 0xFF,
-                       int divisor = 1);
+                       int divisor = 1,
+                       unsigned int cycle_shift = 0);
     
         /**
          * @brief Virtual destructor.

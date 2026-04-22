@@ -39,7 +39,7 @@ using namespace robotkernel::helpers;
 
 // construction
 trigger::trigger(const std::string& owner, const std::string& name, double rate) 
-    : device(owner, name, "trigger"), system_time_offset(std::chrono::high_resolution_clock::now()), rate(rate), initial_rate_nanoseconds(1./rate)
+    : device(owner, name, "trigger"), system_time_offset(std::chrono::high_resolution_clock::now()), rate(rate), initial_rate_nanoseconds((1./rate) * 1E9)
 {
 }
 
@@ -63,7 +63,7 @@ trigger::~trigger() {
  */
 void trigger::add_trigger(sp_trigger_base_t trigger, 
         bool direct_mode, int worker_prio, int worker_affinity) {
-    trigger_worker::worker_key k = { worker_prio, worker_affinity, trigger->divisor };
+    trigger_worker::worker_key k = { worker_prio, worker_affinity, trigger->divisor, trigger->cycle_shift };
 
     std::unique_lock<std::mutex> lock(list_mtx);
 
@@ -74,7 +74,7 @@ void trigger::add_trigger(sp_trigger_base_t trigger,
 
     if (workers.find(k) == workers.end()) {
         // create new worker thread
-        workers[k] = make_shared<trigger_worker>(worker_prio, worker_affinity, trigger->divisor);
+        workers[k] = make_shared<trigger_worker>(worker_prio, worker_affinity, trigger->divisor, trigger->cycle_shift);
         triggers[worker_prio].push_back(workers[k]);
     }
 
@@ -142,7 +142,7 @@ void trigger::do_trigger() {
         auto& tlist = it->second;
 
         for (const auto& t : tlist) {
-            if (((++t->cnt) % t->divisor) == 0) {
+            if (((++t->cnt) % t->divisor) == t->cycle_shift) {
                 t->cnt = 0;
 
                 t->tick();
