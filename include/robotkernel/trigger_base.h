@@ -135,7 +135,7 @@ class trigger_base : public virtual shared_base
             worker_affinity = get_as<int>(node, "worker_affinity", 0xFFFFFFFF);
             dev_name = get_as<std::string>(node, "dev_name", "");
 
-            if (cycle_shift >= divisor) {
+            if (cycle_shift >= (unsigned int)divisor) {
                 cycle_shift = divisor - 1;
             }
         }
