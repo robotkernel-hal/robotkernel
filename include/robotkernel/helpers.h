@@ -637,6 +637,32 @@ match_map_exit:
     throw std::runtime_error(ss.str());
 }
 
+namespace filesystem {
+
+/**
+ * @brief Check if path exists
+ *
+ * @param[in] path        
+ *            Path to check if existing.
+ *
+ * @return
+ *            True if exists, false otherwise.
+ */
+bool exists(const std::string& path);
+
+/**
+ * @brief Create directories recursively
+ *
+ * @param[in] path
+ *            Path to create directory recursively.
+ *
+ * @return 
+ *            True on success, false otherwise.
+ */
+bool create_directories(const std::string& path);
+
+}; // namespace filesystem
+
 }; // namespace helpers
 
 }; // namespace robotkernel

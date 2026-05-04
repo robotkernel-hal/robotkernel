@@ -205,3 +205,95 @@ void robotkernel::helpers::set_thread_name(const std::string& thread_name) {
 #endif
 }
 
+#ifdef _WIN32
+// Use Windows version
+#include <windows.h>
+
+bool robotkernel::helpers::filesystem::exists(const std::string& path) {
+    struct _stat buffer;
+    return (_stat(path.c_str(), &buffer) == 0);
+}
+
+bool robotkernel::helpers::filesystem::create_directories(const std::string& path) {
+    std::string dir = path;
+    // Replace backslashes with forward slashes for consistency
+    for (char& c : dir) {
+        if (c == '\\') c = '/';
+    }
+
+    size_t pos = 0;
+    std::string current_dir;
+
+    while ((pos = dir.find('/', pos)) != std::string::npos) {
+        current_dir += dir.substr(0, pos + 1);
+        if (current_dir.length() > 0 && current_dir.back() == '/') {
+            current_dir.pop_back();
+        }
+
+        if (_stat(current_dir.c_str(), &buffer) != 0) {
+            if (_mkdir(current_dir.c_str()) != 0) {
+                std::cerr << "Failed to create directory: " << current_dir << "\n";
+                return false;
+            }
+        }
+        pos++;
+    }
+
+    // Final directory
+    if (_stat(dir.c_str(), &buffer) != 0) {
+        if (_mkdir(dir.c_str()) != 0) {
+            std::cerr << "Failed to create final directory: " << dir << "\n";
+            return false;
+        }
+    }
+
+    return true;
+}
+#else
+// Use Unix version
+#include <iostream>
+#include <sys/stat.h>
+#include <errno.h>
+
+// Check if path exists
+bool robotkernel::helpers::filesystem::exists(const std::string& path) {
+    struct stat buffer;
+    return (stat(path.c_str(), &buffer) == 0);
+}
+
+// Create directories recursively
+bool robotkernel::helpers::filesystem::create_directories(const std::string& path) {
+    const char* p = path.c_str();
+    struct stat buffer;
+    std::string dir;
+
+    // Skip leading slash
+    if (*p == '/') {
+        dir += '/';
+        p++;
+    }
+
+    while (*p) {
+        if (*p == '/') {
+            dir += '/';
+            if (stat(dir.c_str(), &buffer) != 0) {
+                if (mkdir(dir.c_str(), 0755) != 0) {
+                    std::cerr << "Failed to create directory: " << dir << "\n";
+                    return false;
+                }
+            }
+        }
+        dir += *p++;
+    }
+
+    // Handle the final directory
+    if (stat(dir.c_str(), &buffer) != 0) {
+        if (mkdir(dir.c_str(), 0755) != 0) {
+            std::cerr << "Failed to create final directory: " << dir << "\n";
+            return false;
+        }
+    }
+
+    return true;
+}
+#endif
