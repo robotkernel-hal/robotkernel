@@ -11,6 +11,7 @@ gen_headerdir = $(top_builddir)/include/robotkernel
 
 bin_PROGRAMS = robotkernel
 include_HEADERS = $(headerdir)/bridge_base.h \
+				  $(headerdir)/bubblewrap_runner.h \
 				  $(headerdir)/device.h \
 				  $(headerdir)/device_listener.h \
 				  $(headerdir)/exceptions.h \
@@ -35,6 +36,7 @@ include_HEADERS = $(headerdir)/bridge_base.h \
 				  $(headerdir)/trigger_worker.h
 
 librobotkernel_la_SOURCES = bridge.cpp \
+					  bubblewrap_runner.cpp \
 					  char_ringbuffer.cpp \
 					  dump_log.cpp \
 					  exceptions.cpp \
