@@ -43,6 +43,8 @@
 #include <cstdio>
 #include <sstream>
 #include <iostream>
+#include <dirent.h>
+#include <sys/stat.h>
 
 using namespace std;
 using namespace robotkernel;
@@ -296,4 +298,58 @@ bool robotkernel::helpers::filesystem::create_directories(const std::string& pat
 
     return true;
 }
+
+/**
+ * @brief Remove directories recursively
+ *
+ * @param[in] path
+ *            Path to remove directory recursively.
+ *
+ * @return 
+ *            True on success, false otherwise.
+ */
+bool robotkernel::helpers::filesystem::remove_directories(const std::string& path) {
+    DIR* dir = opendir(path.c_str());
+    if (!dir) {
+        std::cerr << "Kann Verzeichnis nicht öffnen: " << path << "\n";
+        return false;
+    }
+
+    struct dirent* entry;
+    while ((entry = readdir(dir)) != nullptr) {
+        if (std::string(entry->d_name) == "." || std::string(entry->d_name) == "..")
+            continue;
+
+        std::string full_path = path + "/" + entry->d_name;
+
+        struct stat st;
+        if (stat(full_path.c_str(), &st) == 0) {
+            if (S_ISDIR(st.st_mode)) {
+                // Rekursiv Unterordner löschen
+                if (!remove_directories(full_path)) {
+                    closedir(dir);
+                    return false;
+                }
+            } else {
+                // Datei löschen
+                if (unlink(full_path.c_str()) != 0) {
+                    std::cerr << "Kann Datei nicht löschen: " << full_path << "\n";
+                    closedir(dir);
+                    return false;
+                }
+            }
+        }
+    }
+
+    closedir(dir);
+
+    // Jetzt das Verzeichnis selbst löschen
+    if (rmdir(path.c_str()) != 0) {
+        std::cerr << "Kann Verzeichnis nicht löschen: " << path << "\n";
+        return false;
+    }
+
+    return true;
+}
+
 #endif

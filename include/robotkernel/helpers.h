@@ -661,6 +661,17 @@ bool exists(const std::string& path);
  */
 bool create_directories(const std::string& path);
 
+/**
+ * @brief Remove directories recursively
+ *
+ * @param[in] path
+ *            Path to remove directory recursively.
+ *
+ * @return 
+ *            True on success, false otherwise.
+ */
+bool remove_directories(const std::string& path);
+
 }; // namespace filesystem
 
 }; // namespace helpers
