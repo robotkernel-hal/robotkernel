@@ -47,30 +47,63 @@ class bubblewrap_runner :
         std::string ro_bind_mounts;
 
     public:
-        // construction
+        /**
+         * @biref Construction
+         */
         bubblewrap_runner(const std::string& name, const std::string& rootfs = "/tmp/bubblewrap_root");
 
-        // destruction
+        /**
+         * @brief Destruction
+         */
         virtual ~bubblewrap_runner() { stop(); }
 
-        // Add bind mounts (e.g., to share data with host)
+        /**
+         * @brief Add bind mounts (e.g., to share data with host)
+         *
+         * @param host_path
+         *        Path on host to bind.
+         *
+         * @param container_path
+         *        Path inside container filesystem.
+         */
         void add_bind_mount(
                 const std::string& host_path, 
                 const std::string& container_path);
 
-        // Add bind mounts (e.g., to share data with host)
+        /**
+         * @brief Add read-only bind mounts (e.g., to share data with host)
+         *
+         * @param host_path
+         *        Path on host to bind.
+         *
+         * @param container_path
+         *        Path inside container filesystem.
+         */
         void add_ro_bind_mount(
                 const std::string& host_path, 
                 const std::string& container_path);
 
-        // Set the program to run
+        /**
+         * @brief Set the program to run
+         *
+         * @param path
+         *        Path to be set.
+         *
+         * @param program_args
+         *        Additional argumetns passed to program.
+         */
         void set_program(
                 const std::string& path, 
                 const std::vector<std::string>& program_args = {});
 
+        /**
+         * @brief Start program with bwrap.
+         */
         virtual void start() override;
 
-        // Clean up
+        /**
+         * @brief Clean up
+         */
         virtual void stop() override;
 };
 

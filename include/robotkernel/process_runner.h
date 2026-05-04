@@ -45,29 +45,52 @@ class process_runner :
     public robotkernel::log_base
 {
     public:
-        std::string command;
-        pid_t child_pid;
-        int stdout_pipe[2], stderr_pipe[2];
+        std::string command = "";           //!< @brief Command to be executed.
+        pid_t child_pid = 0;                //!< @brief Child PID.
+        int stdout_pipe[2], stderr_pipe[2]; //!< @brief Pipes for stdout, stderr.
 
     public:
-        // construction
+        /**
+         * @brief Construction
+         */
         process_runner(const std::string& name) :
             robotkernel::log_base("process_runner", name, "")
         {}
 
+        /**
+         * @brief Destruction 
+         */
         virtual ~process_runner() { stop(); }
 
-        void set_command(const std::string& command) { 
-            this->command = command; 
-        }
+        /**
+         * @brief Set command to be execeuted with execlp.
+         *
+         * @param command
+         *        Command to be executed.
+         */
+        void set_command(const std::string& command);
         
-        // run thread, calls execlp
+        /**
+         * @brief Run thread, calls execlp to execute command process.
+         */
         virtual void run() override;
 
-        // doing cleanup
+        /**
+         * @brief Doing cleanup
+         */
         virtual void stop() override;
 };
 
+/**
+ * @brief Set command to be execeuted with execlp.
+ *
+ * @param command
+ *        Command to be executed.
+ */
+inline void process_runner::set_command(const std::string& command) { 
+    this->command = command; 
+}
+        
 
 } // namespace robotkernel
 
