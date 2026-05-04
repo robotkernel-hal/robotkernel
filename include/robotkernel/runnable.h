@@ -80,9 +80,9 @@ class runnable {
             stop();
         };
 
-        void start();                       //!< run thread
-        void stop();                        //!< stop thread
-        void join();                        //!< join thread
+        virtual void start();               //!< run thread
+        virtual void stop();                //!< stop thread
+        virtual void join();                //!< join thread
         virtual void run() = 0;             //!< handler function called if 
                                             //   thread is running
 
