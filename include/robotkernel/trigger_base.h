@@ -188,7 +188,9 @@ typedef std::list<sp_trigger_base_t> trigger_list_t;
  * This convenience class allows binding a `std::function<void()>` to
  * a trigger callback without needing to derive your own subclass.
  */
-class triggerable : public trigger_base
+class triggerable : 
+    public virtual shared_base,
+    public trigger_base
 {
     private:
         /// Underlying function to call on tick.
