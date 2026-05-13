@@ -11,10 +11,7 @@ Welcome to robotkernel's documentation!
    :caption: Contents:
    :numbered:
 
-   introduction
-   getting_started
-   internals/index
-   configuration
+   main
 
 Indices and tables
 ==================
