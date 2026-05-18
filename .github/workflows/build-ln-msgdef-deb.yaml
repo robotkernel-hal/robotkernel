@@ -65,7 +65,7 @@ jobs:
           
           curl -fsSL https://deb.burger-system.de/setup.sh | bash > /dev/null
           apt-get update
-          apt-get install -y robotkernel-generator
+          apt-get install -y robotkernel-ln-helper
 
       - name: Checkout source
         uses: actions/checkout@v6
