@@ -1,0 +1,11 @@
+Source: robotkernel-ln-msgdef
+Section: utils
+Priority: optional
+Maintainer: Robert Burger <robert.burger@dlr.de>
+Build-Depends: robotkernel-ln-helper (>= 6)
+Standards-Version: 4.6.0
+
+Package: robotkernel-ln-msgdef
+Architecture: all
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Ein einfaches Paket, das nur ein Commando ausführt und die Artefakte packt

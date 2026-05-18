@@ -1,0 +1,15 @@
+#!/usr/bin/make -f
+FILES:=$(shell find ./robotkernel -type f $ | sort)
+PACKAGE := $(shell dh_listpackages)
+
+%:
+	dh $@ 
+
+# Override default build: führe build.sh aus
+override_dh_auto_build:
+	service_generate --indir . --outdir ./debian/build/usr/share/ln/message_definitions $(FILES)
+
+# Override install: kopiere die Artefakte in das Paket
+override_dh_auto_install:
+	cp -r ./debian/build/ ./debian/$(PACKAGE)/
+
