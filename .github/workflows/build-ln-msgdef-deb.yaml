@@ -130,7 +130,7 @@ jobs:
 
           ls -l ../
 
-          DEB_FILE="../${PKGNAME}_${SANITIZED_IMAGE}_amd64.deb"
+          DEB_FILE="../${PKGNAME}_${SANITIZED_IMAGE}_all.deb"
           CHANGES_FILE="../${PKGNAME}_${SANITIZED_IMAGE}_amd64.changes"
           BUILDINFO_FILE="../${PKGNAME}_${SANITIZED_IMAGE}_amd64.buildinfo"
           DSC_FILE="../${PKGNAME}_${SANITIZED_IMAGE}.dsc"
