@@ -25,6 +25,8 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
   run-shared:
     uses: ./.github/workflows/build-deb.yaml
+    secrets: inherit
   run-ln-msgdef:
     needs: run-shared
     uses: ./.github/workflows/build-ln-msgdef-deb.yaml
+    secrets: inherit
