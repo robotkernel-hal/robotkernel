@@ -128,45 +128,21 @@ jobs:
           DISTRO="${{ matrix.distro }}"
           SANITIZED_IMAGE="${{ steps.sanitize.outputs.sanitized_image }}"
 
-          if [[ "$DISTRO" == "ubuntu-24.04" || "$DISTRO" == "ubuntu-22.04" ]]; then
-            OLD_EXT=".ddeb"
-            NEW_EXT=".deb"
-            CHANGES_FILE="${PKGNAME}_${SANITIZED_IMAGE}_amd64.changes"
-
-            OLD_FILE="${PKGNAME}-dbgsym_${SANITIZED_IMAGE}_amd64${OLD_EXT}"
-            NEW_FILE="${PKGNAME}-dbgsym_${SANITIZED_IMAGE}_amd64${NEW_EXT}"
-
-            mv "../$OLD_FILE" "../$NEW_FILE"
-            sed -i "s/${OLD_FILE}/${NEW_FILE}/g" "../$CHANGES_FILE"
-            
-            OLD_FILE="${PKGNAME}-dev-dbgsym_${SANITIZED_IMAGE}_amd64${OLD_EXT}"
-            NEW_FILE="${PKGNAME}-dev-dbgsym_${SANITIZED_IMAGE}_amd64${NEW_EXT}"
-
-            mv "../$OLD_FILE" "../$NEW_FILE"
-            sed -i "s/${OLD_FILE}/${NEW_FILE}/g" "../$CHANGES_FILE"
-          fi
-          
           ls -l ../
 
-          DBG_FILE="../${PKGNAME}-dbgsym_${SANITIZED_IMAGE}_amd64.deb"
-          DEV_FILE="../${PKGNAME}-dev_${SANITIZED_IMAGE}_amd64.deb"
-          DEV_DBG_FILE="../${PKGNAME}-dev-dbgsym_${SANITIZED_IMAGE}_amd64.deb"
           DEB_FILE="../${PKGNAME}_${SANITIZED_IMAGE}_amd64.deb"
           CHANGES_FILE="../${PKGNAME}_${SANITIZED_IMAGE}_amd64.changes"
           BUILDINFO_FILE="../${PKGNAME}_${SANITIZED_IMAGE}_amd64.buildinfo"
           DSC_FILE="../${PKGNAME}_${SANITIZED_IMAGE}.dsc"
           TAR_FILE="../${PKGNAME}_${SANITIZED_IMAGE}.tar.gz"
 
-          for f in "$DEB_FILE" "$DEV_FILE" "$DEV_DBG_FILE" "$DBG_FILE" "$CHANGES_FILE" "$BUILDINFO_FILE" "$DSC_FILE" "$TAR_FILE"; do
+          for f in "$DEB_FILE" "$CHANGES_FILE" "$BUILDINFO_FILE" "$DSC_FILE" "$TAR_FILE"; do
             [[ -f "$f" ]] || { echo "Missing file: $f"; exit 1; }
           done
 
           curl -X POST https://deb.burger-system.de/upload \
             -H "Authorization: Bearer $DEPLOY_TOKEN" \
             -F "deb=@$DEB_FILE" \
-            -F "deb-dev=@$DEV_FILE" \
-            -F "deb-dev-dbgsym=@$DEV_DBG_FILE" \
-            -F "dbgsym=@$DBG_FILE" \
             -F "changes=@$CHANGES_FILE" \
             -F "buildinfo=@$BUILDINFO_FILE" \
             -F "dsc=@$DSC_FILE" \
