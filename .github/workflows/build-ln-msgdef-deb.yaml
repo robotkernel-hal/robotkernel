@@ -185,8 +185,8 @@ jobs:
           rsync -av --include="*.deb" --include="*.changes" --include="*.buildinfo" --include="*.dsc" --include="*.tar.gz" --exclude="*" ../ artifacts/
 
       - name: Upload .deb package artifact
-        working-directory: ${{ github.workspace }}/share/service_definitions
         uses: actions/upload-artifact@v7
+        working-directory: ${{ github.workspace }}/share/service_definitions
         with:
           name: ${{ env.PKGNAME }}-artifacts-${{ steps.sanitize.outputs.sanitized_image }}
           path: artifacts/
