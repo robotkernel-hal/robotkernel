@@ -4,6 +4,6 @@ on:
     tags:
       - '**'
 
-    jobs:
-      run-shared:
-        uses: ./.github/workflows/build-deb.yaml
+jobs:
+  run-shared:
+    uses: ./.github/workflows/build-deb.yaml
