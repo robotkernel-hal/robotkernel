@@ -1,0 +1,9 @@
+name: Trigger On Tag
+on:
+  push:
+    tags:
+      - '**'
+
+    jobs:
+      run-shared:
+        uses: ./.github/workflows/build-deb.yaml

@@ -1,0 +1,10 @@
+name: Trigger On Master
+on:
+  push:
+    branches:
+      - master
+
+    jobs:
+      run-shared:
+        uses: ./.github/workflows/build-deb.yaml
+
