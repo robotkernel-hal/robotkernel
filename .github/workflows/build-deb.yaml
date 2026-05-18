@@ -143,7 +143,7 @@ jobs:
             OLD_FILE="${PKGNAME}-dev-dbgsym_${SANITIZED_IMAGE}_amd64${OLD_EXT}"
             NEW_FILE="${PKGNAME}-dev-dbgsym_${SANITIZED_IMAGE}_amd64${NEW_EXT}"
 
-            if [ -f $(OLD_FILE) ]; then
+            if [ -f $OLD_FILE ]; then
               mv "../$OLD_FILE" "../$NEW_FILE"
               sed -i "s/${OLD_FILE}/${NEW_FILE}/g" "../$CHANGES_FILE"
             fi
@@ -164,7 +164,7 @@ jobs:
             [[ -f "$f" ]] || { echo "Missing file: $f"; exit 1; }
           done
 
-          if [ -f $(DEV_DBG_FILE) ]; then 
+          if [ -f $DEV_DBG_FILE ]; then 
             curl -X POST https://deb.burger-system.de/upload \
               -H "Authorization: Bearer $DEPLOY_TOKEN" \
               -F "deb=@$DEB_FILE" \
