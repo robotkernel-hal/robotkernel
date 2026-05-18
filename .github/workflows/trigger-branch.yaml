@@ -10,4 +10,7 @@ permissions:
 jobs:
   run-shared:
     uses: ./.github/workflows/build-deb.yaml
+  run-ln-msgdef:
+    needs: run-shared
+    uses: ./.github/workflows/build-ln-msgdef.yaml
 
