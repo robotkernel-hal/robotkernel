@@ -5,7 +5,8 @@ on:
     branches:
       - '**'
     tags:
-      - '**'
+      - 'v**'
+  workflow_dispatch:
 
 jobs:
   create_release:
