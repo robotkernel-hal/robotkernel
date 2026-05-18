@@ -186,7 +186,6 @@ jobs:
 
       - name: Upload .deb package artifact
         uses: actions/upload-artifact@v7
-        working-directory: ${{ github.workspace }}/share/service_definitions
         with:
           name: ${{ env.PKGNAME }}-artifacts-${{ steps.sanitize.outputs.sanitized_image }}
           path: artifacts/
