@@ -1,4 +1,4 @@
-name: Build and Publish Links-and-Nodes message definitions Debian Package
+name: Generate Links-and-Nodes message definitions Debian Package
 
 on:
   push:
