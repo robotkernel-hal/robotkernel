@@ -1,4 +1,4 @@
-name: Build and Publish Debian Package
+name: Generate Links-and-Nodes message definitions Debian Package
 
 on:
   push:
@@ -32,7 +32,7 @@ jobs:
       contents: write
     env:
       DEB_BUILD_OPTIONS: "compress=gzip nocheck"
-      PKGNAME: "robotkernel"
+      PKGNAME: "robotkernel-ln-msgdef"
     strategy:
       matrix:
         distro: [debian-12, debian-11, ubuntu-24.04, ubuntu-22.04]
@@ -54,7 +54,7 @@ jobs:
             os: ubuntu
             version: jammy
     container:
-      image: ${{ matrix.image }}
+      image: ${{ matrix.image }} 
 
     steps:
       - name: Install build dependencies
@@ -65,22 +65,18 @@ jobs:
           
           curl -fsSL https://deb.burger-system.de/setup.sh | bash > /dev/null
           apt-get update
-          apt-get install -y robotkernel-generator
+          apt-get install -y robotkernel-ln-helper
 
       - name: Checkout source
         uses: actions/checkout@v6
         with:
-          fetch-depth: 0
+          fetch-depth: 0 
 
       - name: Mark working directory as safe
         run: git config --global --add safe.directory $GITHUB_WORKSPACE
 
-      - name: update branch name and version
-        run: |
-          VERSION=$(dpkg-parsechangelog | sed -n 's/^Version: //p')
-          sed "s|PACKAGE_VERSION|$VERSION|" configure.ac.in > configure.ac
-
       - name: Build .deb package
+        working-directory: ${{ github.workspace }}/share/service_definitions
         shell: bash
         run: |
           # baue mit dpkg-buildpackage (ohne signieren)
@@ -112,16 +108,19 @@ jobs:
           dpkg-buildpackage -us -uc -sa
 
       - name: Debug artifact files
+        working-directory: ${{ github.workspace }}/share/service_definitions
         run: |
           ls -l ../
           
       - name: Set sanitized image name
+        working-directory: ${{ github.workspace }}/share/service_definitions
         id: sanitize
         run: |
           version=$(dpkg-parsechangelog | sed -n 's/^Version: //p')
           echo "sanitized_image=$(echo "${version}" | tr '/:' '--')" >> $GITHUB_OUTPUT
             
       - name: Upload to APT repository
+        working-directory: ${{ github.workspace }}/share/service_definitions
         env:
           DEPLOY_TOKEN: ${{ secrets.BS_UPLOAD_KEY }}
         shell: bash
@@ -129,65 +128,28 @@ jobs:
           DISTRO="${{ matrix.distro }}"
           SANITIZED_IMAGE="${{ steps.sanitize.outputs.sanitized_image }}"
 
-          if [[ "$DISTRO" == "ubuntu-24.04" || "$DISTRO" == "ubuntu-22.04" ]]; then
-            OLD_EXT=".ddeb"
-            NEW_EXT=".deb"
-            CHANGES_FILE="${PKGNAME}_${SANITIZED_IMAGE}_amd64.changes"
-
-            OLD_FILE="${PKGNAME}-dbgsym_${SANITIZED_IMAGE}_amd64${OLD_EXT}"
-            NEW_FILE="${PKGNAME}-dbgsym_${SANITIZED_IMAGE}_amd64${NEW_EXT}"
-
-            mv "../$OLD_FILE" "../$NEW_FILE"
-            sed -i "s/${OLD_FILE}/${NEW_FILE}/g" "../$CHANGES_FILE"
-            
-            OLD_FILE="${PKGNAME}-dev-dbgsym_${SANITIZED_IMAGE}_amd64${OLD_EXT}"
-            NEW_FILE="${PKGNAME}-dev-dbgsym_${SANITIZED_IMAGE}_amd64${NEW_EXT}"
-
-            if [ -f $OLD_FILE ]; then
-              mv "../$OLD_FILE" "../$NEW_FILE"
-              sed -i "s/${OLD_FILE}/${NEW_FILE}/g" "../$CHANGES_FILE"
-            fi
-          fi
-          
           ls -l ../
 
-          DBG_FILE="../${PKGNAME}-dbgsym_${SANITIZED_IMAGE}_amd64.deb"
-          DEV_FILE="../${PKGNAME}-dev_${SANITIZED_IMAGE}_amd64.deb"
-          DEV_DBG_FILE="../${PKGNAME}-dev-dbgsym_${SANITIZED_IMAGE}_amd64.deb"
-          DEB_FILE="../${PKGNAME}_${SANITIZED_IMAGE}_amd64.deb"
+          DEB_FILE="../${PKGNAME}_${SANITIZED_IMAGE}_all.deb"
           CHANGES_FILE="../${PKGNAME}_${SANITIZED_IMAGE}_amd64.changes"
           BUILDINFO_FILE="../${PKGNAME}_${SANITIZED_IMAGE}_amd64.buildinfo"
           DSC_FILE="../${PKGNAME}_${SANITIZED_IMAGE}.dsc"
           TAR_FILE="../${PKGNAME}_${SANITIZED_IMAGE}.tar.gz"
 
-          for f in "$DEB_FILE" "$DEV_FILE" "$DBG_FILE" "$CHANGES_FILE" "$BUILDINFO_FILE" "$DSC_FILE" "$TAR_FILE"; do
+          for f in "$DEB_FILE" "$CHANGES_FILE" "$BUILDINFO_FILE" "$DSC_FILE" "$TAR_FILE"; do
             [[ -f "$f" ]] || { echo "Missing file: $f"; exit 1; }
           done
 
-          if [ -f $DEV_DBG_FILE ]; then 
-            curl -X POST https://deb.burger-system.de/upload \
-              -H "Authorization: Bearer $DEPLOY_TOKEN" \
-              -F "deb=@$DEB_FILE" \
-              -F "deb-dev=@$DEV_FILE" \
-              -F "deb-dev-dbgsym=@$DEV_DBG_FILE" \
-              -F "dbgsym=@$DBG_FILE" \
-              -F "changes=@$CHANGES_FILE" \
-              -F "buildinfo=@$BUILDINFO_FILE" \
-              -F "dsc=@$DSC_FILE" \
-              -F "source=@$TAR_FILE"
-          else
-            curl -X POST https://deb.burger-system.de/upload \
-              -H "Authorization: Bearer $DEPLOY_TOKEN" \
-              -F "deb=@$DEB_FILE" \
-              -F "deb-dev=@$DEV_FILE" \
-              -F "dbgsym=@$DBG_FILE" \
-              -F "changes=@$CHANGES_FILE" \
-              -F "buildinfo=@$BUILDINFO_FILE" \
-              -F "dsc=@$DSC_FILE" \
-              -F "source=@$TAR_FILE"
-          fi
+          curl -X POST https://deb.burger-system.de/upload \
+            -H "Authorization: Bearer $DEPLOY_TOKEN" \
+            -F "deb=@$DEB_FILE" \
+            -F "changes=@$CHANGES_FILE" \
+            -F "buildinfo=@$BUILDINFO_FILE" \
+            -F "dsc=@$DSC_FILE" \
+            -F "source=@$TAR_FILE"
       
       - name: Collect .deb artifact
+        working-directory: ${{ github.workspace }}/share/service_definitions
         run: |
           mkdir -p artifacts/
           rsync -av --include="*.deb" --include="*.changes" --include="*.buildinfo" --include="*.dsc" --include="*.tar.gz" --exclude="*" ../ artifacts/
@@ -196,10 +158,11 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: ${{ env.PKGNAME }}-artifacts-${{ steps.sanitize.outputs.sanitized_image }}
-          path: artifacts/
+          path: share/service_definitions/artifacts/
 
       # Fetch the release upload URL dynamically on tag builds
       - name: Upload all artifacts to Release
+        working-directory: ${{ github.workspace }}/share/service_definitions
         if: startsWith(github.ref, 'refs/tags/')
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
