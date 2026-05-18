@@ -70,7 +70,7 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v6
         with:
-          fetch-depth: 0
+          fetch-depth: 0 
 
       - name: Mark working directory as safe
         run: git config --global --add safe.directory $GITHUB_WORKSPACE
