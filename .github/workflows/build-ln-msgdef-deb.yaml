@@ -1,4 +1,4 @@
-name: Build and Publish Debian Package
+name: Build and Publish Links-and-Nodes message definitions Debian Package
 
 on:
   push:
@@ -28,9 +28,6 @@ jobs:
 
   build-deb:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: share/service_definitions
     permissions:
       contents: write
     env:
@@ -79,11 +76,13 @@ jobs:
         run: git config --global --add safe.directory $GITHUB_WORKSPACE
 
       - name: update branch name and version
+        working-directory: ${{ github.workspace }}/share/service_definitions
         run: |
           VERSION=$(dpkg-parsechangelog | sed -n 's/^Version: //p')
           sed "s|PACKAGE_VERSION|$VERSION|" configure.ac.in > configure.ac
 
       - name: Build .deb package
+        working-directory: ${{ github.workspace }}/share/service_definitions
         shell: bash
         run: |
           # baue mit dpkg-buildpackage (ohne signieren)
@@ -115,16 +114,19 @@ jobs:
           dpkg-buildpackage -us -uc -sa
 
       - name: Debug artifact files
+        working-directory: ${{ github.workspace }}/share/service_definitions
         run: |
           ls -l ../
           
       - name: Set sanitized image name
+        working-directory: ${{ github.workspace }}/share/service_definitions
         id: sanitize
         run: |
           version=$(dpkg-parsechangelog | sed -n 's/^Version: //p')
           echo "sanitized_image=$(echo "${version}" | tr '/:' '--')" >> $GITHUB_OUTPUT
             
       - name: Upload to APT repository
+        working-directory: ${{ github.workspace }}/share/service_definitions
         env:
           DEPLOY_TOKEN: ${{ secrets.BS_UPLOAD_KEY }}
         shell: bash
@@ -177,11 +179,13 @@ jobs:
             -F "source=@$TAR_FILE"
       
       - name: Collect .deb artifact
+        working-directory: ${{ github.workspace }}/share/service_definitions
         run: |
           mkdir -p artifacts/
           rsync -av --include="*.deb" --include="*.changes" --include="*.buildinfo" --include="*.dsc" --include="*.tar.gz" --exclude="*" ../ artifacts/
 
       - name: Upload .deb package artifact
+        working-directory: ${{ github.workspace }}/share/service_definitions
         uses: actions/upload-artifact@v7
         with:
           name: ${{ env.PKGNAME }}-artifacts-${{ steps.sanitize.outputs.sanitized_image }}
@@ -189,6 +193,7 @@ jobs:
 
       # Fetch the release upload URL dynamically on tag builds
       - name: Upload all artifacts to Release
+        working-directory: ${{ github.workspace }}/share/service_definitions
         if: startsWith(github.ref, 'refs/tags/')
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
