@@ -158,7 +158,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: ${{ env.PKGNAME }}-artifacts-${{ steps.sanitize.outputs.sanitized_image }}
-          path: artifacts/
+          path: share/service_definitions/artifacts/
 
       # Fetch the release upload URL dynamically on tag builds
       - name: Upload all artifacts to Release
