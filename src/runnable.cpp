@@ -113,7 +113,7 @@ void runnable::stop() {
         return;
 
     run_flag = false;
-    tid.join();
+    join();
 }
 
 //! join thread
