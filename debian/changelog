@@ -1,4 +1,9 @@
-robotkernel (6.0.0) unstable; urgency=low
+robotkernel (6.0.1) stable; urgency=low
+
+  * prepare: 6.0.1
+  * fix: threads must not join itself when stopped
+
+robotkernel (6.0.0) stable; urgency=low
 
   * prepare: 6.0.0
   * update: debian description
