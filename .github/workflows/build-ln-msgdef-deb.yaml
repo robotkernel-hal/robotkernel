@@ -79,7 +79,7 @@ jobs:
                 echo "Revision found: $REVISION"
                 FULL_VERSION="${VERSION}-${REVISION}~${CODENAME}"
               fi
-              dch --newversion "${FULL_VERSION}" --distribution "${CODENAME}" "Pre-release for ${CODENAME}"
+              dch -b --newversion "${FULL_VERSION}" --distribution "${CODENAME}" "Pre-release for ${CODENAME}"
             fi
           fi
 
