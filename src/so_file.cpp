@@ -104,6 +104,7 @@ so_file::so_file(const YAML::Node& node) : config("") {
     if (file_name.c_str()[0] != '/') {
         vector<const char*> locations{
                 ".",                                // local dir
+                "/usr/share/robotkernel/lib",       // default install dir
                 kernel::instance.config_file_path.c_str(),         // relative to config file
                 getenv("ROBOTKERNEL_LIBRARY_PATH"), // search environment
                 getenv("LD_LIBRARY_PATH"),          // dlopen respects this, but we want to ensure a load order
