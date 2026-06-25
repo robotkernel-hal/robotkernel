@@ -87,6 +87,9 @@ SERVICE_DEFINITIONS = robotkernel/module/set_state	\
 					  robotkernel/kernel/add_pd_injection \
 					  robotkernel/kernel/del_pd_injection \
 					  robotkernel/kernel/list_pd_injections \
+					  robotkernel/kernel/process_data_definition \
+					  robotkernel/kernel/datatype_definition \
+					  robotkernel/kernel/service_definition \
 					  robotkernel/log_base/configure_loglevel
 
 $(top_builddir)/include/robotkernel/service_definitions.h: Makefile $(SERVICE_DEFINITIONS)

@@ -74,6 +74,9 @@ class kernel :
     public services::robotkernel::kernel::svc_base_add_module,
     public services::robotkernel::kernel::svc_base_remove_module,
     public services::robotkernel::kernel::svc_base_reconfigure_module,
+    public services::robotkernel::kernel::svc_base_process_data_definition,
+    public services::robotkernel::kernel::svc_base_datatype_definition,
+    public services::robotkernel::kernel::svc_base_service_definition,
     public services::robotkernel::kernel::svc_base_process_data_info,
     public services::robotkernel::kernel::svc_base_trigger_info,
     public services::robotkernel::kernel::svc_base_stream_info,
@@ -441,6 +444,33 @@ class kernel :
         void svc_list_services(
             const struct services::robotkernel::kernel::svc_req_list_services& req, 
             struct services::robotkernel::kernel::svc_resp_list_services& resp) override;
+
+        //! svc_process_data_definition
+        /*!
+         * @param[in]   req     Service request data.
+         * @param[out]  resp    Service response data.
+         */
+        void svc_process_data_definition(
+            const struct services::robotkernel::kernel::svc_req_process_data_definition& req,
+            struct services::robotkernel::kernel::svc_resp_process_data_definition& resp) override;
+
+        //! svc_datatype_definition
+        /*!
+         * @param[in]   req     Service request data.
+         * @param[out]  resp    Service response data.
+         */
+        void svc_datatype_definition(
+            const struct services::robotkernel::kernel::svc_req_datatype_definition& req,
+            struct services::robotkernel::kernel::svc_resp_datatype_definition& resp) override;
+
+        //! svc_service_definition
+        /*!
+         * @param[in]   req     Service request data.
+         * @param[out]  resp    Service response data.
+         */
+        void svc_service_definition(
+            const struct services::robotkernel::kernel::svc_req_service_definition& req,
+            struct services::robotkernel::kernel::svc_resp_service_definition& resp) override;
 
         /*! @brief Service implementation for providing process data information.
          *  @param[in]   req     Service request data.

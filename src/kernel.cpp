@@ -393,6 +393,9 @@ kernel::~kernel() {
         remove_svc_list_devices();
         remove_svc_list_services();
         remove_svc_process_data_info();
+        remove_svc_process_data_definition();
+        remove_svc_datatype_definition();
+        remove_svc_service_definition();
         remove_svc_trigger_info();
         remove_svc_stream_info();
         remove_svc_service_interface_info();
@@ -895,6 +898,9 @@ void kernel::config(std::string config_file, int argc, char *argv[]) {
     add_svc_list_devices(_name, "list_devices");
     add_svc_list_services(_name, "list_services");
     add_svc_process_data_info(_name, "process_data_info");
+    add_svc_process_data_definition(_name, "process_data_definition");
+    add_svc_datatype_definition(_name, "datatype_definition");
+    add_svc_service_definition(_name, "service_definition");
     add_svc_trigger_info(_name, "trigger_info");
     add_svc_stream_info(_name, "stream_info");
     add_svc_service_interface_info(_name, "service_interface_info");
@@ -1350,6 +1356,54 @@ void kernel::svc_list_services(
     std::unique_lock<std::recursive_mutex> lock(service_map_mtx);
     for (const auto& kv : service_map) {
         resp.services.push_back(kv.first.first + "." + kv.first.second);
+    }
+}
+        
+//! svc_process_data_definition
+/*!
+ * @param[in]   req     Service request data.
+ * @param[out]  resp    Service response data.
+ */
+void kernel::svc_process_data_definition(
+        const struct services::robotkernel::kernel::svc_req_process_data_definition& req,
+        struct services::robotkernel::kernel::svc_resp_process_data_definition& resp)
+{
+    if (pd_definitions_map.find(req.name) != pd_definitions_map.end()) {
+        resp.definition = pd_definitions_map[req.name];
+    } else {
+        resp.error_message = "Process data definition not found!\n";
+    }
+}
+
+//! svc_datatype_definition
+/*!
+ * @param[in]   req     Service request data.
+ * @param[out]  resp    Service response data.
+ */
+void kernel::svc_datatype_definition(
+        const struct services::robotkernel::kernel::svc_req_datatype_definition& req,
+        struct services::robotkernel::kernel::svc_resp_datatype_definition& resp) 
+{
+    if (datatypes_map.find(req.name) != datatypes_map.end()) {
+        resp.definition = datatypes_map[req.name];
+    } else {
+        resp.error_message = "Datatype definition not found!\n";
+    }
+}
+
+//! svc_service_definition
+/*!
+ * @param[in]   req     Service request data.
+ * @param[out]  resp    Service response data.
+ */
+void kernel::svc_service_definition(
+        const struct services::robotkernel::kernel::svc_req_service_definition& req,
+        struct services::robotkernel::kernel::svc_resp_service_definition& resp) 
+{
+    if (service_definitions_map.find(req.name) != service_definitions_map.end()) {
+        resp.definition = service_definitions_map[req.name];
+    } else {
+        resp.error_message = "Service definition not found!\n";
     }
 }
 

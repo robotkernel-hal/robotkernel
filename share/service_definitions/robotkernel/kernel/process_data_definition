@@ -1,0 +1,8 @@
+services:
+  robotkernel/kernel/process_data_definition:
+    request:
+      name: { type: string }
+    response:
+      definition: { type: string }
+      error_message: { type: string }
+
