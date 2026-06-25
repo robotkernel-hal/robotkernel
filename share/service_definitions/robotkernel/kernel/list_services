@@ -1,0 +1,5 @@
+services:
+  robotkernel/kernel/list_services:
+    response:
+      services: { type: string, array: true }
+      error_message: { type: string, default: "no error" }

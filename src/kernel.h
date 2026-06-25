@@ -69,6 +69,7 @@ class kernel :
     public services::robotkernel::kernel::svc_base_config_dump_log,
     public services::robotkernel::kernel::svc_base_get_dump_log,
     public services::robotkernel::kernel::svc_base_list_devices,
+    public services::robotkernel::kernel::svc_base_list_services,
     public services::robotkernel::kernel::svc_base_module_list,
     public services::robotkernel::kernel::svc_base_add_module,
     public services::robotkernel::kernel::svc_base_remove_module,
@@ -432,6 +433,14 @@ class kernel :
         void svc_list_devices(
             const struct services::robotkernel::kernel::svc_req_list_devices& req, 
             struct services::robotkernel::kernel::svc_resp_list_devices& resp) override;
+
+        /*! @brief Service implementation for listing services.
+         *  @param[in]   req     Service request data.
+         *  @param[out]  resp    Service response data.
+         */
+        void svc_list_services(
+            const struct services::robotkernel::kernel::svc_req_list_services& req, 
+            struct services::robotkernel::kernel::svc_resp_list_services& resp) override;
 
         /*! @brief Service implementation for providing process data information.
          *  @param[in]   req     Service request data.

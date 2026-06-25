@@ -79,6 +79,7 @@ SERVICE_DEFINITIONS = robotkernel/module/set_state	\
 					  robotkernel/kernel/module_list \
 					  robotkernel/kernel/reconfigure_module \
 					  robotkernel/kernel/list_devices \
+					  robotkernel/kernel/list_services \
 					  robotkernel/kernel/process_data_info \
 					  robotkernel/kernel/trigger_info \
 					  robotkernel/kernel/stream_info \

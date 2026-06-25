@@ -303,6 +303,7 @@ void kernel::add_service(
                 owner.c_str(), name.c_str(), service_definition.c_str());
         return;
     }
+    log(info, "adding service owner \"%s\", name \"%s\"\n", owner.c_str(), name.c_str());
     log(verbose, "adding service owner \"%s\", name \"%s\", service_definition:\n%s\n", 
             owner.c_str(), name.c_str(), service_definition.c_str());
 
@@ -315,6 +316,7 @@ void kernel::add_service(
 
     for (const auto& kv : bridge_map)
         kv.second->add_service(*svc);
+    log(info, "adding service done\n");
 }
 
 //! remove on service given by name
@@ -331,6 +333,7 @@ void kernel::remove_service(const std::string& owner, const std::string& name) {
     for (const auto& kv : bridge_map)
         kv.second->remove_service(*(it->second));
 
+    log(info, "remove service owner \"%s\", name \"%s\"\n", it->first.first.c_str(), it->first.second.c_str());
     delete it->second;
     service_map.erase(it);
 }
@@ -358,6 +361,7 @@ void kernel::remove_services(const std::string& owner) {
 
         log(verbose, "removing service %s.%s\n", svc.owner.c_str(), svc.name.c_str());
     
+        log(info, "all remove service owner \"%s\", name \"%s\"\n", svc.owner.c_str(), svc.name.c_str());
         for (const auto& kv : bridge_map)
             kv.second->remove_service(svc);
 
@@ -391,6 +395,7 @@ kernel::~kernel() {
         remove_svc_add_module();
         remove_svc_remove_module();
         remove_svc_list_devices();
+        remove_svc_list_services();
         remove_svc_process_data_info();
         remove_svc_trigger_info();
         remove_svc_stream_info();
@@ -892,6 +897,7 @@ void kernel::config(std::string config_file, int argc, char *argv[]) {
     add_svc_add_module(_name, "add_module");
     add_svc_remove_module(_name, "remove_module");
     add_svc_list_devices(_name, "list_devices");
+    add_svc_list_services(_name, "list_services");
     add_svc_process_data_info(_name, "process_data_info");
     add_svc_trigger_info(_name, "trigger_info");
     add_svc_stream_info(_name, "stream_info");
@@ -1333,6 +1339,21 @@ void kernel::svc_list_devices(
     std::unique_lock<std::recursive_mutex> lock(device_map_mtx);
     for (const auto& kv : device_map) {
         resp.devices.push_back(kv.first);
+    }
+}
+
+//! svc_list_services
+/*!
+ * \param[in]   req     Service request data.
+ * \param[out]  resp    Service response data.
+ */
+void kernel::svc_list_services(
+        const struct services::robotkernel::kernel::svc_req_list_services& req, 
+        struct services::robotkernel::kernel::svc_resp_list_services& resp) 
+{
+    std::unique_lock<std::recursive_mutex> lock(service_map_mtx);
+    for (const auto& kv : service_map) {
+        resp.services.push_back(kv.first.first + "." + kv.first.second);
     }
 }
 
