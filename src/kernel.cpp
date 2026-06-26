@@ -1227,7 +1227,7 @@ void kernel::svc_add_module(
         log(info, "module \"%s\" added\n", mod_name.c_str());
     } catch(exception& e) {
         resp.error_message = e.what();
-        log(error, "error adding module \"%s\": %s\n", resp.error_message.c_str());
+        log(error, "error adding module: %s\n", resp.error_message.c_str());
     }
 
 }
@@ -1258,7 +1258,7 @@ void kernel::svc_remove_module(
         log(info, "module \"%s\" removed\n", req.name.c_str());
     } catch (exception& e) {
         resp.error_message = e.what();
-        log(error, "error removing module \"%s\": %s\n", resp.error_message.c_str());
+        log(error, "error removing module: %s\n", resp.error_message.c_str());
     }
 }
 
