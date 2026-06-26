@@ -6,7 +6,7 @@ services:
       owner: { type: string }
       definition: { type: string }
       clk_device: { type: string }
-      length: { type: string }
+      length: { type: uint64_t }
       provider: { type: string }
       consumer: { type: string }
       error_message: { type: string, default: "no error" }
