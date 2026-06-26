@@ -53,12 +53,12 @@ using namespace std::placeholders;
 using namespace robotkernel;
 using namespace robotkernel::helpers;
 
-const char string_state_error[]   = "<ERROR>";
-const char string_state_init[]    = "<INIT>";
-const char string_state_preop[]   = "<PREOP>";
-const char string_state_safeop[]  = "<SAFEOP>";
-const char string_state_op[]      = "<OP>";
-const char string_state_boot[]    = "<BOOT>";
+const char string_state_error[]   = "ERROR";
+const char string_state_init[]    = "INIT";
+const char string_state_preop[]   = "PREOP";
+const char string_state_safeop[]  = "SAFEOP";
+const char string_state_op[]      = "OP";
+const char string_state_boot[]    = "BOOT";
 
 module* currently_loading_module = NULL;
 
@@ -266,11 +266,11 @@ bool module::reconfigure() {
   destroys module
   */
 module::~module() {
-    robotkernel::kernel::instance.log(verbose, "%s destructing %s\n", name.c_str(), file_name.c_str());
+    robotkernel::kernel::instance.log(verbose, "event=module_desctruction module=%s filename=%s\n", name.c_str(), file_name.c_str());
 
     // unconfigure module first
     if (mod_handle && mod_unconfigure) {
-        robotkernel::kernel::instance.log(verbose, "%s calling unconfigure\n", name.c_str());
+        robotkernel::kernel::instance.log(verbose, "event=module_desctruction name=%s message=\"calling unconfigure\"\n", name.c_str());
         mod_unconfigure(mod_handle);
         mod_handle = NULL;
     }
@@ -289,7 +289,7 @@ int module::set_state(module_state_t state) {
         throw runtime_error(string_printf("%s not configured\n", name.c_str()));
 
     if (!mod_set_state) {
-        robotkernel::kernel::instance.log(error, "%s error: no mod_set_state function\n", name.c_str());
+        robotkernel::kernel::instance.log(error, "event=set_state module=%s error_message=\"no mod_set_state function\"\n", name.c_str());
         return -1;
     }
 
@@ -299,17 +299,16 @@ int module::set_state(module_state_t state) {
     uint32_t transition = GEN_STATE(act_state, state);
 
 #define set_state__check(to_state) {                                                                    \
-    int ret = 0;                                                                                        \
     try {                                                                                               \
-        robotkernel::kernel::instance.log(info, "module %s -> requesting state %s\n", name.c_str(), state_to_string(to_state));   \
-        ret = mod_set_state(mod_handle, to_state);                                                      \
-        robotkernel::kernel::instance.log(info, "module %s -> reached    state %s\n", name.c_str(), state_to_string(ret));          \
+        robotkernel::kernel::instance.log(info, "event=set_state module=%s current_state=%s target_state=%s\n", name.c_str(), state_to_string(act_state), state_to_string(to_state));   \
+        act_state = mod_set_state(mod_handle, to_state);                                                      \
+        robotkernel::kernel::instance.log(info, "event=set_state module=%s reached_state=%s\n", name.c_str(), state_to_string(act_state));          \
     } catch (exception& e) {                                                                            \
-        robotkernel::kernel::instance.log(error, "set_state: %s\n", e.what());                                                       \
-        robotkernel::kernel::instance.log(error,"module %s -> refused    state %s, error %s, staying in %s\n", name.c_str(),        \
+        robotkernel::kernel::instance.log(error, "event=set_state module=%s error=\"%s\"\n", name.c_str(), e.what());                                                       \
+        robotkernel::kernel::instance.log(error,"event=set_state module=%s refused_state=%s error=\"%s\", reached_state=%s\n", name.c_str(),        \
                 state_to_string(to_state), e.what(), state_to_string(act_state));                       \
     }                                                                                                   \
-    if (ret != to_state) return -1; }                          
+    if (act_state != to_state) return -1; }                          
 
     if ((act_state == module_state_error) && (state == module_state_init)) {
         set_state__check(state);
@@ -398,7 +397,7 @@ module_state_t module::get_state() {
         throw runtime_error(string_printf("%s not configured\n", name.c_str()));
 
     if (!mod_get_state) {
-        robotkernel::kernel::instance.log(error, "%s error: no mod_get_state function\n", name.c_str()); 
+        robotkernel::kernel::instance.log(error, "event=get_state module=%s error=\"no mod_get_state function\"\n", name.c_str()); 
         return module_state_init;
     }
 
@@ -416,7 +415,7 @@ void module::svc_set_state(
 {
     try {      
         if (req.ignore_depends) {
-            robotkernel::kernel::instance.log(warning, "%s warning: ingoring depends\n", name.c_str()); 
+            robotkernel::kernel::instance.log(warning, "event=svc_set_state module=%s warning=\"ingoring dependencies\"\n", name.c_str()); 
             set_state(string_to_state(req.state.c_str()));
         } else {
             kernel::instance.set_state(name, string_to_state(req.state.c_str()));

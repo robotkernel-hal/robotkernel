@@ -146,8 +146,8 @@ const static std::string ANSI_WHITE = "\u001B[37m";
 //! handler function called if thread is running
 void log_thread::run() {
     set_name("rk:log_thread");
-    kernel::instance.log(verbose, "log_thread started at tid %d\n", _gettid());
-    char tmp_buf[2*1024];
+    kernel::instance.log(verbose, "event=log_thread_run msg=started tid=%d\n", _gettid());
+    char tmp_buf[32];
 
     std::unique_lock<std::mutex> lock(mtx);
     
@@ -174,63 +174,19 @@ void log_thread::run() {
             localtime_r(&seconds, &timeinfo);
             strftime(&tmp_buf[0], sizeof(tmp_buf), "%F %T", &timeinfo);
 
-
-            int len = strlen(&tmp_buf[0]);
-            snprintf(&tmp_buf[len], sizeof(tmp_buf) - len, ".%03d ", mseconds);
-            len = strlen(&tmp_buf[0]);
-            snprintf(&tmp_buf[len], sizeof(tmp_buf) - len, "%s %s", 
-                    kernel::instance.ll_to_string(obj->lvl).c_str(), obj->buf);
-
-            char* have_error = strstr(&tmp_buf[0], "ERR");
-            if (have_error) {
+            if (obj->lvl.value == error) {
                 printf("%s", ANSI_RED.c_str());
-            }
-            
-            char* have_warning = strstr(&tmp_buf[0], "WARN");
-            if (have_warning) {
+            } else if (obj->lvl.value == warning) {
                 printf("%s", ANSI_YELLOW.c_str());
-            }
-
-            char* have_verbose = strstr(&tmp_buf[0], "VERB");
-            if (have_verbose) {
+            } else if (obj->lvl.value == verbose) {
                 printf("%s", ANSI_GREEN.c_str());
             }
 
-            if(fix_modname_length == 0)
-                printf("%s", &tmp_buf[0]);
-            else {
-                char* open = strchr(&tmp_buf[0], '[');
-                char* close = NULL;
+            printf("time=%s.%03d level=%s component=\"%s\" name=\"%s\" %s", &tmp_buf[0], mseconds,
+                    ((std::string)obj->lvl).c_str(), obj->impl, obj->name, obj->buf);
 
-                if(open)
-                    close = strchr(open, ']');
-
-                if(close) {
-                    unsigned int len = close - open;
-                    if(len == fix_modname_length + 1)
-                        close = NULL;
-                    else if(len <= fix_modname_length) {
-                        // insert padding
-                        printf("%-*.*s%-*.*s%s", (int)(close - &tmp_buf[0]), 
-                                (int)(close - &tmp_buf[0]), &tmp_buf[0], 
-                                fix_modname_length + 1 - len, 
-                                fix_modname_length + 1 - len, "", close);
-                    } else {
-                        // truncate
-                        printf("%-*.*s%s",
-                                (int)((open + fix_modname_length + 1) - &tmp_buf[0]), 
-                                (int)((open + fix_modname_length + 1) - &tmp_buf[0]), 
-                                &tmp_buf[0], close);
-                    }
-                }
-
-                if(!close)
-                    // missing closing bracket or length already ok
-                    printf("%s", &tmp_buf[0]);
-
-                if (have_error || have_warning || have_verbose) {
-                    printf("%s", ANSI_RESET.c_str());
-                }
+            if (obj->lvl.value != info) {
+                printf("%s", ANSI_RESET.c_str());
             }
 
             lock.lock();

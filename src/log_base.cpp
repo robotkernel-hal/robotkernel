@@ -93,7 +93,7 @@ log_base::log_base(const std::string& name, const std::string& impl,
 
 //! destruction
 log_base::~log_base() {
-    log(verbose, "removing log base \"%s.%s\"\n", name.c_str(), impl.c_str());
+    log(verbose, "event=log_base_destruction name=%s component=%s\n", name.c_str(), impl.c_str());
     try {
         remove_svc_configure_loglevel();
     } catch (std::exception& e) {
@@ -120,10 +120,13 @@ void log_base::log(loglevel lvl, const char *format, ...) {
 
     if ((obj = robotkernel::kernel::instance.rk_log.get_pool_object()) != NULL) {
         // only ifempty log pool avaliable!
+        strlcpy(&obj->name[0], name.c_str(), sizeof(obj->name));
+        strlcpy(&obj->impl[0], impl.c_str(), sizeof(obj->impl));
+
         obj->lvl = lvl;
         int bufpos = 0;
-        bufpos += snprintf(obj->buf+bufpos, sizeof(obj->buf)-bufpos, "[%s|%s] ", 
-            name.c_str(), impl.c_str());
+//        bufpos += snprintf(obj->buf+bufpos, sizeof(obj->buf)-bufpos, "[%s|%s] ", 
+//            name.c_str(), impl.c_str());
 
         // format argument list    
         va_list args;

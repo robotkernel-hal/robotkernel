@@ -74,8 +74,8 @@ so_file::so_file(const YAML::Node& node) : config("") {
     file_name = get_as<string>(node, "so_file");
     
     if (node["config_file"]) {
-        kernel::instance.log(warning, "entry 'config_file' of so_file %s is deprecated !!! It will be removed in "
-                "future versions. Use 'config: !include config_file.rkc' instead.\n", 
+        kernel::instance.log(warning, "event=so_open message=\"entry 'config_file' of so_file %s is deprecated !!! It will be removed in "
+                "future versions. Use 'config: !include config_file.rkc' instead.\"\n", 
                 file_name.c_str());
 
         string config_file_name = get_as<string>(node, "config_file");
@@ -85,12 +85,12 @@ so_file::so_file(const YAML::Node& node) : config("") {
             config_file_name = kernel::instance.config_file_path + "/" + config_file_name;
         }
 
-        kernel::instance.log(verbose, "so_file %s config file \"%s\"\n", 
+        kernel::instance.log(verbose, "event=so_open filename=%s config_file=\"%s\"\n", 
                 file_name.c_str(), config_file_name.c_str());
 
         ifstream t(config_file_name.c_str());
         if(t.fail()) // check failbit
-            throw runtime_error(string_printf("could not open config file of so_file %s: %s",
+            throw runtime_error(string_printf("event=so_open message=\"could not open config file of so_file %s: %s\"",
                                 file_name.c_str(), config_file_name.c_str()));
         stringstream buffer;
         buffer << t.rdbuf();
@@ -113,7 +113,8 @@ so_file::so_file(const YAML::Node& node) : config("") {
         file_name = searchFile(file_name, locations);
     }
 
-    kernel::instance.log(info, "loading \"%s\"\n", file_name.c_str());
+    kernel::instance.log(info, "event=so_open filename=%s\n", get_as<string>(node, "so_file").c_str());
+    kernel::instance.log(verbose, "event=so_open full_filename=%s\n", file_name.c_str());
 
 #ifndef __VXWORKS__
     if((so_handle = dlopen(file_name.c_str(), RTLD_LOCAL | RTLD_NOW | RTLD_DEEPBIND | RTLD_NOLOAD)))
@@ -129,10 +130,11 @@ so_file::so_file(const YAML::Node& node) : config("") {
   */
 so_file::~so_file() {
     if (so_handle && !kernel::instance._do_not_unload_modules) {
-        kernel::instance.log(verbose, "unloading so_file %s\n", file_name.c_str());
+        kernel::instance.log(verbose, "event=so_close filename=%s\n", file_name.c_str());
 
         if (dlclose(so_handle) != 0)
-            kernel::instance.log(error, "error on unloading so_file %s\n", file_name.c_str());
+            kernel::instance.log(error, "event=so_close filename=%s error_message=%s\n", 
+                    file_name.c_str(), dlerror());
         else
             so_handle = NULL;
     }

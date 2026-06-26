@@ -101,7 +101,7 @@ void trigger::remove_trigger(sp_trigger_base_t trigger) {
         }
     }
 
-    robotkernel::kernel::instance.log(verbose, "trigger %s removed\n", id().c_str());
+    robotkernel::kernel::instance.log(verbose, "event=remove_trigger trigger=%s\n", id().c_str());
 }
 
 //! wait blocking for next trigger

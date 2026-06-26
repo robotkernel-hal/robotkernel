@@ -147,7 +147,7 @@ int main(int argc, char* argv[]) {
     for (int i = 1; i < argc; ++i) {
         if ((strcmp(argv[i], "--config") == 0) || (strcmp(argv[i], "-c") == 0)) {
             if (++i >= argc) {
-                robotkernel::kernel::instance.log(info, "--config filename missing\n");
+                robotkernel::kernel::instance.log(info, "event=main message=\"--config filename missing\"\n");
                 usage(argc, argv);
                 goto Exit;
             }
@@ -164,7 +164,7 @@ int main(int argc, char* argv[]) {
             test_run = true;
         else if ((strcmp(argv[i], "--power_up") == 0) || (strcmp(argv[i], "-p") == 0)) {
             if (++i >= argc) {
-                robotkernel::kernel::instance.log(info, "--power_up argument missing\n");
+                robotkernel::kernel::instance.log(info, "event=main message=\"--power_up argument missing\"\n");
                 usage(argc, argv);
                 goto Exit;
             }
@@ -182,7 +182,7 @@ int main(int argc, char* argv[]) {
     }
 
 #if (HAVE_LTTNG_UST == 1)
-    robotkernel::kernel::instance.log(info, "Built with LTTNG logging support!\n");
+    robotkernel::kernel::instance.log(info, "event=main message=\"Built with LTTNG logging support!\"\n");
 #endif
 
     try {
@@ -195,15 +195,15 @@ int main(int argc, char* argv[]) {
 
         power_up_state = kernel::instance.power_up();
     } catch (exception& e) {
-        robotkernel::kernel::instance.log(error, "config exception: %s\n", e.what());
+        robotkernel::kernel::instance.log(error, "event=main exception=\"%s\"\n", e.what());
         ret = -1;
         goto Exit;
     }
 
     if (power_up_state)
-        robotkernel::kernel::instance.log(info, "up and running!\n");
+        robotkernel::kernel::instance.log(info, "event=main message=\"up and running!\"\n");
     else
-        robotkernel::kernel::instance.log(info, "not powered up!\n");
+        robotkernel::kernel::instance.log(info, "event=main message=\"not powered up!\"\n");
 
     /* attach signal handler */
     action.sa_handler = signal_handler;
@@ -229,7 +229,7 @@ int main(int argc, char* argv[]) {
     }
 
 Exit:
-    robotkernel::kernel::instance.log(info, "exiting\n");
+    robotkernel::kernel::instance.log(info, "event=main message=\"exiting\"\n");
 
     robotkernel::kernel::instance.power_down();
 

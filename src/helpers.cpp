@@ -50,6 +50,165 @@ using namespace std;
 using namespace robotkernel;
 using namespace robotkernel::helpers;
 
+#include <pthread.h>
+#include <stdio.h>
+#include <string.h>
+#include <errno.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/syscall.h>
+
+/* Maximum length for thread names (Linux kernel limit is 16 bytes including null terminator) */
+#define THREAD_NAME_LEN 16
+
+/**
+ * Retrieves the kernel thread ID (TID) for a given pthread_t.
+ * This is required to construct the path /proc/self/task/<tid>/comm.
+ *
+ * Note: On Linux, pthread_t is not necessarily the TID.
+ * This helper works reliably only for the calling thread (pthread_self)
+ * without additional mapping structures.
+ */
+static pid_t get_tid(pthread_t thread) {
+#if defined(__linux__)
+    if (thread == pthread_self()) {
+        return (pid_t)syscall(SYS_gettid);
+    }
+    /*
+     * Fallback for other threads:
+     * Without glibc helpers, we cannot safely determine the TID of a foreign pthread_t.
+     * Return -1 to indicate that the /proc method is not viable for foreign threads
+     * without an external TID mapping.
+     */
+    return -1;
+#else
+    return -1; /* Not Linux */
+#endif
+}
+
+/**
+ * Reads the thread name directly from the procfs.
+ * Robust only for the calling thread unless an external TID mapping is available.
+ */
+static int get_name_procfs(char *name, size_t len) {
+    char path[64];
+    pid_t tid = syscall(SYS_gettid);
+    int fd;
+    ssize_t n;
+
+    if (len == 0) return EINVAL;
+    name[0] = '\0';
+
+    snprintf(path, sizeof(path), "/proc/self/task/%d/comm", tid);
+
+    fd = open(path, O_RDONLY);
+    if (fd == -1) {
+        return errno;
+    }
+
+    n = read(fd, name, len - 1);
+    close(fd);
+
+    if (n > 0) {
+        /* Remove trailing newline if present */
+        if (name[n-1] == '\n') {
+            name[n-1] = '\0';
+        } else {
+            name[n] = '\0';
+        }
+        return 0;
+    }
+
+    return (n == 0) ? 0 : errno;
+}
+
+/**
+ * Portable wrapper for pthread_getname_np.
+ *
+ * Returns: 0 on success, otherwise an error code.
+ */
+static int portable_pthread_getname(pthread_t thread, char *name, size_t len) {
+    int rc = -1;
+
+    if (len == 0) return EINVAL;
+    name[0] = '\0';
+
+    /* Attempt 1: Native glibc/macOS implementation (3 arguments: thread, buf, len) */
+#if defined(HAVE_PTHREAD_GETNAME_NP_3) /* Standard Linux/glibc signature */
+    rc = pthread_getname_np(thread, name, len);
+
+    /* Attempt 2: macOS / BSD variants (usually also 3 arguments) */
+#elif defined(HAVE_PTHREAD_GETNAME_NP) /* General check via Autoconf */
+    rc = pthread_getname_np(thread, name, len);
+
+    /* Attempt 3: Fallback to procfs (Linux only, safe only for current thread) */
+#else
+    /*
+     * If the function was not found at compile time,
+     * try the direct filesystem approach.
+     * Note: This works robustly only for the current thread,
+     * as resolving the TID of a foreign pthread_t is difficult without glibc.
+     */
+    if (thread == pthread_self()) {
+        rc = get_name_procfs(name, len);
+    } else {
+        /* No way to handle foreign threads in pure userspace without a mapping table */
+        rc = ENOTSUP;
+    }
+#endif
+
+    /*
+     * Additional safety check: Even if HAVE was defined, the function might be missing
+     * at runtime on very old or non-standard systems (e.g., some musl configurations).
+     * If rc remains -1, attempt the procfs fallback.
+     */
+    if (rc == -1) {
+         if (thread == pthread_self()) {
+            rc = get_name_procfs(name, len);
+         } else {
+            rc = ENOTSUP;
+         }
+    }
+
+    return rc;
+}
+
+/**
+ * Converts a scheduling policy integer to a human-readable string.
+ * 
+ * @param policy The scheduling policy integer (e.g., from pthread_getschedparam).
+ * @return A constant string representing the policy name, or "UNKNOWN" if unrecognized.
+ */
+const char* decode_sched_policy(int policy) {
+    switch (policy) {
+        case SCHED_OTHER:
+            return "SCHED_OTHER";
+        case SCHED_FIFO:
+            return "SCHED_FIFO";
+        case SCHED_RR:
+            return "SCHED_RR";
+#ifdef SCHED_BATCH
+        case SCHED_BATCH:
+            return "SCHED_BATCH";
+#endif
+#ifdef SCHED_IDLE
+        case SCHED_IDLE:
+            return "SCHED_IDLE";
+#endif
+#ifdef SCHED_DEADLINE
+        case SCHED_DEADLINE:
+            return "SCHED_DEADLINE";
+#endif
+#ifdef SCHED_SPORADIC
+        case SCHED_SPORADIC:
+            return "SCHED_SPORADIC";
+#endif
+        default:
+            return "UNKNOWN";
+    }
+}
+
 //! convert buffer to hex string
 std::string robotkernel::helpers::hex_string(const void *data, size_t len) {
     char hex_buf[4];
@@ -145,8 +304,12 @@ void robotkernel::helpers::set_priority(int priority, int policy) {
     if (!priority)
         return;
 
+    char thread_name[17];
+    int local_ret = portable_pthread_getname(pthread_self(), thread_name, 17);
+    (void)local_ret;
+
     struct sched_param param;
-    robotkernel::kernel::instance.log(info, "setting thread priority to %d, policy %d\n", priority, policy);
+    robotkernel::kernel::instance.log(info, "event=set_priority thread_name=\"%s\" priority=%d policy=%s\n", thread_name, priority, decode_sched_policy(policy));
 
     param.sched_priority = priority;
     if (pthread_setschedparam(pthread_self(), policy, &param) != 0) {
@@ -170,7 +333,11 @@ void robotkernel::helpers::set_affinity_mask(int affinity_mask) {
         if (affinity_mask & (1 << i))
             CPU_SET(i, &cpuset);
 
-    robotkernel::kernel::instance.log(info, "setting cpu affinity mask %#x\n", affinity_mask);
+    char thread_name[17];
+    int local_ret = portable_pthread_getname(pthread_self(), thread_name, 17);
+    (void)local_ret;
+
+    robotkernel::kernel::instance.log(info, "event=set_affinity_mask thread_name=\"%s\" cpu_affinity_mask=%#x\n", thread_name, affinity_mask);
 
     int ret = pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuset);
     if (ret != 0) {

@@ -62,7 +62,7 @@ void process_runner::run() {
         printf("Process exited.\n");
     } else {
         // Parent process
-        log(info, "Started process with PID: %ld\n", child_pid);
+        log(info, "event=process_runner_run pid=%ld\n", child_pid);
 
         close(stdout_pipe[1]); // close in
         close(stderr_pipe[1]); // close in
@@ -98,20 +98,20 @@ void process_runner::run() {
             // reading process STDOUT
             if (out_fd != -1 && FD_ISSET(out_fd, &read_fds)) {
                 if (fgets(buffer, sizeof(buffer), stream_o) == NULL) {
-                    log(info, "Closing stdout pipe\n");
+                    log(info, "event=process_runner_run message=\"Closing stdout pipe\"\n");
                     open_pipes--;
                 } else {
-                    log(info, "%s", buffer);
+                    log(info, "event=process_runner_run message=\"%s\"", buffer);
                 }
             }
 
             // reading process STDERR
             if (err_fd != -1 && FD_ISSET(err_fd, &read_fds)) {
                 if (fgets(buffer, sizeof(buffer), stream_e) == NULL) {
-                    log(info, "Closing stderr pipe\n");
+                    log(info, "event=process_runner_run message=\"Closing stderr pipe\"\n");
                     open_pipes--;
                 } else {
-                    log(error, "%s", buffer);
+                    log(error, "event=process_runner_run messge=\"%s\"", buffer);
                 }
             }
         }
@@ -124,7 +124,7 @@ void process_runner::stop() {
     auto end = start + timeout;
 
     if (child_pid) {
-        log(info, "Stopping process with PID: %lu\n", child_pid);
+        log(info, "event=process_runner_stop pid=%lu\n", child_pid);
 
         // Send SIGTERM first
         kill(child_pid, SIGTERM);
@@ -142,7 +142,7 @@ void process_runner::stop() {
 
         if (result == 0) {
             // Der Prozess existiert noch (ist noch nicht beendet)
-            log(warning, "Process didn't stop gracefully, sending SIGKILL\n");
+            log(warning, "event=process_runner_stop message=\"Process didn't stop gracefully, sending SIGKILL\"\n");
             kill(child_pid, SIGKILL);
         }
 

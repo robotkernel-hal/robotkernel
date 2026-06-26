@@ -63,7 +63,7 @@ process_runner(name),
         }
     }
 
-    log(info, "Created minimal root filesystem at: %s\n", rootfs_dir.c_str());
+    log(info, "event=process_runner root_filesystem=\"%s\"\n", rootfs_dir.c_str());
 }
 
 void bubblewrap_runner::start() {
@@ -96,6 +96,6 @@ void bubblewrap_runner::start() {
 void bubblewrap_runner::stop() {
     process_runner::stop();
 
-    log(info, "Cleaning up root filesystem at: %s\n", rootfs_dir.c_str());
+    log(info, "event=process_runner_stop root_filesystem=\"%s\"\n", rootfs_dir.c_str());
     robotkernel::helpers::filesystem::remove_directories(rootfs_dir);
 }

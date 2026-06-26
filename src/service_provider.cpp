@@ -69,7 +69,7 @@ service_provider::service_provider(const YAML::Node& node) : so_file(node) {
   destroys service_provider
   */
 service_provider::~service_provider() {
-    robotkernel::kernel::instance.log(verbose, "service_provider destructing %s\n", file_name.c_str());
+    robotkernel::kernel::instance.log(verbose, "event=service_provider_destruction filename=%s\n", file_name.c_str());
 
     // unconfigure service_provider first
     if (sp_handle && sp_unregister) {
@@ -87,7 +87,7 @@ void service_provider::add_interface(sp_service_interface_t req) {
         throw runtime_error(string_printf("%s not configured!\n", name.c_str()));
 
     if (!sp_add_interface) {
-        robotkernel::kernel::instance.log(error, "%s error: no sp_add_interface function\n", name.c_str());
+        robotkernel::kernel::instance.log(error, "event=add_interface interface_name=%s error_message=\"no sp_add_interface function\"\n", name.c_str());
         return; 
     }
 
@@ -104,7 +104,7 @@ void service_provider::remove_interface(sp_service_interface_t req) {
         throw runtime_error(string_printf("%s not configured!\n", name.c_str()));
 
     if (!sp_remove_interface) {
-        robotkernel::kernel::instance.log(error, "%s error: no sp_remove_interface function\n", name.c_str());
+        robotkernel::kernel::instance.log(error, "event=remove_interface interface_name=%s error_message=\"no sp_remove_interface function\"\n", name.c_str());
         return;
     }
 
@@ -120,7 +120,7 @@ void service_provider::remove_module(std::string mod_name) {
         throw runtime_error(string_printf("%s not configured!\n", name.c_str()));
 
     if (!sp_remove_module) {
-        robotkernel::kernel::instance.log(error, "%s error: no sp_remove_module function\n", name.c_str());
+        robotkernel::kernel::instance.log(error, "event=remove_module interface=%s error_message=\"no sp_remove_module function\"\n", name.c_str());
         return;
     }
 
@@ -136,7 +136,7 @@ bool service_provider::test_interface(sp_service_interface_t req) {
         throw runtime_error(string_printf("%s not configured!\n", name.c_str()));
 
     if (!sp_test_interface) {
-        throw runtime_error(string_printf("%s error: no sp_test_interface\n", name.c_str()));
+        throw runtime_error(string_printf("event=test_interface interface=%s error_message=\"no sp_test_interface\"\n", name.c_str()));
     }
 
     return sp_test_interface(sp_handle, req);

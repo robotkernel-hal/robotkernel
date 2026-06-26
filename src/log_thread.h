@@ -50,6 +50,8 @@ class log_thread : public runnable {
 
     public:
         struct log_pool_object {
+            char name[128];
+            char impl[128];
             char buf[1024];
             size_t len;
             struct timespec ts;

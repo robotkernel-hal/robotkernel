@@ -127,7 +127,8 @@ int kernel::set_state(std::string mod_name, module_state_t state,
                 "found!\n", mod_name.c_str()));
 
     sp_module_t mdl = it->second;
-    if (mdl->get_state() == state)
+    auto old_state = mdl->get_state();
+    if (old_state == state)
         return state;
 
     if (state == module_state_boot) {
@@ -147,15 +148,14 @@ int kernel::set_state(std::string mod_name, module_state_t state,
             continue;
 
         if (dep_mod_state == module_state_error) {
-            log(info, "dependent module %s is in error state, "
-                    "cannot power up module %s\n", d_mod_name.c_str(), 
-                    mod_name.c_str());
+            log(info, "event=state_transition module=%s dependency=%s error=\"dependency is in error state, "
+                    "cannot power up!\"\n", d_mod_name.c_str(), mod_name.c_str());
 
             return mdl->get_state();
         }
 
         if ((dep_mod_state < state) || (dep_mod_state == module_state_boot)) {
-            log(info, "powering up %s module dependencies %s to it's target state %s\n",
+            log(info, "event=state_transition module=%s dependency=%s target state=%s\n",
                     mod_name.c_str(), d_mod_name.c_str(), state_to_string(d_target_state));
 
             caller.push_back(mod_name);
@@ -184,15 +184,15 @@ int kernel::set_state(std::string mod_name, module_state_t state,
                 continue; // not dependent to us
 
             if (state < d_target_state) {
-                log(info, "%s depends on %s -> setting state to init\n",
-                        mdl2_mod_name.c_str(), mod_name.c_str());
+                log(info, "event=state_transition module=%s depends_on=%s target_state=%s\n",
+                        mdl2_mod_name.c_str(), mod_name.c_str(), state_to_string(module_state_init));
 
                 caller.push_back(mdl2_mod_name);
                 set_state(mdl2_mod_name, module_state_init, caller);
                 break;
             } else
-                log(verbose, "%s depend on %s but is always in a lower"
-                        " state\n", mdl2_mod_name.c_str(), mod_name.c_str());
+                log(verbose, "event=state_transition module=%s depends_on=%s message=\"already in a lower"
+                        " state\"\n", mdl2_mod_name.c_str(), mod_name.c_str());
         }
     }
 
@@ -206,13 +206,13 @@ int kernel::set_state(std::string mod_name, module_state_t state,
                 continue;
             }
 
-            log(info, "switching excluded module \"%s\" to init\n", e_mod_name.c_str());
+            log(info, "event=state_transition excluded_module=%s target_state=%s\n", e_mod_name.c_str(), state_to_string(module_state_init));
             set_state(e_mod_name, module_state_init, caller);
         }
     }
 
-    log(info, "setting state of %s to %s\n",
-            mod_name.c_str(), state_to_string(state));
+    log(info, "event=state_transition module=%s current_state=%s target_state=%s\n", 
+            mod_name.c_str(), state_to_string(old_state), state_to_string(state));
 
     if (mdl->set_state(state) == -1)
         // throw exception
@@ -232,11 +232,12 @@ module_state_t kernel::get_state(std::string mod_name) {
     if (it == module_map.end())
         throw runtime_error(string_printf("[robotkernel] get_state: module %s not found!\n", mod_name.c_str()));
 
-    log(verbose, "getting state of module %s\n",
-            mod_name.c_str());
-
     sp_module_t mdl = it->second;
-    return mdl->get_state();
+    auto state = mdl->get_state();
+    
+    log(verbose, "event=get_state module=%s current_state=%s\n", mod_name.c_str(), state_to_string(state));
+
+    return state;
 }
 
 //! call a robotkernel service
@@ -299,11 +300,11 @@ void kernel::add_service(
     
     std::unique_lock<std::recursive_mutex> lock(service_map_mtx);
     if (service_map.find(std::make_pair(owner, name)) != service_map.end()) {
-        log(warning, "SKIPPING service (already in) owner \"%s\", name \"%s\", service_definition:\n%s\n", 
+        log(warning, "event=add_service owner=\"%s\" name=\"%s\" service_definition=\"\n%s\n\" warning=\"skipping, already in\"", 
                 owner.c_str(), name.c_str(), service_definition.c_str());
         return;
     }
-    log(verbose, "adding service owner \"%s\", name \"%s\", service_definition:\n%s\n", 
+    log(verbose, "event=add_service owner=\"%s\" name=\"%s\" service_definition=\"\n%s\n\"", 
             owner.c_str(), name.c_str(), service_definition.c_str());
 
     service_t *svc          = new service_t();
@@ -356,7 +357,7 @@ void kernel::remove_services(const std::string& owner) {
             continue;
         }
 
-        log(verbose, "removing service %s.%s\n", svc.owner.c_str(), svc.name.c_str());
+        log(verbose, "event=remove_service owner=\"%s\" name=\"%s\"\n", svc.owner.c_str(), svc.name.c_str());
     
         for (const auto& kv : bridge_map)
             kv.second->remove_service(svc);
@@ -381,7 +382,7 @@ kernel::kernel() :
         
 //! destruction
 kernel::~kernel() {
-    log(info, "destructing...\n");
+    log(info, "event=destruction message=\"removing services\"\n");
     
     try {
         remove_svc_get_dump_log();
@@ -406,7 +407,7 @@ kernel::~kernel() {
     } catch (std::exception& e) {
     }
 
-    log(info, "removing modules\n");
+    log(info, "event=destruction message=\"removing modules\"\n");
 
     // first step: set all modules to init
     for (const auto& kv : module_map) {
@@ -416,7 +417,7 @@ kernel::~kernel() {
             set_state(mdl->get_name(), module_state_init);
         } catch (const std::exception& e) {
             // ignore this on destruction
-            log(warning, "got exception from set_state: %s\n", e.what());
+            log(warning, "event=destruction exception=\"%s\"\n", e.what());
         }
     }
 
@@ -427,33 +428,33 @@ kernel::~kernel() {
         module_map.erase(it);
     }
     
-    log(info, "removing bridges\n");
+    log(info, "event=destruction message=\"removing bridges\"\n");
     bridge_map_t::iterator bit;
     while ((bit = bridge_map.begin()) != bridge_map.end()) {
         sp_bridge_t bridge = bit->second;
         bridge_map.erase(bit);
 
-        log(verbose, "    bridge %s\n", bridge->name.c_str());
+        log(verbose, "event=destruction bridge=%s message=\"removing\"\n", bridge->name.c_str());
     }
     
-    log(info, "removing service providers\n");
+    log(info, "event=destruction message=\"removing service providers\"\n");
     service_provider_map_t::iterator sit;
     while ((sit = service_provider_map.begin()) != service_provider_map.end()) {
         sp_service_provider_t sp = sit->second;
         service_provider_map.erase(sit);
 
-        log(verbose, "    service_provider %s\n", sp->name.c_str());
+        log(verbose, "event=destruction service_provider=%s message=\"removing\"\n", sp->name.c_str());
     }
 
     // remove services
-    log(verbose, "removing services\n");
+    log(verbose, "event=destruction message=\"removing services\"\n");
     
     std::unique_lock<std::recursive_mutex> lock(service_map_mtx);
     service_map_t::iterator slit;
     while ((slit = service_map.begin()) != service_map.end()) {
         const auto& svc = *(slit->second);
 
-        log(verbose, "    service %s.%s\n", svc.owner.c_str(), svc.name.c_str());
+        log(verbose, "event=destruction owner=\"%s\" service=\"%s\" message=\"removing\"\n", svc.owner.c_str(), svc.name.c_str());
     
         for (const auto& kv : bridge_map)
             kv.second->remove_service(svc);
@@ -462,7 +463,7 @@ kernel::~kernel() {
         service_map.erase(slit);
     }
 
-    log(info, "clean up finished\n");
+    log(info, "event=destruction message=\"clean up finished\"\n");
     dump_log_free();
 }
 
@@ -695,8 +696,8 @@ void kernel::config(std::string config_file, int argc, char *argv[]) {
                 strerror(errno)));
 
     split_file_name(string(real_exec_file), exec_file_path, file);
-    log(verbose, "got exec path %s\n", exec_file_path.c_str());
-    log(verbose, "searching interfaces and modules ....\n");
+    log(verbose, "event=config exec_path=\"%s\"\n", exec_file_path.c_str());
+    log(verbose, "event=config message=\"searching interfaces and modules\"\n");
     free(real_exec_file);
 
     string base_path, sub_path;
@@ -725,14 +726,14 @@ void kernel::config(std::string config_file, int argc, char *argv[]) {
             if (stat(_intfpath.str().c_str(), &buf) == 0)
                 _internal_intfpath = _intfpath.str();
         } else {
-            log(info, "unable to determine internal modules/interfaces path!\n");
+            log(verbose, "event=config message=\"unable to determine internal modules/interfaces path!\n");
         }
     }
 
     if (_internal_modpath != string(""))
-        log(verbose, "found modules path %s\n", _internal_modpath.c_str());
+        log(verbose, "event=config module_path=\"%s\"\n", _internal_modpath.c_str());
     if (_internal_intfpath != string(""))
-        log(verbose, "found interfaces path %s\n", _internal_intfpath.c_str());
+        log(verbose, "event=config interface_path=\"%s\"\n", _internal_intfpath.c_str());
 
     if (config_file.compare("") == 0) {
         return;
@@ -744,7 +745,7 @@ void kernel::config(std::string config_file, int argc, char *argv[]) {
 
     split_file_name(string(real_config_file), config_file_path, file);
 
-    log(verbose, "got config file path: %s, file name %s\n",
+    log(verbose, "event=config config_file_path=\"%s\" filename=\"%s\"\n",
             config_file_path.c_str(), file.c_str());
 
     this->config_file = string(real_config_file);
@@ -759,7 +760,7 @@ void kernel::config(std::string config_file, int argc, char *argv[]) {
     _name = get_as<string>(doc, "name");
     log_base::name = _name;
 
-    log(info, "Robotkernel " PACKAGE_VERSION "\n");
+    log(info, "event=config message=\"Robotkernel " PACKAGE_VERSION "\"\n");
 
     // locking all current and future memory to keep it hold in 
     // memory without swapping
@@ -825,7 +826,7 @@ void kernel::config(std::string config_file, int argc, char *argv[]) {
         }
 
         // add to module map
-        log(verbose, "adding [%s]\n", mdl->get_name().c_str());
+        log(verbose, "event=config message=\"adding module [%s]\"\n", mdl->get_name().c_str());
         module_map[mdl->get_name()] = mdl;
         
         mdl->set_state(module_state_init);
@@ -854,7 +855,7 @@ void kernel::config(std::string config_file, int argc, char *argv[]) {
         }
 
         // add to module map
-        log(verbose, "adding [%s]\n", brdg->name.c_str());
+        log(verbose, "event=config message=\"adding bridge [%s]\"\n", brdg->name.c_str());
         bridge_map[brdg->name] = brdg;
 
         std::unique_lock<std::recursive_mutex> lock(service_map_mtx);
@@ -885,7 +886,7 @@ void kernel::config(std::string config_file, int argc, char *argv[]) {
         }
 
         // add to module map
-        log(verbose, "adding [%s]\n", sp->name.c_str());
+        log(verbose, "event=config message=\"adding service provider [%s]\"\n", sp->name.c_str());
         service_provider_map[sp->name] = sp;
     }
 
@@ -924,8 +925,8 @@ bool kernel::power_up() {
                        current_state = mdl->get_state();
 
         if (current_state == module_state_error) {
-            log(info, "module '%s' in in error state, not "
-                    "powering up!\n", mdl->get_name().c_str());
+            log(info, "event=power_up module=%s message=\"Module is in error state, not "
+                    "powering up!\"\n", mdl->get_name().c_str());
             failed_modules.push_back(mdl->get_name());
             continue;
         }
@@ -934,11 +935,11 @@ bool kernel::power_up() {
             continue;
 
         try {
-            log(info, "powering up '%s' to state %s\n", 
+            log(info, "event=power_up module=%s target_state=%s\n", 
                     mdl->get_name().c_str(), state_to_string(target_state));
             set_state(mdl->get_name(), target_state);
         } catch (exception& e) {
-            log(error, "caught exception: %s\n", e.what());
+            log(error, "event=power_up exception=\"%s\"\n", e.what());
             failed_modules.push_back(mdl->get_name());
         }
     }
@@ -952,7 +953,7 @@ bool kernel::power_up() {
                 msg += ", ";
             msg += *it;
         }
-        log(error, "%s\n", msg.c_str());
+        log(error, "event=power_up error_message=\"%s\"\n", msg.c_str());
         return false;
     }
 
@@ -971,7 +972,7 @@ void kernel::power_down() {
         try {
             set_state(mdl->get_name(), module_state_init);
         } catch (exception& e) {
-            log(error, "caught exception: %s\n", e.what());
+            log(error, "event=power_down exception=\"%s\"\n", e.what());
         }
     }
 }
@@ -1000,8 +1001,8 @@ bool kernel::state_check() {
     for (auto& kv : module_map) {
         module_state_t state = kv.second->get_state();
         if (state & module_state_error) {
-            log(error, "module %s signaled error, switching "
-                    "to init\n", kv.first.c_str());
+            log(error, "event=state_check module=%s message=\"signaled error, switching "
+                    "to init\"\n", kv.first.c_str());
             set_state(kv.first.c_str(), module_state_init);
         }
     }
@@ -1040,8 +1041,8 @@ int kernel::state_change(const char *mod_name, module_state_t new_state) {
     if (new_state == current_state)
         return 0;
 
-    log(info, "WARNING: module %s changed state to %d, old state %d\n",
-            mod_name, new_state, current_state);
+    log(info, "event=state_change module=%s current_state=%s, old_state=%s\n",
+            mod_name, state_to_string(new_state), state_to_string(current_state));
 
     printf("\n\n\n THIS IS UNEXPECTED !!!! \n\n\n");
 
@@ -1054,7 +1055,7 @@ int kernel::state_change(const char *mod_name, module_state_t new_state) {
 void kernel::add_device_listener(sp_device_listener_t dl) {
     auto key = std::make_pair(dl->owner, dl->name);
     if (dl_map.find(key) != dl_map.end()) {
-        log(warning, "duplicate device listener! owner %s, name %s\n", 
+        log(warning, "event=add_device_listener owner=%s name=%s warning=\"duplicate device listener!\"\n", 
                 dl->owner.c_str(), dl->name.c_str());
         return;
     }
@@ -1071,7 +1072,7 @@ void kernel::remove_device_listener(sp_device_listener_t dl) {
     auto key = std::make_pair(dl->owner, dl->name);
     auto it = dl_map.find(key);
     if (it == dl_map.end()) {
-        log(warning, "cannot remove device listener (does not exists)! owner %s, name %s\n", 
+        log(warning, "event=remove_device_listener owner=%s name=%s warning:\"cannot remove device listener (does not exists)!\"\n", 
                 dl->owner.c_str(), dl->name.c_str());
         return;
     }
@@ -1089,11 +1090,11 @@ void kernel::add_device(sp_device_t req) {
     auto map_index = req->id();
     std::unique_lock<std::recursive_mutex> lock(device_map_mtx);
     if (device_map.find(map_index) != device_map.end()) {
-        log(warning, "duplicate regiser of device \"%s\", ignoring new device!\n", map_index.c_str());
+        log(warning, "event=add_device name=%s warning=\"duplicate regiser, ignoring!\"\n", map_index.c_str());
         return; // already in
     }
 
-    log(verbose, "registered device \"%s\"\n", map_index.c_str());
+    log(verbose, "event=add_device device=%s\n", map_index.c_str());
     device_map[map_index] = req;
     
     const auto& pd = std::dynamic_pointer_cast<process_data>(req);
@@ -1108,7 +1109,7 @@ void kernel::add_device(sp_device_t req) {
 // remove a named device
 void kernel::remove_device(sp_device_t req) {
     if (!req) {
-        log(warning, "tried to remove nullptr device!\n");
+        log(warning, "event=remove_device warning=\"tried to remove nullptr device!\"\n");
         return;
     }
 
@@ -1119,7 +1120,7 @@ void kernel::remove_device(sp_device_t req) {
         remove_device(pd->trigger_dev);
     }
 
-    log(verbose, "removing device %s\n", map_index.c_str());
+    log(verbose, "event=remove_device device=%s\n", map_index.c_str());
 
     for (const auto& kv : dl_map) 
         kv.second->notify_remove_device(req);
@@ -1138,7 +1139,7 @@ void kernel::remove_devices(const std::string& owner) {
     std::unique_lock<std::recursive_mutex> lock(device_map_mtx);
     for (auto it = device_map.begin(); it != device_map.end(); ) {
         if (it->second->owner == owner) {
-            log(verbose, "removing device %s\n", it->second->id().c_str());
+            log(verbose, "event=remove_device device=%s\n", it->second->id().c_str());
             it = device_map.erase(it);
         } else
             ++it;
@@ -1194,7 +1195,7 @@ void kernel::svc_config_dump_log(
     resp.error_message    = "";
 
     dump_log_set_len(req.max_len, req.do_ust);
-    log(info, "dump_log len set to %d, do_ust to %d\n", req.max_len, req.do_ust);
+    log(info, "event=svc_config_dump_log dump_log_len=%d do_ust=%d\n", req.max_len, req.do_ust);
 
 #define loglevel_to_string(x)             \
     if (ll == x)                          \
@@ -1222,12 +1223,12 @@ void kernel::svc_add_module(
         string mod_name = get_as<string>(node, "name");
         string so_file  = get_as<string>(node, "so_file");
 
-        log(info, "adding module \"%s\" as \"%s\"\n", so_file.c_str(), mod_name.c_str());
+        log(info, "event=svc_add_module module=%s filename=%s=\n", mod_name.c_str(), so_file.c_str());
         load_module(node);
-        log(info, "module \"%s\" added\n", mod_name.c_str());
+        log(info, "event=svc_add_module module=%s message=\"added\"\n", mod_name.c_str());
     } catch(exception& e) {
         resp.error_message = e.what();
-        log(error, "error adding module: %s\n", resp.error_message.c_str());
+        log(error, "event=svc_add_module error_message=\"%s\"\n", resp.error_message.c_str());
     }
 
 }
@@ -1242,7 +1243,7 @@ void kernel::svc_remove_module(
         struct services::robotkernel::kernel::svc_resp_remove_module& resp)
 {
     try {
-        log(info, "removing module \"%s\"\n", req.name.c_str());
+        log(info, "event=svc_remove_module module=%s\n", req.name.c_str());
 
         std::unique_lock<std::recursive_mutex> lock(module_map_mtx);
         module_map_t::iterator it = module_map.find(req.name);
@@ -1255,10 +1256,10 @@ void kernel::svc_remove_module(
 
         module_map.erase(it);
 
-        log(info, "module \"%s\" removed\n", req.name.c_str());
+        log(info, "event=svc_remove_module module=%s message=\"removed\"\n", req.name.c_str());
     } catch (exception& e) {
         resp.error_message = e.what();
-        log(error, "error removing module: %s\n", resp.error_message.c_str());
+        log(error, "event=svc_remove_module module=%s error_message=\"%s\"\n", resp.error_message.c_str());
     }
 }
 

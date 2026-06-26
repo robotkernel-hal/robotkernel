@@ -41,17 +41,17 @@ void split_file_name(const string& str, string& path, string& file);
 void parse_node(YAML::Node e, const std::string& config_file_path) {
     switch (e.Type()) {
         case YAML::NodeType::Undefined:
-            kernel::instance.log(verbose, "got NodeType: Undefined\n");
+            kernel::instance.log(verbose, "event=parse_node node_type=Undefined\n");
             break;
         case YAML::NodeType::Null:
-            kernel::instance.log(verbose, "got NodeType: Null\n");
+            kernel::instance.log(verbose, "event=parse_node node_type=Null\n");
             break;
         case YAML::NodeType::Scalar:
-            kernel::instance.log(verbose, "got NodeType: Scalar\n");
+            kernel::instance.log(verbose, "event=parse_node node_type=Scalar\n");
 
             if (e.Tag() == "!include") {
                 string fn = e.as<string>();
-                kernel::instance.log(verbose, "got !include tag: %s\n", fn.c_str());
+                kernel::instance.log(verbose, "event=parse_node tag:include filename=%s\n", fn.c_str());
                 
                 // check for absolute/relative path
                 if (fn[0] != '/') {
@@ -66,7 +66,7 @@ void parse_node(YAML::Node e, const std::string& config_file_path) {
                 string file, new_config_file_path;
                 split_file_name(string(real_config_file), new_config_file_path, file);
                 
-                robotkernel::kernel::instance.log(verbose, "config file \"%s\"\n", fn.c_str());
+                robotkernel::kernel::instance.log(verbose, "event=parse_node config_file=%s\n", fn.c_str());
 
                 struct stat buffer;   
                 int ret = stat(fn.c_str(), &buffer);
@@ -98,19 +98,18 @@ void parse_node(YAML::Node e, const std::string& config_file_path) {
             }
             break;
         case YAML::NodeType::Sequence:
-            kernel::instance.log(verbose, "got NodeType: Sequence\n");
+            kernel::instance.log(verbose, "event=parse_node node_type=Sequence\n");
             for (auto s : e) {
-                kernel::instance.log(verbose, "seq -> ");
                 parse_node(s, config_file_path);
             }
             break;
         case YAML::NodeType::Map:
-            kernel::instance.log(verbose, "got NodeType: Map\n");
+            kernel::instance.log(verbose, "event=parse_node node_type=Map\n");
 
             for (auto kv : e) {
-                kernel::instance.log(verbose, "first -> ");
+                kernel::instance.log(verbose, "event=parse_node node_type=Map map=first");
                 parse_node(kv.first, config_file_path);
-                kernel::instance.log(verbose, "second -> ");
+                kernel::instance.log(verbose, "event=parse_node node_type=Map map=second");
                 parse_node(kv.second, config_file_path);
             }
             break;
@@ -118,7 +117,7 @@ void parse_node(YAML::Node e, const std::string& config_file_path) {
 }
 
 YAML::Node robotkernel::rkc_load_file(const std::string& filename) {
-    kernel::instance.log(verbose, "rkc_load_file %s\n", filename.c_str());
+    kernel::instance.log(verbose, "event=parse_node rkc_load_file=%s\n", filename.c_str());
     
     for (int i = 1; i < kernel::instance.main_argc; ++i) {
         if ((strncmp(kernel::instance.main_argv[i], "--", 2) == 0) && ((i+1) < kernel::instance.main_argc) && !(strncmp(kernel::instance.main_argv[i+1], "-", 1) == 0)) {
@@ -135,7 +134,7 @@ YAML::Node robotkernel::rkc_load_file(const std::string& filename) {
 
     YAML::Emitter emit;
     emit << node;
-    kernel::instance.log(verbose, "preproc config: %s\n", emit.c_str());
+    kernel::instance.log(verbose, "event=parse_node config=\"%s\"\n", emit.c_str());
 
     return node;
 }

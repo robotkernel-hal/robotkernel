@@ -65,7 +65,7 @@ trigger_worker::trigger_worker(int prio, int affinity_mask, int divisor, unsigne
 {
     // start worker thread
     start();
-    kernel::instance.log(info, "[trigger_worker] created (prio %d, affinity mask %d, divisor %d, cycle_shift %u)\n", 
+    kernel::instance.log(info, "event=trigger_worker priority=%d affinity_mask=%d divisor=%d cycle_shift=%u\n", 
             prio, affinity_mask, divisor, cycle_shift);
 };
         
@@ -73,7 +73,7 @@ trigger_worker::trigger_worker(int prio, int affinity_mask, int divisor, unsigne
 trigger_worker::~trigger_worker() {
     // stop worker thread
     stop();
-    kernel::instance.log(info, "[trigger_worker] destructed\n");
+    kernel::instance.log(info, "event=trigger_worker message=\"destructed\"\n");
 }
 
 //! add trigger to worker
@@ -103,7 +103,7 @@ void trigger_worker::remove_trigger(sp_trigger_base_t trigger) {
 
 //! handler function called if thread is running
 void trigger_worker::run() {
-    kernel::instance.log(info, "[trigger_worker] running worker thread\n");
+    kernel::instance.log(info, "event=trigger_worker message=\"running worker thread\"\n");
     
     // lock mutex cause we access _modules
     std::unique_lock<std::mutex> lock(mtx);
@@ -118,7 +118,7 @@ void trigger_worker::run() {
             t->tick();
     }
         
-    kernel::instance.log(info, "[trigger_worker] finished worker thread\n");
+    kernel::instance.log(info, "event=trigger_worker  message=\"finished worker thread\"\n");
 }
 
 //! trigger worker

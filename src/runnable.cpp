@@ -95,7 +95,7 @@ void runnable::run_wrapper() {
         
 //! handler function called if thread is running
 void runnable::run() {
-    robotkernel::kernel::instance.log(error, "[runnable] run() not implemented!\n");
+    robotkernel::kernel::instance.log(error, "event=run message=\"run() method not implemented!\"\n");
 }
 
 //! run thread
@@ -133,7 +133,7 @@ void runnable::join() {
  */
 void runnable::set_prio(int prio) { 
     if (prio != 0) {
-        robotkernel::kernel::instance.log(verbose, "[runnable] setting thread priority to %d\n", prio);
+        robotkernel::kernel::instance.log(verbose, "event=set_prio thread_priority=%d\n", prio);
 
         this->prio = prio;
         if (running())
@@ -147,7 +147,7 @@ void runnable::set_prio(int prio) {
  */
 void runnable::set_affinity_mask(int mask) {
     if (mask != 0) {
-        robotkernel::kernel::instance.log(verbose, "[runnable] setting cpu affinity mask %Xh\n", mask); 
+        robotkernel::kernel::instance.log(verbose, "event=set_affinity_mask affinity_mask=%Xh\n", mask); 
         this->affinity_mask = mask;
         if (running())
             ::set_affinity_mask(mask);
@@ -156,7 +156,7 @@ void runnable::set_affinity_mask(int mask) {
         
 //! set thread name
 void runnable::set_name(std::string name) {
-    robotkernel::kernel::instance.log(verbose, "[runnable] setting thread name to %s\n", name.c_str());
+    robotkernel::kernel::instance.log(verbose, "event=set_thread_name thread_name=%s\n", name.c_str());
 
     this->thread_name = name;
     if (running())

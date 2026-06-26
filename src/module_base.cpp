@@ -57,7 +57,7 @@ int module_base::set_state(module_state_t target_state) {
             std::unique_lock<std::mutex> lock(state_mtx);
             transition_func();
         } catch (std::exception& e) {
-            log(error, "caught exception during %s_2_%s: %s\n", 
+            log(error, "event=set_state current_state=%s target_state=%s exception=\"%s\"\n", 
                     state_to_string(this->state), 
                     state_to_string(target_state), 
                     e.what());
