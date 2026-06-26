@@ -172,7 +172,7 @@ void log_thread::run() {
             time_t seconds = (time_t)timestamp;
             int mseconds = (timestamp - (double)seconds) * 1000;
             localtime_r(&seconds, &timeinfo);
-            strftime(&tmp_buf[0], sizeof(tmp_buf), "%F %T", &timeinfo);
+            strftime(&tmp_buf[0], sizeof(tmp_buf), "%FT%T", &timeinfo);
 
             if (obj->lvl.value == error) {
                 printf("%s", ANSI_RED.c_str());
