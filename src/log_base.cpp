@@ -44,6 +44,20 @@ using namespace std::placeholders;
 using namespace robotkernel;
 using namespace robotkernel::helpers;
 
+static void _strlcpy(char* dest, const std::string& src, size_t dest_size) {
+    if (dest_size == 0) return;
+
+    size_t len = src.length();
+    size_t max_len = dest_size - 1;
+
+    if (len > max_len) {
+        len = max_len;
+    }
+
+    std::memcpy(dest, src.c_str(), len);
+    dest[len] = '\0';
+}
+
 //! construction
 /*!
  * \param[in]   ll          Loglevel to set.
@@ -120,22 +134,17 @@ void log_base::log(loglevel lvl, const char *format, ...) {
 
     if ((obj = robotkernel::kernel::instance.rk_log.get_pool_object()) != NULL) {
         // only ifempty log pool avaliable!
-        strlcpy(&obj->name[0], name.c_str(), sizeof(obj->name));
-        strlcpy(&obj->impl[0], impl.c_str(), sizeof(obj->impl));
-
         obj->lvl = lvl;
-        int bufpos = 0;
-//        bufpos += snprintf(obj->buf+bufpos, sizeof(obj->buf)-bufpos, "[%s|%s] ", 
-//            name.c_str(), impl.c_str());
+        _strlcpy(&obj->name[0], name, sizeof(obj->name));
+        _strlcpy(&obj->impl[0], impl, sizeof(obj->impl));
+
 
         // format argument list    
         va_list args;
         va_start(args, format);
-        bufpos += vsnprintf(obj->buf+bufpos, sizeof(obj->buf)-bufpos, format, args);
+        obj->len = vsnprintf(obj->buf, sizeof(obj->buf), format, args);
         va_end(args);
     
-        obj->len = bufpos;
-
         if (robotkernel::kernel::instance.do_log_to_trace_fd()) {
             robotkernel::kernel::instance.trace_write(obj);
         }
