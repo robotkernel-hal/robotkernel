@@ -80,7 +80,6 @@ void dump_log_set_len(unsigned int len, unsigned int do_ust) {
 
     if(_dump_log_len > 0) {
         if(!_dump_log_buffer) {
-            printf("allocating %d bytes\n", _dump_log_len);
             _dump_log_buffer = new char_ringbuffer(_dump_log_len);
         } else
             _dump_log_buffer->set_size(_dump_log_len);
