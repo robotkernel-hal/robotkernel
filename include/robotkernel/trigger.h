@@ -142,6 +142,8 @@ typedef std::shared_ptr<trigger_waiter> sp_trigger_waiter_t;
  */
 class trigger : public device
 {
+    friend class kernel;
+
     private:
         /// Disable copy construction.
         trigger(const trigger&);

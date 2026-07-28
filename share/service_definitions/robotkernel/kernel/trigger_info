@@ -1,3 +1,17 @@
+datatypes:
+  robotkernel/kernel/triggerable_entry:
+    fields:
+      divisor: { type: int32_t }
+      cycle_shift: { type: uint32_t }
+      direct_mode: { type: bool }
+      prio: { type: int32_t }
+      affinity_mask: { type: int32_t }
+
+  robotkernel/kernel/triggerable_list:
+    fields:
+      priority: { type: int32_t }
+      entries: { type: robotkernel/kernel/triggerable_entry, array: true }
+    
 services:
   robotkernel/kernel/trigger_info:
     request:
@@ -6,3 +20,6 @@ services:
       owner: { type: string }
       rate: { type: double }
       error_message: { type: string, default: "no error" }
+      triggerable_list: { type: robotkernel/kernel/triggerable_list, array: true }
+
+  

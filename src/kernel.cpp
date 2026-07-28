@@ -1461,6 +1461,27 @@ void kernel::svc_trigger_info(
         if (dev) {
             resp.owner     = dev->owner;
             resp.rate      = dev->get_rate();
+                
+            using services::robotkernel::kernel::triggerable_list;
+            using services::robotkernel::kernel::triggerable_entry;
+
+            printf("filling info\n");
+            for (const auto& kv : dev->triggers) {
+                triggerable_list t_list;
+                t_list.priority = kv.first;
+
+                for (const auto& tmp : kv.second) {
+                    t_list.entries.push_back(
+                            triggerable_entry( {
+                                tmp->divisor,
+                                tmp->cycle_shift,
+                                tmp->direct_mode,
+                                tmp->worker_prio,
+                                tmp->worker_affinity } ));
+                }
+
+                resp.triggerable_list.push_back(t_list);;
+            }
         } else 
             resp.error_message = 
                 string_printf("device with name \"%s\" is not a trigger device!", req.name.c_str());
