@@ -1,7 +1,36 @@
+robotkernel (6.0.2) stable; urgency=low
+
+  * log: add/remove device now printed with info
+  * change: trigger_info service now return triggerable_list
+  * github: add debian-13 build
+  * remove: debug printf
+  * fix: add T as separator between date and time log msg
+  * fix: added own strlcpy
+  * change: new log message format
+  * fix: process_data_info service length datatype
+  * fix: add/remove module error handling message formatting
+  * add: pd defintiion, datatype definition, service definition services
+  * fix: removed debug log messages
+  * add: list_services service
+  * github: build also on trixie
+  * fix: adding /usr/share/robotkernel/lib to so search path
+  * update: debian changelog
+  * github: fix dch version command
+
+ -- Robert Burger <robert.burger@dlr.de>  Tue, 28 Jul 2026 08:46:10 +0200
+
 robotkernel (6.0.1) stable; urgency=low
 
   * prepare: 6.0.1
   * fix: threads must not join itself when stopped
+  * github: fix inherit secrets
+  * github: moved create_release
+  * github: fix filename
+  * github: calling both jobs from trigger files
+  * github: fix syntax
+  * github: trigger files
+  * github: fix tagname
+  * github: workflow_dispatch
 
 robotkernel (6.0.0) stable; urgency=low
 
